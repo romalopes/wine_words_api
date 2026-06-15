@@ -44,8 +44,11 @@ class Api::V1::WinesController < ApplicationController
     permitted = params.require(:wine).permit(
       :name, :region, :color, :prompt, :closure, :alcohol_percentage, :volume_ml,
       vintages_attributes: [:id, :year, :prompt, :_destroy],
-      wine_taste_parameters_attributes: [:id, :taste_parameter_slug, :score, :_destroy]
+      # wine_taste_parameters_attributes: [:id, :taste_parameter_slug, :score, :_destroy]
+      wine_taste_parameters_attributes: [:id, :taste_parameter_id, :taste_parameter_slug, :score, :_destroy]
     )
+
+
     # Convert taste_parameter_slug to taste_parameter_id
     if permitted[:wine_taste_parameters_attributes]
       permitted[:wine_taste_parameters_attributes].each do |attrs|
@@ -59,3 +62,4 @@ class Api::V1::WinesController < ApplicationController
     permitted
   end
 end
+
