@@ -1,0 +1,13 @@
+<% content_for :title, "#{@test_parameter.label} · Test Parameters" %>
+<article class="test-parameter-page">
+  <%= link_to "← All test parameters", test_parameters_path, class: "back-link" %>
+  <h1><%= @test_parameter.label %></h1>
+  <ul class="facts" aria-label="Test parameter details">
+    <% if @test_parameter.low.present? %>
+      <li><strong>Low:</strong> <%= @test_parameter.low %></li>
+    <% end %>
+    <% if @test_parameter.high.present? %>
+      <li><strong>High:</strong> <%= @test_parameter.high %></li>
+    <% end %>
+  </ul>
+</article>

@@ -6,4 +6,14 @@ class Vintage < ApplicationRecord
   validates :prompt, presence: true
 
   accepts_nested_attributes_for :reviews, allow_destroy: true, reject_if: :all_blank
+
+  delegate :name, to: :wine, prefix: true, allow_nil: true
+
+  def name
+    [wine&.name, year].compact.join(" ")
+  end
+
+  def slug
+    "#{wine&.slug}-#{year}"
+  end
 end

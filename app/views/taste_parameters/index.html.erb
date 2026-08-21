@@ -1,0 +1,23 @@
+<h1>Taste Parameters</h1>
+<p class="lede">Manage taste parameters and their associated values.</p>
+<% if @taste_parameters.any? %>
+  <section class="taste-parameter-grid" aria-label="Taste parameters">
+    <% @taste_parameters.each do |parameter| %>
+      <%= link_to taste_parameter_path(parameter.slug), class: "taste-parameter-card #{taste_parameter_color_class(parameter)}" do %>
+        <div class="taste-parameter-card__band"></div>
+        <div class="taste-parameter-card__content">
+          <h2><%= parameter.label %></h2>
+          <p class="meta"><%= [parameter.low, parameter.high].compact.join(" · ") %></p>
+          <% if taste_parameter_details(parameter).present? %>
+            <p class="details"><%= taste_parameter_details(parameter) %></p>
+          <% end %>
+          <div class="values">
+            <%= pluralize(parameter.wine_taste_parameters.size, "wine parameter") %>
+          </div>
+        </div>
+      <% end %>
+    <% end %>
+  </section>
+<% else %>
+  <p class="empty">No taste parameters have been added yet.</p>
+<% end %>

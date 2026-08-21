@@ -1,0 +1,23 @@
+<h1>Reviews</h1>
+<p class="lede">Browse reviews and their associated vintages.</p>
+<% if @reviews.any? %>
+  <section class="review-grid" aria-label="Reviews">
+    <% @reviews.each do |review| %>
+      <%= link_to review_path(review.id), class: "review-card #{review_status_class(review)}" do %>
+        <div class="review-card__band"></div>
+        <div class="review-card__content">
+          <h2><%= review.vintage&.name %></h2>
+          <p class="meta"><%= review_score(review) %></p>
+          <% if review.comment.present? %>
+            <p class="details"><%= review.comment %></p>
+          <% end %>
+          <div class="status">
+            <span class="tag"><%= review.status %></span>
+          </div>
+        </div>
+      <% end %>
+    <% end %>
+  </section>
+<% else %>
+  <p class="empty">No reviews have been added yet.</p>
+<% end %>

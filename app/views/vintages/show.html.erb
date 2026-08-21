@@ -1,0 +1,25 @@
+<% content_for :title, "#{@vintage.name} · Vintages" %>
+<article class="vintage-page">
+  <%= link_to "← All vintages", vintages_path, class: "back-link" %>
+  <h1><%= @vintage.name %></h1>
+  <p class="lede"><%= [@vintage.year, @vintage.wine_name].compact.join(" · ") %></p>
+  <% if @vintage.prompt.present? %>
+    <p class="prompt"><%= @vintage.prompt %></p>
+  <% end %>
+  <h2>Reviews</h2>
+  <% if @vintage.reviews.any? %>
+    <ul class="review-list">
+      <% @vintage.reviews.each do |review| %>
+        <li>
+          <strong><%= review_score(review) %></strong>
+          <span class="tag"><%= review.status %></span>
+          <% if review.comment.present? %>
+            <p><%= review.comment %></p>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <p class="empty">No reviews are available yet.</p>
+  <% end %>
+</article>

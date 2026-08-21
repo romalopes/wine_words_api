@@ -1,0 +1,15 @@
+<%= form_with model: wine_taste_parameter, local: true do |f| %>
+  <div>
+    <%= f.label :wine_id %><br>
+    <%= f.collection_select :wine_id, Wine.order(:name), :id, :name, include_blank: true %>
+  </div>
+  <div>
+    <%= f.label :taste_parameter_id %><br>
+    <%= f.collection_select :taste_parameter_id, TasteParameter.order(:label), :id, :label, include_blank: true %>
+  </div>
+  <div>
+    <%= f.label :score %><br>
+    <%= f.number_field :score, min: 0, max: 100 %>
+  </div>
+  <div><%= f.submit %></div>
+<% end %>

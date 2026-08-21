@@ -1,0 +1,17 @@
+<h1>Test Parameters</h1>
+<p class="lede">Manage test parameters and their associated values.</p>
+<% if @test_parameters.any? %>
+  <section class="test-parameter-grid" aria-label="Test parameters">
+    <% @test_parameters.each do |parameter| %>
+      <%= link_to test_parameter_path(parameter.slug), class: "test-parameter-card #{test_parameter_color_class(parameter)}" do %>
+        <div class="test-parameter-card__band"></div>
+        <div class="test-parameter-card__content">
+          <h2><%= parameter.label %></h2>
+          <p class="meta"><%= [parameter.low, parameter.high].compact.join(" · ") %></p>
+        </div>
+      <% end %>
+    <% end %>
+  </section>
+<% else %>
+  <p class="empty">No test parameters have been added yet.</p>
+<% end %>

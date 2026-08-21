@@ -1,0 +1,17 @@
+<h1>Vintages</h1>
+<p class="lede">Browse vintages associated with each wine.</p>
+<% if @vintages.any? %>
+  <section class="vintage-grid" aria-label="Vintages">
+    <% @vintages.each do |vintage| %>
+      <%= link_to vintage_path(vintage.slug), class: "vintage-card #{vintage_color_class(vintage)}" do %>
+        <div class="vintage-card__band"></div>
+        <div class="vintage-card__content">
+          <h2><%= vintage.name %></h2>
+          <p class="meta"><%= [vintage.year, vintage.wine_name].compact.join(" · ") %></p>
+        </div>
+      <% end %>
+    <% end %>
+  </section>
+<% else %>
+  <p class="empty">No vintages have been added yet.</p>
+<% end %>

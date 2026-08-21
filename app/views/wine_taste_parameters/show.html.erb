@@ -1,0 +1,9 @@
+<% content_for :title, "Wine Taste Parameter" %>
+<article class="wine-taste-parameter-page">
+  <%= link_to "← All wine taste parameters", wine_taste_parameters_path, class: "back-link" %>
+  <h1><%= @wine_taste_parameter.wine&.name %></h1>
+  <p class="lede"><%= wine_taste_parameter_label(@wine_taste_parameter) %></p>
+  <ul class="facts" aria-label="Wine taste parameter details">
+    <li><strong>Score:</strong> <%= @wine_taste_parameter.score %></li>
+  </ul>
+</article>

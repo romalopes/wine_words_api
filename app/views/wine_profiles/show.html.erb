@@ -1,0 +1,32 @@
+<% content_for :title, "#{@wine_profile.name} · Wine Profiles" %>
+<article class="wine-profile-page">
+  <%= link_to "← All wine profiles", wine_profiles_path, class: "back-link" %>
+  <h1><%= @wine_profile.name %></h1>
+  <p class="lede"><%= [@wine_profile.regions, @wine_profile.color].compact.join(" · ") %></p>
+  <ul class="facts" aria-label="Wine profile details">
+    <% if @wine_profile.grapes.present? %>
+      <li><strong>Grapes:</strong> <%= @wine_profile.grapes %></li>
+    <% end %>
+    <% if @wine_profile.serving.present? %>
+      <li><strong>Serving:</strong> <%= @wine_profile.serving %></li>
+    <% end %>
+  </ul>
+  <% if @wine_profile.notes.present? %>
+    <p class="prompt"><%= @wine_profile.notes %></p>
+  <% end %>
+  <h2>Taste Parameters</h2>
+  <% if @wine_profile.wine_profile_taste_parameters.any? %>
+    <ul class="parameter-list">
+      <% @wine_profile.wine_profile_taste_parameters.each do |parameter| %>
+        <li>
+          <strong><%= parameter.taste_parameter&.label %></strong>
+          <% if parameter.score.present? %>
+            <span class="tag"><%= parameter.score %></span>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <p class="empty">No taste parameters are associated with this profile yet.</p>
+  <% end %>
+</article>

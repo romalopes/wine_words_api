@@ -1,0 +1,26 @@
+<% content_for :title, "#{@taste_parameter.label} · Taste Parameters" %>
+<article class="taste-parameter-page">
+  <%= link_to "← All taste parameters", taste_parameters_path, class: "back-link" %>
+  <h1><%= @taste_parameter.label %></h1>
+  <ul class="facts" aria-label="Taste parameter details">
+    <% if @taste_parameter.low.present? %>
+      <li><strong>Low:</strong> <%= @taste_parameter.low %></li>
+    <% end %>
+    <% if @taste_parameter.high.present? %>
+      <li><strong>High:</strong> <%= @taste_parameter.high %></li>
+    <% end %>
+    <% if @taste_parameter.help.present? %>
+      <li><strong>Help:</strong> <%= @taste_parameter.help %></li>
+    <% end %>
+  </ul>
+  <h2>Wines</h2>
+  <% if @taste_parameter.wines.any? %>
+    <ul class="wine-list">
+      <% @taste_parameter.wines.each do |wine| %>
+        <li><%= link_to wine.name, wine_path(wine.slug) %></li>
+      <% end %>
+    </ul>
+  <% else %>
+    <p class="empty">No wines are associated with this parameter yet.</p>
+  <% end %>
+</article>

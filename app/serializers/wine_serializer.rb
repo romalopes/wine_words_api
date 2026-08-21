@@ -14,6 +14,7 @@ class WineSerializer
       alcohol_percentage: @wine.alcohol_percentage&.to_f,
       volume_ml: @wine.volume_ml,
       prompt: @wine.prompt,
+      winery: winery,
       parameters: parameters,
       vintages: @wine.vintages.order(year: :desc).map do |v|
         {
@@ -26,6 +27,18 @@ class WineSerializer
   end
 
   private
+
+  def winery
+    return nil unless @wine.winery
+
+    {
+      id: @wine.winery.id,
+      slug: @wine.winery.slug,
+      name: @wine.winery.name,
+      address: @wine.winery.address,
+      email: @wine.winery.email
+    }
+  end
 
   def parameters
     # @wine.wine_taste_parameters.to_h do |wtp|

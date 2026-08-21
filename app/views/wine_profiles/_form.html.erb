@@ -1,0 +1,31 @@
+<%= form_with model: wine_profile, local: true do |f| %>
+  <div>
+    <%= f.label :name %><br>
+    <%= f.text_field :name %>
+  </div>
+  <div>
+    <%= f.label :grapes %><br>
+    <%= f.text_area :grapes %>
+  </div>
+  <div>
+    <%= f.label :regions %><br>
+    <%= f.text_area :regions %>
+  </div>
+  <div>
+    <%= f.label :color %><br>
+    <%= f.text_field :color %>
+  </div>
+  <div>
+    <%= f.label :notes %><br>
+    <%= f.text_area :notes %>
+  </div>
+  <div>
+    <%= f.label :parameters %><br>
+    <%= f.text_area :parameters %>
+  </div>
+  <div>
+    <%= f.label :serving %><br>
+    <%= f.text_area :serving %>
+  </div>
+  <div><%= f.submit %></div>
+<% end %>

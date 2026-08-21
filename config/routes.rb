@@ -1,7 +1,18 @@
 Rails.application.routes.draw do
-  # v1_api_routes
-   namespace :api do
+  root "wines#index"
+
+  resources :wines
+  resources :wineries
+  resources :vintages
+  resources :taste_parameters
+  resources :wine_profiles
+  resources :reviews
+  resources :wine_taste_parameters
+  resources :test_parameters
+
+  namespace :api do
     namespace :v1 do
+      resources :wineries
       resources :wines do
         resources :vintages, only: [] do
           resources :reviews, only: [:index, :create]
@@ -20,12 +31,4 @@ Rails.application.routes.draw do
       resources :taste_parameters
     end
   end
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
-
-  # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
-  # Can be used by load balancers and uptime monitors to verify that the app is live.
-  get "up" => "rails/health#show", as: :rails_health_check
-
-  # Defines the root path route ("/")
-  # root "posts#index"
 end

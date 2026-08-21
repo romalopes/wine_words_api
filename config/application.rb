@@ -27,9 +27,12 @@ module WinePredictionApi
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
 
-    # Only loads a smaller set of middleware suitable for API only apps.
-    # Middleware like session, flash, cookies can be added back manually.
-    # Skip views, helpers and assets when generating a new resource.
-    config.api_only = true
+    # Load the full Rails stack so the application can render its own HTML
+    # interface as well as serving the existing JSON API.
+    config.api_only = false
+
+    # This project began as an API-only application, so it did not have the
+    # conventional helper lookup path. Register it for server-rendered views.
+    config.helpers_paths << Rails.root.join("app", "helpers")
   end
 end

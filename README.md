@@ -1,28 +1,23 @@
-# README
+# Wine Prediction Rails app
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+This Rails application serves both a server-rendered wine library and the JSON API consumed by the React application.
 
-Things you may want to cover:
+## Run locally
 
-- Ruby version
+Ensure `DATABASE_URL` is configured in `.env`, then run:
 
-- System dependencies
+```bash
+bundle install
+bin/rails db:prepare
+bin/rails server
+```
 
-- Configuration
+Open `http://localhost:3000` to use the Rails interface:
 
-- Database creation
+- `/` — wine library
+- `/wines/:slug` — individual wine and vintage notes
 
-- Database initialization
+The JSON API is still available at `/api/v1`, including `/api/v1/wines`.
 
-- How to run the test suite
-
-- Services (job queues, cache servers, search engines, etc.)
-
-- Deployment instructions
-
-- ...
-
-Add vintage to wines. A wine will have one or many vintages. The vintage will have year(integer) and prompt(TEXT). Perform the changes first in the ./wine_prediction_api rails project.
-
-can you add in the wineData.js the kind ot bottle_top, alcohol percentage and how many mililiters each bother of wine is?
+Create interface for Articles.
+An article will have a textarea. Also, it will have many reviews.

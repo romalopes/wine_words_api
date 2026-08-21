@@ -1,0 +1,15 @@
+<% content_for :title, "Review · Wine Library" %>
+<article class="review-page">
+  <%= link_to "← All reviews", reviews_path, class: "back-link" %>
+  <h1><%= @review.vintage&.name %></h1>
+  <p class="lede"><%= review_score(@review) %></p>
+  <ul class="facts" aria-label="Review details">
+    <li><strong>Status:</strong> <%= @review.status %></li>
+    <% if @review.published_at.present? %>
+      <li><strong>Published:</strong> <%= @review.published_at.strftime("%B %d, %Y") %></li>
+    <% end %>
+  </ul>
+  <% if @review.comment.present? %>
+    <p class="prompt"><%= @review.comment %></p>
+  <% end %>
+</article>

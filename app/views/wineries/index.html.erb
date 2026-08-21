@@ -1,0 +1,22 @@
+<h1>Wineries</h1>
+<p class="lede">Browse wineries and their associated wines.</p>
+<% if @wineries.any? %>
+  <section class="winery-grid" aria-label="Wineries">
+    <% @wineries.each do |winery| %>
+      <%= link_to winery_path(winery.slug), class: "winery-card #{winery_color_class(winery)}" do %>
+        <div class="winery-card__band"></div>
+        <div class="winery-card__content">
+          <h2><%= winery.name %></h2>
+          <% if winery_details(winery).present? %>
+            <p class="details"><%= winery_details(winery) %></p>
+          <% end %>
+          <div class="wines">
+            <%= pluralize(winery.wines.size, "wine") %>
+          </div>
+        </div>
+      <% end %>
+    <% end %>
+  </section>
+<% else %>
+  <p class="empty">No wineries have been added yet.</p>
+<% end %>

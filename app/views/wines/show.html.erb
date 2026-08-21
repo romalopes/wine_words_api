@@ -1,0 +1,26 @@
+<% content_for :title, "#{@wine.name} · Wine Library" %>
+
+<article class="wine-page">
+  <%= link_to "← All wines", wines_path, class: "back-link" %>
+  <h1><%= @wine.name %></h1>
+  <p class="lede"><%= [@wine.region, @wine.color].compact.join(" · ") %></p>
+
+  <ul class="facts" aria-label="Wine details">
+    <% if @wine.alcohol_percentage.present? %><li><strong>Alcohol:</strong> <%= @wine.alcohol_percentage %>% ABV</li><% end %>
+    <% if @wine.volume_ml.present? %><li><strong>Volume:</strong> <%= @wine.volume_ml %> mL</li><% end %>
+    <% if @wine.closure.present? %><li><strong>Closure:</strong> <%= @wine.closure %></li><% end %>
+  </ul>
+
+  <% if @wine.prompt.present? %><p class="prompt"><%= @wine.prompt %></p><% end %>
+
+  <h2>Vintages</h2>
+  <% if @wine.vintages.any? %>
+    <ul class="vintage-list">
+      <% @wine.vintages.sort_by(&:year).reverse_each do |vintage| %>
+        <li><strong><%= vintage.year %></strong><br><%= vintage.prompt %></li>
+      <% end %>
+    </ul>
+  <% else %>
+    <p class="empty">No vintage notes are available yet.</p>
+  <% end %>
+</article>

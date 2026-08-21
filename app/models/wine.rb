@@ -1,4 +1,6 @@
 class Wine < ApplicationRecord
+  belongs_to :winery, optional: true
+
   has_many :wine_taste_parameters, dependent: :destroy
   has_many :taste_parameters, through: :wine_taste_parameters
   has_many :vintages, dependent: :destroy

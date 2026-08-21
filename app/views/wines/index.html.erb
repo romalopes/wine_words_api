@@ -1,0 +1,27 @@
+<% content_for :title, "Wine Library" %>
+<h1>Wine Library</h1>
+<p class="lede">Browse the collection, discover each wine’s profile, and compare its vintages.</p>
+<% if @wines.any? %>
+  <section class="wine-grid" aria-label="Wines">
+    <% @wines.each do |wine| %>
+      <%= link_to wine_path(wine.slug), class: "wine-card #{wine_color_class(wine)}" do %>
+        <div class="wine-card__band"></div>
+        <div class="wine-card__content">
+          <h2><%= wine.name %></h2>
+          <p class="region"><%= [wine.region, wine.color].compact.join(" · ") %></p>
+          <% if wine_details(wine).present? %>
+            <p class="details"><%= wine_details(wine) %></p>
+          <% end %>
+          <div class="vintages">
+            <%= pluralize(wine.vintages.size, "vintage") %>
+            <% wine.taste_parameters.each do |parameter| %>
+              <span class="tag"><%= parameter.label %></span>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    <% end %>
+  </section>
+<% else %>
+  <p class="empty">No wines have been added yet.</p>
+<% end %>

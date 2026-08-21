@@ -1,0 +1,15 @@
+<%= form_with model: test_parameter, local: true do |f| %>
+  <div>
+    <%= f.label :label %><br>
+    <%= f.text_field :label %>
+  </div>
+  <div>
+    <%= f.label :low %><br>
+    <%= f.text_field :low %>
+  </div>
+  <div>
+    <%= f.label :high %><br>
+    <%= f.text_field :high %>
+  </div>
+  <div><%= f.submit %></div>
+<% end %>

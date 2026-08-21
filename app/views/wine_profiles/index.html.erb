@@ -1,0 +1,26 @@
+<h1>Wine Profiles</h1>
+<p class="lede">Browse wine profiles and their associated tasting parameters.</p>
+<% if @wine_profiles.any? %>
+  <section class="wine-profile-grid" aria-label="Wine profiles">
+    <% @wine_profiles.each do |profile| %>
+      <%= link_to wine_profile_path(profile.slug), class: "wine-profile-card #{wine_profile_color_class(profile)}" do %>
+        <div class="wine-profile-card__band"></div>
+        <div class="wine-profile-card__content">
+          <h2><%= profile.name %></h2>
+          <p class="region"><%= [profile.regions, profile.color].compact.join(" · ") %></p>
+          <% if wine_profile_details(profile).present? %>
+            <p class="details"><%= wine_profile_details(profile) %></p>
+          <% end %>
+          <div class="parameters">
+            <%= pluralize(profile.wine_profile_taste_parameters.size, "parameter") %>
+            <% profile.wine_profile_taste_parameters.each do |parameter| %>
+              <span class="tag"><%= parameter.taste_parameter&.label %></span>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    <% end %>
+  </section>
+<% else %>
+  <p class="empty">No wine profiles have been added yet.</p>
+<% end %>
