@@ -10,11 +10,22 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_19_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_19_000002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_session_jwt"
   enable_extension "pg_trgm"
+
+  create_table "producers", force: :cascade do |t|
+    t.string "address"
+    t.datetime "created_at", null: false
+    t.string "email"
+    t.string "name"
+    t.string "slug"
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_producers_on_name", unique: true
+    t.index ["slug"], name: "index_producers_on_slug", unique: true
+  end
 
   create_table "reviews", force: :cascade do |t|
     t.text "comment"
@@ -90,33 +101,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_19_000001) do
     t.index ["wine_id"], name: "index_wine_taste_parameters_on_wine_id"
   end
 
-  create_table "wineries", force: :cascade do |t|
-    t.string "address"
-    t.datetime "created_at", null: false
-    t.string "email"
-    t.string "name"
-    t.string "slug"
-    t.datetime "updated_at", null: false
-    t.index ["name"], name: "index_wineries_on_name", unique: true
-    t.index ["slug"], name: "index_wineries_on_slug", unique: true
-  end
-
   create_table "wines", force: :cascade do |t|
     t.decimal "alcohol_percentage", precision: 10, scale: 2
     t.string "closure"
     t.string "color"
     t.datetime "created_at", null: false
     t.string "name"
+    t.bigint "producer_id"
     t.text "prompt"
     t.string "region"
     t.string "slug"
     t.datetime "updated_at", null: false
     t.integer "volume_ml"
-    t.bigint "winery_id"
     t.index ["name"], name: "index_wines_on_name_trgm", opclass: :gin_trgm_ops, using: :gin
+    t.index ["producer_id"], name: "index_wines_on_producer_id"
     t.index ["region"], name: "index_wines_on_region_trgm", opclass: :gin_trgm_ops, using: :gin
     t.index ["slug"], name: "index_wines_on_slug", unique: true
-    t.index ["winery_id"], name: "index_wines_on_winery_id"
   end
 
   add_foreign_key "reviews", "neon_auth.\"user\""
@@ -126,5 +126,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_19_000001) do
   add_foreign_key "wine_profile_taste_parameters", "wine_profiles"
   add_foreign_key "wine_taste_parameters", "taste_parameters"
   add_foreign_key "wine_taste_parameters", "wines"
-  add_foreign_key "wines", "wineries"
+  add_foreign_key "wines", "producers"
 end

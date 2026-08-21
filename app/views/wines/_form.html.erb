@@ -1,7 +1,7 @@
 <%= form_with model: @wine, local: true do |f| %>
   <div>
-    <%= f.label :winery_id %><br>
-    <%= f.collection_select :winery_id, Winery.order(:name), :id, :name, include_blank: true %>
+    <%= f.label :producer_id %><br>
+    <%= f.collection_select :producer_id, Producer.order(:name), :id, :name, include_blank: true %>
   </div>
   <div>
     <%= f.label :name %><br>

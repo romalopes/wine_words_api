@@ -1,0 +1,23 @@
+<% content_for :title, "#{@producer.name} · Producers" %>
+<article class="producer-page">
+  <%= link_to "← All producers", producers_path, class: "back-link" %>
+  <h1><%= @producer.name %></h1>
+  <ul class="facts" aria-label="Producer details">
+    <% if @producer.address.present? %>
+      <li><strong>Address:</strong> <%= @producer.address %></li>
+    <% end %>
+    <% if @producer.email.present? %>
+      <li><strong>Email:</strong> <%= @producer.email %></li>
+    <% end %>
+  </ul>
+  <h2>Wines</h2>
+  <% if @producer.wines.any? %>
+    <ul class="wine-list">
+      <% @producer.wines.each do |wine| %>
+        <li><%= link_to wine.name, wine_path(wine.slug) %></li>
+      <% end %>
+    </ul>
+  <% else %>
+    <p class="empty">No wines are associated with this producer yet.</p>
+  <% end %>
+</article>

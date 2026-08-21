@@ -46,7 +46,7 @@ class WinesController < ActionController::Base
 
   def wine_params
     params.require(:wine).permit(
-      :name, :region, :color, :prompt, :closure, :alcohol_percentage, :volume_ml, :winery_id,
+      :name, :region, :color, :prompt, :closure, :alcohol_percentage, :volume_ml, :producer_id,
       vintages_attributes: [:id, :year, :prompt, :_destroy],
       wine_taste_parameters_attributes: [:id, :taste_parameter_id, :taste_parameter_slug, :score, :_destroy]
     )

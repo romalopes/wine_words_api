@@ -1,0 +1,23 @@
+<h1>Producers</h1>
+<p class="lede">Browse producers and their associated wines.</p>
+<% if @producers.any? %>
+  <section class="producer-grid" aria-label="Producers">
+    <% @producers.each do |producer| %>
+      <%= link_to producer_path(producer.slug), class: "producer-card #{producer_color_class(producer)}" do %>
+        <div class="producer-card__band"></div>
+        <div class="producer-card__content">
+          <h2><%= producer.name %></h2>
+          <% if producer_details(producer).present? %>
+            <p class="details"><%= producer_details(producer) %></p>
+          <% end %>
+          <div class="wines">
+            <%= pluralize(producer.wines.size, "wine") %>
+          </div>
+        </div>
+      <% end %>
+    <% end %>
+  </section>
+<% else %>
+  <p class="empty">No producers have been added yet.</p>
+<% end %>
+</arg_value>

@@ -1,4 +1,4 @@
-class Winery < ApplicationRecord
+class Producer < ApplicationRecord
   has_many :wines, dependent: :nullify
 
   validates :name, presence: true, uniqueness: true
@@ -15,7 +15,7 @@ class Winery < ApplicationRecord
     base = name.parameterize
     candidate = base
     suffix = 1
-    while Winery.where.not(id: id).exists?(slug: candidate)
+    while Producer.where.not(id: id).exists?(slug: candidate)
       suffix += 1
       candidate = "#{base}-#{suffix}"
     end
