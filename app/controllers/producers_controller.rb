@@ -7,7 +7,8 @@ class ProducersController < ActionController::Base
   end
 
   def show
-    @producer = Producer.includes(:wines).find_by!(slug: params[:id])
+    # @producer = Producer.includes(:wines).find_by!(slug: params[:id])
+    @producer = Producer.find_by!(id: params[:id])
   end
 
   def new

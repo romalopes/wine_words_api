@@ -10,11 +10,18 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_19_000002) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_24_050101) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
-  enable_extension "pg_session_jwt"
   enable_extension "pg_trgm"
+
+  create_table "jwt_denylists", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "exp", null: false
+    t.string "jti", null: false
+    t.datetime "updated_at", null: false
+    t.index ["jti"], name: "index_jwt_denylists_on_jti"
+  end
 
   create_table "producers", force: :cascade do |t|
     t.string "address"
@@ -34,7 +41,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_19_000002) do
     t.decimal "score", precision: 5, scale: 2
     t.string "status", default: "draft", null: false
     t.datetime "updated_at", null: false
-    t.uuid "user_id", null: false
+    t.bigint "user_id"
     t.bigint "vintage_id", null: false
     t.index ["user_id"], name: "index_reviews_on_user_id"
     t.index ["vintage_id"], name: "index_reviews_on_vintage_id"
@@ -49,6 +56,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_19_000002) do
     t.string "slug"
     t.datetime "updated_at", null: false
     t.index ["slug"], name: "index_taste_parameters_on_slug", unique: true
+  end
+
+  create_table "users", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "email", default: "", null: false
+    t.string "encrypted_password", default: "", null: false
+    t.string "name", default: ""
+    t.datetime "remember_created_at"
+    t.datetime "reset_password_sent_at"
+    t.string "reset_password_token"
+    t.datetime "updated_at", null: false
+    t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
   create_table "vintages", force: :cascade do |t|
@@ -119,7 +139,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_19_000002) do
     t.index ["slug"], name: "index_wines_on_slug", unique: true
   end
 
-  add_foreign_key "reviews", "neon_auth.\"user\""
+  add_foreign_key "reviews", "users"
   add_foreign_key "reviews", "vintages"
   add_foreign_key "vintages", "wines"
   add_foreign_key "wine_profile_taste_parameters", "taste_parameters"

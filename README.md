@@ -21,7 +21,7 @@ The JSON API is still available at `/api/v1`, including `/api/v1/wines`.
 
 Create Articles. The whole CRUD for Articles
 
-An article will have a textarea with images on top. An article can be separated by categories. Also, an Article can have many tags to be searched in the future. Also, it will have many reviews.
+An article will have a textarea with images on top. An article can be separated by categories. Also, an Article can have many tags to be searched in the future. Also, article will have many reviews.
 
 This part can be based on this website: https://kasiasobiesiak.substack.com/
 
