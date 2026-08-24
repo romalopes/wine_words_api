@@ -1,0 +1,26 @@
+<div class="auth-page">
+  <section class="auth-card">
+    <p class="wine-kicker">Welcome back</p>
+    <h1>Sign in to Wine Prediction</h1>
+    <p class="lede">Access your saved tasting profiles and continue where you left off.</p>
+    <%= form_with url: login_path, method: :post, local: true, class: "auth-form" do %>
+      <label class="auth-form__field">
+        <span>Email</span>
+        <input type="email" name="email" required autocomplete="email" value="<%= params[:email] %>">
+      </label>
+      <label class="auth-form__field">
+        <span>Password</span>
+        <input type="password" name="password" required autocomplete="current-password" minlength="6">
+      </label>
+      <% if flash[:alert] %>
+        <p class="auth-form__error" role="alert"><%= flash[:alert] %></p>
+      <% end %>
+      <button class="auth-form__submit" type="submit">Sign in</button>
+    <% end %>
+    <p class="auth-card__switch">
+      New to Wine Prediction?
+      <%= link_to "Create an account", signup_path, class: "text-link" %>
+    </p>
+    <%= link_to "Back to dashboard", root_path, class: "back-link" %>
+  </section>
+</div>

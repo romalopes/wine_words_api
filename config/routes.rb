@@ -12,7 +12,13 @@ Rails.application.routes.draw do
     },
     defaults: { format: :json }
 
-  root "wines#index"
+  root "web/dashboard#index"
+
+  get "login", to: "web/sessions#new"
+  post "login", to: "web/sessions#create"
+  delete "logout", to: "web/sessions#destroy"
+  get "signup", to: "web/registrations#new"
+  post "signup", to: "web/registrations#create"
 
   resources :wines
   resources :producers
