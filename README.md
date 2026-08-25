@@ -99,9 +99,68 @@ In the bottom of the article, the page can show the list of reviews(which the re
 
 ---
 
-Create roles for users and a interface for this A user
+In rect app and rails app, Show in the list of reviews and articles the one image like with wines.
 
 ---
 
-Create a subscription concept. A user can have different kind of subscriptions
-A user with the
+Allow to add and remove images from wines, review and articles interactively.
+
+---
+
+Change the relationship from "article has many wines" to "article has many vintages". The relationship between article and wine will be through vintanges. In the bottom of the article, show the list of vintage/wines selected.
+
+In the new/edit article. Allow the user to search wines and then and vintages before selection.
+
+After select the vintages, allow the user to select the reviews in each vintages.
+
+Do it in both react and rails apps
+
+---
+
+Create roles for users and a interface for this. A user
+
+Create roles for users and a interface for this task. A user can have many roles. In the future, the role will define the access to some pages and right to update or delete info.
+
+Create the following roles:
+
+- Super User
+- Reviewer
+- Reader
+- Simple User
+
+Link the first user to "Super User" role.
+
+## When a new user is created or in the first login link the user to "Simple User" role.
+
+Create a subscription concept to the system. Don't link with any payment yet, but keep it open for the future. A user can have one kind of subscription.
+A user with the "super user" role will be able to add new substription
+
+Attributes of subscriptions:
+
+- Name
+- Flag to show which is the most popular
+- flag to define if it will be visible in the webpage.
+- description
+- monthly price
+- anually price
+- List of "Subscription Feature"
+
+<!-- Relationship to a new table called "Subscription Feature".  Subscription can have many "Subscription Feature".
+ Each -->
+
+Create the following subscriptions types:
+
+- FREE
+- Consumer ($AUD 70/year)
+- Trade ($AUD 240/year)
+- Distributer ($AUD 400/year)
+- Retail ($AUD 600/year)
+
+When the user is created the use will be assigned to the FREE subscription.
+
+Make a interface based on the websites:
+
+- https://www.winefront.com.au/subscribe/
+- https://www.jancisrobinson.com/membership
+
+---

@@ -16,6 +16,7 @@ class WineSerializer
       volume_ml: @wine.volume_ml,
       prompt: @wine.prompt,
       images: image_urls(@wine),
+      image_ids: image_ids(@wine),
       producer: producer,
       parameters: parameters,
       vintages: @wine.vintages.order(year: :desc).map do |v|
@@ -36,6 +37,12 @@ class WineSerializer
     record.images.map do |image|
       Rails.application.routes.url_helpers.rails_blob_url(image, host: @base_url || "localhost:3000")
     end
+  end
+
+  def image_ids(record)
+    return [] unless record.images.attached?
+
+    record.images.map(&:id)
   end
 
   def producer

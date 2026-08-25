@@ -27,7 +27,7 @@ class ReviewsController < ActionController::Base
     @review = Review.new(review_params)
     @review.user = @current_user
     if @review.save
-      @review.images.attach(params[:review][:images]) if params[:review][:images].present?
+      attach_images
       redirect_to @review, notice: "Review was successfully created."
     else
       render :new, status: :unprocessable_entity
@@ -41,7 +41,7 @@ class ReviewsController < ActionController::Base
   def update
     @review = Review.find(params[:id])
     if @review.update(review_params)
-      @review.images.attach(params[:review][:images]) if params[:review][:images].present?
+      attach_images
       redirect_to @review, notice: "Review was successfully updated."
     else
       render :edit, status: :unprocessable_entity
@@ -54,7 +54,21 @@ class ReviewsController < ActionController::Base
     redirect_to reviews_url, notice: "Review was successfully destroyed."
   end
 
+  def purge_image
+    @review = Review.find(params[:id])
+    return redirect_to reviews_url, alert: "Not allowed." unless @review.user_id == current_user&.id
+
+    attachment = @review.images.find_by(id: params[:image_id])
+    attachment&.purge
+    redirect_to edit_review_path(@review), notice: "Image removed."
+  end
+
   private
+
+  def attach_images
+    images = params[:review][:images]
+    @review.images.attach(images) if images.is_a?(Array)
+  end
 
     # :comment, :score, :vintage_id, :status, :published_at
     def review_params

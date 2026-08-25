@@ -20,6 +20,7 @@ class ArticleSerializer
       producers: producer_list,
       reviews: review_list,
       images: image_urls,
+      image_ids: @article.images.attached? ? @article.images.map(&:id) : [],
       published_at: @article.published_at&.iso8601,
       created_at: @article.created_at&.iso8601
     }

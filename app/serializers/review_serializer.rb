@@ -15,6 +15,7 @@ class ReviewSerializer
       score: @review.score&.to_f,
       status: @review.status,
       images: image_urls(@review),
+      image_ids: image_ids(@review),
       published_at: @review.published_at&.iso8601,
       created_at: @review.created_at&.iso8601
     }
@@ -28,5 +29,11 @@ class ReviewSerializer
     record.images.map do |image|
       Rails.application.routes.url_helpers.rails_blob_url(image, host: @base_url || "localhost:3000")
     end
+  end
+
+  def image_ids(record)
+    return [] unless record.images.attached?
+
+    record.images.map(&:id)
   end
 end

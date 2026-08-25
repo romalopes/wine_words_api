@@ -20,14 +20,23 @@ Rails.application.routes.draw do
   get "signup", to: "web/registrations#new"
   post "signup", to: "web/registrations#create"
 
-  resources :wines
+  resources :wines do
+    member do
+      patch :purge_image
+    end
+  end
   resources :producers
   resources :vintages
   resources :taste_parameters
   resources :wine_profiles
-  resources :reviews
+  resources :reviews do
+    member do
+      patch :purge_image
+    end
+  end
   resources :articles do
     member do
+      patch :purge_image
       patch :add_review
       patch :remove_review
       patch :toggle_review_status
@@ -41,6 +50,7 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       post "images", to: "images#create"
+      delete "images/:id", to: "images#destroy"
       resources :producers
       resources :wines do
         resources :vintages, only: [] do

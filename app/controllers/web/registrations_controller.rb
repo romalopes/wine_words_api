@@ -10,7 +10,7 @@ module Web
 
       if @user.save
         sign_in(:user, @user)
-        redirect_to root_path, notice: "Welcome to Wine Prediction, #{@user.email}! Your account has been created."
+        redirect_to root_path, notice: "Welcome to Wine Words, #{@user.email}! Your account has been created."
       else
         render :new, status: :unprocessable_entity
       end

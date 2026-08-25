@@ -3,8 +3,8 @@ class ArticlesController < ActionController::Base
   include RequireLogin
 
   before_action :set_article, only: [:show, :edit, :update, :destroy,
-                                     :add_review, :remove_review, :toggle_review_status]
-  before_action :ensure_author!, only: [:edit, :update, :destroy,
+                                     :purge_image, :add_review, :remove_review, :toggle_review_status]
+  before_action :ensure_author!, only: [:edit, :update, :destroy, :purge_image,
                                         :add_review, :remove_review, :toggle_review_status]
 
   def index
@@ -59,6 +59,14 @@ class ArticlesController < ActionController::Base
     redirect_to articles_url, notice: "Article was successfully destroyed."
   end
 
+  def purge_image
+    return redirect_to articles_path, alert: "Not allowed." unless @article.user_id == current_user&.id
+
+    attachment = @article.images.find_by(id: params[:image_id])
+    attachment&.purge
+    redirect_to edit_article_path(@article), notice: "Image removed."
+  end
+
   # --- Article <-> Review link management -------------------------------
 
   def add_review
@@ -100,7 +108,7 @@ class ArticlesController < ActionController::Base
   def article_params
     permitted = params.require(:article).permit(
       :title, :abstract, :body, :status, :published_at, :category_id,
-      :tag_names, wine_ids: [], producer_ids: [], images: []
+      :tag_names, wine_ids: [], producer_ids: []
     )
 
     if permitted.key?(:tag_names)
@@ -118,8 +126,7 @@ class ArticlesController < ActionController::Base
   end
 
   def attach_images
-    return unless params[:article][:images].present?
-
-    @article.images.attach(params[:article][:images])
+    images = params[:article][:images]
+    @article.images.attach(images) if images.is_a?(Array)
   end
 end

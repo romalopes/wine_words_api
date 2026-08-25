@@ -5,7 +5,7 @@
   trix-editor:empty::before { content: attr(placeholder); color: #6b5855; }
 </style>
 
-<%= form_with model: review, local: true do |f| %>
+<%= form_with model: review, local: true, html: { multipart: true } do |f| %>
   <div>
     <%= f.label :vintage_id %><br>
     <%= f.collection_select :vintage_id, Vintage.includes(:wine).order(:year), :id, :name, include_blank: true %>
@@ -36,4 +36,16 @@
     <%= f.file_field :images, multiple: true, direct_upload: false %>
   </div>
   <div><%= f.submit %></div>
+<% end %>
+
+<% if @review.images.attached? %>
+  <div class="image-gallery">
+    <p class="lede">Existing images (click Remove to delete)</p>
+    <% @review.images.each do |image| %>
+      <div class="image-gallery__item">
+        <%= image_tag url_for(image), class: "gallery-img", alt: @review.title %>
+        <%= button_to "Remove", purge_image_review_path(@review.id), method: :patch, params: { image_id: image.id }, class: "image-gallery__remove" %>
+      </div>
+    <% end %>
+  </div>
 <% end %>

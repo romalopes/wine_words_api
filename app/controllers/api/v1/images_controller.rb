@@ -1,5 +1,5 @@
 class Api::V1::ImagesController < ApplicationController
-  ALLOWED_TYPES = { "wine" => Wine, "producer" => Producer, "review" => Review }.freeze
+  ALLOWED_TYPES = { "wine" => Wine, "producer" => Producer, "review" => Review, "article" => Article }.freeze
 
   def create
     record = find_record
@@ -16,6 +16,23 @@ class Api::V1::ImagesController < ApplicationController
     }
   rescue ActiveRecord::RecordNotFound
     render json: { error: "Not found" }, status: :not_found
+  end
+
+  def destroy
+    record = find_record
+    return render json: { error: "Not found" }, status: :not_found unless record
+
+    if record.respond_to?(:user_id) && record.user_id != current_user.id
+      return render json: { error: "Forbidden" }, status: :forbidden
+    end
+
+    attachment = ActiveStorage::Attachment.find_by(
+      id: params[:id], record: record, name: "images"
+    )
+    return render json: { error: "Not found" }, status: :not_found unless attachment
+
+    attachment.purge
+    head :no_content
   end
 
   private

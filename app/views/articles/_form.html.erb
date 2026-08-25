@@ -61,14 +61,6 @@
     <%= form.file_field :images, multiple: true, accept: "image/*" %>
   </div>
 
-  <% if article.images.attached? %>
-    <div class="image-gallery">
-      <% article.images.each do |image| %>
-        <%= image_tag url_for(image), class: "gallery-img", alt: article.title %>
-      <% end %>
-    </div>
-  <% end %>
-
   <div class="page-actions">
     <%= form.hidden_field :status, value: article.status || "draft", id: "article_status_hidden" %>
     <button type="submit" class="btn"
@@ -80,5 +72,17 @@
       Publish
     </button>
     <%= link_to "Cancel", article.persisted? ? article_path(article) : articles_path, class: "btn btn--secondary" %>
+  </div>
+<% end %>
+
+<% if article.images.attached? %>
+  <div class="image-gallery">
+    <p class="lede">Existing images (click Remove to delete)</p>
+    <% article.images.each do |image| %>
+      <div class="image-gallery__item">
+        <%= image_tag url_for(image), class: "gallery-img", alt: article.title %>
+        <%= button_to "Remove", purge_image_article_path(article.id), method: :patch, params: { image_id: image.id }, class: "image-gallery__remove" %>
+      </div>
+    <% end %>
   </div>
 <% end %>

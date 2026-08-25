@@ -1,14 +1,12 @@
 <p class="lede">
-  Welcome<%= ", #{current_user.email.split('@').first}" if user_signed_in? %> to Wine Prediction.
+  Welcome<%= ", #{current_user.email.split('@').first}" if user_signed_in? %> to Wine Words.
   Your cellar command centre — jump into producers, wines, or reviews.
 </p>
-
 <% unless user_signed_in? %>
   <p class="auth-hint">
     <%= link_to "Sign in or create an account", login_path %> to save tasting profiles and write reviews.
   </p>
 <% end %>
-
 <div class="wine-grid">
   <a class="wine-card" href="<%= producers_path %>">
     <div class="wine-card__band"></div>
@@ -18,7 +16,6 @@
       <span class="tag">Browse wineries &rarr;</span>
     </div>
   </a>
-
   <a class="wine-card" href="<%= wines_path %>">
     <div class="wine-card__band wine-card--white"></div>
     <div class="wine-card__content">
@@ -27,7 +24,6 @@
       <span class="tag">Explore the catalogue &rarr;</span>
     </div>
   </a>
-
   <a class="wine-card" href="<%= reviews_path %>">
     <div class="wine-card__band wine-card--rose"></div>
     <div class="wine-card__content">
@@ -36,7 +32,6 @@
       <span class="tag">Read reviews &rarr;</span>
     </div>
   </a>
-
   <a class="wine-card" href="<%= articles_path %>">
     <div class="wine-card__band wine-card--white"></div>
     <div class="wine-card__content">
@@ -46,7 +41,6 @@
     </div>
   </a>
 </div>
-
 <% if @recent_articles.any? %>
   <h2 style="margin-top: 2rem">Latest Articles</h2>
   <section class="wine-grid" aria-label="Latest articles">
@@ -69,7 +63,6 @@
     <% end %>
   </section>
 <% end %>
-
 <% if @recent_reviews.any? %>
   <h2 style="margin-top: 2rem">Latest Reviews</h2>
   <section class="wine-grid" aria-label="Latest reviews">
