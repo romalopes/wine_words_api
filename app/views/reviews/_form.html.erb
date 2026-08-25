@@ -8,7 +8,13 @@
 <%= form_with model: review, local: true, html: { multipart: true } do |f| %>
   <div>
     <%= f.label :vintage_id %><br>
-    <%= f.collection_select :vintage_id, Vintage.includes(:wine).order(:year), :id, :name, include_blank: true %>
+    <input type="text" id="review-vintage-search" placeholder="Type to search wines…"
+           style="width: 100%; margin-bottom: .35rem" autocomplete="off">
+    <%= f.grouped_collection_select :vintage_id, Wine.order(:name), :vintages,
+          :name, :id, :name,
+          { include_blank: true },
+          { id: "review_vintage_id" } %>
+    <small class="lede">Pick the wine's vintage this review is about.</small>
   </div>
   <div>
     <%= f.label :title %><br>
@@ -49,3 +55,26 @@
     <% end %>
   </div>
 <% end %>
+
+<script>
+(function () {
+  var select = document.getElementById("review_vintage_id");
+  var search = document.getElementById("review-vintage-search");
+  if (!select || !search) return;
+
+  search.addEventListener("input", function () {
+    var q = search.value.trim().toLowerCase();
+    Array.from(select.getElementsByTagName("optgroup")).forEach(function (optgroup) {
+      Array.from(optgroup.getElementsByTagName("option")).forEach(function (option) {
+        var wineName = optgroup.getAttribute("label") || "";
+        option.hidden =
+          !!q && option.text.toLowerCase().indexOf(q) === -1 &&
+          wineName.toLowerCase().indexOf(q) === -1;
+      });
+      var anyVisible = Array.from(optgroup.getElementsByTagName("option"))
+        .some(function (option) { return !option.hidden; });
+      optgroup.style.display = anyVisible ? "" : "none";
+    });
+  });
+})();
+</script>

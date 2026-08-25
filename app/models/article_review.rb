@@ -9,6 +9,9 @@ class ArticleReview < ApplicationRecord
   validate :review_must_be_published
 
   before_save :demote_if_review_unpublished
+  # New links start visible (mirrors the add_review member route); they get
+  # demoted automatically if the underlying review is not published.
+  before_create -> { self.status = "published" }
 
   scope :published, -> { where(status: "published") }
 

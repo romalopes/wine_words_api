@@ -52,6 +52,34 @@ class WinesController < ActionController::Base
     redirect_to edit_wine_path(@wine.slug), notice: "Image removed."
   end
 
+  # JSON endpoint used by the article form's "search wines" picker.
+  def search
+    query = params[:q].to_s.strip
+    wines =
+      if query.blank?
+        Wine.none
+      else
+        Wine.where("name ILIKE ?", "%#{query}%").includes(:vintages).order(:name).limit(20)
+      end
+
+    render json: wines.map { |wine| wine_search_json(wine) }
+  end
+
+  private
+
+  def wine_search_json(wine)
+    {
+      id: wine.id,
+      name: wine.name,
+      slug: wine.slug,
+      region: wine.region,
+      color: wine.color,
+      vintages: wine.vintages.order(year: :desc).map do |vintage|
+        { id: vintage.id, year: vintage.year }
+      end
+    }
+  end
+
   private
 
   def attach_images

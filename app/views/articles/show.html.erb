@@ -59,19 +59,19 @@
     </section>
   <% end %>
 
-  <% if @article.wines.any? %>
-    <h2>Wines</h2>
+  <% if @article.vintages.any? %>
+    <h2>Wines &amp; vintages</h2>
     <section class="wine-grid" aria-label="Article wines">
-      <% @article.wines.each do |wine| %>
+      <% @article.vintages.includes(:wine).order("wines.name", year: :desc).each do |vintage| %>
         <div class="card-wrapper">
-          <%= link_to wine_path(wine.slug), class: "wine-card #{wine_color_class(wine)}" do %>
-            <% if wine.images.attached? %>
-              <%= image_tag url_for(wine.images.first), class: "card-thumb", alt: wine.name %>
+          <%= link_to wine_path(vintage.wine.slug), class: "wine-card #{wine_color_class(vintage.wine)}" do %>
+            <% if vintage.wine.images.attached? %>
+              <%= image_tag url_for(vintage.wine.images.first), class: "card-thumb", alt: vintage.wine.name %>
             <% end %>
             <div class="wine-card__band"></div>
             <div class="wine-card__content">
-              <h3><%= wine.name %></h3>
-              <p class="region"><%= [wine.producer&.name, wine.region, wine.color].compact.join(" · ") %></p>
+              <h3><%= vintage.wine.name %> <%= vintage.year %></h3>
+              <p class="region"><%= [vintage.wine.producer&.name, vintage.wine.region, vintage.wine.color].compact.join(" · ") %></p>
             </div>
           <% end %>
         </div>

@@ -45,9 +45,32 @@
   </div>
 
   <div class="field">
-    <%= form.label :wine_ids, "Wines" %>
-    <%= form.collection_select :wine_ids, Wine.order(:name), :id, :name,
-          { include_hidden: false }, { multiple: true, size: 6, style: "width: 100%" } %>
+    <%= form.label :vintage_ids, "Wine vintages" %>
+    <input type="text" id="vintage-search" placeholder="Type to search wines…"
+           style="width: 100%; margin-bottom: .35rem" autocomplete="off">
+    <%= form.grouped_collection_select :vintage_ids, Wine.order(:name), :vintages,
+          :name, :id, :name,
+          { include_hidden: false },
+          { multiple: true, size: 8, style: "width: 100%", id: "article_vintage_ids" } %>
+    <small class="lede">Ctrl/Cmd-click to pick several vintages.</small>
+  </div>
+
+  <div class="field">
+    <%= form.label :review_ids, "Reviews (optional — pick from the vintages above)" %>
+    <div id="per-vintage-reviews" class="review-groups">
+      <% Review.published.includes(vintage: :wine).order("wines.name", year: :desc, title: :asc).each do |review| %>
+        <div class="review-option" data-vintage-id="<%= review.vintage_id %>">
+          <label style="font-weight: 400">
+            <%= check_box_tag "article[review_ids][]", review.id, article.review_ids.include?(review.id) %>
+            <%= review.title.presence || "Untitled" %>
+            (<%= review.vintage&.name %>, score <%= review.score %>)
+          </label>
+        </div>
+      <% end %>
+      <% if Review.published.none? %>
+        <p class="empty">No published reviews yet.</p>
+      <% end %>
+    </div>
   </div>
 
   <div class="field">
@@ -86,3 +109,44 @@
     <% end %>
   </div>
 <% end %>
+
+<script>
+(function () {
+  var select = document.getElementById("article_vintage_ids");
+  var search = document.getElementById("vintage-search");
+  if (!select) return;
+
+  function selectedVintageIds() {
+    return new Set(Array.from(select.selectedOptions).map(function (o) { return o.value; }));
+  }
+
+  // Show only review options whose vintage is currently selected.
+  function updateReviewVisibility() {
+    var ids = selectedVintageIds();
+    document.querySelectorAll(".review-option").forEach(function (el) {
+      el.style.display = ids.has(el.getAttribute("data-vintage-id")) ? "" : "none";
+    });
+  }
+
+  // Filter the vintage options by the search box text.
+  if (search) {
+    search.addEventListener("input", function () {
+      var q = search.value.trim().toLowerCase();
+      Array.from(select.getElementsByTagName("optgroup")).forEach(function (optgroup) {
+        Array.from(optgroup.getElementsByTagName("option")).forEach(function (option) {
+          var wineName = optgroup.getAttribute("label") || "";
+          option.style.display =
+            !q || option.text.toLowerCase().indexOf(q) !== -1 ||
+            wineName.toLowerCase().indexOf(q) !== -1 ? "" : "none";
+        });
+        var anyVisible = Array.from(optgroup.getElementsByTagName("option"))
+          .some(function (option) { return option.style.display !== "none"; });
+        optgroup.style.display = anyVisible ? "" : "none";
+      });
+    });
+  }
+
+  select.addEventListener("change", updateReviewVisibility);
+  updateReviewVisibility();
+})();
+</script>

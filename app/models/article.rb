@@ -7,8 +7,11 @@ class Article < ApplicationRecord
   has_many :article_tags, dependent: :destroy
   has_many :tags, through: :article_tags
 
-  has_many :article_wines, dependent: :destroy
-  has_many :wines, through: :article_wines
+  # Articles link to vintages directly; the relationship to wines goes
+  # through those vintages.
+  has_many :article_vintages, dependent: :destroy
+  has_many :vintages, through: :article_vintages
+  has_many :wines, through: :vintages
 
   has_many :article_producers, dependent: :destroy
   has_many :producers, through: :article_producers

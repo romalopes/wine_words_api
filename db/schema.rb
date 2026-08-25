@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_26_012903) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_26_053330) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -74,14 +74,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_26_012903) do
     t.index ["tag_id"], name: "index_article_tags_on_tag_id"
   end
 
-  create_table "article_wines", force: :cascade do |t|
+  create_table "article_vintages", force: :cascade do |t|
     t.bigint "article_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.bigint "wine_id", null: false
-    t.index ["article_id", "wine_id"], name: "index_article_wines_on_article_id_and_wine_id", unique: true
-    t.index ["article_id"], name: "index_article_wines_on_article_id"
-    t.index ["wine_id"], name: "index_article_wines_on_wine_id"
+    t.bigint "vintage_id", null: false
+    t.index ["article_id", "vintage_id"], name: "index_article_vintages_on_article_id_and_vintage_id", unique: true
+    t.index ["article_id"], name: "index_article_vintages_on_article_id"
+    t.index ["vintage_id"], name: "index_article_vintages_on_vintage_id"
   end
 
   create_table "articles", force: :cascade do |t|
@@ -249,8 +249,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_26_012903) do
   add_foreign_key "article_reviews", "reviews"
   add_foreign_key "article_tags", "articles"
   add_foreign_key "article_tags", "tags"
-  add_foreign_key "article_wines", "articles"
-  add_foreign_key "article_wines", "wines"
+  add_foreign_key "article_vintages", "articles"
+  add_foreign_key "article_vintages", "vintages"
   add_foreign_key "articles", "categories"
   add_foreign_key "articles", "users"
   add_foreign_key "reviews", "users"

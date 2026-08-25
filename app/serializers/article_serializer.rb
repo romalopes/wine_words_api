@@ -17,6 +17,7 @@ class ArticleSerializer
       category_id: @article.category_id,
       tags: @article.tags.map(&:name),
       wines: wine_list,
+      vintages: vintage_list,
       producers: producer_list,
       reviews: review_list,
       images: image_urls,
@@ -32,6 +33,24 @@ class ArticleSerializer
     @article.wines.map do |wine|
       { id: wine.id, name: wine.name, slug: wine.slug, region: wine.region, color: wine.color }
     end
+  end
+
+  def vintage_list
+    @article.article_vintages.includes(vintage: :wine).map do |link|
+      next unless link.vintage
+
+      vintage = link.vintage
+      {
+        id: vintage.id,
+        year: vintage.year,
+        name: "#{vintage.wine&.name} #{vintage.year}",
+        wine_id: vintage.wine_id,
+        wine_name: vintage.wine&.name,
+        wine_slug: vintage.wine&.slug,
+        region: vintage.wine&.region,
+        color: vintage.wine&.color
+      }.compact
+    end.compact
   end
 
   def producer_list

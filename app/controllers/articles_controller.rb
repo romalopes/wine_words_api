@@ -108,7 +108,7 @@ class ArticlesController < ActionController::Base
   def article_params
     permitted = params.require(:article).permit(
       :title, :abstract, :body, :status, :published_at, :category_id,
-      :tag_names, wine_ids: [], producer_ids: []
+      :tag_names, vintage_ids: [], review_ids: [], producer_ids: []
     )
 
     if permitted.key?(:tag_names)

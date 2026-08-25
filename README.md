@@ -113,7 +113,16 @@ In the new/edit article. Allow the user to search wines and then and vintages be
 
 After select the vintages, allow the user to select the reviews in each vintages.
 
-Do it in both react and rails apps
+Better keep the the article linked to review and to vintages separated..
+
+- Article can have many vintages.
+- Article can have many Reviews.
+
+Reviews will keep having the relationship with Vintages. Vintages have many reviews.
+
+After select the vintages, allow the user to select the reviews in each vintages. The user doesn't need to select any review if he doesn't want.
+
+Add the interface in the "New Article" to link with the reviews as well. It looks like it is not present currently
 
 ---
 

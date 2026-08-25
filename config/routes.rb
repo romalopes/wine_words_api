@@ -21,6 +21,9 @@ Rails.application.routes.draw do
   post "signup", to: "web/registrations#create"
 
   resources :wines do
+    collection do
+      get :search
+    end
     member do
       patch :purge_image
     end
@@ -53,6 +56,9 @@ Rails.application.routes.draw do
       delete "images/:id", to: "images#destroy"
       resources :producers
       resources :wines do
+        collection do
+          get :search
+        end
         resources :vintages, only: [] do
           resources :reviews, only: [:index, :create]
         end

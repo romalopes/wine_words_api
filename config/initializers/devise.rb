@@ -317,6 +317,9 @@ Devise.setup do |config|
   # ==> JWT configuration (devise-jwt)
   config.jwt do |jwt|
     jwt.secret = Rails.application.secret_key_base
+    # Effectively disable login expiration: tokens stay valid for 100 years
+    # instead of the default 30 minutes.
+    jwt.expiration_time = 100.years.to_i
     jwt.dispatch_requests = [
       ['POST', %r{^/api/v1/auth/sign_in$}],
       ['POST', %r{^/api/v1/auth/sign_up$}]

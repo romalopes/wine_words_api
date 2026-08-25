@@ -58,12 +58,16 @@ class ArticlesFlowTest < ActionDispatch::IntegrationTest
     assert_equal "draft", link.status, "link must demote when the review is unpublished"
     review.update!(status: "published")
 
-    # Wines / producers associations
-    article.wines << (Wine.first || Wine.create!(name: "T wine", region: "Test", color: "red"))
+    # Vintages (article -> vintages -> wine) / producers associations
+    link_wine = Wine.first || Wine.create!(name: "T wine", region: "Test", color: "red", prompt: "test")
+    link_vintage = Vintage.create!(wine: link_wine, year: 2019, prompt: "test")
+    article.vintages << link_vintage
     article.producers << (Producer.first || Producer.create!(name: "T producer"))
+    assert article.wines.include?(link_wine), "wines should be reachable through vintages"
     get article_path(article.id)
     assert_response :success
     assert_includes @response.body, "<strong>world</strong>"
+    assert_includes @response.body, "#{link_wine.name} #{link_vintage.year}"
 
     # Edit page renders with linked-reviews section
     sign_in_for_web(@user)
@@ -116,7 +120,7 @@ class ArticlesFlowTest < ActionDispatch::IntegrationTest
         article: {
           title: "Updated Title", abstract: "new abs", body: "<p>New body</p>",
           status: "published", category_id: @category.id,
-          tag_names: "ruby, wine", wine_ids: [], producer_ids: [],
+          tag_names: "ruby, wine", vintage_ids: [], review_ids: [], producer_ids: [],
           images: [fixture_file_upload("a.png", "image/png")]
         }
       }
@@ -145,6 +149,68 @@ class ArticlesFlowTest < ActionDispatch::IntegrationTest
       patch purge_image_article_path(article.id), params: { image_id: image.id }
     end
     assert_redirected_to edit_article_path(article.id)
+  end
+
+  test "article can link vintages and reviews; wine search returns matches" do
+    wine = Wine.create!(name: "Searchable Shiraz", region: "Barossa", color: "red", prompt: "x")
+    vintage = Vintage.create!(wine: wine, year: 2018, prompt: "p")
+    review = Review.create!(user: @user, vintage: vintage, title: "Linked via form",
+                            score: 90, status: "published")
+
+    sign_in_for_web(@user)
+
+    # Search endpoint used by the picker
+    get search_wines_path, params: { q: "shiraz" }, headers: { "ACCEPT" => "application/json" }
+    assert_response :success
+    results = JSON.parse(@response.body)
+    assert results.any? { |w| w["slug"] == wine.slug }, "search should find the wine"
+    found = results.find { |w| w["slug"] == wine.slug }
+    assert found["vintages"].any? { |v| v["id"] == vintage.id }
+
+    # Create article with vintages + linked review in one request
+    post articles_path, params: {
+      article: {
+        title: "Vintage Article", abstract: "abs", body: "<p>Body</p>",
+        status: "draft", category_id: @category.id,
+        vintage_ids: [vintage.id], review_ids: [review.id], producer_ids: []
+      }
+    }
+    assert_response :redirect
+    created = Article.find_by!(title: "Vintage Article")
+    assert_equal [vintage.id], created.vintage_ids
+    assert_equal [review.id], created.review_ids
+    assert created.wines.include?(wine)
+
+    # Show page lists the vintage and the linked review
+    get article_path(created.id)
+    assert_response :success
+    assert_includes @response.body, "#{wine.name} #{vintage.year}"
+    assert_includes @response.body, "Linked via form"
+
+    created.destroy
+  end
+
+  test "review new/edit forms use the wine-search vintage picker" do
+    wine = Wine.create!(name: "Picker Pinot", region: "Burgundy", color: "red", prompt: "x")
+    Vintage.create!(wine: wine, year: 2017, prompt: "p")
+
+    sign_in_for_web(@user)
+    get new_review_path
+    assert_response :success
+    assert_includes @response.body, "review-vintage-search"
+    assert_includes @response.body, 'label="Picker Pinot"'
+    assert_includes @response.body, "Picker Pinot 2017</option>"
+    assert_no_nested_forms
+
+    review = Review.create!(user: @user,
+                            vintage: Vintage.find_by!(wine: wine, year: 2017),
+                            title: "Picker Review", score: 85, status: "draft")
+    get edit_review_path(review.id)
+    assert_response :success
+    assert_includes @response.body, "review-vintage-search"
+    assert_includes @response.body, 'selected="selected"'
+    assert_includes @response.body, "Picker Pinot 2017</option>"
+    assert_no_nested_forms
   end
 
   private
