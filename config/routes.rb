@@ -26,22 +26,34 @@ Rails.application.routes.draw do
   resources :taste_parameters
   resources :wine_profiles
   resources :reviews
+  resources :articles do
+    member do
+      patch :add_review
+      patch :remove_review
+      patch :toggle_review_status
+    end
+  end
+  resources :categories
+  resources :tags
   resources :wine_taste_parameters
   resources :test_parameters
 
   namespace :api do
     namespace :v1 do
+      post "images", to: "images#create"
       resources :producers
       resources :wines do
         resources :vintages, only: [] do
           resources :reviews, only: [:index, :create]
         end
       end
-      resources :reviews, only: [:show, :update, :destroy] do
+      resources :reviews, only: [:index, :show, :update, :destroy] do
         collection do
           get :my_reviews
         end
       end
+      resources :articles, only: [:index, :show, :create, :update, :destroy]
+      resources :categories, only: [:index]
       resources :wine_profiles do
         collection do
           get :search

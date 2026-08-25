@@ -1,8 +1,14 @@
 class Producer < ApplicationRecord
   has_many :wines, dependent: :nullify
+  has_many_attached :images
 
   validates :name, presence: true, uniqueness: true
   validates :email, format: { with: URI::MailTo::EMAIL_REGEXP }, allow_blank: true
+
+  # Use slug instead of numeric id in URLs so form submissions resolve via find_by!(slug:)
+  def to_param
+    slug
+  end
 
   before_validation :generate_slug, on: :create
 

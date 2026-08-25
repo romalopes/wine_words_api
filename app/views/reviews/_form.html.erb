@@ -1,7 +1,18 @@
+<%= stylesheet_link_tag "https://unpkg.com/trix@2.1.15/dist/trix.css" %>
+<script type="text/javascript" src="https://unpkg.com/trix@2.1.15/dist/trix.umd.min.js"></script>
+<style>
+  trix-editor { background: #fff; border: 1px solid #d8c8c0; border-radius: .45rem; }
+  trix-editor:empty::before { content: attr(placeholder); color: #6b5855; }
+</style>
+
 <%= form_with model: review, local: true do |f| %>
   <div>
     <%= f.label :vintage_id %><br>
     <%= f.collection_select :vintage_id, Vintage.includes(:wine).order(:year), :id, :name, include_blank: true %>
+  </div>
+  <div>
+    <%= f.label :title %><br>
+    <%= f.text_field :title %>
   </div>
   <div>
     <%= f.label :score %><br>
@@ -9,7 +20,8 @@
   </div>
   <div>
     <%= f.label :comment %><br>
-    <%= f.text_area :comment %>
+    <%= f.hidden_field :comment, id: "review_comment_input" %>
+    <trix-editor input="review_comment_input" placeholder="Write your tasting notes…"></trix-editor>
   </div>
   <div>
     <%= f.label :status %><br>
@@ -18,6 +30,10 @@
   <div>
     <%= f.label :published_at %><br>
     <%= f.datetime_field :published_at %>
+  </div>
+  <div>
+    <%= f.label :images, "Images" %>
+    <%= f.file_field :images, multiple: true, direct_upload: false %>
   </div>
   <div><%= f.submit %></div>
 <% end %>

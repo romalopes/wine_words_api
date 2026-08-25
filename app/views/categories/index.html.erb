@@ -1,0 +1,16 @@
+<h1>Categories</h1>
+<div class="page-actions"><%= link_to "+ New Category", new_category_path, class: "btn" %></div>
+<% if @categories.any? %>
+  <ul class="facts">
+    <% @categories.each do |category| %>
+      <li>
+        <%= link_to category.name, category_path(category.id) %>
+        (<%= pluralize(category.articles.published.count, "published article") %>)
+        <%= link_to "Edit", edit_category_path(category.id), class: "card-action" %>
+        <%= button_to "Delete", category_path(category.id), method: :delete, form_class: "inline-form", class: "card-action card-action--delete", onclick: %(return confirm('Delete this category?')) %>
+      </li>
+    <% end %>
+  </ul>
+<% else %>
+  <p class="empty">No categories yet.</p>
+<% end %>

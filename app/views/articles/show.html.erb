@@ -1,0 +1,100 @@
+<% content_for :title, "#{@article.title} · Wine Library" %>
+<article class="article-page">
+  <%= link_to "← All articles", articles_path, class: "back-link" %>
+
+  <% if @article.images.attached? %>
+    <div class="image-gallery">
+      <% @article.images.each do |image| %>
+        <%= image_tag url_for(image), class: "gallery-img", alt: @article.title %>
+      <% end %>
+    </div>
+  <% end %>
+
+  <h1><%= @article.title %></h1>
+  <p class="lede">
+    <%= [@article.category&.name, "by #{@article.user.name.presence || @article.user.email}", @article.published_at&.strftime("%B %d, %Y")].compact.join(" · ") %>
+    <span class="tag"><%= @article.status %></span>
+    <% @article.tags.each do |tag| %>
+      <span class="tag"><%= tag.name %></span>
+    <% end %>
+  </p>
+
+  <% if user_signed_in? && @article.user_id == current_user.id %>
+    <div class="page-actions">
+      <%= link_to "Edit Article", edit_article_path(@article.id), class: "btn btn--secondary" %>
+      <% if @article.status == "draft" %>
+        <%= button_to "Publish", article_path(@article.id), method: :patch, params: { article: { status: "published", published_at: Time.current } }, class: "btn btn--secondary" %>
+      <% else %>
+        <%= button_to "Unpublish", article_path(@article.id), method: :patch, params: { article: { status: "draft" } }, class: "btn btn--secondary" %>
+      <% end %>
+      <%= button_to "Delete", article_path(@article.id), method: :delete, class: "btn", onclick: %(return confirm('Delete this article? This action cannot be undone.')) %>
+    </div>
+  <% end %>
+
+  <% if @article.abstract.present? %>
+    <p class="prompt article-abstract"><%= sanitize @article.abstract %></p>
+  <% end %>
+
+  <% if @article.body.present? %>
+    <div class="article-body"><%= sanitize @article.body %></div>
+  <% end %>
+
+  <% if @visible_reviews.any? %>
+    <h2>Reviews</h2>
+    <section class="wine-grid" aria-label="Article reviews">
+      <% @visible_reviews.each do |review| %>
+        <div class="card-wrapper">
+          <%= link_to review_path(review.id), class: "wine-card" do %>
+            <div class="wine-card__band"></div>
+            <div class="wine-card__content">
+              <h3><%= review.title.presence || review.vintage&.name %></h3>
+              <p class="meta">Score: <%= review.score %> · by <%= review.user.name.presence || review.user.email %></p>
+              <% if review.comment.present? %>
+                <p class="details"><%= truncate(strip_tags(review.comment), length: 140) %></p>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </section>
+  <% end %>
+
+  <% if @article.wines.any? %>
+    <h2>Wines</h2>
+    <section class="wine-grid" aria-label="Article wines">
+      <% @article.wines.each do |wine| %>
+        <div class="card-wrapper">
+          <%= link_to wine_path(wine.slug), class: "wine-card #{wine_color_class(wine)}" do %>
+            <% if wine.images.attached? %>
+              <%= image_tag url_for(wine.images.first), class: "card-thumb", alt: wine.name %>
+            <% end %>
+            <div class="wine-card__band"></div>
+            <div class="wine-card__content">
+              <h3><%= wine.name %></h3>
+              <p class="region"><%= [wine.producer&.name, wine.region, wine.color].compact.join(" · ") %></p>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </section>
+  <% end %>
+
+  <% if @article.producers.any? %>
+    <h2>Producers</h2>
+    <section class="wine-grid" aria-label="Article producers">
+      <% @article.producers.each do |producer| %>
+        <div class="card-wrapper">
+          <%= link_to producer_path(producer.slug), class: "wine-card" do %>
+            <div class="wine-card__band"></div>
+            <div class="wine-card__content">
+              <h3><%= producer.name %></h3>
+              <% if producer.respond_to?(:region) && producer.region.present? %>
+                <p class="region"><%= producer.region %></p>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </section>
+  <% end %>
+</article>

@@ -1,0 +1,125 @@
+class ArticlesController < ActionController::Base
+  layout "application"
+  include RequireLogin
+
+  before_action :set_article, only: [:show, :edit, :update, :destroy,
+                                     :add_review, :remove_review, :toggle_review_status]
+  before_action :ensure_author!, only: [:edit, :update, :destroy,
+                                        :add_review, :remove_review, :toggle_review_status]
+
+  def index
+    @articles =
+      if user_signed_in?
+        Article.visible_to(current_user).recent.includes(:user, :category)
+      else
+        Article.published.recent.includes(:user, :category)
+      end
+  end
+
+  def show
+    if @article.status == "draft" && @article.user_id != current_user&.id
+      return redirect_to articles_path, alert: "Article not found."
+    end
+
+    @linked_reviews = @article.article_reviews.includes(review: [:user, :vintage])
+    @visible_reviews = @article.published_reviews.includes(:user, :vintage)
+  end
+
+  def new
+    @article = Article.new
+  end
+
+  def create
+    @article = Article.new(article_params)
+    @article.user = current_user
+    if @article.save
+      attach_images
+      redirect_to @article, notice: "Article was successfully created."
+    else
+      render :new, status: :unprocessable_entity
+    end
+  end
+
+  def update
+    if @article.update(article_params)
+      attach_images
+      redirect_to @article, notice: "Article was successfully updated."
+    else
+      render :edit, status: :unprocessable_entity
+    end
+  end
+
+  def edit
+    @linked_reviews = @article.article_reviews.includes(review: [:user, :vintage])
+    @visible_reviews = @article.published_reviews.includes(:user, :vintage)
+  end
+
+  def destroy
+    @article.destroy
+    redirect_to articles_url, notice: "Article was successfully destroyed."
+  end
+
+  # --- Article <-> Review link management -------------------------------
+
+  def add_review
+    review = current_user.reviews.published.find_by(id: params[:review_id])
+    if review && !@article.reviews.exists?(review.id)
+      @article.article_reviews.create!(review: review, status: "published")
+      redirect_to edit_article_path(@article), notice: "Review added to article."
+    else
+      redirect_to edit_article_path(@article), alert: "Could not add that review."
+    end
+  end
+
+  def remove_review
+    @article.article_reviews.where(review_id: params[:review_id]).destroy_all
+    redirect_to edit_article_path(@article), notice: "Review removed from article."
+  end
+
+  def toggle_review_status
+    link = @article.article_reviews.find_by(review_id: params[:review_id])
+    link&.update(status: link.status == "published" ? "draft" : "published")
+    redirect_to edit_article_path(@article), notice: "Review visibility updated."
+  end
+
+  private
+
+  def set_article
+    @article = Article.find(params[:id])
+  rescue ActiveRecord::RecordNotFound
+    redirect_to articles_path, alert: "Article not found."
+  end
+
+  def ensure_author!
+    return if response.committed?
+    return if @article&.user_id == current_user&.id
+
+    redirect_to articles_path, alert: "You are not allowed to do that."
+  end
+
+  def article_params
+    permitted = params.require(:article).permit(
+      :title, :abstract, :body, :status, :published_at, :category_id,
+      :tag_names, wine_ids: [], producer_ids: [], images: []
+    )
+
+    if permitted.key?(:tag_names)
+      tag_names = permitted.delete(:tag_names).to_s.split(",").map(&:strip).reject(&:blank?)
+      permitted[:tag_ids] = tag_names.map { |name| Tag.find_or_create_by_name(name)&.id }.compact
+    end
+
+    if permitted[:status] == "published"
+      permitted[:published_at] ||= Time.current
+    elsif permitted.key?(:status) && permitted[:status] == "draft"
+      permitted[:published_at] = nil
+    end
+
+    permitted
+  end
+
+  def attach_images
+    return unless params[:article][:images].present?
+
+    @article.images.attach(params[:article][:images])
+  end
+end

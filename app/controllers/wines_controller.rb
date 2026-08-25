@@ -1,6 +1,7 @@
 class WinesController < ActionController::Base
   layout "application"
   helper :wines
+  include RequireLogin
 
   def index
     @wines = Wine.includes(:vintages, wine_taste_parameters: :taste_parameter).order(:name)
@@ -17,6 +18,7 @@ class WinesController < ActionController::Base
   def create
     @wine = Wine.new(wine_params)
     if @wine.save
+      @wine.images.attach(params[:wine][:images]) if params[:wine][:images].present?
       redirect_to @wine, notice: "Wine was successfully created."
     else
       render :new, status: :unprocessable_entity
@@ -30,6 +32,7 @@ class WinesController < ActionController::Base
   def update
     @wine = Wine.find_by!(slug: params[:id])
     if @wine.update(wine_params)
+      @wine.images.attach(params[:wine][:images]) if params[:wine][:images].present?
       redirect_to @wine, notice: "Wine was successfully updated."
     else
       render :edit, status: :unprocessable_entity

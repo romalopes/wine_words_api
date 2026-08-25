@@ -11,5 +11,9 @@
     <%= f.label :email %><br>
     <%= f.email_field :email %>
   </div>
+  <div>
+    <%= f.label :images, "Images" %>
+    <%= f.file_field :images, multiple: true, direct_upload: false %>
+  </div>
   <div><%= f.submit %></div>
 <% end %>

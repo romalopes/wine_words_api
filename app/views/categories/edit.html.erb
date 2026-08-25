@@ -1,0 +1,14 @@
+<h1>Edit Category</h1>
+<%= form_with(model: @category, local: true) do |form| %>
+  <% if @category.errors.any? %>
+    <div class="flash flash--alert"><%= @category.errors.full_messages.join(", ") %></div>
+  <% end %>
+  <div class="field">
+    <%= form.label :name %>
+    <%= form.text_field :name, required: true %>
+  </div>
+  <div class="page-actions">
+    <%= form.submit "Update", class: "btn" %>
+    <%= link_to "Cancel", categories_path, class: "btn btn--secondary" %>
+  </div>
+<% end %>

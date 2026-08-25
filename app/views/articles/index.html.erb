@@ -1,0 +1,43 @@
+<% content_for :title, "Articles" %>
+<h1>Articles</h1>
+<p class="lede">Stories, guides and tasting journeys from the community.</p>
+<% if user_signed_in? %>
+  <div class="page-actions">
+    <%= link_to "+ New Article", new_article_path, class: "btn" %>
+  </div>
+<% end %>
+<% if @articles.any? %>
+  <section class="wine-grid" aria-label="Articles">
+    <% @articles.each do |article| %>
+      <div class="card-wrapper">
+        <% if user_signed_in? && article.user_id == current_user.id %>
+          <div class="card-actions">
+            <%= link_to "Edit", edit_article_path(article.id), class: "card-action" %>
+            <%= button_to "Delete", article_path(article.id), method: :delete, form_class: "card-delete-form", class: "card-action card-action--delete", onclick: %(return confirm('Delete this article? This action cannot be undone.')) %>
+          </div>
+        <% end %>
+        <%= link_to article_path(article.id), class: "wine-card" do %>
+          <% if article.images.attached? %>
+            <%= image_tag url_for(article.images.first), class: "card-thumb", alt: article.title %>
+          <% end %>
+          <div class="wine-card__band"></div>
+          <div class="wine-card__content">
+            <h2><%= article.title %></h2>
+            <p class="region"><%= [article.category&.name, article.user.name.presence || article.user.email].compact.join(" · ") %></p>
+            <% if article.abstract.present? %>
+              <p class="details"><%= truncate(strip_tags(article.abstract), length: 140) %></p>
+            <% end %>
+            <div class="status">
+              <span class="tag"><%= article.status %></span>
+              <% article.tags.limit(3).each do |tag| %>
+                <span class="tag"><%= tag.name %></span>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </section>
+<% else %>
+  <p class="empty">No articles have been added yet.</p>
+<% end %>

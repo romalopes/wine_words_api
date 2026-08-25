@@ -1,8 +1,27 @@
 <% content_for :title, "Review · Wine Library" %>
 <article class="review-page">
   <%= link_to "← All reviews", reviews_path, class: "back-link" %>
-  <h1><%= @review.vintage&.name %></h1>
-  <p class="lede"><%= review_score(@review) %></p>
+  <h1><%= @review.title.presence || @review.vintage&.name %></h1>
+  <p class="lede"><%= [@review.vintage&.name, review_score(@review)].compact.join(" · ") %></p>
+
+  <% if user_signed_in? && @review.user_id == current_user.id %>
+    <div class="page-actions">
+      <%= link_to "Edit Review", edit_review_path(@review.id), class: "btn btn--secondary" %>
+      <% if @review.status == "draft" %>
+        <%= button_to "Publish", review_path(@review.id), method: :patch, params: { review: { status: "published", published_at: Time.current } }, class: "btn btn--secondary" %>
+      <% else %>
+        <%= button_to "Unpublish", review_path(@review.id), method: :patch, params: { review: { status: "draft" } }, class: "btn btn--secondary" %>
+      <% end %>
+      <%= button_to "Delete Review", review_path(@review.id), method: :delete, class: "btn", onclick: %(return confirm('Delete this review? This action cannot be undone.')) %>
+    </div>
+  <% end %>
+  <% if @review.images.attached? %>
+    <div class="image-gallery">
+      <% @review.images.each do |image| %>
+        <%= image_tag url_for(image), class: "gallery-img", alt: @review.title %>
+      <% end %>
+    </div>
+  <% end %>
   <ul class="facts" aria-label="Review details">
     <li><strong>Status:</strong> <%= @review.status %></li>
     <% if @review.published_at.present? %>
@@ -10,6 +29,6 @@
     <% end %>
   </ul>
   <% if @review.comment.present? %>
-    <p class="prompt"><%= @review.comment %></p>
+    <div class="prompt review-comment"><%= sanitize @review.comment %></div>
   <% end %>
 </article>

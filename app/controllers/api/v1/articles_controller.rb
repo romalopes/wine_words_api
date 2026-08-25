@@ -1,0 +1,78 @@
+class Api::V1::ArticlesController < ApplicationController
+  before_action :authenticate_user!, except: [:index, :show]
+  before_action :set_article, only: [:show, :update, :destroy]
+
+  def index
+    articles = Article.visible_to(current_user).recent.includes(:user, :category, :tags, :wines, :producers)
+    render json: articles.map { |a| ArticleSerializer.new(a, request.base_url).as_json }
+  end
+
+  def show
+    if @article.status == "draft" && @article.user_id != current_user&.id
+      return render json: { error: "Not found" }, status: :not_found
+    end
+
+    render json: ArticleSerializer.new(@article, request.base_url).as_json
+  end
+
+  def create
+    article = Article.new(article_params)
+    article.user = current_user
+    if article.save
+      attach_images(article)
+      render json: ArticleSerializer.new(article, request.base_url).as_json, status: :created
+    else
+      render json: { errors: article.errors.full_messages }, status: :unprocessable_entity
+    end
+  end
+
+  def update
+    if @article.user_id != current_user.id
+      return render json: { error: "Forbidden" }, status: :forbidden
+    end
+
+    if @article.update(article_params)
+      attach_images(@article)
+      render json: ArticleSerializer.new(@article, request.base_url).as_json
+    else
+      render json: { errors: @article.errors.full_messages }, status: :unprocessable_entity
+    end
+  end
+
+  def destroy
+    if @article.user_id != current_user.id
+      return render json: { error: "Forbidden" }, status: :forbidden
+    end
+
+    @article.destroy
+    head :no_content
+  end
+
+  private
+
+  def set_article
+    @article = Article.find(params[:id])
+  rescue ActiveRecord::RecordNotFound
+    render json: { error: "Article not found" }, status: :not_found
+  end
+
+  def attach_images(article)
+    return unless params[:article][:images].present?
+
+    article.images.attach(params[:article][:images])
+  end
+
+  def article_params
+    permitted = params.require(:article).permit(
+      :title, :abstract, :body, :status, :published_at, :category_id,
+      :tag_names, wine_ids: [], producer_ids: [], images: []
+    )
+
+    if permitted.key?(:tag_names)
+      tag_names = permitted.delete(:tag_names).to_s.split(",").map(&:strip).reject(&:blank?)
+      permitted[:tag_ids] = tag_names.map { |name| Tag.find_or_create_by_name(name)&.id }.compact
+    end
+
+    permitted
+  end
+end

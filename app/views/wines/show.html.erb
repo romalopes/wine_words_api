@@ -3,7 +3,24 @@
 <article class="wine-page">
   <%= link_to "← All wines", wines_path, class: "back-link" %>
   <h1><%= @wine.name %></h1>
-  <p class="lede"><%= [@wine.region, @wine.color].compact.join(" · ") %></p>
+  <p class="lede">
+    <% if @wine.producer.present? %><%= link_to @wine.producer.name, producer_path(@wine.producer.slug), class: "text-link" %> · <% end %><%= [@wine.region, @wine.color].compact.join(" · ") %>
+  </p>
+
+  <% if user_signed_in? %>
+  <div class="page-actions">
+    <%= link_to "Edit Wine", edit_wine_path(@wine.slug), class: "btn btn--secondary" %>
+    <%= button_to "Delete Wine", wine_path(@wine.slug), method: :delete, class: "btn", onclick: %(return confirm('Delete this item? This action cannot be undone.')) %>
+  </div>
+  <% end %>
+
+    <% if @wine.images.attached? %>
+  <div class="image-gallery">
+    <% @wine.images.each do |image| %>
+      <%= image_tag url_for(image), class: "gallery-img", alt: @wine.name %>
+    <% end %>
+  </div>
+  <% end %>
 
   <ul class="facts" aria-label="Wine details">
     <% if @wine.alcohol_percentage.present? %><li><strong>Alcohol:</strong> <%= @wine.alcohol_percentage %>% ABV</li><% end %>
@@ -14,10 +31,23 @@
   <% if @wine.prompt.present? %><p class="prompt"><%= @wine.prompt %></p><% end %>
 
   <h2>Vintages</h2>
+  <% if user_signed_in? %>
+  <div class="page-actions">
+    <%= link_to "+ Add Vintage", new_vintage_path(wine_id: @wine.id), class: "btn" %>
+  </div>
+  <% end %>
   <% if @wine.vintages.any? %>
     <ul class="vintage-list">
       <% @wine.vintages.sort_by(&:year).reverse_each do |vintage| %>
-        <li><strong><%= vintage.year %></strong><br><%= vintage.prompt %></li>
+        <li>
+          <strong><%= vintage.year %></strong><br><%= vintage.prompt %>
+          <% if user_signed_in? %>
+          <div class="card-actions">
+            <%= link_to "Edit", edit_vintage_path(vintage.slug), class: "card-action" %>
+            <%= button_to "Delete", vintage_path(vintage.slug), method: :delete, form_class: "card-delete-form", class: "card-action card-action--delete", onclick: %(return confirm('Delete the #{vintage.year} vintage? This action cannot be undone.')) %>
+          </div>
+          <% end %>
+        </li>
       <% end %>
     </ul>
   <% else %>

@@ -1,15 +1,31 @@
 <h1>Vintages</h1>
 <p class="lede">Browse vintages associated with each wine.</p>
+<% if user_signed_in? %>
+  <div class="page-actions">
+    <%= link_to "+ New Vintage", new_vintage_path, class: "btn" %>
+  </div>
+<% end %>
 <% if @vintages.any? %>
   <section class="vintage-grid" aria-label="Vintages">
     <% @vintages.each do |vintage| %>
-      <%= link_to vintage_path(vintage.slug), class: "vintage-card #{vintage_color_class(vintage)}" do %>
+      <div class="card-wrapper">
+        <% if user_signed_in? %>
+        <div class="card-actions">
+          <%= link_to "Edit", edit_vintage_path(vintage.slug), class: "card-action" %>
+          <%= button_to "Delete", vintage_path(vintage.slug), method: :delete, form_class: "card-delete-form", class: "card-action card-action--delete", onclick: %(return confirm('Delete this item? This action cannot be undone.')) %>
+        </div>
+        <% end %>
+        <%= link_to vintage_path(vintage.slug), class: "vintage-card #{vintage_color_class(vintage)}" do %>
+        <% if vintage.images.attached? %>
+          <%= image_tag url_for(vintage.images.first), class: "card-thumb", alt: vintage.name %>
+        <% end %>
         <div class="vintage-card__band"></div>
         <div class="vintage-card__content">
           <h2><%= vintage.name %></h2>
           <p class="meta"><%= [vintage.year, vintage.wine_name].compact.join(" · ") %></p>
         </div>
       <% end %>
+      </div>
     <% end %>
   </section>
 <% else %>

@@ -1,0 +1,24 @@
+<% content_for :title, "#{@category.name} · Articles" %>
+<h1>Category: <%= @category.name %></h1>
+<%= link_to "← All categories", categories_path, class: "back-link" %>
+<% if @articles.any? %>
+  <section class="wine-grid" aria-label="Articles">
+    <% @articles.each do |article| %>
+      <div class="card-wrapper">
+        <%= link_to article_path(article.id), class: "wine-card" do %>
+          <% if article.images.attached? %>
+            <%= image_tag url_for(article.images.first), class: "card-thumb", alt: article.title %>
+          <% end %>
+          <div class="wine-card__band"></div>
+          <div class="wine-card__content">
+            <h2><%= article.title %></h2>
+            <p class="region">by <%= article.user.name.presence || article.user.email %></p>
+            <span class="tag"><%= article.status %></span>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </section>
+<% else %>
+  <p class="empty">No articles in this category yet.</p>
+<% end %>

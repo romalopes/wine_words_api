@@ -1,0 +1,14 @@
+<h1>Edit Tag</h1>
+<%= form_with(model: @tag, local: true) do |form| %>
+  <% if @tag.errors.any? %>
+    <div class="flash flash--alert"><%= @tag.errors.full_messages.join(", ") %></div>
+  <% end %>
+  <div class="field">
+    <%= form.label :name %>
+    <%= form.text_field :name, required: true %>
+  </div>
+  <div class="page-actions">
+    <%= form.submit "Update", class: "btn" %>
+    <%= link_to "Cancel", tags_path, class: "btn btn--secondary" %>
+  </div>
+<% end %>

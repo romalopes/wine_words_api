@@ -1,0 +1,42 @@
+<% content_for :title, "Edit Article" %>
+<h1>Edit Article</h1>
+<%= render "form", article: @article %>
+
+<h2 style="margin-top: 2rem">Linked Reviews</h2>
+<p class="lede">Only published reviews can be linked. Linked reviews are shown at the bottom of the article when their link is set to published.</p>
+
+<div class="page-actions">
+  <%= form_with(url: add_review_article_path(@article), method: :patch, local: true) do |form| %>
+    <%= form.collection_select :review_id, current_user.reviews.published.order(:title), :id,
+          ->(r) { "#{r.title.presence || r.vintage&.name} (score #{r.score})" },
+          { include_blank: "Choose one of your published reviews…" } %>
+    <%= form.submit "Add Review", class: "btn btn--secondary" %>
+  <% end %>
+</div>
+
+<% if @linked_reviews.any? %>
+  <ul class="facts">
+    <% @linked_reviews.each do |link| %>
+      <li>
+        <strong><%= link.review.title.presence || link.review.vintage&.name %></strong>
+        — <span class="tag"><%= link.status %></span>
+        <%= button_to (link.status == "published" ? "Hide from article" : "Show in article"),
+              toggle_review_status_article_path(@article.id), method: :patch,
+              params: { review_id: link.review_id }, class: "btn btn--secondary", form_class: "inline-form" %>
+        <%= button_to "Remove", remove_review_article_path(@article.id), method: :patch,
+              params: { review_id: link.review_id }, class: "btn btn--secondary", form_class: "inline-form" %>
+      </li>
+    <% end %>
+  </ul>
+<% else %>
+  <p class="empty">No reviews linked yet.</p>
+<% end %>
+
+<style>
+  .field { margin-bottom: 1rem; }
+  .field label { display: block; font-weight: 600; margin-bottom: .25rem; }
+  .inline-form { display: inline-block; margin-left: .5rem; }
+  .article-body { max-width: 46rem; line-height: 1.6; }
+  .article-body p, .article-body h2, .article-body h3 { margin: .75rem 0; }
+  .article-abstract { font-style: italic; }
+</style>

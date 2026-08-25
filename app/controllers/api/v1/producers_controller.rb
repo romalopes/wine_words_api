@@ -38,7 +38,7 @@ class Api::V1::ProducersController < ApplicationController
   private
 
   def producer_params
-    params.require(:producer).permit(:name, :address, :email)
+    params.require(:producer).permit(:name, :address, :email, images: [])
   end
 
   def producer_json(producer)
@@ -48,6 +48,7 @@ class Api::V1::ProducersController < ApplicationController
       name: producer.name,
       address: producer.address,
       email: producer.email,
+      images: image_urls(producer),
       wines: producer.wines.map do |wine|
         {
           id: wine.id,
@@ -59,4 +60,12 @@ class Api::V1::ProducersController < ApplicationController
       end
     }
   end
+
+    def image_urls(record)
+      return [] unless record.images.attached?
+
+      record.images.map do |image|
+        Rails.application.routes.url_helpers.rails_blob_url(image, host: request.base_url)
+      end
+    end
 end

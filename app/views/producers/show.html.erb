@@ -2,6 +2,13 @@
 <article class="producer-page">
   <%= link_to "← All producers", producers_path, class: "back-link" %>
   <h1><%= @producer.name %></h1>
+  <% if @producer.images.attached? %>
+    <div class="image-gallery">
+      <% @producer.images.each do |image| %>
+        <%= image_tag url_for(image), class: "gallery-img", alt: @producer.name %>
+      <% end %>
+    </div>
+  <% end %>
   <ul class="facts" aria-label="Producer details">
     <% if @producer.address.present? %>
       <li><strong>Address:</strong> <%= @producer.address %></li>

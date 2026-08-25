@@ -1,6 +1,7 @@
 class ProducersController < ActionController::Base
   layout "application"
   helper :producers
+  include RequireLogin
 
   def index
     @producers = Producer.includes(:wines).order(:name)
@@ -18,6 +19,7 @@ class ProducersController < ActionController::Base
   def create
     @producer = Producer.new(producer_params)
     if @producer.save
+      @producer.images.attach(params[:producer][:images]) if params[:producer][:images].present?
       redirect_to @producer, notice: "Producer was successfully created."
     else
       render :new, status: :unprocessable_entity
@@ -31,6 +33,7 @@ class ProducersController < ActionController::Base
   def update
     @producer = Producer.find_by!(slug: params[:id])
     if @producer.update(producer_params)
+      @producer.images.attach(params[:producer][:images]) if params[:producer][:images].present?
       redirect_to @producer, notice: "Producer was successfully updated."
     else
       render :edit, status: :unprocessable_entity

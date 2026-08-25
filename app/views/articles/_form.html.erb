@@ -1,0 +1,84 @@
+<%# locals: article %>
+<%= stylesheet_link_tag "https://unpkg.com/trix@2.1.15/dist/trix.css" %>
+<script type="text/javascript" src="https://unpkg.com/trix@2.1.15/dist/trix.umd.min.js"></script>
+<style>
+  trix-editor { background: #fff; border: 1px solid #d8c8c0; border-radius: .45rem; min-height: 14rem; }
+  trix-editor:empty::before { content: attr(placeholder); color: #6b5855; }
+</style>
+
+<%= form_with(model: article, local: true, html: { multipart: true }, class: "article-form") do |form| %>
+  <% if article.errors.any? %>
+    <div class="flash flash--alert">
+      <ul>
+        <% article.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= form.label :title, "Title" %>
+    <%= form.text_field :title, required: true, style: "width: 100%" %>
+  </div>
+
+  <div class="field">
+    <%= form.label :abstract, "Abstract" %>
+    <%= form.text_area :abstract, rows: 3, style: "width: 100%" %>
+  </div>
+
+  <div class="field">
+    <%= form.label :body, "Body" %>
+    <%= form.hidden_field :body, id: "article_body_input" %>
+    <trix-editor input="article_body_input" placeholder="Write your story…"></trix-editor>
+  </div>
+
+  <div class="field">
+    <%= form.label :category_id, "Category" %>
+    <%= form.collection_select :category_id, Category.order(:name), :id, :name,
+          include_blank: "None" %>
+  </div>
+
+  <div class="field">
+    <%= form.label :tag_names, "Tags (comma separated)" %>
+    <%= form.text_field :tag_names, value: article.tags.map(&:name).join(", "), style: "width: 100%" %>
+  </div>
+
+  <div class="field">
+    <%= form.label :wine_ids, "Wines" %>
+    <%= form.collection_select :wine_ids, Wine.order(:name), :id, :name,
+          { include_hidden: false }, { multiple: true, size: 6, style: "width: 100%" } %>
+  </div>
+
+  <div class="field">
+    <%= form.label :producer_ids, "Producers" %>
+    <%= form.collection_select :producer_ids, Producer.order(:name), :id, :name,
+          { include_hidden: false }, { multiple: true, size: 6, style: "width: 100%" } %>
+  </div>
+
+  <div class="field">
+    <%= form.label :images, "Images (shown at the top of the article)" %>
+    <%= form.file_field :images, multiple: true, accept: "image/*" %>
+  </div>
+
+  <% if article.images.attached? %>
+    <div class="image-gallery">
+      <% article.images.each do |image| %>
+        <%= image_tag url_for(image), class: "gallery-img", alt: article.title %>
+      <% end %>
+    </div>
+  <% end %>
+
+  <div class="page-actions">
+    <%= form.hidden_field :status, value: article.status || "draft", id: "article_status_hidden" %>
+    <button type="submit" class="btn"
+            onclick="document.getElementById('article_status_hidden').value = 'draft'">
+      Save as Draft
+    </button>
+    <button type="submit" class="btn btn--secondary"
+            onclick="document.getElementById('article_status_hidden').value = 'published'">
+      Publish
+    </button>
+    <%= link_to "Cancel", article.persisted? ? article_path(article) : articles_path, class: "btn btn--secondary" %>
+  </div>
+<% end %>

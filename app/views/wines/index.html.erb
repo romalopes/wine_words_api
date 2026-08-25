@@ -1,27 +1,43 @@
 <% content_for :title, "Wine Library" %>
 <h1>Wine Library</h1>
 <p class="lede">Browse the collection, discover each wine’s profile, and compare its vintages.</p>
+<% if user_signed_in? %>
+  <div class="page-actions">
+    <%= link_to "+ New Wine", new_wine_path, class: "btn" %>
+  </div>
+<% end %>
 <% if @wines.any? %>
   <section class="wine-grid" aria-label="Wines">
     <% @wines.each do |wine| %>
-      <%= link_to wine_path(wine.slug), class: "wine-card #{wine_color_class(wine)}" do %>
-        <div class="wine-card__band"></div>
-        <div class="wine-card__content">
-          <h2><%= wine.name %></h2>
-          <p class="region"><%= [wine.region, wine.color].compact.join(" · ") %></p>
-          <% if wine_details(wine).present? %>
-            <p class="details"><%= wine_details(wine) %></p>
-          <% end %>
-          <div class="vintages">
-            <%= pluralize(wine.vintages.size, "vintage") %>
-            <% wine.taste_parameters.each do |parameter| %>
-              <span class="tag"><%= parameter.label %></span>
-            <% end %>
+      <div class="card-wrapper">
+        <% if user_signed_in? %>
+          <div class="card-actions">
+            <%= link_to "Edit", edit_wine_path(wine.slug), class: "card-action" %>
+            <%= button_to "Delete", wine_path(wine.slug), method: :delete, form_class: "card-delete-form", class: "card-action card-action--delete", onclick: %(return confirm('Delete this item? This action cannot be undone.')) %>
           </div>
+        <% end %>
+        <%= link_to wine_path(wine.slug), class: "wine-card #{wine_color_class(wine)}" do %>
+          <% if wine.images.attached? %>
+          <%= image_tag url_for(wine.images.first), class: "card-thumb", alt: wine.name %>
+        <% end %>
+        <div class="wine-card__band"></div>
+          <div class="wine-card__content">
+            <h2><%= wine.name %></h2>
+            <p class="region"><%= [wine.producer&.name, wine.region, wine.color].compact.join(" · ") %></p>
+            <% if wine_details(wine).present? %>
+              <p class="details"><%= wine_details(wine) %></p>
+            <% end %>
+            <div class="vintages">
+              <%= pluralize(wine.vintages.size, "vintage") %>
+              <%# wine.taste_parameters.each do |parameter| %>
+                <!-- <span class="tag"><%#= parameter.label %></span> -->
+                <%# end %>
+              </div>
+            </div>
+          <% end %>
         </div>
       <% end %>
-    <% end %>
-  </section>
-<% else %>
-  <p class="empty">No wines have been added yet.</p>
-<% end %>
+    </section>
+  <% else %>
+    <p class="empty">No wines have been added yet.</p>
+  <% end %>

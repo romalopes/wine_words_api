@@ -1,6 +1,7 @@
 class WineSerializer
-  def initialize(wine)
+  def initialize(wine, base_url = nil)
     @wine = wine
+    @base_url = base_url
   end
 
   def as_json
@@ -14,6 +15,7 @@ class WineSerializer
       alcohol_percentage: @wine.alcohol_percentage&.to_f,
       volume_ml: @wine.volume_ml,
       prompt: @wine.prompt,
+      images: image_urls(@wine),
       producer: producer,
       parameters: parameters,
       vintages: @wine.vintages.order(year: :desc).map do |v|
@@ -27,6 +29,14 @@ class WineSerializer
   end
 
   private
+
+  def image_urls(record)
+    return [] unless record.images.attached?
+
+    record.images.map do |image|
+      Rails.application.routes.url_helpers.rails_blob_url(image, host: @base_url || "localhost:3000")
+    end
+  end
 
   def producer
     return nil unless @wine.producer

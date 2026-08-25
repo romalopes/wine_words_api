@@ -36,4 +36,56 @@
       <span class="tag">Read reviews &rarr;</span>
     </div>
   </a>
+
+  <a class="wine-card" href="<%= articles_path %>">
+    <div class="wine-card__band wine-card--white"></div>
+    <div class="wine-card__content">
+      <h2>Articles</h2>
+      <p class="details"><%= @article_count %> stor<%= @article_count == 1 ? "y" : "ies" %> from the community.</p>
+      <span class="tag">Read articles &rarr;</span>
+    </div>
+  </a>
 </div>
+
+<% if @recent_articles.any? %>
+  <h2 style="margin-top: 2rem">Latest Articles</h2>
+  <section class="wine-grid" aria-label="Latest articles">
+    <% @recent_articles.each do |article| %>
+      <div class="card-wrapper">
+        <%= link_to article_path(article.id), class: "wine-card" do %>
+          <% if article.images.attached? %>
+            <%= image_tag url_for(article.images.first), class: "card-thumb", alt: article.title %>
+          <% end %>
+          <div class="wine-card__band"></div>
+          <div class="wine-card__content">
+            <h3><%= article.title %></h3>
+            <p class="region"><%= [article.category&.name, article.user.name.presence || article.user.email].compact.join(" · ") %></p>
+            <% if article.abstract.present? %>
+              <p class="details"><%= truncate(strip_tags(article.abstract), length: 120) %></p>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </section>
+<% end %>
+
+<% if @recent_reviews.any? %>
+  <h2 style="margin-top: 2rem">Latest Reviews</h2>
+  <section class="wine-grid" aria-label="Latest reviews">
+    <% @recent_reviews.each do |review| %>
+      <div class="card-wrapper">
+        <%= link_to review_path(review.id), class: "wine-card" do %>
+          <div class="wine-card__band wine-card--rose"></div>
+          <div class="wine-card__content">
+            <h3><%= review.title.presence || review.vintage&.name %></h3>
+            <p class="region">Score <%= review.score %> · by <%= review.user.name.presence || review.user.email %></p>
+            <% if review.comment.present? %>
+              <p class="details"><%= truncate(strip_tags(review.comment), length: 120) %></p>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </section>
+<% end %>

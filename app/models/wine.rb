@@ -1,5 +1,6 @@
 class Wine < ApplicationRecord
   belongs_to :producer, optional: true
+  has_many_attached :images
 
   has_many :wine_taste_parameters, dependent: :destroy
   has_many :taste_parameters, through: :wine_taste_parameters
@@ -11,6 +12,15 @@ class Wine < ApplicationRecord
   validates :name, presence: true
   validates :region, presence: true
   validates :color, presence: true
+
+  def self.colors
+    %w[Red White Rosé Sparkling Dessert].freeze
+  end
+
+  # Use slug instead of numeric id in URLs so form submissions resolve via find_by!(slug:)
+  def to_param
+    slug
+  end
 
   before_validation :generate_slug, on: :create
 

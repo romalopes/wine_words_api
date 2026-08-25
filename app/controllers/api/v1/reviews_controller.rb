@@ -1,52 +1,60 @@
 class Api::V1::ReviewsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_vintage, only: [:index, :create]
+  before_action :set_vintage, only: [:create]
   before_action :set_review, only: [:show, :update, :destroy]
 
   def index
-    reviews = @vintage.reviews.visible_to(@current_user).by_recency.includes(:user)
-    render json: reviews.map { |r| ReviewSerializer.new(r).as_json }
+    reviews = Review.visible_to(current_user)
+                    .by_recency
+                    .includes(:user, vintage: :wine)
+    render json: reviews.map do |r|
+      ReviewSerializer.new(r, request.base_url).as_json.merge(
+        wine_name: r.vintage.wine.name,
+        wine_slug: r.vintage.wine.slug,
+        vintage_year: r.vintage.year
+      )
+    end
   end
 
   def my_reviews
-    reviews = Review.where(user: @current_user)
+    reviews = Review.where(user: current_user)
                     .by_recency
                     .includes(:user, vintage: :wine)
-    render json: reviews.map { |r| ReviewSerializer.new(r).as_json.merge(wine_name: r.vintage.wine.name, wine_slug: r.vintage.wine.slug, vintage_year: r.vintage.year) }
+    render json: reviews.map { |r| ReviewSerializer.new(r, request.base_url).as_json.merge(wine_name: r.vintage.wine.name, wine_slug: r.vintage.wine.slug, vintage_year: r.vintage.year) }
   end
 
   def show
-    if @review.status == "draft" && @review.user_id != @current_user.id
+    if @review.status == "draft" && @review.user_id != current_user.id
       return render json: { error: "Not found" }, status: :not_found
     end
-    render json: ReviewSerializer.new(@review).as_json
+    render json: ReviewSerializer.new(@review, request.base_url).as_json
   end
 
   def create
     review = @vintage.reviews.new(review_params)
-    review.user = @current_user
+    review.user = current_user
 
     if review.save
-      render json: ReviewSerializer.new(review).as_json, status: :created
+      render json: ReviewSerializer.new(review, request.base_url).as_json, status: :created
     else
       render json: { errors: review.errors.full_messages }, status: :unprocessable_entity
     end
   end
 
   def update
-    if @review.user_id != @current_user.id
+    if @review.user_id != current_user.id
       return render json: { error: "Forbidden" }, status: :forbidden
     end
 
     if @review.update(review_params)
-      render json: ReviewSerializer.new(@review).as_json
+      render json: ReviewSerializer.new(@review, request.base_url).as_json
     else
       render json: { errors: @review.errors.full_messages }, status: :unprocessable_entity
     end
   end
 
   def destroy
-    if @review.user_id != @current_user.id
+    if @review.user_id != current_user.id
       return render json: { error: "Forbidden" }, status: :forbidden
     end
 
@@ -70,6 +78,6 @@ class Api::V1::ReviewsController < ApplicationController
   end
 
   def review_params
-    params.require(:review).permit(:comment, :score, :status, :published_at)
+    params.require(:review).permit(:comment, :score, :status, :published_at, :title, images: [])
   end
 end

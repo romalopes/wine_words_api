@@ -1,21 +1,42 @@
 <h1>Reviews</h1>
 <p class="lede">Browse reviews and their associated vintages.</p>
+<% if user_signed_in?  %>
+  <div class="page-actions">
+    <%= link_to "+ New Review", new_review_path, class: "btn" %>
+  </div>
+<% end %>
 <% if @reviews.any? %>
   <section class="review-grid" aria-label="Reviews">
     <% @reviews.each do |review| %>
-      <%= link_to review_path(review.id), class: "review-card #{review_status_class(review)}" do %>
-        <div class="review-card__band"></div>
-        <div class="review-card__content">
-          <h2><%= review.vintage&.name %></h2>
-          <p class="meta"><%= review_score(review) %></p>
-          <% if review.comment.present? %>
-            <p class="details"><%= review.comment %></p>
-          <% end %>
-          <div class="status">
-            <span class="tag"><%= review.status %></span>
+      <div class="card-wrapper">
+        <% if user_signed_in? && review.user_id == current_user.id %>
+          <div class="card-actions">
+            <%= link_to "Edit", edit_review_path(review.id), class: "card-action" %>
+            <% if review.status == "draft" %>
+              <%= button_to "Publish", review_path(review.id), method: :patch, params: { review: { status: "published", published_at: Time.current } }, form_class: "card-delete-form", class: "card-action" %>
+            <% else %>
+              <%= button_to "Unpublish", review_path(review.id), method: :patch, params: { review: { status: "draft" } }, form_class: "card-delete-form", class: "card-action" %>
+            <% end %>
+            <%= button_to "Delete", review_path(review.id), method: :delete, form_class: "card-delete-form", class: "card-action card-action--delete", onclick: %(return confirm('Delete this review? This action cannot be undone.')) %>
           </div>
-        </div>
-      <% end %>
+        <% end %>
+        <%= link_to review_path(review.id), class: "review-card #{review_status_class(review)}" do %>
+          <% if review.images.attached? %>
+            <%= image_tag url_for(review.images.first), class: "card-thumb", alt: review.title %>
+          <% end %>
+          <div class="review-card__band"></div>
+          <div class="review-card__content">
+            <h2><%= review.title.presence || review.vintage&.name %></h2>
+            <p class="meta"><%= review_score(review) %></p>
+            <% if review.comment.present? %>
+              <p class="details"><%= truncate(strip_tags(review.comment), length: 140) %></p>
+            <% end %>
+            <div class="status">
+              <span class="tag"><%= review.status %></span>
+            </div>
+          </div>
+        <% end %>
+      </div>
     <% end %>
   </section>
 <% else %>
