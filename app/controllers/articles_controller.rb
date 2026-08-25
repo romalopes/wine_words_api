@@ -34,6 +34,7 @@ class ArticlesController < ActionController::Base
     @article.user = current_user
     if @article.save
       attach_images
+      link_reviews(@pending_review_ids)
       redirect_to @article, notice: "Article was successfully created."
     else
       render :new, status: :unprocessable_entity
@@ -70,12 +71,21 @@ class ArticlesController < ActionController::Base
   # --- Article <-> Review link management -------------------------------
 
   def add_review
-    review = current_user.reviews.published.find_by(id: params[:review_id])
-    if review && !@article.reviews.exists?(review.id)
+    ids = Array(params[:review_ids].presence || params[:review_id]).flatten.compact
+    reviews = current_user.reviews.published.where(id: ids)
+    added = 0
+    reviews.find_each do |review|
+      next if @article.reviews.exists?(review.id)
+
       @article.article_reviews.create!(review: review, status: "published")
-      redirect_to edit_article_path(@article), notice: "Review added to article."
+      added += 1
+    end
+
+    if added.positive?
+      redirect_to edit_article_path(@article),
+                  notice: "#{added} review#{'s' if added != 1} added to article."
     else
-      redirect_to edit_article_path(@article), alert: "Could not add that review."
+      redirect_to edit_article_path(@article), alert: "Could not add those reviews."
     end
   end
 
@@ -116,6 +126,9 @@ class ArticlesController < ActionController::Base
       permitted[:tag_ids] = tag_names.map { |name| Tag.find_or_create_by_name(name)&.id }.compact
     end
 
+    # Article has no review_ids writer; links are created after save instead.
+    @pending_review_ids = Array(permitted.delete(:review_ids)).compact
+
     if permitted[:status] == "published"
       permitted[:published_at] ||= Time.current
     elsif permitted.key?(:status) && permitted[:status] == "draft"
@@ -128,5 +141,16 @@ class ArticlesController < ActionController::Base
   def attach_images
     images = params[:article][:images]
     @article.images.attach(images) if images.is_a?(Array)
+  end
+
+  # Links the picked reviews (from the new-article picker) after save.
+  def link_reviews(ids)
+    return if ids.blank?
+
+    current_user.reviews.published.where(id: ids).find_each do |review|
+      next if @article.reviews.exists?(review.id)
+
+      @article.article_reviews.create!(review: review, status: "published")
+    end
   end
 end

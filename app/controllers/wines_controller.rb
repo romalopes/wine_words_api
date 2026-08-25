@@ -65,6 +65,23 @@ class WinesController < ActionController::Base
     render json: wines.map { |wine| wine_search_json(wine) }
   end
 
+  # JSON endpoint used by the article form: published reviews of one vintage.
+  def vintage_reviews
+    wine = Wine.find_by!(slug: params[:wine_id])
+    vintage = wine.vintages.find(params[:vintage_id])
+    reviews = vintage.reviews.published.where(user: current_user).order(:title)
+
+    render json: reviews.map do |review|
+      {
+        id: review.id,
+        title: review.title.presence || "#{wine.name} #{vintage.year}",
+        score: review.score&.to_f
+      }
+    end
+  rescue ActiveRecord::RecordNotFound
+    render json: { error: "Vintage not found" }, status: :not_found
+  end
+
   private
 
   def wine_search_json(wine)

@@ -35,7 +35,7 @@
     <%= f.label :images, "Images" %>
     <%= f.file_field :images, multiple: true, direct_upload: false %>
   </div>
-  <div><%= f.submit %></div>
+  <div><%= f.submit class: "btn" %></div>
 <% end %>
 
 <% if @wine.images.attached? %>

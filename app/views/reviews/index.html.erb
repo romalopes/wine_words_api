@@ -21,8 +21,9 @@
           </div>
         <% end %>
         <%= link_to review_path(review.id), class: "review-card #{review_status_class(review)}" do %>
-          <% if review.images.attached? %>
-            <%= image_tag url_for(review.images.first), class: "card-thumb", alt: review.title %>
+          <% thumb = review.images.attached? ? review.images.first : review.vintage&.wine&.images&.first %>
+          <% if thumb %>
+            <%= image_tag url_for(thumb), class: "card-thumb", alt: review.title.presence || review.vintage&.name %>
           <% end %>
           <div class="review-card__band"></div>
           <div class="review-card__content">

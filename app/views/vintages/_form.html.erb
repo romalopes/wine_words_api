@@ -11,5 +11,5 @@
     <%= f.label :wine_id %><br>
     <%= f.collection_select :wine_id, Wine.order(:name), :id, :name, include_blank: true, selected: f.object.wine_id %>
   </div>
-  <div><%= f.submit %></div>
+  <div><%= f.submit class: "btn" %></div>
 <% end %>

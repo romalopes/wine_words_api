@@ -1,13 +1,19 @@
 class Api::V1::ReviewsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_vintage, only: [:create]
+  before_action :set_vintage, only: [:index, :create]
   before_action :set_review, only: [:show, :update, :destroy]
 
   def index
-    reviews = Review.visible_to(current_user)
-                    .by_recency
-                    .includes(:user, vintage: :wine)
-    render json: reviews.map do |r|
+    # When nested under a wine/vintage, only that vintage's reviews apply;
+    # otherwise fall back to all reviews visible to the user.
+    reviews =
+      if @vintage
+        @vintage.reviews.visible_to(current_user)
+      else
+        Review.visible_to(current_user)
+      end
+
+    render json: reviews.by_recency.includes(:user, vintage: :wine).map do |r|
       ReviewSerializer.new(r, request.base_url).as_json.merge(
         wine_name: r.vintage.wine.name,
         wine_slug: r.vintage.wine.slug,

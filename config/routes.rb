@@ -20,6 +20,8 @@ Rails.application.routes.draw do
   get "signup", to: "web/registrations#new"
   post "signup", to: "web/registrations#create"
 
+  get "wines/:wine_id/vintages/:vintage_id/reviews", to: "wines#vintage_reviews",
+      defaults: { format: :json }
   resources :wines do
     collection do
       get :search
@@ -59,7 +61,7 @@ Rails.application.routes.draw do
         collection do
           get :search
         end
-        resources :vintages, only: [] do
+        resources :vintages, only: [:create] do
           resources :reviews, only: [:index, :create]
         end
       end

@@ -3,16 +3,23 @@
 <%= render "form", article: @article %>
 
 <h2 style="margin-top: 2rem">Linked Reviews</h2>
-<p class="lede">Only published reviews can be linked. Linked reviews are shown at the bottom of the article when their link is set to published.</p>
+<p class="lede">Search a wine, pick its vintage, then tick the published reviews of that vintage to link. You can select reviews from several vintages and add them all at once.</p>
 
-<div class="page-actions">
-  <%= form_with(url: add_review_article_path(@article), method: :patch, local: true) do |form| %>
-    <%= form.collection_select :review_id, current_user.reviews.published.order(:title), :id,
-          ->(r) { "#{r.title.presence || r.vintage&.name} (score #{r.score})" },
-          { include_blank: "Choose one of your published reviews…" } %>
-    <%= form.submit "Add Review", class: "btn btn--secondary" %>
-  <% end %>
-</div>
+<form id="link-reviews-form" method="post"
+      action="<%= add_review_article_path(@article) %>"
+      style="max-width: 40rem">
+  <input type="hidden" name="_method" value="patch" />
+  <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
+
+  <div class="wine-picker">
+    <input type="text" id="article-wine-search" placeholder="Type to search wines…"
+           class="wine-picker__input" autocomplete="off">
+    <div id="article-search-status" class="lede" style="display:none"></div>
+    <div id="article-wine-results" class="wine-picker__results"></div>
+    <div id="article-selected-reviews"></div>
+    <button type="submit" class="btn">Add Selected Reviews</button>
+  </div>
+</form>
 
 <% if @linked_reviews.any? %>
   <ul class="facts">
@@ -39,4 +46,128 @@
   .article-body { max-width: 46rem; line-height: 1.6; }
   .article-body p, .article-body h2, .article-body h3 { margin: .75rem 0; }
   .article-abstract { font-style: italic; }
+  .wine-picker { display: grid; gap: .5rem; }
+  .wine-picker__input { width: 100%; border: 1px solid #d8c8c0; border-radius: .45rem; padding: .6rem .75rem; font: 1rem system-ui, sans-serif; }
+  .wine-picker__input:focus { outline: none; border-color: #8a273c; box-shadow: 0 0 0 3px rgba(138, 39, 60, .12); }
+  .wine-picker__results { display: grid; gap: .4rem; }
+  .wine-pick-btn { display: flex; justify-content: space-between; align-items: center; gap: .75rem; width: 100%; text-align: left; background: #fff; border: 1px solid #eaded7; border-radius: .55rem; padding: .6rem .85rem; font: .95rem system-ui, sans-serif; color: #281919; cursor: pointer; transition: border-color .15s, box-shadow .15s, transform .15s; }
+  .wine-pick-btn:hover { border-color: #8a273c; box-shadow: 0 2px 10px rgba(63, 24, 24, .08); transform: translateY(-1px); }
+  .wine-pick-btn strong { color: #6b2834; }
+  .wine-pick-btn .wine-pick-btn__meta { color: #6b5855; font-size: .82rem; }
+  .vintage-review-row { display: flex; align-items: center; gap: .5rem; background: #fff; border: 1px solid #eaded7; border-radius: .55rem; padding: .55rem .85rem; font: .95rem system-ui, sans-serif; cursor: pointer; }
+  .vintage-review-row:hover { border-color: #8a273c; }
 </style>
+
+<script>
+(function () {
+  var search = document.getElementById("article-wine-search");
+  var statusBox = document.getElementById("article-search-status");
+  var resultsBox = document.getElementById("article-wine-results");
+  var selectedBox = document.getElementById("article-selected-reviews");
+  if (!search || !statusBox || !resultsBox || !selectedBox) return;
+
+  var timer = null;
+  var selectedWine = null;
+
+  function setStatus(text) {
+    statusBox.textContent = text;
+    statusBox.style.display = text ? "" : "none";
+  }
+
+  function clearResults() { resultsBox.innerHTML = ""; }
+
+  function pickButton(label, meta, onClick) {
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "wine-pick-btn";
+    var name = document.createElement("strong");
+    name.textContent = label;
+    btn.appendChild(name);
+    if (meta) {
+      var m = document.createElement("span");
+      m.className = "wine-pick-btn__meta";
+      m.textContent = meta;
+      btn.appendChild(m);
+    }
+    btn.addEventListener("click", onClick);
+    return btn;
+  }
+
+  function showReviews(wine, vintage) {
+    clearResults();
+    setStatus("Loading published reviews for " + wine.name + " " + vintage.year + "…");
+
+    fetch("/wines/" + wine.slug + "/vintages/" + vintage.id + "/reviews", {
+      headers: { "Accept": "application/json" }
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (reviews) {
+        clearResults();
+        var heading = document.createElement("p");
+        heading.innerHTML = "<strong>" + wine.name + " — " + vintage.year + "</strong> (tick to link):";
+        resultsBox.appendChild(heading);
+
+        if (!Array.isArray(reviews) || reviews.length === 0) {
+          resultsBox.appendChild(document.createElement("p")).textContent =
+            "No published reviews of yours for this vintage.";
+          return;
+        }
+
+        reviews.forEach(function (review) {
+          if (document.getElementById("review-check-" + review.id)) return;
+          var row = document.createElement("label");
+          row.className = "vintage-review-row";
+          var box = document.createElement("input");
+          box.type = "checkbox";
+          box.name = "review_ids[]";
+          box.id = "review-check-" + review.id;
+          box.value = review.id;
+          row.appendChild(box);
+          var span = document.createElement("span");
+          span.innerHTML = "<strong>" + review.title + "</strong>" +
+            " <span class='wine-pick-btn__meta'>(score " + review.score + ")</span>";
+          row.appendChild(span);
+          resultsBox.appendChild(row);
+        });
+      })
+      .catch(function () { setStatus("Could not load reviews."); });
+  }
+
+  function runSearch() {
+    var q = search.value.trim();
+    if (q.length < 2) { clearResults(); setStatus(""); return; }
+    setStatus("Searching…");
+    fetch("/wines/search?q=" + encodeURIComponent(q), {
+      headers: { "Accept": "application/json" }
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (wines) {
+        clearResults();
+        if (!Array.isArray(wines) || wines.length === 0) {
+          setStatus("No wine found.");
+          return;
+        }
+        setStatus(wines.length + " wine" + (wines.length === 1 ? "" : "s") +
+          " found — pick a vintage:");
+        wines.forEach(function (wine) {
+          (wine.vintages || []).forEach(function (vintage) {
+            resultsBox.appendChild(pickButton(
+              wine.name,
+              [vintage.year, wine.color].filter(Boolean).join(" · "),
+              function () {
+                selectedWine = wine;
+                showReviews(wine, vintage);
+              }
+            ));
+          });
+        });
+      })
+      .catch(function () { setStatus("Search failed. Please try again."); });
+  }
+
+  search.addEventListener("input", function () {
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(runSearch, 300);
+  });
+})();
+</script>

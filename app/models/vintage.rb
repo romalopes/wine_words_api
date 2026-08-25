@@ -3,7 +3,6 @@ class Vintage < ApplicationRecord
   has_many :reviews, dependent: :destroy
 
   validates :year, presence: true, numericality: { greater_than_or_equal_to: 1900 }
-  validates :prompt, presence: true
 
   accepts_nested_attributes_for :reviews, allow_destroy: true, reject_if: :all_blank
 
