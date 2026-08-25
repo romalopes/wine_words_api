@@ -173,3 +173,11 @@ Make a interface based on the websites:
 - https://www.jancisrobinson.com/membership
 
 ---
+
+In Reviews, change the search for vintage in both react and rails apps.
+
+First put a wine search input. When user write the name of wine, go to database and return all wines from that search. Then, when the user selects the wine, the vintages shows up.
+
+If the the wine if now found, open a add wine with all the parameters of the wine with the vintage and create the wine to be reviewed. Then, continue with the review creation.
+
+Make it all in Single page app.

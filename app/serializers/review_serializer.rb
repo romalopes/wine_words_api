@@ -16,8 +16,12 @@ class ReviewSerializer
       status: @review.status,
       images: image_urls(@review),
       image_ids: image_ids(@review),
+      wine_image: wine_image_url,
       published_at: @review.published_at&.iso8601,
-      created_at: @review.created_at&.iso8601
+      created_at: @review.created_at&.iso8601,
+      wine_name: @review.vintage&.wine&.name,
+      wine_slug: @review.vintage&.wine&.slug,
+      vintage_year: @review.vintage&.year
     }
   end
 
@@ -35,5 +39,13 @@ class ReviewSerializer
     return [] unless record.images.attached?
 
     record.images.map(&:id)
+  end
+
+  # Fallback picture for list views: the reviewed wine's first image.
+  def wine_image_url
+    wine = @review.vintage&.wine
+    return unless wine&.images&.attached?
+
+    Rails.application.routes.url_helpers.rails_blob_url(wine.images.first, host: @base_url || "localhost:3000")
   end
 end
