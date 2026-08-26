@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  get "/health", to: "health#show"
   devise_for :users,
     path: "api/v1/auth",
     path_names: {
@@ -59,7 +60,11 @@ Rails.application.routes.draw do
     namespace :v1 do
       post "images", to: "images#create"
       delete "images/:id", to: "images#destroy"
-      resources :producers
+      resources :producers do
+        collection do
+          get :search
+        end
+      end
       resources :wines do
         collection do
           get :search

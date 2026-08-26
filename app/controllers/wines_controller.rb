@@ -11,30 +11,41 @@ class WinesController < ActionController::Base
     @wine = Wine.includes(:vintages, wine_taste_parameters: :taste_parameter).find_by!(slug: params[:id])
   end
 
-  def new
-    @wine = Wine.new
+      def new
+    @wine = Wine.new(
+      color: Wine::DEFAULT_COLOR,
+      closure: Wine::DEFAULT_CLOSURE,
+      alcohol_percentage: Wine::DEFAULT_ALCOHOL_PERCENTAGE,
+      volume_ml: Wine::DEFAULT_VOLUME,
+    )
+    @taste_parameters = TasteParameter.sorted_by_label
   end
 
   def create
     @wine = Wine.new(wine_params)
     if @wine.save
       attach_images
+      prune_wine_taste_parameters
       redirect_to @wine, notice: "Wine was successfully created."
     else
+      @taste_parameters = TasteParameter.sorted_by_label
       render :new, status: :unprocessable_entity
     end
   end
 
   def edit
     @wine = Wine.find_by!(slug: params[:id])
+    @taste_parameters = TasteParameter.sorted_by_label
   end
 
   def update
     @wine = Wine.find_by!(slug: params[:id])
     if @wine.update(wine_params)
       attach_images
+      prune_wine_taste_parameters
       redirect_to @wine, notice: "Wine was successfully updated."
     else
+      @taste_parameters = TasteParameter.sorted_by_label
       render :edit, status: :unprocessable_entity
     end
   end
@@ -102,6 +113,18 @@ class WinesController < ActionController::Base
   def attach_images
     images = params[:wine][:images]
     @wine.images.attach(images) if images.is_a?(Array)
+  end
+
+  # Removes any taste-parameter rows whose taste_parameter_id was not part of
+  # the submitted set, keeping the wine in sync with the form sliders.
+  def prune_wine_taste_parameters
+    submitted_ids = Array(params[:wine][:wine_taste_parameters_attributes])
+                      .map { |attrs| attrs[:taste_parameter_id].to_i }
+                      .reject(&:zero?)
+
+    @wine.wine_taste_parameters
+         .where.not(taste_parameter_id: submitted_ids)
+         .destroy_all
   end
 
   private

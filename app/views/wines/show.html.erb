@@ -1,51 +1,68 @@
 <% content_for :title, "#{@wine.name} · Wine Library" %>
-
 <article class="wine-page">
   <%= link_to "← All wines", wines_path, class: "back-link" %>
   <h1><%= @wine.name %></h1>
   <p class="lede">
     <% if @wine.producer.present? %><%= link_to @wine.producer.name, producer_path(@wine.producer.slug), class: "text-link" %> · <% end %><%= [@wine.region, @wine.color].compact.join(" · ") %>
   </p>
-
   <% if user_signed_in? %>
-  <div class="page-actions">
-    <%= link_to "Edit Wine", edit_wine_path(@wine.slug), class: "btn btn--secondary" %>
-    <%= button_to "Delete Wine", wine_path(@wine.slug), method: :delete, class: "btn", onclick: %(return confirm('Delete this item? This action cannot be undone.')) %>
-  </div>
+    <div class="page-actions">
+      <%= link_to "Edit Wine", edit_wine_path(@wine.slug), class: "btn btn--secondary" %>
+      <%= button_to "Delete Wine", wine_path(@wine.slug), method: :delete, class: "btn", onclick: %(return confirm('Delete this item? This action cannot be undone.')) %>
+    </div>
   <% end %>
-
-    <% if @wine.images.attached? %>
-  <div class="image-gallery">
-    <% @wine.images.each do |image| %>
-      <%= image_tag url_for(image), class: "gallery-img", alt: @wine.name %>
-    <% end %>
-  </div>
+  <% if @wine.images.attached? %>
+    <div class="image-gallery">
+      <% @wine.images.each do |image| %>
+        <%= image_tag url_for(image), class: "gallery-img", alt: @wine.name %>
+      <% end %>
+    </div>
   <% end %>
-
   <ul class="facts" aria-label="Wine details">
-    <% if @wine.alcohol_percentage.present? %><li><strong>Alcohol:</strong> <%= @wine.alcohol_percentage %>% ABV</li><% end %>
-    <% if @wine.volume_ml.present? %><li><strong>Volume:</strong> <%= @wine.volume_ml %> mL</li><% end %>
-    <% if @wine.closure.present? %><li><strong>Closure:</strong> <%= @wine.closure %></li><% end %>
+    <% if @wine.alcohol_percentage.present? %>
+      <li><strong>Alcohol:</strong> <%= @wine.alcohol_percentage %>% ABV</li>
+    <% end %>
+    <% if @wine.volume_ml.present? %>
+            <li><strong>Volume:</strong> <%= @wine.volume_label %></li>
+    <% end %>
+    <% if @wine.color.present? %>
+      <li><strong>Colour:</strong> <%= @wine.color %></li>
+    <% end %>
+    <% if @wine.closure.present? %>
+      <li><strong>Closure:</strong> <%= @wine.closure %></li>
+    <% end %>
   </ul>
-
-  <% if @wine.prompt.present? %><p class="prompt"><%= @wine.prompt %></p><% end %>
-
+  <% if @wine.prompt.present? %>
+    <p class="prompt"><%= @wine.prompt %></p>
+  <% end %>
+  <% if @wine.wine_taste_parameters.any? %>
+    <h2>Taste Parameters</h2>
+    <ul class="facts" aria-label="Taste parameters">
+      <% @wine.wine_taste_parameters.includes(:taste_parameter).order("taste_parameters.label").each do |wtp| %>
+        <li>
+          <strong><%= wtp.taste_parameter&.label || wtp.taste_parameter&.slug %></strong>
+          <%= wtp.score %> / 5
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
   <h2>Vintages</h2>
   <% if user_signed_in? %>
-  <div class="page-actions">
-    <%= link_to "+ Add Vintage", new_vintage_path(wine_id: @wine.id), class: "btn" %>
-  </div>
+    <div class="page-actions">
+      <%= link_to "+ Add Vintage", new_vintage_path(wine_id: @wine.id), class: "btn" %>
+    </div>
   <% end %>
   <% if @wine.vintages.any? %>
     <ul class="vintage-list">
       <% @wine.vintages.sort_by(&:year).reverse_each do |vintage| %>
         <li>
-          <strong><%= vintage.year %></strong><br><%= vintage.prompt %>
+          <strong><%= vintage.year %></strong><br>
+          <%= vintage.prompt %>
           <% if user_signed_in? %>
-          <div class="card-actions">
-            <%= link_to "Edit", edit_vintage_path(vintage.slug), class: "card-action" %>
-            <%= button_to "Delete", vintage_path(vintage.slug), method: :delete, form_class: "card-delete-form", class: "card-action card-action--delete", onclick: %(return confirm('Delete the #{vintage.year} vintage? This action cannot be undone.')) %>
-          </div>
+            <div class="card-actions">
+              <%= link_to "Edit", edit_vintage_path(vintage.slug), class: "card-action" %>
+              <%= button_to "Delete", vintage_path(vintage.slug), method: :delete, form_class: "card-delete-form", class: "card-action card-action--delete", onclick: %(return confirm('Delete the #{vintage.year} vintage? This action cannot be undone.')) %>
+            </div>
           <% end %>
         </li>
       <% end %>

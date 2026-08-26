@@ -1,8 +1,109 @@
 <%= form_with model: @wine, local: true, html: { multipart: true } do |f| %>
   <div>
-    <%= f.label :producer_id %><br>
-    <%= f.collection_select :producer_id, Producer.order(:name), :id, :name, include_blank: true %>
+    <%= f.label :producer_id, "Producer" %><br>
+    <%# Search-as-you-type producer picker (mirrors the React ProducerSearch).
+        Selecting a result fills the hidden producer_id field; if no producer
+        matches, it can be created on the fly via the API. %>
+    <input type="hidden" name="wine[producer_id]" id="wine_producer_id"
+           value="<%= @wine.producer_id %>" data-producer-required="true">
+    <input type="text" id="producer_search_input"
+           value="<%= @wine.producer&.name %>"
+           placeholder="Start typing a producer name…"
+           autocomplete="off">
+    <div id="producer_search_results"></div>
+    <p id="producer_search_error" style="color: #8a273c;"></p>
   </div>
+  <script>
+    (function () {
+      var hiddenField = document.getElementById("wine_producer_id");
+      var input = document.getElementById("producer_search_input");
+      var resultsBox = document.getElementById("producer_search_results");
+      var errorBox = document.getElementById("producer_search_error");
+      var timer = null;
+
+      function clearResults() { resultsBox.innerHTML = ""; }
+
+      function selectProducer(id, name) {
+        hiddenField.value = id;
+        input.value = name;
+        clearResults();
+      }
+
+      function renderResults(producers) {
+        clearResults();
+        producers.forEach(function (producer) {
+          var btn = document.createElement("button");
+          btn.type = "button";
+          btn.textContent = producer.name;
+          btn.style.display = "block";
+          btn.addEventListener("click", function () {
+            selectProducer(producer.id, producer.name);
+          });
+          resultsBox.appendChild(btn);
+        });
+
+        if (producers.length === 0) {
+          var createBtn = document.createElement("button");
+          createBtn.type = "button";
+          createBtn.textContent = 'Create "' + input.value.trim() + '"';
+          createBtn.disabled = input.value.trim().length < 2;
+          createBtn.addEventListener("click", createProducer);
+          resultsBox.appendChild(createBtn);
+        }
+      }
+
+      function createProducer() {
+        var name = input.value.trim();
+        if (name.length < 2) return;
+        errorBox.textContent = "";
+        fetch("/api/v1/producers", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content
+          },
+          credentials: "same-origin",
+          body: JSON.stringify({ producer: { name: name } })
+        }).then(function (response) {
+          return response.json().then(function (data) {
+            if (!response.ok) throw new Error((data.errors || ["Failed to create producer"]).join(", "));
+            return data;
+          });
+        }).then(function (producer) {
+          selectProducer(producer.id, producer.name);
+        }).catch(function (err) {
+          errorBox.textContent = err.message;
+        });
+      }
+
+      function performSearch(query) {
+        var trimmed = query.trim();
+        if (trimmed.length < 2) { clearResults(); return; }
+        fetch("/api/v1/producers/search?q=" + encodeURIComponent(trimmed), {
+          headers: { "Accept": "application/json" },
+          credentials: "same-origin"
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (producers) { renderResults(Array.isArray(producers) ? producers : []); })
+          .catch(function () { clearResults(); });
+      }
+
+      input.addEventListener("input", function () {
+        // Editing the text invalidates any previously selected producer.
+        hiddenField.value = "";
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(function () { performSearch(input.value); }, 300);
+      });
+
+      input.closest("form").addEventListener("submit", function (e) {
+        if (!hiddenField.value) {
+          e.preventDefault();
+          errorBox.textContent = "Please select or create a producer";
+          input.focus();
+        }
+      });
+    })();
+  </script>
   <div>
     <%= f.label :name %><br>
     <%= f.text_field :name %>
@@ -12,20 +113,21 @@
     <%= f.text_field :region %>
   </div>
   <div>
-    <%= f.label :color %><br>
-    <%= f.select :color, Wine.colors, include_blank: true %>
+    <%= f.label :colour %><br>
+    <%= f.select :color, Wine.colors %>
   </div>
   <div>
     <%= f.label :closure %><br>
-    <%= f.text_field :closure %>
+    <%= f.select :closure, Wine.closures %>
   </div>
   <div>
     <%= f.label :alcohol_percentage %><br>
-    <%= f.number_field :alcohol_percentage, step: 0.1 %>
+    <%= f.number_field :alcohol_percentage, step: 0.5 %>
   </div>
   <div>
-    <%= f.label :volume_ml %><br>
-    <%= f.number_field :volume_ml %>
+    <%= f.label :volume_ml, "Volume" %><br>
+    <%#= f.select :volume_ml, Wine.volumes, { selected: '750 ml' } %>
+    <%= f.select :volume_ml, Wine.volumes.map { |value, label| [label, value] }, { selected: 750 } %>
   </div>
   <div>
     <%= f.label :prompt %><br>
@@ -35,9 +137,39 @@
     <%= f.label :images, "Images" %>
     <%= f.file_field :images, multiple: true, direct_upload: false %>
   </div>
+  <%# --- Taste Parameters sliders (mirrors the React app) --- %>
+  <div class="wine-taste-params">
+    <label><strong>Taste Parameters</strong></label>
+    <% (@taste_parameters || TasteParameter.sorted_by_label).each do |tp| %>
+      <% existing = @wine&.wine_taste_parameters&.find { |wtp| wtp.taste_parameter_id == tp.id } %>
+      <div class="wine-taste-param" style="display:grid; grid-template-columns: 9rem 1fr 2.5rem; align-items:center; gap:.75rem; margin-bottom:.4rem">
+        <span style="font-size:.92rem"><%= tp.label %></span>
+        <input type="range"
+               min="1" max="5" step="1"
+               value="<%= existing&.score || 3 %>"
+               name="wine[wine_taste_parameters_attributes][][score]"
+               oninput="this.nextElementSibling.textContent = this.value">
+        <output style="font-weight:700; text-align:center"><%= existing&.score || 3 %></output>
+        <input type="hidden" name="wine[wine_taste_parameters_attributes][][taste_parameter_id]" value="<%= tp.id %>">
+        <% if existing %>
+          <input type="hidden" name="wine[wine_taste_parameters_attributes][][id]" value="<%= existing.id %>">
+        <% end %>
+      </div>
+    <% end %>
+    <% if (@taste_parameters || TasteParameter.sorted_by_label).empty? %>
+      <p class="empty">No taste parameters configured.</p>
+    <% end %>
+  </div>
+  <%# --- Vintages editor (add/edit/remove vintages inline) --- %>
+  <div class="wine-vintages-editor" id="wine-vintages-editor"
+       data-vintages="<%= @wine.vintages.order(year: :desc).map { |v| { id: v.id, year: v.year, prompt: v.prompt } }.to_json %>">
+    <label><strong>Vintages</strong></label>
+    <div id="wine-vintages-rows"></div>
+    <button type="button" id="add-vintage-btn" class="btn btn--secondary">+ Add Vintage</button>
+    <small class="lede">Year is required. Removing a vintage also deletes its reviews.</small>
+  </div>
   <div><%= f.submit class: "btn" %></div>
 <% end %>
-
 <% if @wine.images.attached? %>
   <div class="image-gallery">
     <p class="lede">Existing images (click Remove to delete)</p>
@@ -49,3 +181,79 @@
     <% end %>
   </div>
 <% end %>
+<style>
+  .vintage-editor-row { display: grid; grid-template-columns: 7rem 1fr auto auto; align-items: center; gap: .6rem; margin-bottom: .4rem; }
+  .vintage-editor-row.removed { display: none; }
+  .vintage-editor-row input[type="number"], .vintage-editor-row input[type="text"] {
+    border: 1px solid #d8c8c0; border-radius: .45rem; padding: .45rem .6rem; font: .95rem system-ui, sans-serif;
+  }
+</style>
+<script>
+  (function () {
+    var editor = document.getElementById("wine-vintages-editor");
+    var rowsBox = document.getElementById("wine-vintages-rows");
+    var addBtn = document.getElementById("add-vintage-btn");
+    if (!editor || !rowsBox || !addBtn) return;
+
+    // Existing vintages are preloaded from data-vintages so edits can carry
+    // their record ids (needed for update/destroy through nested attributes).
+    var existing = [];
+    try { existing = JSON.parse(editor.getAttribute("data-vintages") || "[]"); } catch (e) {}
+
+    function makeEl(tag, attrs, textContent) {
+      var el = document.createElement(tag);
+      Object.keys(attrs || {}).forEach(function (k) { el.setAttribute(k, attrs[k]); });
+      if (textContent != null) el.textContent = textContent;
+      return el;
+    }
+
+    function addRow(vintage) {
+      var row = document.createElement("div");
+      row.className = "vintage-editor-row";
+      var isExisting = vintage && vintage.id;
+
+      if (isExisting) {
+        row.appendChild(makeEl("input", {
+          type: "hidden", name: "wine[vintages_attributes][][id]", value: vintage.id
+        }));
+      }
+      row.appendChild(makeEl("input", {
+        type: "hidden", name: "wine[vintages_attributes][][_destroy]", value: "0"
+      }));
+
+      row.appendChild(makeEl("input", {
+        type: "number",
+        name: "wine[vintages_attributes][][year]",
+        value: vintage ? vintage.year : "",
+        min: "1900", max: String(new Date().getFullYear() + 5),
+        placeholder: "Year", required: "required"
+      }));
+      row.appendChild(makeEl("input", {
+        type: "text",
+        name: "wine[vintages_attributes][][prompt]",
+        value: (vintage && vintage.prompt) || "",
+        placeholder: "Tasting notes for this vintage"
+      }));
+
+      var removeBtn = makeEl("button", { type: "button", title: "Remove vintage" }, "\u2715");
+      removeBtn.style.cssText = "background:#fff;border:1px solid #d8c8c0;border-radius:.45rem;color:#8a273c;cursor:pointer;padding:.35rem .6rem;font-weight:700";
+      removeBtn.addEventListener("click", function () {
+        if (isExisting && !window.confirm("Remove the " + vintage.year + " vintage? This also deletes its reviews.")) return;
+        if (isExisting) {
+          // Mark for destruction and hide — Rails needs the id + _destroy=1.
+          row.querySelector('[name="wine[vintages_attributes][][_destroy]"]').value = "1";
+          row.classList.add("removed");
+        } else {
+          row.remove();
+        }
+      });
+      row.appendChild(removeBtn);
+
+      rowsBox.appendChild(row);
+    }
+
+    addBtn.addEventListener("click", function () { addRow(null); });
+
+    existing.forEach(function (v) { addRow(v); });
+  })();
+</script>

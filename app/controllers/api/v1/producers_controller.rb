@@ -1,9 +1,22 @@
 class Api::V1::ProducersController < ApplicationController
-  skip_before_action :authenticate_user!, only: [:index, :show]
+  skip_before_action :authenticate_user!, only: [:index, :show, :search]
 
   def index
     producers = Producer.includes(:wines).order(:name)
     render json: producers.map { |producer| producer_json(producer) }
+  end
+
+  # JSON endpoint used by the wine form's "search producers" picker.
+  def search
+    query = params[:q].to_s.strip
+    producers =
+      if query.blank?
+        Producer.none
+      else
+        Producer.where("name ILIKE ?", "%#{query}%").order(:name).limit(20)
+      end
+
+    render json: producers.map { |producer| producer_search_json(producer) }
   end
 
   def show
@@ -36,6 +49,16 @@ class Api::V1::ProducersController < ApplicationController
   end
 
   private
+
+  def producer_search_json(producer)
+    {
+      id: producer.id,
+      slug: producer.slug,
+      name: producer.name,
+      address: producer.address,
+      email: producer.email
+    }
+  end
 
   def producer_params
     params.require(:producer).permit(:name, :address, :email, images: [])

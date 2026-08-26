@@ -1,6 +1,10 @@
 class Api::V1::ReviewsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_vintage, only: [:index, :create]
+  before_action :set_vintage, only: [:create]
+  # Nested vintage listing is optional: /api/v1/reviews (no vintage params)
+  # must still serve the top-level feed, so only resolve the vintage when the
+  # nested route provides one.
+  before_action :set_vintage, only: [:index], if: -> { params[:vintage_id].present? }
   before_action :set_review, only: [:show, :update, :destroy]
 
   def index

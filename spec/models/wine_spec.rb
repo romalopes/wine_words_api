@@ -102,13 +102,79 @@ RSpec.describe Wine, type: :model do
       end
     end
 
-    context "on update" do
+        context "on update" do
       it "does not regenerate the slug when the name changes" do
         wine = Wine.create!(name: "Original Name", region: "x", color: "Red", prompt: "x")
         original_slug = wine.slug
         wine.update!(name: "A Completely Different Name")
         expect(wine.reload.slug).to eq(original_slug)
       end
+    end
+  end
+
+  describe "volume selection" do
+    it "exposes 750ml as the default volume" do
+      expect(Wine::DEFAULT_VOLUME).to eq(750)
+      expect(Wine.volume_values).to include(750)
+    end
+
+    it "accepts every known bottle size" do
+      Wine.volume_values.each do |ml|
+        wine = Wine.new(name: "T", region: "R", color: "Red", volume_ml: ml, prompt: "x")
+        expect(wine).to be_valid
+      end
+    end
+
+    it "rejects an unknown bottle size" do
+      wine = Wine.new(name: "T", region: "R", color: "Red", volume_ml: 999, prompt: "x")
+      expect(wine).not_to be_valid
+            expect(wine.errors[:volume_ml]).to be_present
+    end
+
+    it "defaults a blank volume to 750ml (never persisted blank)" do
+      wine = Wine.new(name: "T", region: "R", color: "Red", volume_ml: nil, prompt: "x")
+      expect(wine.volume_ml).to eq(Wine::DEFAULT_VOLUME)
+      expect(wine).to be_valid
+    end
+
+    it "returns a human label for a known volume" do
+      wine = Wine.new(name: "T", region: "R", color: "Red", volume_ml: 1500, prompt: "x")
+      expect(wine.volume_label).to eq("1.5 L")
+    end
+
+    it "keeps volume as an integer in the database column" do
+      wine = Wine.create!(name: "T", region: "R", color: "Red", volume_ml: 750, prompt: "x")
+      expect(wine.volume_ml).to be_an(Integer)
+    end
+  end
+
+  describe "required defaults" do
+    it "defaults colour to 'White'" do
+      expect(Wine.new.color).to eq("White")
+    end
+
+    it "defaults closure to 'Cork'" do
+      expect(Wine.new.closure).to eq("Cork")
+    end
+
+    it "defaults alcohol_percentage to 13.5" do
+      expect(Wine.new.alcohol_percentage.to_f).to eq(13.5)
+    end
+
+    it "defaults volume_ml to 750" do
+      expect(Wine.new.volume_ml).to eq(750)
+    end
+
+    it "rejects an invalid closure" do
+      wine = Wine.new(name: "T", region: "R", color: "Red", closure: "Bogus", prompt: "x")
+      expect(wine).not_to be_valid
+      expect(wine.errors[:closure]).to be_present
+    end
+
+    it "rejects a blank name even when other fields default" do
+      wine = Wine.new(name: "", region: "R")
+      expect(wine).not_to be_valid
+      expect(wine.errors[:name]).to be_present
     end
   end
 end

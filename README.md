@@ -12,6 +12,20 @@ bin/rails db:prepare
 bin/rails server
 ```
 
+1AndersoneKasia1
+postgresql://postgres:1AndersoneKasia1@db.wvpqnbluzxfrontishxv.supabase.co:5432/postgres
+
+postgresql://postgres:1AndersoneKasia1@db.wvpqnbluzxfrontishxv.supabase.co:5432/postgres
+
+host: db.wvpqnbluzxfrontishxv.supabase.co
+port: 5432
+user: postgres
+
+host=db.wvpqnbluzxfrontishxv.supabase.co
+port=5432
+database=postgres
+user=postgres
+
 Open `http://localhost:3000` to use the Rails interface:
 
 - `/` — wine library
@@ -174,6 +188,102 @@ Add a link in the menu for this setting.
 
 ---
 
+In Reviews, change the search for vintage in both react and rails apps.
+
+First put a wine search input. When user write the name of wine, go to database and return all wines from that search. Then, when the user selects the wine, the vintages shows up.
+
+If the the wine if now found, open a add wine with all the parameters of the wine with the vintage and create the wine to be reviewed. Then, continue with the review creation.
+
+Make it all in Single page app.
+
+---
+
+At to the react app, when show a specific wine, it shows the Taste Parameters. Add it.
+
+In the react app, when we are editing a wine, we can adjust the Taste Parameters. Add it in the rails app.
+
+---
+
+I can add vintage only when I show the wine. Add it when I'm also creating/editing the wine.
+
+---
+
+When I click in reviews in the react app, it shows this error in the rails api.
+`Filter chain halted as :set_vintage rendered or redirected
+Completed 404 Not Found in 6ms (Views: 0.1ms | ActiveRecord: 0.5ms (3 queries, 0 cached) | GC: 1.3ms)`
+
+Then, no review is shown.
+
+---
+
+Add a array of these closures. Limit the selection of a wine for these.
+Keep the values in wine as string.
+
+Cork
+Screw cap
+Diam
+Crownseal
+Synthetic
+Glass Stopper
+Nomacorc PlantCorc
+Agglomerate
+
+Reflect it in boch react and rails apps.
+
+---
+
+Add a array of these volumes. Limit the selection of a wine for these.
+Keep the values in wine as string.
+
+Values to be selected:
+ml Display
+187 187 ml\* (or 187.5 stored as 187)
+250 250 ml
+375 375 ml
+500 500 ml
+750 750 ml (default)
+1000 1 L
+1500 1.5 L
+3000 3 L
+5000 5 L
+6000 6 L
+9000 9 L
+12000 12 L
+
+Use the 750ml as the default selection.
+
+Keep the database in integer
+
+---
+
+Don't allow blank for wine.color( Default: White), wine.alcohol(Default: 13.5%) wine.closure(default: Cork), Volume_ml(Default: 750).
+
+---
+
+When creating a wine, the user can select a list of Producers. Add a search for producer in the same way as search for wine when creating a review.
+
+Change the wine with presence mandatory. Remove the "optional: true" in wine.rb and reflect to the database and react if necessary.
+
+If the producer doesn't exist, allow the creation of the producer, similar to wine creation in a review.
+
+In the migration, if a wine doesn't have a producer, link it to the first producer in the database.
+
+Do is in the react and rails apps.
+
+---
+
+Country
+↓
+State / Province
+↓
+Region
+↓
+Subregion
+↓
+Appellation
+
+---
+
 Create a subscription concept to the system. Don't link with any payment yet, but keep it open for the future. A user can have one kind of subscription.
 A user with the "super user" role will be able to add new substription
 
@@ -207,24 +317,9 @@ Make a interface based on the websites:
 
 ---
 
-In Reviews, change the search for vintage in both react and rails apps.
+Remove the "http://localhost:5173/reviews" page.
+Put all with "My reviews" page.
 
-First put a wine search input. When user write the name of wine, go to database and return all wines from that search. Then, when the user selects the wine, the vintages shows up.
+Change the name of "My Reviews to "Reviews".
 
-If the the wine if now found, open a add wine with all the parameters of the wine with the vintage and create the wine to be reviewed. Then, continue with the review creation.
-
-Make it all in Single page app.
-
----
-
-At to the react app, when show a specific wine, it shows the Taste Parameters. Add it.
-
-In the react app, when we are editing a wine, we can adjust the Taste Parameters. Add it in the rails app.
-
----
-
-When I click in reviews in the react app, it shows this error in the rails api.
-`Filter chain halted as :set_vintage rendered or redirected
-Completed 404 Not Found in 6ms (Views: 0.1ms | ActiveRecord: 0.5ms (3 queries, 0 cached) | GC: 1.3ms)`
-
-Then, no review is shown.
+Create a toggle for "My Reviews" where I can see only my reviews with All, Draft and Published.

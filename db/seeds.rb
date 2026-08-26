@@ -13,6 +13,10 @@ TasteParameter.destroy_all
 WineProfileTasteParameter.destroy_all
 WineTasteParameter.destroy_all
 Vintage.destroy_all
+User.destroy_all
+Review.destroy_all
+Article.destroy_all
+
 
 ActiveRecord::Base.connection.reset_pk_sequence!("wines")
 ActiveRecord::Base.connection.reset_pk_sequence!("wine_profiles")
