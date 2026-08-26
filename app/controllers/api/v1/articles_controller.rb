@@ -7,6 +7,13 @@ class Api::V1::ArticlesController < ApplicationController
     render json: articles.map { |a| ArticleSerializer.new(a, request.base_url).as_json }
   end
 
+  # Articles belonging to the signed-in user (including drafts), used by the
+  # "My Articles" toggle on the Articles page.
+  def my_articles
+    articles = Article.where(user: current_user).recent.includes(:user, :category, :tags, :wines, :producers)
+    render json: articles.map { |a| ArticleSerializer.new(a, request.base_url).as_json }
+  end
+
   def show
     if @article.status == "draft" && @article.user_id != current_user&.id
       return render json: { error: "Not found" }, status: :not_found
@@ -27,7 +34,7 @@ class Api::V1::ArticlesController < ApplicationController
   end
 
   def update
-    if @article.user_id != current_user.id
+    unless @article.user_id == current_user.id || current_user.super_admin?
       return render json: { error: "Forbidden" }, status: :forbidden
     end
 
@@ -40,7 +47,7 @@ class Api::V1::ArticlesController < ApplicationController
   end
 
   def destroy
-    if @article.user_id != current_user.id
+    unless @article.user_id == current_user.id || current_user.super_admin?
       return render json: { error: "Forbidden" }, status: :forbidden
     end
 

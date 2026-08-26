@@ -78,7 +78,11 @@ Rails.application.routes.draw do
           get :my_reviews
         end
       end
-      resources :articles, only: [:index, :show, :create, :update, :destroy]
+      resources :articles, only: [:index, :show, :create, :update, :destroy] do
+        collection do
+          get :my_articles
+        end
+      end
       resources :categories, only: [:index]
       resources :wine_profiles do
         collection do

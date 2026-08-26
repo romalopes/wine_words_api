@@ -8,12 +8,19 @@ class ArticlesController < ActionController::Base
                                         :add_review, :remove_review, :toggle_review_status]
 
   def index
-    @articles =
-      if user_signed_in?
-        Article.visible_to(current_user).recent.includes(:user, :category)
+    @scope = params[:scope] == "mine" && user_signed_in? ? "mine" : "all"
+    @status = %w[draft published].include?(params[:status]) ? params[:status] : "all"
+
+    base =
+      if @scope == "mine"
+        Article.where(user: current_user)
+      elsif user_signed_in?
+        Article.visible_to(current_user)
       else
-        Article.published.recent.includes(:user, :category)
+        Article.published
       end
+    base = base.where(status: @status) unless @status == "all"
+    @articles = base.recent.includes(:user, :category)
   end
 
   def show
@@ -109,9 +116,17 @@ class ArticlesController < ActionController::Base
     redirect_to articles_path, alert: "Article not found."
   end
 
+  # Author or super admin may manage an article (used by the index view too).
+  def can_manage_article?(article)
+    user_signed_in? &&
+      (article.user_id == current_user.id || current_user.super_admin?)
+  end
+  helper_method :can_manage_article?
+
   def ensure_author!
     return if response.committed?
     return if @article&.user_id == current_user&.id
+    return if current_user&.super_admin?
 
     redirect_to articles_path, alert: "You are not allowed to do that."
   end

@@ -3,13 +3,22 @@ class ReviewsController < ActionController::Base
   helper :reviews
   include RequireLogin
 
+  helper_method :can_manage_review?
+
   def index
-    @reviews =
-      if user_signed_in?
-        Review.visible_to(current_user).order(published_at: :desc)
+    @scope = params[:scope] == "mine" && user_signed_in? ? "mine" : "all"
+    @status = %w[draft published].include?(params[:status]) ? params[:status] : "all"
+
+    base =
+      if @scope == "mine"
+        current_user.reviews
+      elsif user_signed_in?
+        Review.visible_to(current_user)
       else
-        Review.published.order(published_at: :desc)
+        Review.published
       end
+    base = base.where(status: @status) unless @status == "all"
+    @reviews = base.order(published_at: :desc)
   end
 
   def show
@@ -36,10 +45,13 @@ class ReviewsController < ActionController::Base
 
   def edit
     @review = Review.find(params[:id])
+    return unless deny_unless_review_manager!(@review)
   end
 
   def update
     @review = Review.find(params[:id])
+    return unless deny_unless_review_manager!(@review)
+
     if @review.update(review_params)
       attach_images
       redirect_to @review, notice: "Review was successfully updated."
@@ -50,6 +62,8 @@ class ReviewsController < ActionController::Base
 
   def destroy
     @review = Review.find(params[:id])
+    return unless deny_unless_review_manager!(@review)
+
     @review.destroy
     redirect_to reviews_url, notice: "Review was successfully destroyed."
   end
@@ -64,6 +78,19 @@ class ReviewsController < ActionController::Base
   end
 
   private
+
+  # Author or super admin may manage a review.
+  def can_manage_review?(review)
+    user_signed_in? &&
+      (review.user_id == current_user.id || current_user.super_admin?)
+  end
+
+  def deny_unless_review_manager!(review)
+    return true if can_manage_review?(review)
+
+    redirect_to reviews_path, alert: "Not allowed."
+    false
+  end
 
   def attach_images
     images = params[:review][:images]

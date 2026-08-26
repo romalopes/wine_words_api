@@ -1,5 +1,8 @@
 class Api::V1::ReviewsController < ApplicationController
-  before_action :authenticate_user!
+  # The top-level review feed and single review are publicly readable;
+  # visibility filtering (published-only for anonymous users) happens in
+  # the controller/actions below.
+  before_action :authenticate_user!, except: [:index, :show]
   before_action :set_vintage, only: [:create]
   # Nested vintage listing is optional: /api/v1/reviews (no vintage params)
   # must still serve the top-level feed, so only resolve the vintage when the
@@ -17,13 +20,14 @@ class Api::V1::ReviewsController < ApplicationController
         Review.visible_to(current_user)
       end
 
-    render json: reviews.by_recency.includes(:user, vintage: :wine).map do |r|
+    data = reviews.by_recency.includes(:user, vintage: :wine).map { |r|
       ReviewSerializer.new(r, request.base_url).as_json.merge(
         wine_name: r.vintage.wine.name,
         wine_slug: r.vintage.wine.slug,
         vintage_year: r.vintage.year
       )
-    end
+    }
+    render json: data
   end
 
   def my_reviews
@@ -34,7 +38,7 @@ class Api::V1::ReviewsController < ApplicationController
   end
 
   def show
-    if @review.status == "draft" && @review.user_id != current_user.id
+    if @review.status == "draft" && @review.user_id != current_user&.id
       return render json: { error: "Not found" }, status: :not_found
     end
     render json: ReviewSerializer.new(@review, request.base_url).as_json
@@ -52,7 +56,7 @@ class Api::V1::ReviewsController < ApplicationController
   end
 
   def update
-    if @review.user_id != current_user.id
+    unless @review.user_id == current_user.id || current_user.super_admin?
       return render json: { error: "Forbidden" }, status: :forbidden
     end
 
@@ -64,7 +68,7 @@ class Api::V1::ReviewsController < ApplicationController
   end
 
   def destroy
-    if @review.user_id != current_user.id
+    unless @review.user_id == current_user.id || current_user.super_admin?
       return render json: { error: "Forbidden" }, status: :forbidden
     end
 

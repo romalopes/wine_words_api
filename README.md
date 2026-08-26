@@ -317,9 +317,36 @@ Make a interface based on the websites:
 
 ---
 
-Remove the "http://localhost:5173/reviews" page.
-Put all with "My reviews" page.
+In react app. Join the "Reviews" and "My Reviews page. Keep the button "add Review"
 
-Change the name of "My Reviews to "Reviews".
+Put all with "My reviews" page. Change the name of "My Reviews to "Reviews".
+
+In this page show the list of reviews and I can click in the review to show. If I'm the author or super user, I can edit and delete.
+
+In both react and rails apps.
 
 Create a toggle for "My Reviews" where I can see only my reviews with All, Draft and Published.
+
+---
+
+Do the same concept as "Reviews" with "Articles".
+
+In this page show the list of articles and I can click in the article to show. If I'm the author or super user, I can edit and delete.
+
+Create a toggle for "My Article" where I can see only my articles with All, Draft and Published.
+
+Do it in both react and rails apps.
+
+---
+
+When adding or editing the article, replace the selection of Producers to a search to link the producers. Do it in a similar way as to find a wine.
+
+Perform it in both react and rails apps.
+
+---
+
+When adding or editing article and Review, hide the list of existing article and Review. I think showing them it a bit messy.
+
+---
+
+In Wines. Allow only the user with Super User or Reviewer roles to add, edit and delete.
