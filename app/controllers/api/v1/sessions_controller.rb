@@ -6,7 +6,7 @@ class Api::V1::SessionsController < Devise::SessionsController
   def respond_with(current_user, _opts = {})
     if current_user.persisted?
       render json: {
-        user: { id: current_user.id, email: current_user.email, name: current_user.name }
+        user: { id: current_user.id, email: current_user.email, name: current_user.name, roles: current_user.role_names }
       }, status: :ok
     else
       render json: { error: "Invalid email or password" }, status: :unauthorized

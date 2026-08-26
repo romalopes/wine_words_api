@@ -92,7 +92,10 @@
         <%= link_to "Producers", producers_path %>
         <%= link_to "Wines", wines_path %>
         <%= link_to "Reviews", reviews_path %>
-        <%= link_to_unless_current "Articles", articles_path %>
+        <%= link_to "Articles", articles_path %>
+        <% if current_user&.super_admin? %>
+          <%= link_to "Users & Roles", user_roles_path %>
+        <% end %>
         <% if user_signed_in? %>
           <%= button_to "Sign out", logout_path, method: :delete, form_class: "site-nav__signout", class: "site-nav__auth" %>
         <% else %>

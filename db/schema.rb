@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_26_053330) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_26_053332) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -140,6 +140,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_26_053330) do
     t.index ["vintage_id"], name: "index_reviews_on_vintage_id"
   end
 
+  create_table "roles", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_roles_on_name", unique: true
+  end
+
   create_table "tags", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
@@ -158,6 +165,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_26_053330) do
     t.string "slug"
     t.datetime "updated_at", null: false
     t.index ["slug"], name: "index_taste_parameters_on_slug", unique: true
+  end
+
+  create_table "user_roles", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "role_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["role_id"], name: "index_user_roles_on_role_id"
+    t.index ["user_id", "role_id"], name: "index_user_roles_on_user_id_and_role_id", unique: true
+    t.index ["user_id"], name: "index_user_roles_on_user_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -255,6 +272,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_26_053330) do
   add_foreign_key "articles", "users"
   add_foreign_key "reviews", "users"
   add_foreign_key "reviews", "vintages"
+  add_foreign_key "user_roles", "roles"
+  add_foreign_key "user_roles", "users"
   add_foreign_key "vintages", "wines"
   add_foreign_key "wine_profile_taste_parameters", "taste_parameters"
   add_foreign_key "wine_profile_taste_parameters", "wine_profiles"

@@ -126,20 +126,53 @@ Add the interface in the "New Article" to link with the reviews as well. It look
 
 ---
 
-Create roles for users and a interface for this. A user
+Create an attribute for roles in user. In the rails model it should be a enum that reflecs the roles.
 
-Create roles for users and a interface for this task. A user can have many roles. In the future, the role will define the access to some pages and right to update or delete info.
+Attributes of the role:
 
-Create the following roles:
+- name
+- id
+
+Create the following roles as instance in the database:
 
 - Super User
 - Reviewer
 - Reader
-- Simple User
+- Guest
+
+Create the interface where a user can be linked to many roles. It will search for a user and select the roles.
+
+Add the link in the menu. Only "Super User" has access to this link.
+
+---
+
+Create roles for users and a interface for this. A user
+
+Create roles for users and a interface for this task. A user can have many roles. In the future, the role will define the access to some pages and right to update or delete info.
+
+Attributes of the role:
+
+- name
+-
+
+Create the following roles as instance in the database:
+
+- Super User
+- Reviewer
+- Reader
+- Guest
 
 Link the first user to "Super User" role.
 
-## When a new user is created or in the first login link the user to "Simple User" role.
+When a new user is created or in the first login link the user to "Guest" role.
+
+Create the interface where a user can be linked to many roles. It will search for a user and select the roles.
+
+Only "Super User" has access to this link.
+
+Add a link in the menu for this setting.
+
+---
 
 Create a subscription concept to the system. Don't link with any payment yet, but keep it open for the future. A user can have one kind of subscription.
 A user with the "super user" role will be able to add new substription
@@ -181,3 +214,17 @@ First put a wine search input. When user write the name of wine, go to database 
 If the the wine if now found, open a add wine with all the parameters of the wine with the vintage and create the wine to be reviewed. Then, continue with the review creation.
 
 Make it all in Single page app.
+
+---
+
+At to the react app, when show a specific wine, it shows the Taste Parameters. Add it.
+
+In the react app, when we are editing a wine, we can adjust the Taste Parameters. Add it in the rails app.
+
+---
+
+When I click in reviews in the react app, it shows this error in the rails api.
+`Filter chain halted as :set_vintage rendered or redirected
+Completed 404 Not Found in 6ms (Views: 0.1ms | ActiveRecord: 0.5ms (3 queries, 0 cached) | GC: 1.3ms)`
+
+Then, no review is shown.

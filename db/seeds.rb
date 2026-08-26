@@ -1,6 +1,12 @@
 # db/seeds.rb
 # Seed data for wine_prediction API
 
+# --- Roles (instance rows in the DB: name + id) ---
+Role.find_or_create_by!(name: "Super User")
+Role.find_or_create_by!(name: "Reviewer")
+Role.find_or_create_by!(name: "Reader")
+Role.find_or_create_by!(name: "Guest")
+
 Wine.destroy_all
 WineProfile.destroy_all
 TasteParameter.destroy_all

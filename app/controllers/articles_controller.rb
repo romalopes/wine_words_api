@@ -44,6 +44,7 @@ class ArticlesController < ActionController::Base
   def update
     if @article.update(article_params)
       attach_images
+      link_reviews(@pending_review_ids)
       redirect_to @article, notice: "Article was successfully updated."
     else
       render :edit, status: :unprocessable_entity

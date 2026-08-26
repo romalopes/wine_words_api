@@ -1,0 +1,33 @@
+<% content_for :title, "Users & Roles" %>
+<h1>Users & Roles</h1>
+<p class="lede">Search for a user, then tick the roles they belong to. Roles accept many users, and a user can belong to many roles.</p>
+
+<%= form_with url: user_roles_path, method: :get, local: true, class: "user-search-form" do |f| %>
+  <%= f.search_field :q, value: params[:q], placeholder: "Search by name or email…",
+        style: "width: 24rem; max-width: 100%; padding:.6rem .75rem; border:1px solid #d8c8c0; border-radius:.45rem; font:1rem system-ui,sans-serif" %>
+  <%= f.submit "Search", class: "btn" %>
+<% end %>
+
+<% @users.each do |user| %>
+  <%= form_with url: user_role_path(user.id), method: :patch, local: true do |f| %>
+    <div style="margin-top:1.25rem; padding:1rem; background:#fff; border:1px solid #eaded7; border-radius:.7rem; max-width:34rem">
+      <p style="margin:0 0 .5rem">
+        <strong><%= user.name.presence || "(no name)" %></strong>
+        <span class="lede" style="font-size:.9rem"><%= user.email %></span>
+      </p>
+      <div style="display:flex; flex-wrap:wrap; gap:.5rem">
+        <% @roles.each do |role| %>
+          <label style="display:inline-flex; align-items:center; gap:.35rem; font-size:.92rem">
+            <%= check_box_tag "user[role_ids][]", role.id, user.role_ids.include?(role.id) %>
+            <%= role.name %>
+          </label>
+        <% end %>
+      </div>
+      <%= f.submit "Save roles", class: "btn btn--secondary", style: "margin-top:.6rem" %>
+    </div>
+  <% end %>
+<% end %>
+
+<% if @users.empty? %>
+  <p class="empty">No users found.</p>
+<% end %>

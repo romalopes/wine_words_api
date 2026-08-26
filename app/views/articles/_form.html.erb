@@ -45,32 +45,17 @@
   </div>
 
   <div class="field">
-    <%= form.label :vintage_ids, "Wine vintages" %>
-    <input type="text" id="vintage-search" placeholder="Type to search wines…"
-           style="width: 100%; margin-bottom: .35rem" autocomplete="off">
-    <%= form.grouped_collection_select :vintage_ids, Wine.order(:name), :vintages,
-          :name, :id, :name,
-          { include_hidden: false },
-          { multiple: true, size: 8, style: "width: 100%", id: "article_vintage_ids" } %>
-    <small class="lede">Ctrl/Cmd-click to pick several vintages.</small>
-  </div>
-
-  <div class="field">
-    <%= form.label :review_ids, "Reviews (optional — pick from the vintages above)" %>
-    <div id="per-vintage-reviews" class="review-groups">
-      <% Review.published.includes(vintage: :wine).order("wines.name", year: :desc, title: :asc).each do |review| %>
-        <div class="review-option" data-vintage-id="<%= review.vintage_id %>">
-          <label style="font-weight: 400">
-            <%= check_box_tag "article[review_ids][]", review.id, article.review_ids.include?(review.id) %>
-            <%= review.title.presence || "Untitled" %>
-            (<%= review.vintage&.name %>, score <%= review.score %>)
-          </label>
-        </div>
-      <% end %>
-      <% if Review.published.none? %>
-        <p class="empty">No published reviews yet.</p>
-      <% end %>
+    <label>Wine vintages</label>
+    <div class="wine-picker" id="vintage-picker"
+         data-selected="<%= article.vintages.includes(:wine).map { |v| { id: v.id, year: v.year, wine_name: v.wine&.name, wine_slug: v.wine&.slug } }.to_json %>"
+         data-linked-review-ids="<%= article.review_ids.to_json %>">
+      <input type="text" id="article-wine-search" placeholder="Type to search wines…"
+             class="wine-picker__input" autocomplete="off">
+      <div id="article-search-status" class="lede" style="display:none"></div>
+      <div id="article-wine-results" class="wine-picker__results"></div>
+      <div id="selected-vintage-chips"></div>
     </div>
+    <small class="lede">Search a wine, pick its vintages. Expanding “Reviews” on a chip is optional.</small>
   </div>
 
   <div class="field">
@@ -83,20 +68,6 @@
     <%= form.label :images, "Images (shown at the top of the article)" %>
     <%= form.file_field :images, multiple: true, accept: "image/*" %>
   </div>
-
-  <% unless article.persisted? %>
-    <div class="review-form__field">
-      <span class="image-manager__label">
-        Link reviews (optional — search a wine, pick its vintage, tick your published reviews)
-      </span>
-      <div class="wine-picker">
-        <input type="text" id="article-wine-search" placeholder="Type to search wines…"
-               class="wine-picker__input" autocomplete="off">
-        <div id="article-search-status" class="lede" style="display:none"></div>
-        <div id="article-wine-results" class="wine-picker__results"></div>
-      </div>
-    </div>
-  <% end %>
 
   <div class="page-actions">
     <%= form.hidden_field :status, value: article.status || "draft", id: "article_status_hidden" %>
@@ -124,45 +95,201 @@
   </div>
 <% end %>
 
+<style>
+  .wine-picker { display: grid; gap: .5rem; }
+  .vintage-chip { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; background: #faf1ee; border: 1px solid #8a273c; border-radius: .55rem; padding: .55rem .75rem; font: .95rem system-ui, sans-serif; }
+  .vintage-chip strong { color: #6b2834; }
+  .vintage-chip__remove { background: transparent; border: none; color: #8a273c; font-weight: 700; cursor: pointer; padding: 0 .25rem; }
+  .vintage-chip__reviews-toggle { background: #fff; border: 1px solid #d8c8c0; border-radius: 99px; padding: .15rem .7rem; font: .78rem system-ui, sans-serif; cursor: pointer; }
+  .vintage-chip__reviews-toggle:hover { border-color: #8a273c; }
+  .vintage-chip__reviews { display: grid; gap: .35rem; width: 100%; }
+  .vintage-review-row { display: flex; align-items: center; gap: .5rem; background: #fff; border: 1px solid #eaded7; border-radius: .55rem; padding: .45rem .75rem; font: .92rem system-ui, sans-serif; cursor: pointer; }
+  .vintage-review-row:hover { border-color: #8a273c; }
+</style>
+
 <script>
 (function () {
-  var select = document.getElementById("article_vintage_ids");
-  var search = document.getElementById("vintage-search");
-  if (!select) return;
+  var picker = document.getElementById("vintage-picker");
+  var search = document.getElementById("article-wine-search");
+  if (!picker || !search) return;
+  var statusBox = document.getElementById("article-search-status");
+  var resultsBox = document.getElementById("article-wine-results");
+  var chipsBox = document.getElementById("selected-vintage-chips");
 
-  function selectedVintageIds() {
-    return new Set(Array.from(select.selectedOptions).map(function (o) { return o.value; }));
-  }
-
-  // Show only review options whose vintage is currently selected.
-  function updateReviewVisibility() {
-    var ids = selectedVintageIds();
-    document.querySelectorAll(".review-option").forEach(function (el) {
-      el.style.display = ids.has(el.getAttribute("data-vintage-id")) ? "" : "none";
+  var timer = null;
+  // selected[vintageId] = { id, year, wine_name, wine_slug }
+  var selected = {};
+  try {
+    JSON.parse(picker.getAttribute("data-selected") || "[]").forEach(function (v) {
+      selected[v.id] = v;
     });
+  } catch (e) { /* ignore */ }
+
+  var linkedReviewIds = [];
+  try {
+    linkedReviewIds = JSON.parse(picker.getAttribute("data-linked-review-ids") || "[]")
+      .map(function (n) { return String(n); });
+  } catch (e) { /* ignore */ }
+
+  function setStatus(text) {
+    statusBox.textContent = text;
+    statusBox.style.display = text ? "" : "none";
   }
 
-  // Filter the vintage options by the search box text.
-  if (search) {
-    search.addEventListener("input", function () {
-      var q = search.value.trim().toLowerCase();
-      Array.from(select.getElementsByTagName("optgroup")).forEach(function (optgroup) {
-        Array.from(optgroup.getElementsByTagName("option")).forEach(function (option) {
-          var wineName = optgroup.getAttribute("label") || "";
-          option.style.display =
-            !q || option.text.toLowerCase().indexOf(q) !== -1 ||
-            wineName.toLowerCase().indexOf(q) !== -1 ? "" : "none";
+  function clearResults() { resultsBox.innerHTML = ""; }
+
+  function pickButton(label, meta, onClick) {
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "wine-pick-btn";
+    var name = document.createElement("strong");
+    name.textContent = label;
+    btn.appendChild(name);
+    if (meta) {
+      var m = document.createElement("span");
+      m.className = "wine-pick-btn__meta";
+      m.textContent = meta;
+      btn.appendChild(m);
+    }
+    btn.addEventListener("click", onClick);
+    return btn;
+  }
+
+  function fetchReviews(wineSlug, vintageId, container) {
+    container.textContent = "Loading reviews…";
+    fetch("/wines/" + wineSlug + "/vintages/" + vintageId + "/reviews", {
+      headers: { "Accept": "application/json" }
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (reviews) {
+        container.innerHTML = "";
+        if (!Array.isArray(reviews) || reviews.length === 0) {
+          container.textContent = "No published reviews of yours for this vintage.";
+          return;
+        }
+        reviews.forEach(function (review) {
+          var row = document.createElement("label");
+          row.className = "vintage-review-row";
+          var box = document.createElement("input");
+          box.type = "checkbox";
+          box.name = "article[review_ids][]";
+          box.value = review.id;
+          box.checked = linkedReviewIds.indexOf(String(review.id)) !== -1;
+          row.appendChild(box);
+          var span = document.createElement("span");
+          span.innerHTML = "<strong>" + review.title + "</strong>" +
+            " <span class='wine-pick-btn__meta'>(score " + review.score + ")</span>";
+          row.appendChild(span);
+          container.appendChild(row);
         });
-        var anyVisible = Array.from(optgroup.getElementsByTagName("option"))
-          .some(function (option) { return option.style.display !== "none"; });
-        optgroup.style.display = anyVisible ? "" : "none";
+      })
+      .catch(function () { container.textContent = "Could not load reviews."; });
+  }
+
+  function renderChips() {
+    chipsBox.innerHTML = "";
+    Object.keys(selected).forEach(function (key) {
+      var v = selected[key];
+      var chip = document.createElement("div");
+      chip.className = "vintage-chip";
+
+      var label = document.createElement("strong");
+      label.textContent = (v.wine_name || v.wine_slug || "Wine") + " · " + v.year;
+      chip.appendChild(label);
+
+      var removeBtn = document.createElement("button");
+      removeBtn.type = "button";
+      removeBtn.className = "vintage-chip__remove";
+      removeBtn.title = "Remove this vintage";
+      removeBtn.textContent = "✕";
+      removeBtn.addEventListener("click", function () {
+        delete selected[key];
+        renderChips();
       });
+      chip.appendChild(removeBtn);
+
+      var reviewsToggle = document.createElement("button");
+      reviewsToggle.type = "button";
+      reviewsToggle.className = "vintage-chip__reviews-toggle";
+      reviewsToggle.textContent = "Reviews ▸";
+      var reviewsBox = null;
+      reviewsToggle.addEventListener("click", function () {
+        if (reviewsBox) {
+          reviewsBox.remove();
+          reviewsBox = null;
+          reviewsToggle.textContent = "Reviews ▸";
+          return;
+        }
+        reviewsBox = document.createElement("div");
+        reviewsBox.className = "vintage-chip__reviews";
+        chip.appendChild(reviewsBox);
+        reviewsToggle.textContent = "Reviews ▾";
+        fetchReviews(v.wine_slug, v.id, reviewsBox);
+      });
+      chip.appendChild(reviewsToggle);
+
+      var hidden = document.createElement("input");
+      hidden.type = "hidden";
+      hidden.name = "article[vintage_ids][]";
+      hidden.value = v.id;
+      chip.appendChild(hidden);
+
+      chipsBox.appendChild(chip);
     });
   }
 
-  select.addEventListener("change", updateReviewVisibility);
-  updateReviewVisibility();
+  function runSearch() {
+    var q = search.value.trim();
+    if (q.length < 2) { clearResults(); setStatus(""); return; }
+    setStatus("Searching…");
+    fetch("/wines/search?q=" + encodeURIComponent(q), {
+      headers: { "Accept": "application/json" }
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (wines) {
+        clearResults();
+        if (!Array.isArray(wines) || wines.length === 0) {
+          setStatus("No wine found.");
+          return;
+        }
+        setStatus(wines.length + " wine" + (wines.length === 1 ? "" : "s") +
+          " found — click a vintage to select it:");
+        wines.forEach(function (wine) {
+          (wine.vintages || []).forEach(function (vintage) {
+            var isPicked = !!selected[vintage.id];
+            resultsBox.appendChild(pickButton(
+              wine.name,
+              [vintage.year, wine.color].filter(Boolean).join(" · ") +
+                (isPicked ? " ✓" : ""),
+              function () {
+                if (selected[vintage.id]) {
+                  delete selected[vintage.id];
+                } else {
+                  selected[vintage.id] = {
+                    id: vintage.id,
+                    year: vintage.year,
+                    wine_name: wine.name,
+                    wine_slug: wine.slug
+                  };
+                }
+                renderChips();
+                runSearch();
+              }
+            ));
+          });
+        });
+      })
+      .catch(function () { setStatus("Search failed. Please try again."); });
+  }
+
+  search.addEventListener("input", function () {
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(runSearch, 300);
+  });
+
+  renderChips();
 })();
+</script>
 </script>
 
 <% unless article.persisted? %>

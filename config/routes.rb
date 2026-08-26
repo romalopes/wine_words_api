@@ -52,6 +52,9 @@ Rails.application.routes.draw do
   resources :wine_taste_parameters
   resources :test_parameters
 
+  get "user_roles", to: "user_roles#index"
+  patch "user_roles/:user_id", to: "user_roles#update", as: :user_role
+
   namespace :api do
     namespace :v1 do
       post "images", to: "images#create"
@@ -80,6 +83,12 @@ Rails.application.routes.draw do
       resources :taste_parameters
 
       get "me", to: "users#me"
+
+      resources :users, only: [] do
+        collection { get :search }
+        member { patch :assign_roles }
+      end
+      get "roles", to: "users#roles"
     end
   end
 end
