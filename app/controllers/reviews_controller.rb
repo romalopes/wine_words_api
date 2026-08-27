@@ -114,6 +114,6 @@ class ReviewsController < ActionController::Base
     # :comment, :score, :vintage_id, :status, :published_at
     def review_params
       params.require(:review).permit(:title, :comment, :score, :vintage_id, :status, :published_at,
-                                     :drink_from, :drink_to, :drink_plus)
+                                     :category_id, :drink_from, :drink_to, :drink_plus)
     end
 end

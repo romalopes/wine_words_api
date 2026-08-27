@@ -2,6 +2,7 @@ class Review < ApplicationRecord
   has_many_attached :images
   belongs_to :vintage
   belongs_to :user
+  belongs_to :category, optional: true
 
   validates :score, presence: true,
                     numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100 }

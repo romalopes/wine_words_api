@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_27_090000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_27_110100) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -100,8 +100,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_27_090000) do
 
   create_table "categories", force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.boolean "for_article", default: false, null: false
+    t.boolean "for_review", default: false, null: false
+    t.boolean "for_wine", default: false, null: false
     t.string "name", null: false
     t.string "slug", null: false
+    t.integer "sort_order_article"
+    t.integer "sort_order_review"
+    t.integer "sort_order_wine"
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_categories_on_name", unique: true
     t.index ["slug"], name: "index_categories_on_slug", unique: true
@@ -132,6 +138,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_27_090000) do
   end
 
   create_table "reviews", force: :cascade do |t|
+    t.bigint "category_id"
     t.text "comment"
     t.datetime "created_at", null: false
     t.integer "drink_from"
@@ -144,6 +151,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_27_090000) do
     t.datetime "updated_at", null: false
     t.bigint "user_id"
     t.bigint "vintage_id", null: false
+    t.index ["category_id"], name: "index_reviews_on_category_id"
     t.index ["user_id"], name: "index_reviews_on_user_id"
     t.index ["vintage_id"], name: "index_reviews_on_vintage_id"
   end
@@ -252,6 +260,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_27_090000) do
 
   create_table "wines", force: :cascade do |t|
     t.decimal "alcohol_percentage", precision: 10, scale: 2
+    t.bigint "category_id"
     t.string "closure"
     t.string "color"
     t.datetime "created_at", null: false
@@ -262,6 +271,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_27_090000) do
     t.string "slug"
     t.datetime "updated_at", null: false
     t.integer "volume_ml"
+    t.index ["category_id"], name: "index_wines_on_category_id"
     t.index ["name"], name: "index_wines_on_name_trgm", opclass: :gin_trgm_ops, using: :gin
     t.index ["producer_id"], name: "index_wines_on_producer_id"
     t.index ["region"], name: "index_wines_on_region_trgm", opclass: :gin_trgm_ops, using: :gin
@@ -280,6 +290,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_27_090000) do
   add_foreign_key "article_vintages", "vintages"
   add_foreign_key "articles", "categories"
   add_foreign_key "articles", "users"
+  add_foreign_key "reviews", "categories"
   add_foreign_key "reviews", "users"
   add_foreign_key "reviews", "vintages"
   add_foreign_key "user_roles", "roles"
@@ -289,5 +300,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_27_090000) do
   add_foreign_key "wine_profile_taste_parameters", "wine_profiles"
   add_foreign_key "wine_taste_parameters", "taste_parameters"
   add_foreign_key "wine_taste_parameters", "wines"
+  add_foreign_key "wines", "categories"
   add_foreign_key "wines", "producers"
 end

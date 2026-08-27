@@ -130,10 +130,18 @@
     <%= f.label :alcohol_percentage %><br>
     <%= f.number_field :alcohol_percentage, step: 0.5 %>
   </div>
-  <div>
+    <div>
     <%= f.label :volume_ml, "Volume" %><br>
     <%#= f.select :volume_ml, Wine.volumes, { selected: '750 ml' } %>
     <%= f.select :volume_ml, Wine.volumes.map { |value, label| [label, value] }, { selected: 750 } %>
+  </div>
+  <div>
+    <%= f.label :category_id, "Category" %><br>
+    <%= f.collection_select :category_id,
+          (@wine_categories || Category.where(for_wine: true).order("sort_order_wine asc, name asc")),
+          :id, :name,
+          { include_blank: "Choose a category..." },
+          { class: "category-select" } %>
   </div>
   <div>
     <%= f.label :prompt %><br>

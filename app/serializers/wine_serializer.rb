@@ -14,11 +14,13 @@ class WineSerializer
       closure: @wine.closure,
       alcohol_percentage: @wine.alcohol_percentage&.to_f,
             volume_ml: @wine.volume_ml,
-      volume_label: @wine.volume_label,
+             volume_label: @wine.volume_label,
       prompt: @wine.prompt,
       images: image_urls(@wine),
       image_ids: image_ids(@wine),
       producer: producer,
+      category: @wine.category&.name,
+      category_id: @wine.category_id,
       parameters: parameters,
       vintages: @wine.vintages.order(year: :desc).map do |v|
         {

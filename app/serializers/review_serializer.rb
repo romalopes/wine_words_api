@@ -22,6 +22,8 @@ class ReviewSerializer
       wine_name: @review.vintage&.wine&.name,
       wine_slug: @review.vintage&.wine&.slug,
       vintage_year: @review.vintage&.year,
+      category: @review.category&.name,
+      category_id: @review.category_id,
       drink_from: @review.drink_from,
       drink_to: @review.drink_to,
       drink_plus: @review.drink_plus

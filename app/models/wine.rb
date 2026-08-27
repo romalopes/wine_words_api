@@ -1,5 +1,6 @@
 class Wine < ApplicationRecord
   belongs_to :producer
+  belongs_to :category, optional: true
   has_many_attached :images
 
   has_many :wine_taste_parameters, dependent: :destroy

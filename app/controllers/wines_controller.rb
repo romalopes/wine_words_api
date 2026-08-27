@@ -15,7 +15,7 @@ class WinesController < ActionController::Base
     @wine = Wine.includes(:vintages, wine_taste_parameters: :taste_parameter).find_by!(slug: params[:id])
   end
 
-      def new
+        def new
     @wine = Wine.new(
       color: Wine::DEFAULT_COLOR,
       closure: Wine::DEFAULT_CLOSURE,
@@ -23,6 +23,13 @@ class WinesController < ActionController::Base
       volume_ml: Wine::DEFAULT_VOLUME,
     )
     @taste_parameters = TasteParameter.sorted_by_label
+    @wine_categories = Category.where(for_wine: true).order("sort_order_wine asc, name asc")
+  end
+
+  def edit
+    @wine = Wine.find_by!(slug: params[:id])
+    @taste_parameters = TasteParameter.sorted_by_label
+    @wine_categories = Category.where(for_wine: true).order("sort_order_wine asc, name asc")
   end
 
   def create
@@ -146,8 +153,8 @@ class WinesController < ActionController::Base
   private
 
   def wine_params
-    params.require(:wine).permit(
-      :name, :region, :color, :prompt, :closure, :alcohol_percentage, :volume_ml, :producer_id,
+        params.require(:wine).permit(
+      :name, :region, :color, :prompt, :closure, :alcohol_percentage, :volume_ml, :producer_id, :category_id,
       vintages_attributes: [:id, :year, :prompt, :price, :no_vintage, :_destroy],
       wine_taste_parameters_attributes: [:id, :taste_parameter_id, :taste_parameter_slug, :score, :_destroy]
     )

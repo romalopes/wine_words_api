@@ -13,12 +13,10 @@
   .wine-pick-btn .wine-pick-btn__meta { color: #6b5855; font-size: .82rem; }
   .wine-pick-btn--selected { border-color: #8a273c; background: #faf1ee; }
 </style>
-
 <%= form_with model: review, local: true, html: { multipart: true } do |f| %>
   <div>
     <%= f.label :vintage_id, "Wine & Vintage" %><br>
     <%= f.hidden_field :vintage_id, id: "review_vintage_id" %>
-
     <% if review.vintage.present? %>
       <div id="wine-current-selection" class="wine-picker">
         <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap">
@@ -33,7 +31,6 @@
         </div>
       </div>
     <% end %>
-
     <div id="wine-search-fields" class="wine-picker" style="<%= "display:none" if review.vintage.present? %>">
       <input type="text" id="review-vintage-search" placeholder="Type to search wines…"
              class="wine-picker__input" autocomplete="off">
@@ -43,6 +40,10 @@
         <%= button_tag "Cancel", type: "button", id: "wine-change-cancel",
               class: "card-action" %>
       <% end %>
+      <div class="field">
+        <%= f.label :category_id, "Category" %><br>
+        <%= f.collection_select :category_id, Category.where(for_review: true).order(sort_order_review: :asc), :id, :name, include_blank: true %>
+      </div>
       <small class="lede">Search the wine by name, then pick its vintage.</small>
     </div>
   </div>
@@ -87,7 +88,6 @@
   </div>
   <div><%= f.submit class: "btn" %></div>
 <% end %>
-
 <% if review.images.attached? %>
   <div class="image-gallery">
     <p class="lede">Existing images (click Remove to delete)</p>
@@ -99,124 +99,123 @@
     <% end %>
   </div>
 <% end %>
-
 <script>
-(function () {
-  var hiddenVintage = document.getElementById("review_vintage_id");
-  var search = document.getElementById("review-vintage-search");
-  var resultsBox = document.getElementById("wine-search-results");
-  var statusBox = document.getElementById("wine-search-status");
-  if (!hiddenVintage || !search || !resultsBox || !statusBox) return;
+  (function () {
+    var hiddenVintage = document.getElementById("review_vintage_id");
+    var search = document.getElementById("review-vintage-search");
+    var resultsBox = document.getElementById("wine-search-results");
+    var statusBox = document.getElementById("wine-search-status");
+    if (!hiddenVintage || !search || !resultsBox || !statusBox) return;
 
-  // "Change wine/vintage" — reveal the search UI on edit, keeping the
-  // current vintage_id until a new wine/vintage is picked.
-  var changeBtn = document.getElementById("wine-change-btn");
-  var currentSelection = document.getElementById("wine-current-selection");
-  var searchFields = document.getElementById("wine-search-fields");
-  if (changeBtn && currentSelection && searchFields) {
-    changeBtn.addEventListener("click", function () {
-      currentSelection.style.display = "none";
-      searchFields.style.display = "";
-      search.focus();
-    });
-    var cancelBtn = document.getElementById("wine-change-cancel");
-    if (cancelBtn) {
-      cancelBtn.addEventListener("click", function () {
-        searchFields.style.display = "none";
-        currentSelection.style.display = "";
-        // Keep the original vintage_id — nothing was changed.
+    // "Change wine/vintage" — reveal the search UI on edit, keeping the
+    // current vintage_id until a new wine/vintage is picked.
+    var changeBtn = document.getElementById("wine-change-btn");
+    var currentSelection = document.getElementById("wine-current-selection");
+    var searchFields = document.getElementById("wine-search-fields");
+    if (changeBtn && currentSelection && searchFields) {
+      changeBtn.addEventListener("click", function () {
+        currentSelection.style.display = "none";
+        searchFields.style.display = "";
+        search.focus();
+      });
+      var cancelBtn = document.getElementById("wine-change-cancel");
+      if (cancelBtn) {
+        cancelBtn.addEventListener("click", function () {
+          searchFields.style.display = "none";
+          currentSelection.style.display = "";
+          // Keep the original vintage_id — nothing was changed.
+        });
+      }
+    }
+
+    var timer = null;
+    var selectedWine = null;
+    var NEW_WINE_URL = "<%= new_wine_path %>";
+
+    function setStatus(text) {
+      statusBox.textContent = text;
+      statusBox.style.display = text ? "" : "none";
+    }
+
+    function clearResults() { resultsBox.innerHTML = ""; }
+
+    function makeButton(label, meta, onClick) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "wine-pick-btn";
+      var name = document.createElement("strong");
+      name.textContent = label;
+      btn.appendChild(name);
+      if (meta) {
+        var m = document.createElement("span");
+        m.className = "wine-pick-btn__meta";
+        m.textContent = meta;
+        btn.appendChild(m);
+      }
+      btn.addEventListener("click", onClick);
+      return btn;
+    }
+
+    function selectWine(wine) {
+      selectedWine = wine;
+      clearResults();
+      setStatus("Reviewing \u201C" + wine.name + "\u201D — choose a vintage:");
+
+      if (!wine.vintages || wine.vintages.length === 0) {
+        resultsBox.appendChild(document.createElement("p"))
+          .textContent = "No vintages yet for this wine.";
+      }
+      wine.vintages.forEach(function (vintage) {
+        resultsBox.appendChild(makeButton(String(vintage.year), "", function () {
+          hiddenVintage.value = vintage.id;
+          setStatus("Selected: " + wine.name + " (" + vintage.year + ")");
+          clearResults();
+          var done = document.createElement("p");
+          done.className = "wine-pick-btn wine-pick-btn--selected";
+          done.style.cursor = "default";
+          done.innerHTML = "<strong>" + wine.name + "</strong>" +
+            "<span class='wine-pick-btn__meta'>" + vintage.year + "</span>";
+          resultsBox.appendChild(done);
+        }));
       });
     }
-  }
 
-  var timer = null;
-  var selectedWine = null;
-  var NEW_WINE_URL = "<%= new_wine_path %>";
-
-  function setStatus(text) {
-    statusBox.textContent = text;
-    statusBox.style.display = text ? "" : "none";
-  }
-
-  function clearResults() { resultsBox.innerHTML = ""; }
-
-  function makeButton(label, meta, onClick) {
-    var btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "wine-pick-btn";
-    var name = document.createElement("strong");
-    name.textContent = label;
-    btn.appendChild(name);
-    if (meta) {
-      var m = document.createElement("span");
-      m.className = "wine-pick-btn__meta";
-      m.textContent = meta;
-      btn.appendChild(m);
-    }
-    btn.addEventListener("click", onClick);
-    return btn;
-  }
-
-  function selectWine(wine) {
-    selectedWine = wine;
-    clearResults();
-    setStatus("Reviewing \u201C" + wine.name + "\u201D — choose a vintage:");
-
-    if (!wine.vintages || wine.vintages.length === 0) {
-      resultsBox.appendChild(document.createElement("p"))
-        .textContent = "No vintages yet for this wine.";
-    }
-    wine.vintages.forEach(function (vintage) {
-      resultsBox.appendChild(makeButton(String(vintage.year), "", function () {
-        hiddenVintage.value = vintage.id;
-        setStatus("Selected: " + wine.name + " (" + vintage.year + ")");
-        clearResults();
-        var done = document.createElement("p");
-        done.className = "wine-pick-btn wine-pick-btn--selected";
-        done.style.cursor = "default";
-        done.innerHTML = "<strong>" + wine.name + "</strong>" +
-          "<span class='wine-pick-btn__meta'>" + vintage.year + "</span>";
-        resultsBox.appendChild(done);
-      }));
-    });
-  }
-
-  function runSearch() {
-    var q = search.value.trim();
-    if (q.length < 2) { clearResults(); setStatus(""); return; }
-    setStatus("Searching…");
-    fetch("/wines/search?q=" + encodeURIComponent(q), {
-      headers: { "Accept": "application/json" }
-    })
-      .then(function (res) { return res.json(); })
-      .then(function (wines) {
-        clearResults();
-        if (!Array.isArray(wines) || wines.length === 0) {
-          setStatus("No wine found.");
-          var add = makeButton("+ Add \u201C" + q + "\u201D as a new wine", "", function () {
-            window.location = NEW_WINE_URL;
-          });
-          resultsBox.appendChild(add);
-          return;
-        }
-        setStatus(wines.length + " wine" + (wines.length === 1 ? "" : "s") +
-          " found — pick one:");
-        wines.forEach(function (wine) {
-          resultsBox.appendChild(makeButton(
-            wine.name,
-            [wine.color, wine.region].filter(Boolean).join(" · "),
-            function () {
-              if (selectedWine !== wine) selectWine(wine);
-            }
-          ));
-        });
+    function runSearch() {
+      var q = search.value.trim();
+      if (q.length < 2) { clearResults(); setStatus(""); return; }
+      setStatus("Searching…");
+      fetch("/wines/search?q=" + encodeURIComponent(q), {
+        headers: { "Accept": "application/json" }
       })
-      .catch(function () { setStatus("Search failed. Please try again."); });
-  }
+        .then(function (res) { return res.json(); })
+        .then(function (wines) {
+          clearResults();
+          if (!Array.isArray(wines) || wines.length === 0) {
+            setStatus("No wine found.");
+            var add = makeButton("+ Add \u201C" + q + "\u201D as a new wine", "", function () {
+              window.location = NEW_WINE_URL;
+            });
+            resultsBox.appendChild(add);
+            return;
+          }
+          setStatus(wines.length + " wine" + (wines.length === 1 ? "" : "s") +
+            " found — pick one:");
+          wines.forEach(function (wine) {
+            resultsBox.appendChild(makeButton(
+              wine.name,
+              [wine.color, wine.region].filter(Boolean).join(" · "),
+              function () {
+                if (selectedWine !== wine) selectWine(wine);
+              }
+            ));
+          });
+        })
+        .catch(function () { setStatus("Search failed. Please try again."); });
+    }
 
-  search.addEventListener("input", function () {
-    if (timer) clearTimeout(timer);
-    timer = setTimeout(runSearch, 300);
-  });
-})();
+    search.addEventListener("input", function () {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(runSearch, 300);
+    });
+  })();
 </script>

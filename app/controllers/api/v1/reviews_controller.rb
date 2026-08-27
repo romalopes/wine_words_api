@@ -100,6 +100,6 @@ class Api::V1::ReviewsController < ApplicationController
 
   def review_params
     params.require(:review).permit(:comment, :score, :status, :published_at, :title,
-                                   :drink_from, :drink_to, :drink_plus, images: [])
+                                   :category_id, :drink_from, :drink_to, :drink_plus, images: [])
   end
 end

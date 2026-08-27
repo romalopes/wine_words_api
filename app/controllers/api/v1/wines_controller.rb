@@ -61,7 +61,7 @@ class Api::V1::WinesController < ApplicationController
     render json: { error: "Forbidden" }, status: :forbidden
   end
 
-  def wine_search_json(wine)
+    def wine_search_json(wine)
     {
       id: wine.id,
       name: wine.name,
@@ -69,6 +69,7 @@ class Api::V1::WinesController < ApplicationController
       region: wine.region,
       color: wine.color,
       producer: wine.producer ? { id: wine.producer.id, slug: wine.producer.slug, name: wine.producer.name } : nil,
+      category: wine.category&.name,
       vintages: wine.vintages.order(year: :desc).map do |vintage|
         { id: vintage.id, year: vintage.year }
       end
@@ -79,10 +80,9 @@ class Api::V1::WinesController < ApplicationController
 
   def wine_params
     permitted = params.require(:wine).permit(
-      :name, :region, :color, :prompt, :closure, :alcohol_percentage, :volume_ml, :producer_id,
+      :name, :region, :color, :prompt, :closure, :alcohol_percentage, :volume_ml, :producer_id, :category_id,
       images: [],
       vintages_attributes: [:id, :year, :prompt, :price, :no_vintage, :_destroy],
-      # wine_taste_parameters_attributes: [:id, :taste_parameter_slug, :score, :_destroy]
       wine_taste_parameters_attributes: [:id, :taste_parameter_id, :taste_parameter_slug, :score, :_destroy]
     )
 

@@ -13,7 +13,7 @@ class ArticleSerializer
       status: @article.status,
       author_name: @article.user&.name || @article.user&.email || "Unknown",
       user_id: @article.user_id,
-      category: @article.category&.name,
+                  category: @article.category&.name,
       category_id: @article.category_id,
       tags: @article.tags.map(&:name),
       wines: wine_list,

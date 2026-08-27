@@ -7,8 +7,11 @@
   </div>
 <% end %>
 <% if @wines.any? %>
-  <section class="wine-grid" aria-label="Wines">
-    <% @wines.each do |wine| %>
+  <% @wines.includes(:category).group_by { |w| w.category&.name || "Uncategorized" }.each_with_index do |(group_name, wines_in_group), gi| %>
+    <section class="wine-grid-group" aria-labelledby="group-<%= gi %>">
+      <h2 id="group-<%= gi %>" class="group-title"><%= group_name %></h2>
+      <section class="wine-grid" aria-label="Wines in <%= group_name %>">
+        <% wines_in_group.each do |wine| %>
       <div class="card-wrapper">
         <% if can_manage_wines? %>
           <div class="card-actions">
@@ -36,8 +39,10 @@
             </div>
           <% end %>
         </div>
-      <% end %>
+        <% end %>
+      </section>
     </section>
+  <% end %>
   <% else %>
     <p class="empty">No wines have been added yet.</p>
   <% end %>
