@@ -9,7 +9,27 @@
   </div>
   <div>
     <%= f.label :email %><br>
-    <%= f.email_field :email %>
+    <%= f.email_field :email, required: true %>
+  </div>
+  <div>
+    <%= f.label :producer_type %><br>
+    <%= f.select :producer_type, Producer.producer_types.keys.map { |k| [k.titleize, k] }, include_blank: true %>
+  </div>
+  <div>
+    <%= f.label :website %><br>
+    <%= f.url_field :website, placeholder: "https://..." %>
+  </div>
+  <div>
+    <%= f.label :instagram %><br>
+    <%= f.text_field :instagram, placeholder: "@handle or URL" %>
+  </div>
+  <div>
+    <%= f.label :facebook %><br>
+    <%= f.text_field :facebook, placeholder: "Page name or URL" %>
+  </div>
+  <div>
+    <%= f.label :description %><br>
+    <%= f.text_area :description, rows: 4 %>
   </div>
   <div>
     <%= f.label :images, "Images" %>

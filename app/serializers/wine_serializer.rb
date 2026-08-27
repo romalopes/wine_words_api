@@ -24,7 +24,9 @@ class WineSerializer
         {
           id: v.id,
           year: v.year,
-          prompt: v.prompt
+          prompt: v.prompt,
+          price: v.price&.to_f,
+          no_vintage: v.no_vintage
         }
       end
     }

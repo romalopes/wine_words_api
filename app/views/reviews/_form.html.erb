@@ -55,6 +55,20 @@
     <%= f.number_field :score, min: 0, max: 100, step: 0.01 %>
   </div>
   <div>
+    <%= f.label :drink_from, "Drink from" %><br>
+    <%= f.number_field :drink_from, min: review.vintage&.year || 1900,
+          placeholder: "e.g. #{review.vintage&.year || 2020}" %>
+    <small class="lede">Defaults start at the vintage year.</small>
+  </div>
+  <div>
+    <%= f.label :drink_to, "Drink to" %><br>
+    <%= f.number_field :drink_to %>
+  </div>
+  <div>
+    <%= f.check_box :drink_plus %>
+    <%= f.label :drink_plus, "Can be extended (+)" %>
+  </div>
+  <div>
     <%= f.label :comment %><br>
     <%= f.hidden_field :comment, id: "review_comment_input" %>
     <trix-editor input="review_comment_input" placeholder="Write your tasting notes…"></trix-editor>

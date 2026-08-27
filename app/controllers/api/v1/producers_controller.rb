@@ -1,5 +1,7 @@
 class Api::V1::ProducersController < ApplicationController
   skip_before_action :authenticate_user!, only: [:index, :show, :search]
+  # Only Super Users and Reviewers may add, edit or delete producers.
+  before_action :ensure_wine_manager!, only: [:create, :update, :destroy]
 
   def index
     producers = Producer.includes(:wines).order(:name)
@@ -50,18 +52,30 @@ class Api::V1::ProducersController < ApplicationController
 
   private
 
+  def ensure_wine_manager!
+    return if current_user&.wine_manager?
+
+    render json: { error: "Forbidden" }, status: :forbidden
+  end
+
   def producer_search_json(producer)
     {
       id: producer.id,
       slug: producer.slug,
       name: producer.name,
       address: producer.address,
-      email: producer.email
+      email: producer.email,
+      website: producer.website,
+      description: producer.description,
+      producer_type: producer.producer_type,
+      instagram: producer.instagram,
+      facebook: producer.facebook
     }
   end
 
   def producer_params
-    params.require(:producer).permit(:name, :address, :email, images: [])
+    params.require(:producer).permit(:name, :address, :email, :website, :description,
+                                     :producer_type, :instagram, :facebook, images: [])
   end
 
   def producer_json(producer)
@@ -71,6 +85,11 @@ class Api::V1::ProducersController < ApplicationController
       name: producer.name,
       address: producer.address,
       email: producer.email,
+      website: producer.website,
+      description: producer.description,
+      producer_type: producer.producer_type,
+      instagram: producer.instagram,
+      facebook: producer.facebook,
       images: image_urls(producer),
       wines: producer.wines.map do |wine|
         {

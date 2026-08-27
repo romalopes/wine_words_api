@@ -8,6 +8,22 @@ class Review < ApplicationRecord
   validates :status, presence: true, inclusion: { in: %w[draft published] }
   validates :title, presence: true
 
+  validate :drink_window_is_consistent
+
+  def drink_window_is_consistent
+    return unless drink_from.present? || drink_to.present?
+
+    if drink_from.present? && drink_from < (vintage&.year || 0)
+      errors.add(:drink_from, "cannot be earlier than the vintage year")
+    end
+    if drink_from.present? && drink_to.present? && drink_to < drink_from
+      errors.add(:drink_to, "cannot be earlier than Drink From")
+    end
+    if drink_to.present? && drink_from.blank?
+      errors.add(:drink_from, "is required when Drink To is set")
+    end
+  end
+
   scope :published, -> { where(status: "published") }
   scope :drafts, -> { where(status: "draft") }
   scope :visible_to, ->(user) { where(status: "published").or(where(user: user)) }

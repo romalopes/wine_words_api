@@ -31,7 +31,11 @@ Rails.application.routes.draw do
       patch :purge_image
     end
   end
-  resources :producers
+  resources :producers do
+    member do
+      post :link_wine
+    end
+  end
   resources :vintages
   resources :taste_parameters
   resources :wine_profiles

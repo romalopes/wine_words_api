@@ -9,6 +9,7 @@ module Web
       @user = User.new(user_params)
 
       if @user.save
+        # The "Guest" role is assigned automatically via User#assign_default_role.
         sign_in(:user, @user)
         redirect_to root_path, notice: "Welcome to Wine Words, #{@user.email}! Your account has been created."
       else

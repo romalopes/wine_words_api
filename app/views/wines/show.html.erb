@@ -5,7 +5,7 @@
   <p class="lede">
     <% if @wine.producer.present? %><%= link_to @wine.producer.name, producer_path(@wine.producer.slug), class: "text-link" %> · <% end %><%= [@wine.region, @wine.color].compact.join(" · ") %>
   </p>
-  <% if user_signed_in? %>
+  <% if can_manage_wines? %>
     <div class="page-actions">
       <%= link_to "Edit Wine", edit_wine_path(@wine.slug), class: "btn btn--secondary" %>
       <%= button_to "Delete Wine", wine_path(@wine.slug), method: :delete, class: "btn", onclick: %(return confirm('Delete this item? This action cannot be undone.')) %>
@@ -56,7 +56,7 @@
     <ul class="vintage-list">
       <% @wine.vintages.sort_by(&:year).reverse_each do |vintage| %>
         <li>
-          <strong><%= vintage.year %></strong><br>
+          <strong><%= vintage.no_vintage ? "NV" : vintage.year %></strong><% if vintage.price.present? %> · <%= number_to_currency(vintage.price) %><% end %><br>
           <%= vintage.prompt %>
           <% if user_signed_in? %>
             <div class="card-actions">

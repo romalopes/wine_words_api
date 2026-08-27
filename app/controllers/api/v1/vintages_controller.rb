@@ -7,7 +7,8 @@ class Api::V1::VintagesController < ApplicationController
     vintage = @wine.vintages.new(vintage_params)
 
     if vintage.save
-      render json: { id: vintage.id, year: vintage.year, prompt: vintage.prompt },
+      render json: { id: vintage.id, year: vintage.year, prompt: vintage.prompt,
+                     price: vintage.price&.to_f, no_vintage: vintage.no_vintage },
              status: :created
     else
       render json: { errors: vintage.errors.full_messages }, status: :unprocessable_entity
@@ -23,6 +24,6 @@ class Api::V1::VintagesController < ApplicationController
   end
 
   def vintage_params
-    params.require(:vintage).permit(:year, :prompt)
+    params.require(:vintage).permit(:year, :prompt, :price, :no_vintage)
   end
 end

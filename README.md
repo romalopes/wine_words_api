@@ -282,38 +282,13 @@ Subregion
 ↓
 Appellation
 
----
-
-Create a subscription concept to the system. Don't link with any payment yet, but keep it open for the future. A user can have one kind of subscription.
-A user with the "super user" role will be able to add new substription
-
-Attributes of subscriptions:
-
-- Name
-- Flag to show which is the most popular
-- flag to define if it will be visible in the webpage.
-- description
-- monthly price
-- anually price
-- List of "Subscription Feature"
-
-<!-- Relationship to a new table called "Subscription Feature".  Subscription can have many "Subscription Feature".
- Each -->
-
-Create the following subscriptions types:
-
-- FREE
-- Consumer ($AUD 70/year)
-- Trade ($AUD 240/year)
-- Distributer ($AUD 400/year)
-- Retail ($AUD 600/year)
-
-When the user is created the use will be assigned to the FREE subscription.
-
-Make a interface based on the websites:
-
-- https://www.winefront.com.au/subscribe/
-- https://www.jancisrobinson.com/membership
+Country
+State
+Region
+Region
+Wine 1
+Region
+Wine 2
 
 ---
 
@@ -350,3 +325,104 @@ When adding or editing article and Review, hide the list of existing article and
 ---
 
 In Wines. Allow only the user with Super User or Reviewer roles to add, edit and delete.
+
+---
+
+When a User sign up she should have the guest role.
+
+---
+
+Create a subscription concept to the system. Don't link with any payment yet, but keep it open for the future. A user can have one kind of subscription.
+A user with the "super user" role will be able to add new substription
+
+Attributes of subscriptions:
+
+- Name
+- Flag to show which is the most popular
+- flag to define if it will be visible in the webpage.
+- description
+- monthly price
+- anually price
+- List of "Subscription Feature"
+
+<!-- Relationship to a new table called "Subscription Feature".  Subscription can have many "Subscription Feature".
+ Each -->
+
+Create the following subscriptions types:
+
+- FREE
+- Consumer ($AUD 70/year)
+- Trade ($AUD 240/year)
+- Distributer ($AUD 400/year)
+- Retail ($AUD 600/year)
+
+When the user is created the use will be assigned to the FREE subscription.
+
+Make a interface based on the websites:
+
+- https://www.winefront.com.au/subscribe/
+- https://www.jancisrobinson.com/membership
+
+---
+
+In the react app. When the system shows a specific wine allow adding new vintages. In the rails app it already happens.
+
+---
+
+Add the following attribute to vintages:
+
+- Price
+- no_vintage (boolean)
+
+Add the following attributes to Review.
+
+- drink_from (integer starting from the vintage value)
+- drink_to (integer)
+- drink_plus (boolean to check if the drink_to can be extended)
+
+## Add them to the interfaces in the react and rails apps.
+
+Add the following attributes to Producer
+
+- website
+- description
+- producer_type (a selection)
+- instagram
+- facebook
+
+Put email is mandatory, presence: :true. With the current producers, create a random email.
+
+Producer type will be an enum. It should be mandatory(presence: :true). To the existing producer, just set to winery: 0
+
+enum :producer_type, {
+winery: 0,
+negociant: 1,
+cooperative: 2,
+wine_company: 3,
+independent_producer: 4
+}
+
+---
+
+In rails app:
+
+- In the show producer:
+  Show the other information from producers.
+  Add the buttons Edit and Delete producer
+
+In the react app
+
+- In the show producer:
+  Show the other information from producers.
+
+In both react and rails apps, add a search of wines so the user can link the wine to the producer. If a wine already has a producer, inform it to the user.
+
+Only the Super User and Review can edit, delete and link producer to wines.
+
+---
+
+In the show of review, show all the other attributes. Do it both for the react and rails apps.
+
+---
+
+Create a new role called "Editor"

@@ -3,11 +3,13 @@ class Api::V1::ReviewsController < ApplicationController
   # visibility filtering (published-only for anonymous users) happens in
   # the controller/actions below.
   before_action :authenticate_user!, except: [:index, :show]
-  before_action :set_vintage, only: [:create]
-  # Nested vintage listing is optional: /api/v1/reviews (no vintage params)
-  # must still serve the top-level feed, so only resolve the vintage when the
-  # nested route provides one.
-  before_action :set_vintage, only: [:index], if: -> { params[:vintage_id].present? }
+  # Resolve @vintage for nested routes. Required for #create; optional for
+  # #index (top-level feed runs without vintage params).
+  # NOTE: declared ONCE — duplicate before_action declarations of the same
+  # filter get merged by Rails and the last `only:`/`if:` silently wins.
+  before_action :set_vintage,
+                only: [:create, :index],
+                if: -> { action_name == "create" || params[:vintage_id].present? }
   before_action :set_review, only: [:show, :update, :destroy]
 
   def index
@@ -92,6 +94,7 @@ class Api::V1::ReviewsController < ApplicationController
   end
 
   def review_params
-    params.require(:review).permit(:comment, :score, :status, :published_at, :title, images: [])
+    params.require(:review).permit(:comment, :score, :status, :published_at, :title,
+                                   :drink_from, :drink_to, :drink_plus, images: [])
   end
 end

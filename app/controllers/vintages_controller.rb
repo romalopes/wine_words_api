@@ -52,6 +52,6 @@ class VintagesController < ActionController::Base
   end
 
   def vintage_params
-    params.require(:vintage).permit(:year, :prompt, :wine_id)
+    params.require(:vintage).permit(:year, :prompt, :price, :no_vintage, :wine_id)
   end
 end

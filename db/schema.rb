@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_26_053400) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_26_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -118,10 +118,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_26_053400) do
   create_table "producers", force: :cascade do |t|
     t.string "address"
     t.datetime "created_at", null: false
+    t.text "description"
     t.string "email"
+    t.string "facebook"
+    t.string "instagram"
     t.string "name"
+    t.integer "producer_type", default: 0, null: false
     t.string "slug"
     t.datetime "updated_at", null: false
+    t.string "website"
     t.index ["name"], name: "index_producers_on_name", unique: true
     t.index ["slug"], name: "index_producers_on_slug", unique: true
   end
@@ -129,6 +134,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_26_053400) do
   create_table "reviews", force: :cascade do |t|
     t.text "comment"
     t.datetime "created_at", null: false
+    t.integer "drink_from"
+    t.boolean "drink_plus", default: false, null: false
+    t.integer "drink_to"
     t.datetime "published_at"
     t.decimal "score", precision: 5, scale: 2
     t.string "status", default: "draft", null: false
@@ -192,6 +200,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_26_053400) do
 
   create_table "vintages", force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.boolean "no_vintage", default: false, null: false
+    t.decimal "price", precision: 10, scale: 2
     t.text "prompt"
     t.datetime "updated_at", null: false
     t.bigint "wine_id"

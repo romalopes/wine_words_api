@@ -1,7 +1,7 @@
 <% content_for :title, "Wine Library" %>
 <h1>Wine Library</h1>
 <p class="lede">Browse the collection, discover each wine’s profile, and compare its vintages.</p>
-<% if user_signed_in? %>
+<% if can_manage_wines? %>
   <div class="page-actions">
     <%= link_to "+ New Wine", new_wine_path, class: "btn" %>
   </div>
@@ -10,7 +10,7 @@
   <section class="wine-grid" aria-label="Wines">
     <% @wines.each do |wine| %>
       <div class="card-wrapper">
-        <% if user_signed_in? %>
+        <% if can_manage_wines? %>
           <div class="card-actions">
             <%= link_to "Edit", edit_wine_path(wine.slug), class: "card-action" %>
             <%= button_to "Delete", wine_path(wine.slug), method: :delete, form_class: "card-delete-form", class: "card-action card-action--delete", onclick: %(return confirm('Delete this item? This action cannot be undone.')) %>

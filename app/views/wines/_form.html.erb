@@ -63,7 +63,13 @@
             "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content
           },
           credentials: "same-origin",
-          body: JSON.stringify({ producer: { name: name } })
+          body: JSON.stringify({ producer: {
+            name: name,
+            // Email + producer_type are mandatory server-side; use defaults
+            // for the inline quick-create flow.
+            email: "producer-" + Date.now().toString(36) + "@example.com",
+            producer_type: "winery"
+          } })
         }).then(function (response) {
           return response.json().then(function (data) {
             if (!response.ok) throw new Error((data.errors || ["Failed to create producer"]).join(", "));
@@ -162,7 +168,7 @@
   </div>
   <%# --- Vintages editor (add/edit/remove vintages inline) --- %>
   <div class="wine-vintages-editor" id="wine-vintages-editor"
-       data-vintages="<%= @wine.vintages.order(year: :desc).map { |v| { id: v.id, year: v.year, prompt: v.prompt } }.to_json %>">
+       data-vintages="<%= @wine.vintages.order(year: :desc).map { |v| { id: v.id, year: v.year, prompt: v.prompt, price: v.price&.to_f, no_vintage: v.no_vintage } }.to_json %>">
     <label><strong>Vintages</strong></label>
     <div id="wine-vintages-rows"></div>
     <button type="button" id="add-vintage-btn" class="btn btn--secondary">+ Add Vintage</button>
@@ -182,7 +188,7 @@
   </div>
 <% end %>
 <style>
-  .vintage-editor-row { display: grid; grid-template-columns: 7rem 1fr auto auto; align-items: center; gap: .6rem; margin-bottom: .4rem; }
+  .vintage-editor-row { display: grid; grid-template-columns: 7rem 8rem auto 1fr auto; align-items: center; gap: .6rem; margin-bottom: .4rem; }
   .vintage-editor-row.removed { display: none; }
   .vintage-editor-row input[type="number"], .vintage-editor-row input[type="text"] {
     border: 1px solid #d8c8c0; border-radius: .45rem; padding: .45rem .6rem; font: .95rem system-ui, sans-serif;
@@ -226,8 +232,23 @@
         name: "wine[vintages_attributes][][year]",
         value: vintage ? vintage.year : "",
         min: "1900", max: String(new Date().getFullYear() + 5),
-        placeholder: "Year", required: "required"
+        placeholder: "Year", required: "required",
+        step: "1"
       }));
+      row.appendChild(makeEl("input", {
+        type: "number",
+        name: "wine[vintages_attributes][][price]",
+        value: (vintage && vintage.price != null) ? vintage.price : "",
+        min: "0", step: "0.01",
+        placeholder: "Price"
+      }));
+      var nvWrap = document.createElement("label");
+      nvWrap.style.cssText = "display:flex;align-items:center;gap:.3rem;font:.9rem system-ui,sans-serif";
+      var nv = makeEl("input", { type: "checkbox", name: "wine[vintages_attributes][][no_vintage]", value: "1" });
+      if (vintage && vintage.no_vintage) nv.setAttribute("checked", "checked");
+      nvWrap.appendChild(nv);
+      nvWrap.appendChild(document.createTextNode("NV"));
+      row.appendChild(nvWrap);
       row.appendChild(makeEl("input", {
         type: "text",
         name: "wine[vintages_attributes][][prompt]",

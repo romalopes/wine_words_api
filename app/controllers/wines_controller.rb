@@ -3,6 +3,10 @@ class WinesController < ActionController::Base
   helper :wines
   include RequireLogin
 
+  # Only Super Users and Reviewers may add, edit or delete wines.
+  before_action :deny_unless_wine_manager!, only: [:new, :create, :edit, :update, :destroy, :purge_image]
+  helper_method :can_manage_wines?
+
   def index
     @wines = Wine.includes(:vintages, wine_taste_parameters: :taste_parameter).order(:name)
   end
@@ -93,6 +97,18 @@ class WinesController < ActionController::Base
     render json: { error: "Vintage not found" }, status: :not_found
   end
 
+  # Authorisation for wine management (Super User or Reviewer only).
+  def can_manage_wines?
+    user_signed_in? && current_user.wine_manager?
+  end
+
+  def deny_unless_wine_manager!
+    return if can_manage_wines?
+
+    redirect_to wines_path, alert: "You are not allowed to manage wines."
+    false
+  end
+
   private
 
   def wine_search_json(wine)
@@ -132,7 +148,7 @@ class WinesController < ActionController::Base
   def wine_params
     params.require(:wine).permit(
       :name, :region, :color, :prompt, :closure, :alcohol_percentage, :volume_ml, :producer_id,
-      vintages_attributes: [:id, :year, :prompt, :_destroy],
+      vintages_attributes: [:id, :year, :prompt, :price, :no_vintage, :_destroy],
       wine_taste_parameters_attributes: [:id, :taste_parameter_id, :taste_parameter_slug, :score, :_destroy]
     )
   end

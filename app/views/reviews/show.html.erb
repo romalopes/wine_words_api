@@ -24,6 +24,10 @@
   <% end %>
   <ul class="facts" aria-label="Review details">
     <li><strong>Status:</strong> <%= @review.status %></li>
+    <% if @review.drink_from.present? || @review.drink_to.present? %>
+      <% window = [@review.drink_from, "–", @review.drink_to].map(&:to_s).reject(&:blank?).join %>
+      <li><strong>Drinking window:</strong> <%= "#{window}#{'+' if @review.drink_plus}" %></li>
+    <% end %>
     <% if @review.published_at.present? %>
       <li><strong>Published:</strong> <%= @review.published_at.strftime("%B %d, %Y") %></li>
     <% end %>

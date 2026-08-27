@@ -21,7 +21,10 @@ class ReviewSerializer
       created_at: @review.created_at&.iso8601,
       wine_name: @review.vintage&.wine&.name,
       wine_slug: @review.vintage&.wine&.slug,
-      vintage_year: @review.vintage&.year
+      vintage_year: @review.vintage&.year,
+      drink_from: @review.drink_from,
+      drink_to: @review.drink_to,
+      drink_plus: @review.drink_plus
     }
   end
 

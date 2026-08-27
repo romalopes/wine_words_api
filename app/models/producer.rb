@@ -2,8 +2,18 @@ class Producer < ApplicationRecord
   has_many :wines, dependent: :nullify
   has_many_attached :images
 
+  enum :producer_type, {
+    winery: 0,
+    negociant: 1,
+    cooperative: 2,
+    wine_company: 3,
+    independent_producer: 4
+  }, validate: true
+
   validates :name, presence: true, uniqueness: true
-  validates :email, format: { with: URI::MailTo::EMAIL_REGEXP }, allow_blank: true
+  validates :email, presence: true
+  validates :email, format: { with: URI::MailTo::EMAIL_REGEXP }
+  validates :producer_type, presence: true
 
   # Use slug instead of numeric id in URLs so form submissions resolve via find_by!(slug:)
   def to_param

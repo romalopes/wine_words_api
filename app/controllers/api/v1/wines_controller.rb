@@ -1,6 +1,9 @@
 class Api::V1::WinesController < ApplicationController
 
-  # before_action :authenticate_user!, only: [:create, :update, :destroy]
+  # Wine management (create/update/destroy) is restricted to signed-in
+  # Super Users and Reviewers; reading stays public.
+  before_action :authenticate_user!, only: [:create, :update, :destroy]
+  before_action :ensure_wine_manager!, only: [:create, :update, :destroy]
   skip_before_action :authenticate_user!, only: [:index, :show, :search]
 
   def index
@@ -52,6 +55,12 @@ class Api::V1::WinesController < ApplicationController
 
   private
 
+  def ensure_wine_manager!
+    return if current_user&.wine_manager?
+
+    render json: { error: "Forbidden" }, status: :forbidden
+  end
+
   def wine_search_json(wine)
     {
       id: wine.id,
@@ -59,6 +68,7 @@ class Api::V1::WinesController < ApplicationController
       slug: wine.slug,
       region: wine.region,
       color: wine.color,
+      producer: wine.producer ? { id: wine.producer.id, slug: wine.producer.slug, name: wine.producer.name } : nil,
       vintages: wine.vintages.order(year: :desc).map do |vintage|
         { id: vintage.id, year: vintage.year }
       end
@@ -71,7 +81,7 @@ class Api::V1::WinesController < ApplicationController
     permitted = params.require(:wine).permit(
       :name, :region, :color, :prompt, :closure, :alcohol_percentage, :volume_ml, :producer_id,
       images: [],
-      vintages_attributes: [:id, :year, :prompt, :_destroy],
+      vintages_attributes: [:id, :year, :prompt, :price, :no_vintage, :_destroy],
       # wine_taste_parameters_attributes: [:id, :taste_parameter_slug, :score, :_destroy]
       wine_taste_parameters_attributes: [:id, :taste_parameter_id, :taste_parameter_slug, :score, :_destroy]
     )

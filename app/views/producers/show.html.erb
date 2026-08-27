@@ -2,6 +2,15 @@
 <article class="producer-page">
   <%= link_to "← All producers", producers_path, class: "back-link" %>
   <h1><%= @producer.name %></h1>
+
+  <% if can_manage_producers? %>
+    <div class="producer-actions" style="display:flex;gap:.6rem;margin:.6rem 0 1rem;">
+      <%= link_to "Edit Producer", edit_producer_path(@producer), class: "btn btn--secondary" %>
+      <%= button_to "Delete Producer", producer_path(@producer), method: :delete,
+            form_class: "card-delete-form", class: "card-action card-action--delete",
+            onclick: %(return confirm('Delete "#{@producer.name}"? This action cannot be undone.')) %>
+    </div>
+  <% end %>
   <% if @producer.images.attached? %>
     <div class="image-gallery">
       <% @producer.images.each do |image| %>
@@ -13,10 +22,35 @@
     <% if @producer.address.present? %>
       <li><strong>Address:</strong> <%= @producer.address %></li>
     <% end %>
+    <% if @producer.producer_type.present? %>
+      <li><strong>Type:</strong> <%= @producer.producer_type.titleize %></li>
+    <% end %>
+    <% if @producer.website.present? %>
+      <li><strong>Website:</strong> <%= link_to @producer.website, @producer.website, target: "_blank", rel: "noopener" %></li>
+    <% end %>
+    <% if @producer.instagram.present? %>
+      <li><strong>Instagram:</strong> <%= link_to @producer.instagram, @producer.instagram.to_s.start_with?("http") ? @producer.instagram : "https://instagram.com/#{@producer.instagram.sub('@', '')}", target: "_blank", rel: "noopener" %></li>
+    <% end %>
+    <% if @producer.facebook.present? %>
+      <li><strong>Facebook:</strong> <%= link_to @producer.facebook, @producer.facebook.to_s.start_with?("http") ? @producer.facebook : "https://facebook.com/#{@producer.facebook}", target: "_blank", rel: "noopener" %></li>
+    <% end %>
+    <% if @producer.description.present? %>
+      <li><strong>Description:</strong> <%= @producer.description %></li>
+    <% end %>
     <% if @producer.email.present? %>
-      <li><strong>Email:</strong> <%= @producer.email %></li>
+      <li><strong>Email:</strong> <%= mail_to @producer.email %></li>
     <% end %>
   </ul>
+  <% if can_manage_producers? %>
+    <div id="producer-wine-linker" style="margin-bottom:1.4rem;">
+      <label for="wine-link-search"><strong>Link a wine</strong></label>
+      <input type="text" id="wine-link-search" placeholder="Search wines by name…"
+             style="display:block;max-width:26rem;border:1px solid #d8c8c0;border-radius:.45rem;padding:.5rem .7rem;margin:.35rem 0;">
+      <div id="wine-link-results"></div>
+      <small class="lede">Only Super Users and Reviewers can link a wine to a producer.</small>
+    </div>
+  <% end %>
+
   <h2>Wines</h2>
   <% if @producer.wines.any? %>
     <ul class="wine-list">
@@ -28,3 +62,97 @@
     <p class="empty">No wines are associated with this producer yet.</p>
   <% end %>
 </article>
+
+<% if can_manage_producers? %>
+<script>
+  (function () {
+    var input = document.getElementById("wine-link-search");
+    var resultsBox = document.getElementById("wine-link-results");
+    if (!input || !resultsBox) return;
+
+    var producerSlug = "<%= j @producer.slug %>";
+    var producerName = "<%= j @producer.name %>";
+    var linkUrl = "<%= j link_wine_producer_path(@producer) %>";
+    var csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+    var timer = null;
+    var lastQuery = "";
+
+    function makeEl(tag, attrs, textContent) {
+      var el = document.createElement(tag);
+      Object.keys(attrs || {}).forEach(function (k) { el.setAttribute(k, attrs[k]); });
+      if (textContent != null) el.textContent = textContent;
+      return el;
+    }
+
+    function renderResults(wines) {
+      resultsBox.innerHTML = "";
+      if (!wines.length) {
+        resultsBox.appendChild(makeEl("p", { class: "lede" }, "No matching wines."));
+        return;
+      }
+      wines.forEach(function (wine) {
+        var row = makeEl("div", {});
+        row.style.cssText = "display:flex;align-items:center;gap:.6rem;margin:.35rem 0;padding:.45rem .6rem;border:1px solid #d8c8c0;border-radius:.5rem;max-width:32rem;background:#fff;";
+        var name = makeEl("strong", {}, wine.name + (wine.region ? " (" + wine.region + ")" : ""));
+        row.appendChild(name);
+
+        var current = wine.producer && wine.producer.slug
+          ? wine.producer
+          : null;
+
+        if (current && current.slug === producerSlug) {
+          var already = makeEl("span", { style: "color:#2e7d43;font-weight:700;" }, "Linked here \u2713");
+          row.appendChild(already);
+          resultsBox.appendChild(row);
+          return;
+        }
+
+        var status = makeEl("span", { style: "color:#666;font-size:.85rem;" },
+          current ? "currently with " + current.name : "no producer");
+        row.appendChild(status);
+
+        var btn = makeEl("button", { type: "button", class: "btn btn--secondary", style: "padding:.25rem .7rem;" }, "Link");
+        btn.addEventListener("click", function () {
+          var msg = current && current.slug !== producerSlug
+            ? '"' + wine.name + '" is currently linked to "' + current.name + '". Reassign it to "' + producerName + '"?'
+            : 'Link "' + wine.name + '" to "' + producerName + '"?';
+          if (!window.confirm(msg)) return;
+          fetch(linkUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRF-Token": csrfToken,
+              "Accept": "text/vnd.turbo-stream.html, text/html, application/json"
+            },
+            credentials: "same-origin",
+            body: JSON.stringify({ wine_id: wine.slug })
+          }).then(function (r) {
+            if (!r.ok) throw new Error("Failed to link wine");
+            window.location.reload();
+          }).catch(function (err) { alert(err.message); });
+        });
+        row.appendChild(btn);
+        resultsBox.appendChild(row);
+      });
+    }
+
+    function search() {
+      var query = input.value.trim();
+      lastQuery = query;
+      if (query.length < 2) { resultsBox.innerHTML = ""; return; }
+      fetch("/api/v1/wines/search?q=" + encodeURIComponent(query), { headers: { "Accept": "application/json" } })
+        .then(function (r) { return r.json(); })
+        .then(function (wines) {
+          // Ignore stale responses that resolve after newer keystrokes.
+          if (lastQuery === query || query === "") renderResults(Array.isArray(wines) ? wines.slice(0, 8) : []);
+        })
+        .catch(function () { resultsBox.innerHTML = ""; });
+    }
+
+    input.addEventListener("input", function () {
+      clearTimeout(timer);
+      timer = setTimeout(search, 300);
+    });
+  })();
+</script>
+<% end %>
