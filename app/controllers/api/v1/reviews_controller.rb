@@ -1,8 +1,7 @@
 class Api::V1::ReviewsController < ApplicationController
-  # The top-level review feed and single review are publicly readable;
-  # visibility filtering (published-only for anonymous users) happens in
-  # the controller/actions below.
+  # Only Super Users, Editors and Reviewers may create reviews.
   before_action :authenticate_user!, except: [:index, :show]
+  before_action :ensure_wine_manager!, only: [:create]
   # Resolve @vintage for nested routes. Required for #create; optional for
   # #index (top-level feed runs without vintage params).
   # NOTE: declared ONCE — duplicate before_action declarations of the same
@@ -79,6 +78,12 @@ class Api::V1::ReviewsController < ApplicationController
   end
 
   private
+
+  def ensure_wine_manager!
+    return if current_user&.wine_manager?
+
+    render json: { error: "Forbidden" }, status: :forbidden
+  end
 
   def set_vintage
     wine = Wine.find_by!(slug: params[:wine_id])

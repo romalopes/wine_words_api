@@ -1,6 +1,8 @@
 class Api::V1::ArticlesController < ApplicationController
   before_action :authenticate_user!, except: [:index, :show]
   before_action :set_article, only: [:show, :update, :destroy]
+  # Only Super Users, Editors and Reviewers may create articles.
+  before_action :ensure_wine_manager!, only: [:create]
 
   def index
     articles = Article.visible_to(current_user).recent.includes(:user, :category, :tags, :wines, :producers)
@@ -56,6 +58,12 @@ class Api::V1::ArticlesController < ApplicationController
   end
 
   private
+
+  def ensure_wine_manager!
+    return if current_user&.wine_manager?
+
+    render json: { error: "Forbidden" }, status: :forbidden
+  end
 
   def set_article
     @article = Article.find(params[:id])

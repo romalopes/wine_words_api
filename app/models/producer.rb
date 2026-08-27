@@ -8,12 +8,12 @@ class Producer < ApplicationRecord
     cooperative: 2,
     wine_company: 3,
     independent_producer: 4
-  }, validate: true
+  }, default: :winery, validate: true
 
   validates :name, presence: true, uniqueness: true
   validates :email, presence: true
   validates :email, format: { with: URI::MailTo::EMAIL_REGEXP }
-  validates :producer_type, presence: true
+  validates :producer_type, presence: true, inclusion: { in: producer_types.keys }
 
   # Use slug instead of numeric id in URLs so form submissions resolve via find_by!(slug:)
   def to_param

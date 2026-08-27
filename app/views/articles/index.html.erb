@@ -2,6 +2,7 @@
 <h1>Articles</h1>
 <p class="lede">Stories, guides and tasting journeys from the community.</p>
 
+<% if can_manage_wines? %>
 <%# Scope toggle: All Articles / My Articles %>
 <div class="filter-pills">
   <%= link_to "All Articles", articles_path(scope: "all", status: @status), class: "filter-pill #{@scope == 'all' ? 'active' : ''}" %>
@@ -17,11 +18,11 @@
   <% end %>
 </div>
 
-<% if user_signed_in? %>
-  <div class="page-actions">
-    <%= link_to "+ New Article", new_article_path, class: "btn" %>
-  </div>
+<div class="page-actions">
+  <%= link_to "+ New Article", new_article_path, class: "btn" %>
+</div>
 <% end %>
+
 <% if @articles.any? %>
   <section class="wine-grid" aria-label="Articles">
     <% @articles.each do |article| %>
@@ -44,7 +45,9 @@
               <p class="details"><%= truncate(strip_tags(article.abstract), length: 140) %></p>
             <% end %>
             <div class="status">
-              <span class="tag"><%= article.status %></span>
+              <% if can_manage_wines? %>
+                <span class="tag"><%= article.status %></span>
+              <% end %>
               <% article.tags.limit(3).each do |tag| %>
                 <span class="tag"><%= tag.name %></span>
               <% end %>

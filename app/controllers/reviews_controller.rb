@@ -4,10 +4,13 @@ class ReviewsController < ActionController::Base
   include RequireLogin
 
   helper_method :can_manage_review?
+  # Only Super Users, Editors and Reviewers may create reviews.
+  before_action :deny_unless_wine_manager!, only: [:new, :create]
+  helper_method :can_manage_wines?
 
   def index
-    @scope = params[:scope] == "mine" && user_signed_in? ? "mine" : "all"
-    @status = %w[draft published].include?(params[:status]) ? params[:status] : "all"
+    @scope = can_manage_wines? && params[:scope] == "mine" && user_signed_in? ? "mine" : "all"
+    @status = can_manage_wines? && %w[draft published].include?(params[:status]) ? params[:status] : "published"
 
     base =
       if @scope == "mine"
@@ -78,6 +81,17 @@ class ReviewsController < ActionController::Base
   end
 
   private
+
+  def can_manage_wines?
+    user_signed_in? && current_user.wine_manager?
+  end
+
+  def deny_unless_wine_manager!
+    return if can_manage_wines?
+
+    redirect_to reviews_path, alert: "You are not allowed to manage content."
+    false
+  end
 
   # Author or super admin may manage a review.
   def can_manage_review?(review)

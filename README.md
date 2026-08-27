@@ -332,39 +332,6 @@ When a User sign up she should have the guest role.
 
 ---
 
-Create a subscription concept to the system. Don't link with any payment yet, but keep it open for the future. A user can have one kind of subscription.
-A user with the "super user" role will be able to add new substription
-
-Attributes of subscriptions:
-
-- Name
-- Flag to show which is the most popular
-- flag to define if it will be visible in the webpage.
-- description
-- monthly price
-- anually price
-- List of "Subscription Feature"
-
-<!-- Relationship to a new table called "Subscription Feature".  Subscription can have many "Subscription Feature".
- Each -->
-
-Create the following subscriptions types:
-
-- FREE
-- Consumer ($AUD 70/year)
-- Trade ($AUD 240/year)
-- Distributer ($AUD 400/year)
-- Retail ($AUD 600/year)
-
-When the user is created the use will be assigned to the FREE subscription.
-
-Make a interface based on the websites:
-
-- https://www.winefront.com.au/subscribe/
-- https://www.jancisrobinson.com/membership
-
----
-
 In the react app. When the system shows a specific wine allow adding new vintages. In the rails app it already happens.
 
 ---
@@ -426,3 +393,62 @@ In the show of review, show all the other attributes. Do it both for the react a
 ---
 
 Create a new role called "Editor"
+
+Change the permissions:
+
+- New Article, New Review, New Producer: Only "Super User", "Editor" and "Reviewr" can do it.
+- In wines: Add Vintages: Only "Super User", "Editor" and "Reviewr" can do it.
+
+In Articles(when showing the list of articles): - Only "Super User", "Editor" and "Reviewr" can see the buttons "all articles", "My Articles", "All", "Draft", "Published". - Guest and Readers can only see published wines. Hide the buttons "all articles", "My Articles", "All", "Draft", "Published". - Also, don't need to inform that each article is published.
+Do the same to Reviews.
+
+Do it in both react and rails apps
+
+---
+
+Wine profiles are actually the vararity.
+
+---
+
+Add booleans in Category to define if a category is for "wine", "article", "review".
+
+Add category_id to wine and review, similar to article. When creating, editing only show the correspondent categories. For example, when creating a wine only allow to select categories that are for wine. When creating article, only show and allow to select categories that are for article.
+
+In the list of Reviews and Articles of the react app, change the interface so there will be maximum 4 per row in descending order of publishing, similar to the ones in rails app.
+
+Show the wines in groups per Category.
+
+In the list of reviews and article only the first 50 characters of the body.
+
+## add 3 attributes integer to define the order where the categories will show. position_wine, position_review, position_article. In the current categories, add incremental values in the order of existance.
+
+Create a subscription concept to the system. Don't link with any payment yet, but keep it open for the future. A user can have one kind of subscription.
+A user with the "super user" role will be able to add new substription
+
+Attributes of subscriptions:
+
+- Name
+- Flag to show which is the most popular
+- flag to define if it will be visible in the webpage.
+- description
+- monthly price
+- anually price
+- List of "Subscription Feature"
+
+<!-- Relationship to a new table called "Subscription Feature".  Subscription can have many "Subscription Feature".
+ Each -->
+
+Create the following subscriptions types:
+
+- FREE
+- Consumer ($AUD 70/year)
+- Trade ($AUD 240/year)
+- Distributer ($AUD 400/year)
+- Retail ($AUD 600/year)
+
+When the user is created the use will be assigned to the FREE subscription.
+
+Make a interface based on the websites:
+
+- https://www.winefront.com.au/subscribe/
+- https://www.jancisrobinson.com/membership

@@ -3,6 +3,7 @@
 
 # --- Roles (instance rows in the DB: name + id) ---
 Role.find_or_create_by!(name: "Super User")
+Role.find_or_create_by!(name: "Editor")
 Role.find_or_create_by!(name: "Reviewer")
 Role.find_or_create_by!(name: "Reader")
 Role.find_or_create_by!(name: "Guest")

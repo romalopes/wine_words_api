@@ -13,7 +13,7 @@
   </div>
   <div>
     <%= f.label :producer_type %><br>
-    <%= f.select :producer_type, Producer.producer_types.keys.map { |k| [k.titleize, k] }, include_blank: true %>
+    <%= f.select :producer_type, Producer.producer_types.keys.map { |k| [k.titleize, k] } %>
   </div>
   <div>
     <%= f.label :website %><br>

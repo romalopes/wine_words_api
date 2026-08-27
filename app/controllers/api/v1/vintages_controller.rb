@@ -1,6 +1,8 @@
 class Api::V1::VintagesController < ApplicationController
   before_action :authenticate_user!
   before_action :set_wine, only: [:create]
+  # Only Super Users, Editors and Reviewers may add vintages.
+  before_action :ensure_wine_manager!, only: [:create]
 
   # POST /api/v1/wines/:wine_id/vintages
   def create
@@ -16,6 +18,12 @@ class Api::V1::VintagesController < ApplicationController
   end
 
   private
+
+  def ensure_wine_manager!
+    return if current_user&.wine_manager?
+
+    render json: { error: "Forbidden" }, status: :forbidden
+  end
 
   def set_wine
     @wine = Wine.find_by!(slug: params[:wine_id])

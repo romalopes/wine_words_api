@@ -3,6 +3,10 @@ class VintagesController < ActionController::Base
   helper :vintages
   include RequireLogin
 
+  # Only Super Users, Editors and Reviewers may add/edit/delete vintages.
+  before_action :deny_unless_wine_manager!, only: [:new, :create, :edit, :update, :destroy]
+  helper_method :can_manage_wines?
+
   def index
     @vintages = Vintage.includes(:wine, :reviews).order(year: :desc)
   end
@@ -45,6 +49,17 @@ class VintagesController < ActionController::Base
   end
 
   private
+
+  def can_manage_wines?
+    user_signed_in? && current_user.wine_manager?
+  end
+
+  def deny_unless_wine_manager!
+    return if can_manage_wines?
+
+    redirect_to wines_path, alert: "You are not allowed to manage vintages."
+    false
+  end
 
   def find_vintage
     Vintage.find_by(id: params[:id]) ||

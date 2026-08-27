@@ -3,6 +3,7 @@ class Role < ApplicationRecord
   # ("Super User"), while the enum keys give convenient predicates/scopes.
   enum :name, {
     super_user: "Super User",
+    editor: "Editor",
     reviewer: "Reviewer",
     reader: "Reader",
     guest: "Guest"

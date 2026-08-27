@@ -21,9 +21,14 @@ class User < ApplicationRecord
     role?(:super_user)
   end
 
-  # Only Super Users and Reviewers may create/edit/delete wines.
+  def reviewer?
+    role?(:reviewer)
+  end
+
+  # Super Users, Reviewers and Editors may manage wines/producers —
+  # anywhere a Reviewer is allowed, an Editor is allowed too.
   def wine_manager?
-    super_admin? || role?(:reviewer)
+    super_admin? || reviewer? || role?(:editor)
   end
 
   def role_names

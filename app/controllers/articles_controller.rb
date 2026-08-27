@@ -6,10 +6,14 @@ class ArticlesController < ActionController::Base
                                      :purge_image, :add_review, :remove_review, :toggle_review_status]
   before_action :ensure_author!, only: [:edit, :update, :destroy, :purge_image,
                                         :add_review, :remove_review, :toggle_review_status]
+  # Only Super Users, Editors and Reviewers may create articles.
+  before_action :deny_unless_wine_manager!, only: [:new, :create]
+  helper_method :can_manage_wines?
 
+  # Guests/Readers always see published only; ignore scope/status params.
   def index
-    @scope = params[:scope] == "mine" && user_signed_in? ? "mine" : "all"
-    @status = %w[draft published].include?(params[:status]) ? params[:status] : "all"
+    @scope = can_manage_wines? && params[:scope] == "mine" && user_signed_in? ? "mine" : "all"
+    @status = can_manage_wines? && %w[draft published].include?(params[:status]) ? params[:status] : "published"
 
     base =
       if @scope == "mine"
@@ -109,6 +113,17 @@ class ArticlesController < ActionController::Base
   end
 
   private
+
+  def can_manage_wines?
+    user_signed_in? && current_user.wine_manager?
+  end
+
+  def deny_unless_wine_manager!
+    return if can_manage_wines?
+
+    redirect_to articles_path, alert: "You are not allowed to manage content."
+    false
+  end
 
   def set_article
     @article = Article.find(params[:id])
