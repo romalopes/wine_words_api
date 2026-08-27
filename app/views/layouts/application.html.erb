@@ -21,8 +21,27 @@
       h1, h2, p { margin-top: 0; }
       h1 { color: #4a1020; font-size: clamp(2rem, 5vw, 3.25rem); margin-bottom: .5rem; }
       .lede { color: #6b5855; font: 1.05rem/1.6 system-ui, sans-serif; margin-bottom: 2rem; }
-      .wine-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1rem; }
-      .review-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1rem; }
+      .wine-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+      @media (max-width: 1200px) { .wine-grid { grid-template-columns: repeat(3, 1fr); } }
+      @media (max-width: 900px) { .wine-grid { grid-template-columns: repeat(2, 1fr); } }
+      @media (max-width: 600px) { .wine-grid { grid-template-columns: 1fr; } }
+      .review-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+      @media (max-width: 1200px) { .review-grid { grid-template-columns: repeat(3, 1fr); } }
+      @media (max-width: 900px) { .review-grid { grid-template-columns: repeat(2, 1fr); } }
+      @media (max-width: 600px) { .review-grid { grid-template-columns: 1fr; } }
+      .producer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+      @media (max-width: 1200px) { .producer-grid { grid-template-columns: repeat(3, 1fr); } }
+      @media (max-width: 900px) { .producer-grid { grid-template-columns: repeat(2, 1fr); } }
+      @media (max-width: 600px) { .producer-grid { grid-template-columns: 1fr; } }
+      .producer-card { display: block; background: #fff; border: 1px solid #eaded7; border-radius: .7rem; box-shadow: 0 2px 10px rgba(63, 24, 24, .06); overflow: hidden; text-decoration: none; transition: transform .15s, box-shadow .15s; }
+      .producer-card:hover { transform: translateY(-3px); box-shadow: 0 7px 18px rgba(63, 24, 24, .14); }
+      .producer-card__band { height: .5rem; background: #6b5855; }
+      .review-card { display: block; background: #fff; border: 1px solid #eaded7; border-radius: .7rem; box-shadow: 0 2px 10px rgba(63, 24, 24, .06); overflow: hidden; text-decoration: none; transition: transform .15s, box-shadow .15s; }
+      .review-card:hover { transform: translateY(-3px); box-shadow: 0 7px 18px rgba(63, 24, 24, .14); }
+      .review-card__band { height: .5rem; background: #27615e; }
+      .review-card__content { padding: 1.1rem; }
+      .producer-card__content { padding: 1.1rem; }
+      .group-title { font-size: 1.5rem; font-weight: 700; color: #4f4440; margin: 1.5rem 0 1rem 0; padding-bottom: 0.5rem; border-bottom: 2px solid #e4d9cd; }
       .image-gallery__item { position: relative; display: inline-block; margin: .25rem; }
       .image-gallery__remove { position: absolute; top: .25rem; right: .25rem; }
       .wine-card { display: block; background: #fff; border: 1px solid #eaded7; border-radius: .7rem; box-shadow: 0 2px 10px rgba(63, 24, 24, .06); overflow: hidden; text-decoration: none; transition: transform .15s, box-shadow .15s; }

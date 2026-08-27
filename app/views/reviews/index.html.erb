@@ -23,8 +23,15 @@
 <% end %>
 
 <% if @reviews.any? %>
-  <section class="review-grid" aria-label="Reviews">
-    <% @reviews.each do |review| %>
+  <% 
+    grouped = @reviews.group_by { |r| r.category&.name || "Uncategorized" }
+    sorted_groups = grouped.sort_by { |name, _| name == "Uncategorized" ? [1, name] : [0, name] }
+    sorted_groups.each_with_index do |(group_name, reviews_in_group), gi|
+  %>
+    <section class="wine-grid-group" aria-labelledby="group-<%= gi %>">
+      <h2 id="group-<%= gi %>" class="group-title"><%= group_name %></h2>
+      <section class="review-grid" aria-label="Reviews in <%= group_name %>">
+        <% reviews_in_group.each do |review| %>
       <div class="card-wrapper">
         <% if can_manage_review?(review) %>
           <div class="card-actions">
@@ -57,8 +64,10 @@
           </div>
         <% end %>
       </div>
-    <% end %>
-  </section>
+        <% end %>
+      </section>
+    </section>
+  <% end %>
 <% else %>
       <p class="empty"><%= @reviews.any? ? "No #{@status} reviews." : (@scope == "mine" ? "You haven't written any reviews yet." : "No reviews have been added yet.") %></p>
 <% end %>

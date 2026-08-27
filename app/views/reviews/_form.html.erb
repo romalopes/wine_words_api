@@ -40,10 +40,6 @@
         <%= button_tag "Cancel", type: "button", id: "wine-change-cancel",
               class: "card-action" %>
       <% end %>
-      <div class="field">
-        <%= f.label :category_id, "Category" %><br>
-        <%= f.collection_select :category_id, Category.where(for_review: true).order(sort_order_review: :asc), :id, :name, include_blank: true %>
-      </div>
       <small class="lede">Search the wine by name, then pick its vintage.</small>
     </div>
   </div>
@@ -68,6 +64,10 @@
   <div>
     <%= f.check_box :drink_plus %>
     <%= f.label :drink_plus, "Can be extended (+)" %>
+  </div>
+  <div class="field">
+    <%= f.label :category_id, "Category" %><br>
+    <%= f.collection_select :category_id, Category.where(for_review: true).order(sort_order_review: :asc), :id, :name, include_blank: true %>
   </div>
   <div>
     <%= f.label :comment %><br>

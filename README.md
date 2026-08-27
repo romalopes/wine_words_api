@@ -452,3 +452,16 @@ Make a interface based on the websites:
 
 - https://www.winefront.com.au/subscribe/
 - https://www.jancisrobinson.com/membership
+
+---
+
+Change the interface dashboard of the react app to be similar how it is shown in the rais app.
+
+- On line of welcome
+- Boxes with information of Producers, Wines, Reviews and Articles.
+- Latest Articles
+- Latest Reviews.
+
+---
+
+In rails app, when I click in Reviews and Article to watch the list of them, the default is "Published". Make the default as "All".

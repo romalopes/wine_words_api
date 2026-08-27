@@ -96,6 +96,7 @@ Rails.application.routes.draw do
       resources :taste_parameters
 
       get "me", to: "users#me"
+      get "stats", to: "stats#index"
 
       resources :users, only: [] do
         collection { get :search }

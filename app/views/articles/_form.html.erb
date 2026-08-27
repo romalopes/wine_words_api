@@ -35,7 +35,7 @@
 
   <div class="field">
     <%= form.label :category_id, "Category" %>
-    <%= form.collection_select :category_id, Category.order(:name), :id, :name,
+    <%= form.collection_select :category_id, Category.where(for_article: true).order(sort_order_article: :asc), :id, :name,
           include_blank: "None" %>
   </div>
 

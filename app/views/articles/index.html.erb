@@ -24,8 +24,15 @@
 <% end %>
 
 <% if @articles.any? %>
-  <section class="wine-grid" aria-label="Articles">
-    <% @articles.each do |article| %>
+  <% 
+    grouped = @articles.group_by { |a| a.category&.name || "Uncategorized" }
+    sorted_groups = grouped.sort_by { |name, _| name == "Uncategorized" ? [1, name] : [0, name] }
+    sorted_groups.each_with_index do |(group_name, articles_in_group), gi|
+  %>
+    <section class="wine-grid-group" aria-labelledby="group-<%= gi %>">
+      <h2 id="group-<%= gi %>" class="group-title"><%= group_name %></h2>
+      <section class="wine-grid" aria-label="Articles in <%= group_name %>">
+        <% articles_in_group.each do |article| %>
       <div class="card-wrapper">
         <% if can_manage_article?(article) %>
           <div class="card-actions">
@@ -55,8 +62,10 @@
           </div>
         <% end %>
       </div>
-    <% end %>
-  </section>
+        <% end %>
+      </section>
+    </section>
+  <% end %>
 <% else %>
   <p class="empty"><%= @articles.any? ? "No #{@status} articles." : (@scope == "mine" ? "You haven't written any articles yet." : "No articles have been added yet.") %></p>
 <% end %>
