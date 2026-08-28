@@ -2,6 +2,8 @@ class CategoriesController < ActionController::Base
   layout "application"
   include RequireLogin
 
+  before_action :set_current_user, only: [:reorder]
+  before_action :require_login, only: [:reorder]
   before_action :set_category, only: [:show, :edit, :update, :destroy]
 
   def index
@@ -40,6 +42,24 @@ class CategoriesController < ActionController::Base
     end
   end
 
+  # Persists drag & drop reordering. Receives:
+  #   { "type": "wine"|"review"|"article", "ordered_ids": [3, 1, 2, ...] }
+  def reorder
+    column = {
+      "wine" => :sort_order_wine,
+      "review" => :sort_order_review,
+      "article" => :sort_order_article,
+    }[params[:type].to_s]
+    return head :bad_request unless column
+
+    Category.transaction do
+      Array(params[:ordered_ids]).each_with_index do |id, index|
+        Category.where(id: id).update_all(column => index + 1)
+      end
+    end
+    head :ok
+  end
+
   def destroy
     @category.destroy
     redirect_to categories_path, notice: "Category was successfully destroyed."
@@ -54,6 +74,6 @@ class CategoriesController < ActionController::Base
   end
 
   def category_params
-    params.require(:category).permit(:name)
+    params.require(:category).permit(:name, :for_wine, :for_review, :for_article)
   end
 end

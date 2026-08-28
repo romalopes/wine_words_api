@@ -1,6 +1,12 @@
 class Api::V1::CategoriesController < ApplicationController
   skip_before_action :authenticate_user!, only: [:index]
 
+  SORT_COLUMNS = {
+    "wine" => :sort_order_wine,
+    "review" => :sort_order_review,
+    "article" => :sort_order_article,
+  }.freeze
+
   # Returns categories usable for a given context. Pass:
   #   ?type=wine      -> for_wine categories (used on the wine form)
   #   ?type=article   -> for_article categories
@@ -25,5 +31,66 @@ class Api::V1::CategoriesController < ApplicationController
         sort_order_review: c.sort_order_review,
         sort_order_article: c.sort_order_article }
     end
+  end
+
+  def create
+    category = Category.new(category_params)
+    if category.save
+      render json: category_payload(category), status: :created
+    else
+      render json: { errors: category.errors.full_messages }, status: :unprocessable_entity
+    end
+  end
+
+  def update
+    category = Category.find(params[:id])
+    if category.update(category_params)
+      render json: category_payload(category)
+    else
+      render json: { errors: category.errors.full_messages }, status: :unprocessable_entity
+    end
+  rescue ActiveRecord::RecordNotFound
+    render json: { error: "Category not found" }, status: :not_found
+  end
+
+  def destroy
+    category = Category.find(params[:id])
+    category.destroy!
+    render json: { ok: true }
+  rescue ActiveRecord::RecordNotFound
+    render json: { error: "Category not found" }, status: :not_found
+  end
+
+  # Persists a drag & drop reorder. Body:
+  #   { "type": "wine"|"review"|"article", "ordered_ids": [3, 1, 2, ...] }
+  # Each move calls this endpoint; sort_order_<type> is rewritten from position.
+  def reorder
+    type = params[:type].to_s
+    column = SORT_COLUMNS[type]
+    return render json: { error: "Invalid type" }, status: :bad_request unless column
+
+    ids = Array(params[:ordered_ids])
+    Category.transaction do
+      ids.each_with_index do |id, index|
+        Category.where(id: id).update_all(column => index + 1)
+      end
+    end
+    render json: { ok: true, type: type, ordered_ids: ids }
+  rescue ActiveRecord::RecordNotDestroyed => e
+    render json: { error: e.message }, status: :unprocessable_entity
+  end
+
+  private
+
+  def category_params
+    params.require(:category).permit(:name, :for_wine, :for_review, :for_article)
+  end
+
+  def category_payload(category)
+    { id: category.id, name: category.name, slug: category.slug,
+      for_wine: category.for_wine, for_article: category.for_article, for_review: category.for_review,
+      sort_order_wine: category.sort_order_wine,
+      sort_order_review: category.sort_order_review,
+      sort_order_article: category.sort_order_article }
   end
 end

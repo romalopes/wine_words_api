@@ -420,7 +420,39 @@ Show the wines in groups per Category.
 
 In the list of reviews and article only the first 50 characters of the body.
 
+---
+
 ## add 3 attributes integer to define the order where the categories will show. position_wine, position_review, position_article. In the current categories, add incremental values in the order of existance.
+
+Change the interface dashboard of the react app to be similar how it is shown in the rais app.
+
+- On line of welcome
+- Boxes with information of Producers, Wines, Reviews and Articles.
+- Latest Articles
+- Latest Reviews.
+
+---
+
+In rails app, when I click in Reviews and Article to watch the list of them, the default is "Published". Make the default as "All".
+
+---
+
+Create a drop box in the menu called settings.
+
+- Put the "Users and Roles" link inside this drop box.
+
+- Create a new link to view/create/edit categories.
+- In the edit categories add a toggle to create and edit categories.
+  - In the form allow the user to update the attributes "name", "for_wine", "for_review", "for_article"
+- Add in the page the possibility for the user to change the "sort_order" for each of the element. This operation should be done using a drag and drop feature calling the back end/database to each drag and drop move.
+
+In the Wine, Review and Articles list interfaces show the wines respecting the sort_orders.
+
+---
+
+In the react app. Create a dropbox called extras. Put the links Finder and Quiz inside this dropbox.
+
+---
 
 Create a subscription concept to the system. Don't link with any payment yet, but keep it open for the future. A user can have one kind of subscription.
 A user with the "super user" role will be able to add new substription
@@ -435,8 +467,9 @@ Attributes of subscriptions:
 - anually price
 - List of "Subscription Feature"
 
-<!-- Relationship to a new table called "Subscription Feature".  Subscription can have many "Subscription Feature".
- Each -->
+Relationship to a new table called "Subscription Feature". Subscription can have many "Subscription Feature".
+
+Subscription Feature for now, just have a name.
 
 Create the following subscriptions types:
 
@@ -446,7 +479,8 @@ Create the following subscriptions types:
 - Distributer ($AUD 400/year)
 - Retail ($AUD 600/year)
 
-When the user is created the use will be assigned to the FREE subscription.
+When the user is created the use will be assigned to the FREE subscription with the role "Guest".
+If he gets one of the other subscription, he will get the role "
 
 Make a interface based on the websites:
 
@@ -455,13 +489,25 @@ Make a interface based on the websites:
 
 ---
 
-Change the interface dashboard of the react app to be similar how it is shown in the rais app.
+Create the concept of Project for the creation of an Article.
+I need a table Project. Link the project to article.
+Attributes of Project
 
-- On line of welcome
-- Boxes with information of Producers, Wines, Reviews and Articles.
-- Latest Articles
-- Latest Reviews.
+- name
+- publication
+- editor (person in contact with publication)
+- status
+- deadline(date)
+- target_word_count
+- wines_expected
+- wines_received
+- wines_tasted
+- wines_selected
+- article_status
 
----
-
-In rails app, when I click in Reviews and Article to watch the list of them, the default is "Published". Make the default as "All".
+- relactionship with Producers. Many to Many.
+  In the relationship of producers put the attributes
+  - contacted
+  - confirmed_request
+  - List of wines(relationship with wines) requested, received, tasted with a flag for each.
+  - It should be added or removed.

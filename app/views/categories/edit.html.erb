@@ -7,6 +7,12 @@
     <%= form.label :name %>
     <%= form.text_field :name, required: true %>
   </div>
+  <fieldset class="category-flags">
+    <legend>Applies to</legend>
+    <label><%= form.check_box :for_wine %> Wine</label>
+    <label><%= form.check_box :for_review %> Review</label>
+    <label><%= form.check_box :for_article %> Article</label>
+  </fieldset>
   <div class="page-actions">
     <%= form.submit "Update", class: "btn" %>
     <%= link_to "Cancel", categories_path, class: "btn btn--secondary" %>

@@ -1,16 +1,112 @@
 <h1>Categories</h1>
+<p class="lede">Drag and drop within a list to reorder &mdash; every move is saved immediately.</p>
 <div class="page-actions"><%= link_to "+ New Category", new_category_path, class: "btn" %></div>
-<% if @categories.any? %>
-  <ul class="facts">
-    <% @categories.each do |category| %>
-      <li>
-        <%= link_to category.name, category_path(category.id) %>
-        (<%= pluralize(category.articles.published.count, "published article") %>)
-        <%= link_to "Edit", edit_category_path(category.id), class: "card-action" %>
-        <%= button_to "Delete", category_path(category.id), method: :delete, form_class: "inline-form", class: "card-action card-action--delete", onclick: %(return confirm('Delete this category?')) %>
-      </li>
+
+<% tabs = [
+  { type: "wine", label: "Wine categories", flag: :for_wine, column: :sort_order_wine },
+  { type: "review", label: "Review categories", flag: :for_review, column: :sort_order_review },
+  { type: "article", label: "Article categories", flag: :for_article, column: :sort_order_article }
+] %>
+
+<% tabs.each do |tab| %>
+  <% tab_categories = @categories.select(&tab[:flag]).sort_by { |c| c[tab[:column]].to_i } %>
+  <section class="category-reorder">
+    <h2><%= tab[:label] %></h2>
+    <% if tab_categories.any? %>
+      <ul class="category-sort-list" data-type="<%= tab[:type] %>">
+        <% tab_categories.each do |category| %>
+          <li data-id="<%= category.id %>">
+            <span class="category-sort-list__handle" aria-hidden="true">&#8942;&#8942;</span>
+            <span class="category-sort-list__order"><%= category[tab[:column]] || "&ndash;" %></span>
+            <span class="category-sort-list__name"><%= link_to category.name, category_path(category.id) %></span>
+            <%= link_to "Edit", edit_category_path(category.id), class: "card-action" %>
+            <%= button_to "Delete", category_path(category.id), method: :delete, form_class: "inline-form", class: "card-action card-action--delete", onclick: %(return confirm('Delete this category?')) %>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <p class="empty">No categories for this type yet.</p>
     <% end %>
-  </ul>
-<% else %>
-  <p class="empty">No categories yet.</p>
+  </section>
 <% end %>
+
+
+<style>
+  .category-reorder { margin-top: 2rem; }
+  .category-sort-list { list-style: none; margin: .75rem 0 0; padding: 0; max-width: 34rem; display: flex; flex-direction: column; gap: .4rem; }
+  .category-sort-list li { display: flex; align-items: center; gap: .75rem; background: #fff; border: 1px solid #d8c8c0; border-radius: .5rem; padding: .55rem .8rem; cursor: grab; }
+  .category-sort-list li.dragging { opacity: .45; }
+  .category-sort-list li.drag-over { border-color: #8a273c; box-shadow: 0 0 0 2px rgba(138, 39, 60, .2); }
+  .category-sort-list__handle { color: #9b8b85; }
+  .category-sort-list__order { background: #f3e9e3; border-radius: 99px; color: #6b2834; font: 600 .78rem system-ui, sans-serif; min-width: 1.6rem; padding: .1rem .45rem; text-align: center; }
+  .category-sort-list__name { flex: 1; font-weight: 700; }
+  .category-sort-list__name a { text-decoration: none; }
+  .category-flags { border: 1px solid #d8c8c0; border-radius: .5rem; display: flex; gap: 1.25rem; margin-bottom: 1rem; padding: .6rem .9rem; max-width: 30rem; }
+  .category-flags legend { font: 600 .85rem system-ui, sans-serif; padding: 0 .4rem; }
+  .category-flags label { display: flex; align-items: center; gap: .35rem; }
+</style>
+
+<script>
+  document.querySelectorAll(".category-sort-list").forEach(function (list) {
+    var dragged = null;
+    var moved = false;
+    var csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+    function refreshOrders() {
+      Array.prototype.forEach.call(
+        list.querySelectorAll("li[data-id]"),
+        function (li, index) {
+          li.querySelector(".category-sort-list__order").textContent = index + 1;
+        }
+      );
+    }
+
+    function persist() {
+      var ids = Array.prototype.map.call(
+        list.querySelectorAll("li[data-id]"),
+        function (li) { return li.dataset.id; }
+      );
+      fetch("/categories/reorder", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": csrfToken
+        },
+        body: JSON.stringify({ type: list.dataset.type, ordered_ids: ids })
+      }).then(function (response) {
+        if (!response.ok) { window.location.reload(); } else { refreshOrders(); }
+      }).catch(function () { window.location.reload(); });
+    }
+
+    list.querySelectorAll("li[data-id]").forEach(function (item) {
+      item.setAttribute("draggable", "true");
+      item.addEventListener("dragstart", function () {
+        dragged = item;
+        moved = false;
+        item.classList.add("dragging");
+      });
+      item.addEventListener("dragend", function () {
+        item.classList.remove("dragging");
+        list.querySelectorAll("li").forEach(function (li) { li.classList.remove("drag-over"); });
+        if (moved) { persist(); }
+        moved = false;
+        dragged = null;
+      });
+      item.addEventListener("dragover", function (e) {
+        e.preventDefault();
+        if (!dragged || dragged === item) return;
+        item.classList.add("drag-over");
+        var rect = item.getBoundingClientRect();
+        var after = e.clientY > rect.top + rect.height / 2;
+        list.insertBefore(dragged, after ? item.nextSibling : item);
+        moved = true;
+      });
+      item.addEventListener("dragleave", function () { item.classList.remove("drag-over"); });
+      item.addEventListener("drop", function (e) {
+        e.preventDefault();
+        item.classList.remove("drag-over");
+      });
+    });
+  });
+</script>
+

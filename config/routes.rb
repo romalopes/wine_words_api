@@ -52,7 +52,9 @@ Rails.application.routes.draw do
       patch :toggle_review_status
     end
   end
-  resources :categories
+  resources :categories do
+    collection { patch :reorder }
+  end
   resources :tags
   resources :wine_taste_parameters
   resources :test_parameters
@@ -87,7 +89,12 @@ Rails.application.routes.draw do
           get :my_articles
         end
       end
-      resources :categories, only: [:index]
+      resources :categories, only: [:index] do
+        collection { patch :reorder }
+      end
+      post "categories", to: "categories#create"
+      patch "categories/:id", to: "categories#update"
+      delete "categories/:id", to: "categories#destroy"
       resources :wine_profiles do
         collection do
           get :search

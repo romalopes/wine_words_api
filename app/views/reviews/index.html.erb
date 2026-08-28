@@ -25,7 +25,7 @@
 <% if @reviews.any? %>
   <% 
     grouped = @reviews.group_by { |r| r.category&.name || "Uncategorized" }
-    sorted_groups = grouped.sort_by { |name, _| name == "Uncategorized" ? [1, name] : [0, name] }
+    sorted_groups = category_group_sort(grouped, :sort_order_review)
     sorted_groups.each_with_index do |(group_name, reviews_in_group), gi|
   %>
     <section class="wine-grid-group" aria-labelledby="group-<%= gi %>">
