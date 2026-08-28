@@ -25,6 +25,9 @@ class ArticlesController < ActionController::Base
       end
     base = base.where(status: @status) unless @status == "all"
     @articles = base.recent.includes(:user, :category)
+    if params[:category].present?
+      @articles = @articles.joins(:category).where(categories: { name: params[:category] })
+    end
   end
 
   def show

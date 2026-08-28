@@ -22,6 +22,9 @@ class ReviewsController < ActionController::Base
       end
     base = base.where(status: @status) unless @status == "all"
     @reviews = base.order(published_at: :desc)
+    if params[:category].present?
+      @reviews = @reviews.joins(:category).where(categories: { name: params[:category] })
+    end
   end
 
   def show

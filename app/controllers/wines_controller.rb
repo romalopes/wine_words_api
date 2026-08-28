@@ -9,6 +9,9 @@ class WinesController < ActionController::Base
 
   def index
     @wines = Wine.includes(:vintages, wine_taste_parameters: :taste_parameter).order(:name)
+    if params[:category].present?
+      @wines = @wines.joins(:category).where(categories: { name: params[:category] })
+    end
   end
 
   def show

@@ -126,9 +126,9 @@
       <nav class="site-nav" aria-label="Primary navigation">
         <%= link_to "Dashboard", root_path %>
         <%= link_to "Producers", producers_path %>
-        <%= link_to "Wines", wines_path %>
-        <%= link_to "Reviews", reviews_path %>
-        <%= link_to "Articles", articles_path %>
+        <%= nav_dropdown("Wines", "All Wines", wines_path, :for_wine, :sort_order_wine) %>
+        <%= nav_dropdown("Reviews", "All Reviews", reviews_path, :for_review, :sort_order_review) %>
+        <%= nav_dropdown("Articles", "All Articles", articles_path, :for_article, :sort_order_article) %>
         <% if current_user&.super_admin? %>
           <details class="site-nav__settings">
             <summary>Settings</summary>
@@ -153,5 +153,45 @@
       <div class="flash flash--alert"><%= alert %></div>
     <% end %>
     <main><%= yield %></main>
+    <script>
+      // Close any other open nav dropdown when opening/clicking another one,
+      // and close dropdowns when clicking anywhere outside them.
+      (function () {
+        var dropdowns = Array.prototype.slice.call(
+          document.querySelectorAll("details.site-nav__settings")
+        );
+        dropdowns.forEach(function (dropdown) {
+          dropdown.addEventListener("toggle", function () {
+            if (!dropdown.open) { return; }
+            dropdowns.forEach(function (other) {
+              if (other !== dropdown) { other.removeAttribute("open"); }
+            });
+          });
+        });
+        document.addEventListener("click", function (event) {
+          dropdowns.forEach(function (dropdown) {
+            if (dropdown.open && !dropdown.contains(event.target)) {
+              dropdown.removeAttribute("open");
+            }
+          });
+        });
+        // Open on hover (like the React app), close shortly after the pointer
+        // leaves. Click still toggles for touch/keyboard users.
+        dropdowns.forEach(function (dropdown) {
+          var closeTimer = null;
+          dropdown.addEventListener("mouseenter", function () {
+            if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
+            dropdown.setAttribute("open", "");
+          });
+          dropdown.addEventListener("mouseleave", function () {
+            if (closeTimer) { clearTimeout(closeTimer); }
+            closeTimer = setTimeout(function () {
+              dropdown.removeAttribute("open");
+              closeTimer = null;
+            }, 250);
+          });
+        });
+      })();
+    </script>
   </body>
 </html>
