@@ -3,7 +3,7 @@ class AddEditorRole < ActiveRecord::Migration[7.1]
     Role.find_or_create_by!(name: "Editor")
 
     change_column_default :producers, :producer_type, 0
-    change_column_null :producers, :producer_type, false
+    # change_column_null :producers, :producer_type, false
 
     Category.create(name: "Tastings", slug: "tastings") unless Category.find_by(name: "Tastings") # TASTINGS
     Category.create(name: "Australian Icons", slug: "australian-icons") unless Category.find_by(name: "Australian Icons")
