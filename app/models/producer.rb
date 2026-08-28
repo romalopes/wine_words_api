@@ -2,7 +2,6 @@ class Producer < ApplicationRecord
   has_many :wines, dependent: :nullify
   has_many_attached :images
 
-  attribute :producer_type, :integer, default: 0
   enum :producer_type, {
     winery: 0,
     negociant: 1,
