@@ -452,6 +452,10 @@ In the Wine, Review and Articles list interfaces show the wines respecting the s
 
 In the react app. Create a dropbox called extras. Put the links Finder and Quiz inside this dropbox.
 
+In the menus of Wines, Reviews and Articles, create a drop box for each of the item. In each dropbox, put as first item, "All Wines", "All Reviews" and "All Articles", then put the link of each category. If the user clicks on "All Wines", it should should the page as it is now. If they click in one of the categories, the system should only show the wines related to this category. Do the same for Reviews and Articles.
+
+Do it both for react and rails app.
+
 ---
 
 Create a subscription concept to the system. Don't link with any payment yet, but keep it open for the future. A user can have one kind of subscription.
@@ -490,24 +494,32 @@ Make a interface based on the websites:
 ---
 
 Create the concept of Project for the creation of an Article.
-I need a table Project. Link the project to article.
-Attributes of Project
+I need a table Project.
+
+Attributes of Project:
 
 - name
 - publication
 - editor (person in contact with publication)
-- status
+- project_status with possible values: (Initiated, Planning, Pending Wines, Researching, Tasting, Final Draft, Pending Editor Review, Reviewed by Editor, Published)
 - deadline(date)
-- target_word_count
-- wines_expected
-- wines_received
-- wines_tasted
-- wines_selected
-- article_status
+- target_word_count(this value should be updated whenever the article is saved. The system should count the words of the artice)
+- article_status(Not Initiated, Initiated, In Progress, Finished)
+- Description
+
+- Relationship to one Article.
+- Relationship to many reviews.
+
+In the interface, the user will be able to link article and reviews.
 
 - relactionship with Producers. Many to Many.
   In the relationship of producers put the attributes
   - contacted
   - confirmed_request
-  - List of wines(relationship with wines) requested, received, tasted with a flag for each.
+
+- Table with Relationship for list of vintages of the wines through the relationship with producers with the following flags: requested, received, selected, tasted.
+  - Date Received
+  - Bottle condition(Default: Good)
+
+  - This list will update the count attributes.
   - It should be added or removed.

@@ -2,13 +2,14 @@ class Producer < ApplicationRecord
   has_many :wines, dependent: :nullify
   has_many_attached :images
 
-  enum :producer_type, {
-    winery: 0,
-    negociant: 1,
-    cooperative: 2,
-    wine_company: 3,
-    independent_producer: 4
-  }, default: :winery, validate: true
+
+  # enum :producer_type, {
+  #   winery: 0,
+  #   negociant: 1,
+  #   cooperative: 2,
+  #   wine_company: 3,
+  #   independent_producer: 4
+  # }, default: :winery, validate: true
 
   validates :name, presence: true, uniqueness: true
   validates :email, presence: true
