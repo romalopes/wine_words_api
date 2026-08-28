@@ -13,7 +13,7 @@ class AddTypeFlagsAndSortOrdersToCategories < ActiveRecord::Migration[7.1]
       t.integer :sort_order_article
     end
 
-    MigrationProducer.reset_column_information
+    MigrationAddTypeFlagsAndSortOrdersToCategories.reset_column_information
 
     Category.create(name: "Tastings", slug: "tastings") unless Category.find_by(name: "Tastings") # TASTINGS
     Category.create(name: "Australian Icons", slug: "australian-icons") unless Category.find_by(name: "Australian Icons")
