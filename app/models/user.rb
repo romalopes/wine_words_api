@@ -17,6 +17,7 @@ class User < ApplicationRecord
     roles.exists?(name: Role.names[key] || key)
   end
 
+
   def super_admin?
     role?(:super_user)
   end
