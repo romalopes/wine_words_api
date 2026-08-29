@@ -7,12 +7,12 @@ class Api::V1::WinesController < ApplicationController
   skip_before_action :authenticate_user!, only: [:index, :show, :search]
 
   def index
-    wines = Wine.includes(wine_taste_parameters: :taste_parameter, vintages: [], producer: []).order(:name)
+    wines = Wine.includes(wine_taste_parameters: :taste_parameter, vintages: [], producer: [], grapes: []).order(:name)
     render json: wines.map { |wine| WineSerializer.new(wine, request.base_url).as_json }
   end
 
   def show
-    wine = Wine.includes(vintages: [], wine_taste_parameters: :taste_parameter, producer: []).find_by!(slug: params[:id])
+    wine = Wine.includes(vintages: [], wine_taste_parameters: :taste_parameter, producer: [], grapes: []).find_by!(slug: params[:id])
     render json: WineSerializer.new(wine, request.base_url).as_json
   end
 
@@ -80,8 +80,9 @@ class Api::V1::WinesController < ApplicationController
 
   def wine_params
     permitted = params.require(:wine).permit(
-      :name, :region, :color, :prompt, :closure, :alcohol_percentage, :volume_ml, :producer_id, :category_id,
+      :name, :region, :color, :sparkling, :prompt, :closure, :alcohol_percentage, :volume_ml, :producer_id, :category_id,
       images: [],
+      grape_ids: [],
       vintages_attributes: [:id, :year, :prompt, :price, :no_vintage, :_destroy],
       wine_taste_parameters_attributes: [:id, :taste_parameter_id, :taste_parameter_slug, :score, :_destroy]
     )

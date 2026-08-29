@@ -56,7 +56,9 @@ Rails.application.routes.draw do
     collection { patch :reorder }
   end
   resources :tags
-  resources :grapes
+  resources :grapes do
+    collection { get :search }
+  end
   resources :wine_taste_parameters
   resources :test_parameters
 
@@ -102,7 +104,9 @@ Rails.application.routes.draw do
         end
       end
       resources :taste_parameters
-      resources :grapes
+      resources :grapes do
+        collection { get :search }
+      end
 
       get "me", to: "users#me"
       get "stats", to: "stats#index"

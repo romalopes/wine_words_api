@@ -1,11 +1,22 @@
 class Api::V1::GrapesController < ApplicationController
-  before_action :authenticate_user!, except: [:index, :show]
+  before_action :authenticate_user!, except: [:index, :show, :search]
   before_action :ensure_wine_manager!, only: [:create, :update, :destroy]
   before_action :set_grape, only: [:show, :update, :destroy]
 
   def index
     grapes = Grape.relevance_order
     render json: grapes
+  end
+
+  def search
+    query = params[:q].to_s.strip
+    grapes =
+      if query.blank?
+        Grape.none
+      else
+        Grape.where("name ILIKE ? OR array_to_string(synonyms, ',') ILIKE ?", "%#{query}%", "%#{query}%").order(:name).limit(20)
+      end
+    render json: grapes.map { |grape| { id: grape.id, name: grape.name, color: grape.color } }
   end
 
   def show

@@ -11,6 +11,7 @@ class WineSerializer
       name: @wine.name,
       region: @wine.region,
       color: @wine.color,
+      sparkling: @wine.sparkling,
       closure: @wine.closure,
       alcohol_percentage: @wine.alcohol_percentage&.to_f,
             volume_ml: @wine.volume_ml,
@@ -21,6 +22,7 @@ class WineSerializer
       producer: producer,
       category: @wine.category&.name,
       category_id: @wine.category_id,
+      grapes: grapes,
       parameters: parameters,
       vintages: @wine.vintages.order(year: :desc).map do |v|
         {
@@ -74,5 +76,15 @@ class WineSerializer
       score: wtp.score
     }
 end
+  end
+
+  def grapes
+    @wine.grapes.map do |grape|
+      {
+        id: grape.id,
+        name: grape.name,
+        color: grape.color
+      }
+    end
   end
 end

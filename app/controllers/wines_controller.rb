@@ -8,14 +8,14 @@ class WinesController < ActionController::Base
   helper_method :can_manage_wines?
 
   def index
-    @wines = Wine.includes(:vintages, wine_taste_parameters: :taste_parameter).order(:name)
+    @wines = Wine.includes(:vintages, :grapes, wine_taste_parameters: :taste_parameter).order(:name)
     if params[:category].present?
       @wines = @wines.joins(:category).where(categories: { name: params[:category] })
     end
   end
 
   def show
-    @wine = Wine.includes(:vintages, wine_taste_parameters: :taste_parameter).find_by!(slug: params[:id])
+    @wine = Wine.includes(:vintages, :grapes, wine_taste_parameters: :taste_parameter).find_by!(slug: params[:id])
   end
 
         def new
@@ -43,6 +43,7 @@ class WinesController < ActionController::Base
       redirect_to @wine, notice: "Wine was successfully created."
     else
       @taste_parameters = TasteParameter.sorted_by_label
+      @wine_categories = Category.where(for_wine: true).order("sort_order_wine asc, name asc")
       render :new, status: :unprocessable_entity
     end
   end
@@ -60,6 +61,7 @@ class WinesController < ActionController::Base
       redirect_to @wine, notice: "Wine was successfully updated."
     else
       @taste_parameters = TasteParameter.sorted_by_label
+      @wine_categories = Category.where(for_wine: true).order("sort_order_wine asc, name asc")
       render :edit, status: :unprocessable_entity
     end
   end
@@ -161,7 +163,8 @@ class WinesController < ActionController::Base
 
   def wine_params
         params.require(:wine).permit(
-      :name, :region, :color, :prompt, :closure, :alcohol_percentage, :volume_ml, :producer_id, :category_id,
+      :name, :region, :color, :prompt, :closure, :alcohol_percentage, :volume_ml, :producer_id, :category_id, :sparkling,
+      grape_ids: [],
       vintages_attributes: [:id, :year, :prompt, :price, :no_vintage, :_destroy],
       wine_taste_parameters_attributes: [:id, :taste_parameter_id, :taste_parameter_slug, :score, :_destroy]
     )

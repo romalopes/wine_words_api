@@ -31,6 +31,12 @@
     <% if @wine.closure.present? %>
       <li><strong>Closure:</strong> <%= @wine.closure %></li>
     <% end %>
+    <% if @wine.sparkling? %>
+      <li><strong>Style:</strong> Sparkling ✨</li>
+    <% end %>
+    <% if @wine.grapes.any? %>
+      <li><strong>Grapes:</strong> <%= @wine.grapes.order(:name).map(&:name).join(", ") %></li>
+    <% end %>
   </ul>
   <% if @wine.prompt.present? %>
     <p class="prompt"><%= @wine.prompt %></p>

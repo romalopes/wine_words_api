@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_29_075826) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_29_221638) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -232,6 +232,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_29_075826) do
     t.index ["wine_id"], name: "index_vintages_on_wine_id"
   end
 
+  create_table "wine_grapes", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "grape_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "wine_id", null: false
+    t.index ["grape_id"], name: "index_wine_grapes_on_grape_id"
+    t.index ["wine_id", "grape_id"], name: "index_wine_grapes_on_wine_id_and_grape_id", unique: true
+    t.index ["wine_id"], name: "index_wine_grapes_on_wine_id"
+  end
+
   create_table "wine_profile_taste_parameters", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.integer "score"
@@ -284,6 +294,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_29_075826) do
     t.text "prompt"
     t.string "region"
     t.string "slug"
+    t.boolean "sparkling", default: false, null: false
     t.datetime "updated_at", null: false
     t.integer "volume_ml"
     t.index ["category_id"], name: "index_wines_on_category_id"
@@ -311,6 +322,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_29_075826) do
   add_foreign_key "user_roles", "roles"
   add_foreign_key "user_roles", "users"
   add_foreign_key "vintages", "wines"
+  add_foreign_key "wine_grapes", "grapes"
+  add_foreign_key "wine_grapes", "wines"
   add_foreign_key "wine_profile_taste_parameters", "taste_parameters"
   add_foreign_key "wine_profile_taste_parameters", "wine_profiles"
   add_foreign_key "wine_taste_parameters", "taste_parameters"

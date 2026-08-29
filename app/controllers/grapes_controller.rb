@@ -9,6 +9,17 @@ class GrapesController < ActionController::Base
     @grapes = sort_grapes(Grape.all)
   end
 
+  def search
+    query = params[:q].to_s.strip
+    grapes =
+      if query.blank?
+        Grape.none
+      else
+        Grape.where("name ILIKE ? OR array_to_string(synonyms, ',') ILIKE ?", "%#{query}%", "%#{query}%").order(:name).limit(20)
+      end
+    render json: grapes.map { |grape| { id: grape.id, name: grape.name, color: grape.color } }
+  end
+
   def show; end
 
   def new

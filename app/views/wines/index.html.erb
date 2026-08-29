@@ -31,6 +31,9 @@
           <div class="wine-card__content">
             <h2><%= wine.name %></h2>
             <p class="region"><%= [wine.producer&.name, wine.region, wine.color].compact.join(" · ") %></p>
+            <% if wine.grapes.any? %>
+              <p class="details"><strong>Grapes:</strong> <%= wine.grapes.order(:name).limit(3).map(&:name).join(", ") %><%= "…" if wine.grapes.size > 3 %></p>
+            <% end %>
             <% if wine_details(wine).present? %>
               <p class="details"><%= wine_details(wine) %></p>
             <% end %>

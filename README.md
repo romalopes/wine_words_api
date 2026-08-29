@@ -579,16 +579,16 @@ Allow the user to select the item in the combo box and show the list of grapes i
 
 ---
 
-Add a boolean attribute in wine called sparkling. Display it in the show wine of both rails and react apps.
-
-Create a relationship many to many between wine_profiles and grapes.
-Create a new seed calles wine_profile_to_grapes. Go to the wineData.js, check the const wineProfiles from the line 992, get the name of grapes from the wineProfiles and create a link the wine_profiles and the grapes with this name.
+Create a relationship many to many between wine_profile and grapes
+Create a new seed called wine_profile_to_grapes. Go to the wineData.js, check the const wineProfiles from the line 992, get the name of grapes from the wineProfiles and create a link the wine_profiles and the grapes with this name.
 
 ---
 
 In the react app, the show, edit and delete buttons aren't with css. Also the "add grapes" button and the fields to add/edit the grapes are always visible without any css or javascrip. The fields should be shown only if the user wants to create a new grape or edit a specific grape.
 
 ---
+
+Add a boolean attribute in wine table called sparkling.
 
 Create a relationship many to many with the tables wines and "grapes".
 
