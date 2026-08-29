@@ -468,6 +468,121 @@ Change the Producer selection in the react and rails apps, in the way that the u
 
 ---
 
+Based on wine_prediction/data/grapes.js, create a table and interface for CRUD of grapes.
+In list of the grapes, create a table with the grape info with one line per grape.
+
+Put the link of grapes the dropbox "Extras". Just allow Super User and Editor to create/edit/delete a grape.
+
+---
+
+Base on the new file wine_prediction/data/grapes.js, add the column "relevance" with a integer.
+
+Do it both in the react and rails apps.
+
+In wine_profiles table there is information about grapes.
+
+Based on the files seeds.rb and wineData.js, create a table called Grapes with the relevant attriutes of the grape that are in the wine_profiles and extract the information and create the instances of grapes.
+
+Main attributes:
+name
+color
+origin_country
+main_regions (array)
+synonyms
+is_blending_grape
+notes
+
+---
+
+Based on the new files grapes.js, add the attribute "relevance(integer)" to grapes table.
+
+In seeds/grapes.rb, there are only 3 grapes. Recreate this file with all the grapes that can be found in grapes.js
+
+In the intergace list of grapes, create a link to edit/delete the grape. Also, in this page, create a link to add a new grape.
+
+Also add the links in interface in both react and rails apps.
+
+In both react and rails apps, create a combo box with for to show the grapes in order of:
+
+- Relevance
+- Alphabetical
+- Origin Country
+
+Allow the user to select the item in the combo box and show the list of grapes in the defined order.
+
+---
+
+Create a relationship many to many between wine_profile and grapes
+Create a new seed called wine_profile_to_grapes. Go to the wineData.js, check the const wineProfiles from the line 992, get the name of grapes from the wineProfiles and create a link the wine_profiles and the grapes with this name.
+
+---
+
+In the react app, the show, edit and delete buttons aren't with css. Also the "add grapes" button and the fields to add/edit the grapes are always visible without any css or javascrip. The fields should be shown only if the user wants to create a new grape or edit a specific grape.
+
+---
+
+Add a boolean attribute in wine table called sparkling.
+
+Create a relationship many to many with the tables wines and "grapes".
+
+In both react and rails app, allow the user to search for the name of the grape and add it to the wine so the wine would have multiple grapes. Show it in the list of wines and in the show wines.
+
+---
+
+In rails app, put the link to the grapes list inside "settings" dropbox.
+In react app, in the list of grapes, add the link to show the specific grape. Also, add buttons and interface for edit/delete.
+
+---
+
+Also, in both rails and react app, add the notes when showing each grape in the list of grapes.
+
+---
+
+Improve the visual when showing each grape in the list changing/alternating the background color for each grape.
+
+---
+
+Create the table regions. Create a relationship many to many between wine and region. Add it to the interface when create/edit wine using a select box, where user can select multible regions.
+
+---
+
+t.string :name, null: false
+t.string :legal_name
+
+t.integer :producer_type, null: false
+t.text :description
+
+t.string :country
+t.string :region
+t.string :subregion
+t.string :website
+
+t.string :email
+t.string :phone
+
+t.string :address
+t.string :city
+t.string :state
+t.string :postal_code
+
+t.decimal :latitude, precision: 10, scale: 7
+t.decimal :longitude, precision: 10, scale: 7
+
+t.integer :founded_year
+
+t.boolean :organic, default: false
+t.boolean :biodynamic, default: false
+t.boolean :sustainable, default: false
+
+t.text :certifications, array: true, default: []
+t.text :grape_varieties, array: true, default: []
+
+t.string :logo_url
+
+t.boolean :active, default: true
+
+---
+
 Create a subscription concept to the system. Don't link with any payment yet, but keep it open for the future. A user can have one kind of subscription.
 A user with the "super user" role will be able to add new substription
 
@@ -532,80 +647,6 @@ In the interface, the user will be able to link article and reviews.
   - Bottle condition(Default: Good)
   - This list will update the count attributes.
   - It should be added or removed.
-
----
-
-Based on wine_prediction/data/grapes.js, create a table and interface for CRUD of grapes.
-In list of the grapes, create a table with the grape info with one line per grape.
-
-Put the link of grapes the dropbox "Extras". Just allow Super User and Editor to create/edit/delete a grape.
-
----
-
-Base on the new file wine_prediction/data/grapes.js, add the column "relevance" with a integer.
-
-Do it both in the react and rails apps.
-
-In wine_profiles table there is information about grapes.
-
-Based on the files seeds.rb and wineData.js, create a table called Grapes with the relevant attriutes of the grape that are in the wine_profiles and extract the information and create the instances of grapes.
-
-Main attributes:
-name
-color
-origin_country
-main_regions (array)
-synonyms
-is_blending_grape
-notes
-
----
-
-Based on the new files grapes.js, add the attribute "relevance(integer)" to grapes table.
-
-In seeds/grapes.rb, there are only 3 grapes. Recreate this file with all the grapes that can be found in grapes.js
-
-In the intergace list of grapes, create a link to edit/delete the grape. Also, in this page, create a link to add a new grape.
-
-## Also add the links in interface in both react and rails apps.
-
-In both react and rails apps, create a combo box with for to show the grapes in order of:
-
-- Relevance
-- Alphabetical
-- Origin Country
-
-Allow the user to select the item in the combo box and show the list of grapes in the defined order.
-
----
-
-Create a relationship many to many between wine_profile and grapes
-Create a new seed called wine_profile_to_grapes. Go to the wineData.js, check the const wineProfiles from the line 992, get the name of grapes from the wineProfiles and create a link the wine_profiles and the grapes with this name.
-
----
-
-In the react app, the show, edit and delete buttons aren't with css. Also the "add grapes" button and the fields to add/edit the grapes are always visible without any css or javascrip. The fields should be shown only if the user wants to create a new grape or edit a specific grape.
-
----
-
-Add a boolean attribute in wine table called sparkling.
-
-Create a relationship many to many with the tables wines and "grapes".
-
-In both react and rails app, allow the user to search for the name of the grape and add it to the wine so the wine would have multiple grapes. Show it in the list of wines and in the show wines.
-
----
-
-In rails app, put the link to the grapes list inside "settings" dropbox.
-In react app, in the list of grapes, add the link to show the specific grape. Also, add buttons and interface for edit/delete.
-
----
-
-Also, in both rails and react app, add the notes when showing each grape in the list of grapes.
-
----
-
-Improve the visual when showing each grape in the list changing/alternating the background color for each grape.
 
 ---
 

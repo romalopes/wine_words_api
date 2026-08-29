@@ -16,7 +16,7 @@ class Api::V1::GrapesController < ApplicationController
       else
         Grape.where("name ILIKE ? OR array_to_string(synonyms, ',') ILIKE ?", "%#{query}%", "%#{query}%").order(:name).limit(20)
       end
-    render json: grapes.map { |grape| { id: grape.id, name: grape.name, color: grape.color } }
+    render json: grapes.map { |grape| { id: grape.id, name: grape.name, color: grape.color, synonyms: grape.synonyms } }
   end
 
   def show

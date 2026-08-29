@@ -174,7 +174,11 @@
           if (selected.some(function (g) { return g.id === grape.id; })) return;
           var btn = document.createElement("button");
           btn.type = "button";
-          btn.textContent = grape.name + (grape.color ? " (" + grape.color + ")" : "");
+          var label = grape.name + (grape.color ? " (" + grape.color + ")" : "");
+          if (grape.synonyms && grape.synonyms.length > 0) {
+            label += " (" + grape.synonyms.join(", ") + ")";
+          }
+          btn.textContent = label;
           btn.style.display = "block";
           btn.addEventListener("click", function () {
             selected.push({ id: grape.id, name: grape.name });
