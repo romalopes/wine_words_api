@@ -5,7 +5,10 @@ class Api::V1::ArticlesController < ApplicationController
   before_action :ensure_wine_manager!, only: [:create]
 
   def index
-    articles = Article.visible_to(current_user).recent.includes(:user, :category, :tags, :wines, :producers)
+    articles = Article.recent.includes(:user, :category, :tags, :wines, :producers)
+    # Content managers see everything (including drafts); everyone else sees
+    # only what's visible to them (published + their own drafts).
+    articles = articles.visible_to(current_user) unless current_user&.wine_manager?
     render json: articles.map { |a| ArticleSerializer.new(a, request.base_url).as_json }
   end
 
@@ -17,7 +20,9 @@ class Api::V1::ArticlesController < ApplicationController
   end
 
   def show
-    if @article.status == "draft" && @article.user_id != current_user&.id
+    if @article.status == "draft" &&
+       @article.user_id != current_user&.id &&
+       !current_user&.wine_manager?
       return render json: { error: "Not found" }, status: :not_found
     end
 
@@ -36,7 +41,7 @@ class Api::V1::ArticlesController < ApplicationController
   end
 
   def update
-    unless @article.user_id == current_user.id || current_user.super_admin?
+    unless @article.user_id == current_user.id || current_user.wine_manager?
       return render json: { error: "Forbidden" }, status: :forbidden
     end
 
@@ -49,7 +54,7 @@ class Api::V1::ArticlesController < ApplicationController
   end
 
   def destroy
-    unless @article.user_id == current_user.id || current_user.super_admin?
+    unless @article.user_id == current_user.id || current_user.wine_manager?
       return render json: { error: "Forbidden" }, status: :forbidden
     end
 

@@ -13,13 +13,15 @@ class Api::V1::ReviewsController < ApplicationController
 
   def index
     # When nested under a wine/vintage, only that vintage's reviews apply;
-    # otherwise fall back to all reviews visible to the user.
+    # otherwise fall back to all reviews. Content managers see everything
+    # (including drafts); everyone else sees only what's visible to them.
     reviews =
       if @vintage
-        @vintage.reviews.visible_to(current_user)
+        @vintage.reviews
       else
-        Review.visible_to(current_user)
+        Review.all
       end
+    reviews = reviews.visible_to(current_user) unless current_user&.wine_manager?
 
     data = reviews.by_recency.includes(:user, vintage: :wine).map { |r|
       ReviewSerializer.new(r, request.base_url).as_json.merge(
@@ -39,7 +41,9 @@ class Api::V1::ReviewsController < ApplicationController
   end
 
   def show
-    if @review.status == "draft" && @review.user_id != current_user&.id
+    if @review.status == "draft" &&
+       @review.user_id != current_user&.id &&
+       !current_user&.wine_manager?
       return render json: { error: "Not found" }, status: :not_found
     end
     render json: ReviewSerializer.new(@review, request.base_url).as_json
@@ -57,7 +61,7 @@ class Api::V1::ReviewsController < ApplicationController
   end
 
   def update
-    unless @review.user_id == current_user.id || current_user.super_admin?
+    unless @review.user_id == current_user.id || current_user.wine_manager?
       return render json: { error: "Forbidden" }, status: :forbidden
     end
 
@@ -69,7 +73,7 @@ class Api::V1::ReviewsController < ApplicationController
   end
 
   def destroy
-    unless @review.user_id == current_user.id || current_user.super_admin?
+    unless @review.user_id == current_user.id || current_user.wine_manager?
       return render json: { error: "Forbidden" }, status: :forbidden
     end
 

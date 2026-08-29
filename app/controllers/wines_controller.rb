@@ -91,10 +91,14 @@ class WinesController < ActionController::Base
   end
 
   # JSON endpoint used by the article form: published reviews of one vintage.
+  # Content managers (editor/reviewer/super user) can link any published review
+  # of the vintage; regular users only see their own.
   def vintage_reviews
     wine = Wine.find_by!(slug: params[:wine_id])
     vintage = wine.vintages.find(params[:vintage_id])
-    reviews = vintage.reviews.published.where(user: current_user).order(:title)
+    reviews = vintage.reviews.published
+    reviews = reviews.where(user: current_user) unless current_user&.wine_manager?
+    reviews = reviews.order(:title)
 
     render json: reviews.map do |review|
       {

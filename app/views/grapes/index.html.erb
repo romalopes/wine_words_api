@@ -1,0 +1,50 @@
+<h1>Grapes</h1>
+<div class="page-actions">
+  <%= form_with url: grapes_path, method: :get, local: true, class: "sort-form" do |f| %>
+    <%= f.label :sort_by, "Sort by:", class: "sort-label" %>
+    <%= f.select :sort_by,
+      options_for_select(
+        [["Relevance", "relevance"], ["Name", "name"], ["Origin Country", "origin_country"]],
+        params[:sort_by] || "relevance"
+      ),
+      {},
+      class: "sort-select",
+      onchange: "this.form.submit()"
+    %>
+  <% end %>
+  <% if current_user&.super_admin? || current_user&.editor? %>
+    <%= link_to "+ New Grape", new_grape_path, class: "btn" %>
+  <% end %>
+</div>
+<% if @grapes.any? %>
+  <table class="grapes-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Color</th>
+        <th>Origin</th>
+        <th>Synonyms</th>
+        <% if current_user&.super_admin? || current_user&.editor? %><th>Actions</th><% end %>
+      </tr>
+    </thead>
+    <tbody>
+      <% @grapes.each_with_index do |grape, index| %>
+        <tr class="<%= index % 2 == 0 ? 'grapes-row--even' : 'grapes-row--odd' %>">
+          <td><%= link_to grape.name, grape_path(grape.id) %></td>
+          <td><%= grape.color || "—" %></td>
+          <td><%= grape.origin_country || "—" %></td>
+          <td><%= grape.synonyms.present? ? grape.synonyms.first(3).join(", ") + (grape.synonyms.length > 3 ? "…" : "") : "—" %></td>
+          <% if current_user&.super_admin? || current_user&.editor? %>
+            <td class="actions">
+              <%= link_to "Show", grape_path(grape.id), class: "card-action" %>
+              <%= link_to "Edit", edit_grape_path(grape.id), class: "card-action" %>
+              <%= button_to "Delete", grape_path(grape.id), method: :delete, form_class: "inline-form", class: "card-action card-action--delete", onclick: %(return confirm('Delete this grape?')) %>
+            </td>
+          <% end %>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% else %>
+  <p class="empty">No grapes yet.</p>
+<% end %>

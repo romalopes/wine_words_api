@@ -112,6 +112,21 @@
       .card-action { background: #fff; border: 1px solid #d8c8c0; border-radius: 99px; color: #6b2834; font: .78rem system-ui, sans-serif; padding: .2rem .7rem; text-decoration: none; }
       .card-action:hover { border-color: #8a273c; }
       input.card-action--delete, button.card-action--delete { color: #8a273c; cursor: pointer; font: .78rem system-ui, sans-serif; }
+      .grapes-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: .5rem; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+      .grapes-table thead { background: #f8f9fa; }
+      .grapes-table th, .grapes-table td { padding: .75rem 1rem; text-align: left; border-bottom: 1px solid #dee2e6; }
+      .grapes-table th { font-weight: 600; color: #495057; }
+      .grapes-table tbody tr.grapes-row--even { background: #ffffff; }
+      .grapes-table tbody tr.grapes-row--odd { background: #eef2f7; }
+      .grapes-table tbody tr.grapes-row--even:hover,
+      .grapes-table tbody tr.grapes-row--odd:hover { background: #d9e2ec; }
+      .grapes-table tbody tr a { color: #6b2834; font-weight: 600; }
+      .grapes-table .actions { display: flex; gap: .5rem; }
+      .sort-form { display: flex; align-items: center; gap: .5rem; }
+      .sort-label { font: .875rem system-ui, sans-serif; color: #495057; }
+      .sort-select { padding: .375rem .75rem; border: 1px solid #dee2e6; border-radius: .25rem; font-size: .875rem; background: #fff; cursor: pointer; }
+      .sort-select:focus { outline: none; border-color: #6b2834; }
+      .page-actions { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
     </style>
   </head>
   <body>
@@ -129,12 +144,15 @@
         <%= nav_dropdown("Wines", "All Wines", wines_path, :for_wine, :sort_order_wine) %>
         <%= nav_dropdown("Reviews", "All Reviews", reviews_path, :for_review, :sort_order_review) %>
         <%= nav_dropdown("Articles", "All Articles", articles_path, :for_article, :sort_order_article) %>
-        <% if current_user&.super_admin? %>
+        <% if current_user&.super_admin? || current_user&.wine_manager? %>
           <details class="site-nav__settings">
             <summary>Settings</summary>
             <div class="site-nav__settings-menu">
-              <%= link_to "Users &amp; Roles".html_safe, user_roles_path %>
+              <% if current_user&.super_admin? %>
+                <%= link_to "Users &amp; Roles".html_safe, user_roles_path %>
+              <% end %>
               <%= link_to "Categories", categories_path %>
+              <%= link_to "Grapes", grapes_path %>
             </div>
           </details>
         <% end %>

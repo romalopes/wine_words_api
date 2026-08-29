@@ -18,6 +18,8 @@ class ArticlesController < ActionController::Base
     base =
       if @scope == "mine"
         Article.where(user: current_user)
+      elsif user_signed_in? && current_user.wine_manager?
+        Article.all
       elsif user_signed_in?
         Article.visible_to(current_user)
       else
@@ -31,7 +33,8 @@ class ArticlesController < ActionController::Base
   end
 
   def show
-    if @article.status == "draft" && @article.user_id != current_user&.id
+    if @article.status == "draft" &&
+       !(current_user&.wine_manager? || @article.user_id == current_user&.id)
       return redirect_to articles_path, alert: "Article not found."
     end
 
@@ -134,15 +137,19 @@ class ArticlesController < ActionController::Base
     redirect_to articles_path, alert: "Article not found."
   end
 
-  # Author or super admin may manage an article (used by the index view too).
+  # Author, super admin, or any content manager (editor/reviewer/super user)
+  # may manage an article (used by the index view too).
   def can_manage_article?(article)
     user_signed_in? &&
-      (article.user_id == current_user.id || current_user.super_admin?)
+      (current_user.wine_manager? ||
+       article.user_id == current_user.id ||
+       current_user.super_admin?)
   end
   helper_method :can_manage_article?
 
   def ensure_author!
     return if response.committed?
+    return if current_user&.wine_manager?
     return if @article&.user_id == current_user&.id
     return if current_user&.super_admin?
 

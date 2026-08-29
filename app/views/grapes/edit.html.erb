@@ -1,0 +1,46 @@
+<h1>Edit Grape</h1>
+<%= form_with(model: @grape, local: true) do |form| %>
+  <% if @grape.errors.any? %>
+    <div class="flash flash--alert"><%= @grape.errors.full_messages.join(", ") %></div>
+  <% end %>
+  <div class="field">
+    <%= form.label :name %>
+    <%= form.text_field :name, required: true %>
+  </div>
+  <div class="field">
+    <%= form.label :color %>
+    <%= form.select :color, options_for_select([["Red", "red"], ["White", "white"], ["Rosé", "rosé"], ["Orange", "orange"]], @grape.color), include_blank: true %>
+  </div>
+  <div class="field">
+    <%= form.label :origin_country %>
+    <%= form.text_field :origin_country %>
+  </div>
+  <div class="field">
+    <%= form.label :relevance %>
+    <%= form.number_field :relevance %>
+  </div>
+  <div class="field">
+    <%= form.label :is_blending_grape %>
+    <%= form.check_box :is_blending_grape %>
+  </div>
+  <div class="field">
+    <%= form.label :main_regions %>
+    <%= form.text_field :main_regions, value: @grape.main_regions.join(", "), placeholder: "Comma-separated regions" %>
+  </div>
+  <div class="field">
+    <%= form.label :synonyms %>
+    <%= form.text_field :synonyms, value: @grape.synonyms.join(", "), placeholder: "Comma-separated synonyms" %>
+  </div>
+  <div class="field">
+    <%= form.label :notes %>
+    <%= form.text_field :notes, value: @grape.notes.join(", "), placeholder: "Comma-separated notes" %>
+  </div>
+  <div class="field">
+    <%= form.label :serving %>
+    <%= form.text_area :serving %>
+  </div>
+  <div class="page-actions">
+    <%= form.submit "Update", class: "btn" %>
+    <%= link_to "Cancel", grapes_path, class: "btn btn--secondary" %>
+  </div>
+<% end %>

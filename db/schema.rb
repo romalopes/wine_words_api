@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_27_110100) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_29_075826) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -111,6 +111,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_27_110100) do
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_categories_on_name", unique: true
     t.index ["slug"], name: "index_categories_on_slug", unique: true
+  end
+
+  create_table "grapes", force: :cascade do |t|
+    t.string "color"
+    t.datetime "created_at", null: false
+    t.boolean "is_blending_grape", default: false, null: false
+    t.text "main_regions", default: [], array: true
+    t.string "name", null: false
+    t.text "notes", default: [], array: true
+    t.string "origin_country"
+    t.integer "relevance"
+    t.text "serving"
+    t.text "synonyms", default: [], array: true
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_grapes_on_name", unique: true
   end
 
   create_table "jwt_denylists", force: :cascade do |t|

@@ -15,6 +15,8 @@ class ReviewsController < ActionController::Base
     base =
       if @scope == "mine"
         current_user.reviews
+      elsif user_signed_in? && current_user.wine_manager?
+        Review.all
       elsif user_signed_in?
         Review.visible_to(current_user)
       else
@@ -29,7 +31,8 @@ class ReviewsController < ActionController::Base
 
   def show
     @review = Review.includes(:vintage).find(params[:id])
-    if @review.status == "draft" && (!user_signed_in? || @review.user_id != current_user.id)
+    if @review.status == "draft" &&
+       !(current_user&.wine_manager? || @review.user_id == current_user&.id)
       redirect_to reviews_path, alert: "Review not found."
     end
   end
@@ -96,10 +99,13 @@ class ReviewsController < ActionController::Base
     false
   end
 
-  # Author or super admin may manage a review.
+  # Author, super admin, or any content manager (editor/reviewer/super user)
+  # may manage a review.
   def can_manage_review?(review)
     user_signed_in? &&
-      (review.user_id == current_user.id || current_user.super_admin?)
+      (current_user.wine_manager? ||
+       review.user_id == current_user.id ||
+       current_user.super_admin?)
   end
 
   def deny_unless_review_manager!(review)

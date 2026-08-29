@@ -1,0 +1,32 @@
+<h1><%= @grape.name %></h1>
+<%= link_to "← All grapes", grapes_path, class: "back-link" %>
+<% if current_user&.super_admin? || current_user&.editor? %>
+  <div class="page-actions">
+    <%= link_to "Edit Grape", edit_grape_path(@grape.id), class: "btn btn--secondary" %>
+    <%= button_to "Delete Grape", grape_path(@grape.id), method: :delete, class: "btn", onclick: %(return confirm('Delete this grape? This action cannot be undone.')) %>
+  </div>
+<% end %>
+<ul class="facts" aria-label="Grape details">
+  <% if @grape.color.present? %>
+    <li><strong>Color:</strong> <%= @grape.color %></li>
+  <% end %>
+  <% if @grape.origin_country.present? %>
+    <li><strong>Origin Country:</strong> <%= @grape.origin_country %></li>
+  <% end %>
+  <% if @grape.relevance.present? %>
+    <li><strong>Relevance:</strong> <%= @grape.relevance %></li>
+  <% end %>
+  <li><strong>Blending Grape:</strong> <%= @grape.is_blending_grape ? "Yes" : "No" %></li>
+  <% if @grape.main_regions.present? %>
+    <li><strong>Main Regions:</strong> <%= @grape.main_regions.join(", ") %></li>
+  <% end %>
+  <% if @grape.synonyms.present? %>
+    <li><strong>Synonyms:</strong> <%= @grape.synonyms.join(", ") %></li>
+  <% end %>
+  <% if @grape.notes.present? %>
+    <li><strong>Notes:</strong> <%= @grape.notes.join(", ") %></li>
+  <% end %>
+  <% if @grape.serving.present? %>
+    <li><strong>Serving:</strong> <%= @grape.serving %></li>
+  <% end %>
+</ul>

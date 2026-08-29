@@ -26,7 +26,7 @@ class Wine < ApplicationRecord
 
   before_validation :generate_slug, on: :create
 
-  COLORS = %w[Red White Rosé Sparkling Dessert].freeze
+  COLORS = %w[Red White Rosé Dessert].freeze
   DEFAULT_COLOR = "White"
 
   CLOSURES = [
