@@ -42,7 +42,130 @@
       .review-card__content { padding: 1.1rem; }
       .producer-card__content { padding: 1.1rem; }
       .group-title { font-size: 1.5rem; font-weight: 700; color: #4f4440; margin: 1.5rem 0 1rem 0; padding-bottom: 0.5rem; border-bottom: 2px solid #e4d9cd; }
-      .image-gallery__item { position: relative; display: inline-block; margin: .25rem; }
+      /* Region Tree View Styles */
+  .region-tree-container {
+    background: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+    margin-top: 1rem;
+  }
+
+  .region-tree-country {
+    border-bottom: 1px solid #eee;
+    padding: 0.5rem 0;
+  }
+
+  .region-tree-country:last-child {
+    border-bottom: none;
+  }
+
+  .region-tree-country__details {
+    border: none;
+    padding: 0;
+  }
+
+  .region-tree-country__summary {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    cursor: pointer;
+    list-style: none;
+    margin: 0;
+  }
+
+  .region-tree-country__summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .region-tree-country__toggle {
+    font-weight: bold;
+    min-width: 1.5rem;
+    user-select: none;
+  }
+
+  .region-tree-country__flag {
+    font-size: 1.25rem;
+  }
+
+  .region-tree-country__name {
+    color: #6b2834;
+    font-weight: 600;
+    text-decoration: none;
+    flex: 1;
+  }
+
+  .region-tree-country__name:hover {
+    text-decoration: underline;
+  }
+
+  .region-tree-country__count {
+    color: #6b5855;
+    font-size: 0.875rem;
+    background: #e9ecef;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+  }
+
+  .region-tree-country__regions {
+    margin-top: 0.25rem;
+    padding-left: 0.5rem;
+    border-left: 2px solid #e9ecef;
+  }
+
+  .region-tree-node {
+    margin: 0.25rem 0;
+  }
+
+  .region-tree-node__name {
+    color: #495057;
+    text-decoration: none;
+    font-size: 0.95rem;
+  }
+
+  .region-tree-node__name:hover {
+    text-decoration: underline;
+  }
+
+  .region-tree__toggle {
+    min-width: 1.5rem;
+  }
+
+  /* Region Detail Path Styles */
+  .region-detail__path {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+  }
+
+  .region-detail__path-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: #495057;
+  }
+
+  .region-detail__flag {
+    font-size: 1rem;
+  }
+
+  .region-detail__separator {
+    color: #6c757d;
+  }
+
+  .region-detail__path-link {
+    color: #6b2834;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .region-detail__path-link:hover {
+    text-decoration: underline;
+  }
       .image-gallery__remove { position: absolute; top: .25rem; right: .25rem; }
       .wine-card { display: block; background: #fff; border: 1px solid #eaded7; border-radius: .7rem; box-shadow: 0 2px 10px rgba(63, 24, 24, .06); overflow: hidden; text-decoration: none; transition: transform .15s, box-shadow .15s; }
       .wine-card:hover { transform: translateY(-3px); box-shadow: 0 7px 18px rgba(63, 24, 24, .14); }

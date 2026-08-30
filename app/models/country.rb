@@ -1,5 +1,6 @@
 class Country < ApplicationRecord
   has_many :grapes, dependent: :nullify
+  has_many :regions, dependent: :destroy
 
   validates :name, presence: true, uniqueness: { case_sensitive: false }
   validates :code, presence: true, uniqueness: { case_sensitive: false },

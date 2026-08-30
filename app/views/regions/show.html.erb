@@ -1,5 +1,27 @@
 <h1><%= @region.name %></h1>
 
+<%# Breadcrumb path from country to region %>
+<div class="region-detail__path">
+  <% country = @region.country %>
+  <% path = [{ name: country.name, id: country.id, type: 'country', flag: country.flag_emoji }] %>
+  <% current = @region %>
+  <% while current.parent %>
+    <% path << { name: current.parent.name, id: current.parent.id, type: 'region' } %>
+    <% current = current.parent %>
+  <% end %>
+  <% path.each_with_index do |item, idx| %>
+    <span class="region-detail__path-item">
+      <% if idx > 0 %><span class="region-detail__separator"> → </span><% end %>
+      <% if item[:flag] %><span class="region-detail__flag"><%= item[:flag] %></span><% end %>
+      <% if item[:type] == 'country' %>
+        <%= link_to item[:name], country_path(item[:id]), class: "region-detail__path-link" %>
+      <% else %>
+        <%= link_to item[:name], region_path(item[:id]), class: "region-detail__path-link" %>
+      <% end %>
+    </span>
+  <% end %>
+</div>
+
 <div class="wine-detail__section">
   <h2>Details</h2>
   <p><strong>Country:</strong> <%= @region.country.flag_emoji %> <%= link_to @region.country.name, country_path(@region.country.id) %></p>

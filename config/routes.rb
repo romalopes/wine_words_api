@@ -110,7 +110,11 @@ Rails.application.routes.draw do
         collection { get :search }
       end
       resources :countries
-      resources :regions
+      resources :regions do
+        collection do
+          get :tree
+        end
+      end
 
       get "me", to: "users#me"
       get "stats", to: "stats#index"

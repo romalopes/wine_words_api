@@ -1,42 +1,153 @@
 <h1>Regions</h1>
-<p class="lede">Browse wine regions and their associated wines.</p>
-
+<p class="lede">Browse wine regions organized by country. Click on a country to expand its regions.</p>
 <div class="page-actions">
   <%= link_to "+ New Region", new_region_path, class: "btn" %>
 </div>
-
-<% if @regions.any? %>
-  <table class="grapes-table regions-table">
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Country</th>
-        <th>Type</th>
-        <th>Parent</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% @regions.each_with_index do |region, index| %>
-        <tr class="<%= index % 2 == 0 ? 'grapes-row--even' : 'grapes-row--odd' %>">
-          <td>
-            <%= link_to region.name, region_path(region.id), class: "grapes-table__link" %>
-          </td>
-          <td>
-            <%= region.country.flag_emoji %> <%= region.country.name %>
-          </td>
-          <td>
-            <% type_labels = [] %>
-            <% type_labels << "State" if region.is_state %>
-            <% type_labels << "Appellation" if region.is_appellation %>
-            <%= type_labels.any? ? type_labels.join(" / ") : "Region" %>
-          </td>
-          <td>
-            <%= region.parent.name if region.parent %>
-          </td>
-        </tr>
+<% if @countries_tree.any? %>
+  <div class="region-tree-container">
+    <% @countries_tree.each do |country| %>
+      <% c_name = country[:name] || country["name"] %>
+      <% c_flag = country[:flag_emoji] || country["flag_emoji"] %>
+      <% c_id = country[:id] || country["id"] %>
+      <% c_regions = country[:regions] || country["regions"] %>
+      <% is_expanded = c_name.to_s.downcase == "australia" %>
+      <% if c_regions.count > 0 %>
+        <div class="region-tree-country">
+          <details class="region-tree-country__details" <%= "open" if is_expanded %>>
+            <summary class="region-tree-country__summary">
+              <span class="region-tree-country__toggle"><%= is_expanded ? "-" : "+" %></span>
+              <span class="region-tree-country__flag"><%= c_flag %></span>
+              <span class="region-tree-country__name"><%= c_name %></span>
+              <span class="region-tree-country__count">(<%= c_regions.length %> region<% if c_regions.length != 1 %>s<% end %>)</span>
+            </summary>
+            <% if c_regions.any? %>
+              <%= render_regions_tree(c_regions, 1).html_safe %>
+            <% end %>
+          </details>
+        </div>
       <% end %>
-    </tbody>
-  </table>
+    <% end %>
+  </div>
 <% else %>
   <p class="empty">No regions have been added yet.</p>
 <% end %>
+<style>
+  .region-tree-container {
+    background: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+    margin-top: 1rem;
+  }
+
+  .region-tree-country {
+    border-bottom: 1px solid #eee;
+    padding: 0.5rem 0;
+  }
+
+  .region-tree-country:last-child {
+    border-bottom: none;
+  }
+
+  .region-tree-country__details {
+    border: none;
+    padding: 0;
+  }
+
+  .region-tree-country__summary {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    cursor: pointer;
+    list-style: none;
+    margin: 0;
+  }
+
+  .region-tree-country__summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .region-tree-country__toggle {
+    font-weight: bold;
+    min-width: 1.5rem;
+    user-select: none;
+  }
+
+  .region-tree-country__flag {
+    font-size: 1.25rem;
+  }
+
+  .region-tree-country__name {
+    color: #6b2834;
+    font-weight: 600;
+    text-decoration: none;
+    flex: 1;
+  }
+
+  .region-tree-country__name:hover {
+    text-decoration: underline;
+  }
+
+  .region-tree-country__count {
+    color: #6b5855;
+    font-size: 0.875rem;
+    background: #e9ecef;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+  }
+
+  .region-tree-country__regions {
+    margin-top: 0.25rem;
+    padding-left: 0.5rem;
+    border-left: 2px solid #e9ecef;
+  }
+
+  .region-tree-node {
+    margin: 0.25rem 0;
+  }
+
+  .region-tree-node__content {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .region-tree-node__name {
+    color: #495057;
+    text-decoration: none;
+    font-size: 0.95rem;
+  }
+
+  .region-tree-node__name:hover {
+    text-decoration: underline;
+  }
+
+  .region-tree__toggle {
+    min-width: 1.5rem;
+  }
+
+  .region-tree-node__details {
+    border: none;
+    padding: 0;
+  }
+
+  .region-tree-node__summary {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    list-style: none;
+    padding: 0.25rem 0;
+  }
+
+  .region-tree-node__summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .region-tree-node__children {
+    padding-left: 1.5rem;
+    border-left: 2px solid #e9ecef;
+    margin-left: 0.5rem;
+  }
+</style>

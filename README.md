@@ -556,7 +556,7 @@ Populate the database with the file db/seeds/regions.rb. where the country is th
 
 Change the interface to show the list of regions.
 
-Show the regions in a idented tree where I can open and close the leaves. Only show the names. Start with only Autralia leaf open as "+". All other countries should be closed as "-"
+Show the regions in a idented tree where I can open and close the leaves. Only show the names. Start with only Autralia leaf open as "+". All other countries should be closed as "-". Use a nice interface component in both rails and react app.
 
 The tree should be like:
 
@@ -578,6 +578,8 @@ The tree should be like:
 In the show of region. Show the tree relating to the region from the country until the last leaves, highlighting the specificied region.
 
 ---
+
+Instead of showing the number of children(regions) per country, do it more complex. Sum all the wines from all children and show the count.
 
 Add the missing attributes to Producers table. Reflect it to the interface.
 

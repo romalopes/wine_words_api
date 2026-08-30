@@ -1,7 +1,7 @@
 class Api::V1::RegionsController < ApplicationController
   # Regions are read publicly (used by the wine-form picker).
   # Create/update/destroy is restricted to wine managers.
-  before_action :authenticate_user!, except: [:index, :show]
+  before_action :authenticate_user!, except: [:index, :show, :tree]
   before_action :ensure_wine_manager!, only: [:create, :update, :destroy]
   before_action :set_region, only: [:show, :update, :destroy]
 
@@ -10,8 +10,43 @@ class Api::V1::RegionsController < ApplicationController
     render json: regions.map { |r| region_json(r) }
   end
 
+  def tree
+    tree_data = Region.build_tree
+    render json: tree_data
+  end
+
   def show
-    render json: region_json(@region)
+    # Load the region with its full hierarchy path and wines
+    region = Region.includes(:wines, country: :grapes, parent: :country)
+                    .where(id: params[:id])
+                    .first
+    
+    if region
+      render json: region_with_path(region)
+    else
+      render json: { error: "Region not found" }, status: :not_found
+    end
+  end
+
+  def region_with_path(region)
+    path = region.full_path
+    {
+      id: region.id,
+      name: region.name,
+      country_id: region.country_id,
+      country: region.country ? { 
+        id: region.country.id, 
+        name: region.country.name, 
+        code: region.country.code, 
+        flag_emoji: region.country.flag_emoji 
+      } : nil,
+      parent_id: region.parent_id,
+      parent_name: region.parent_id ? region.parent&.name : nil,
+      is_state: region.is_state,
+      is_appellation: region.is_appellation,
+      full_path: path,
+      wines: region.wines.map { |w| { id: w.id, name: w.name, slug: w.slug } }
+    }
   end
 
   def create

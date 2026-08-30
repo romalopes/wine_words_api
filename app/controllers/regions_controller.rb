@@ -6,7 +6,7 @@ class RegionsController < ActionController::Base
   before_action :ensure_manager!, only: [:new, :edit, :create, :update, :destroy]
 
   def index
-    @regions = Region.includes(:country).order(:name)
+    @countries_tree = Region.build_tree
   end
 
   def show
