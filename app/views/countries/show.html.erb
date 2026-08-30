@@ -1,0 +1,13 @@
+<h1><%= @country.flag_emoji %> <%= @country.name %></h1>
+<ul class="facts" aria-label="Country details">
+  <li><strong>ISO code:</strong> <%= @country.code.upcase %></li>
+  <li><strong>Continent:</strong> <%= @country.continent || "—" %></li>
+  <li><strong>Grapes:</strong> <%= @country.grapes.any? ? @country.grapes.order(:name).map(&:name).join(", ") : "—" %></li>
+</ul>
+<% if current_user&.super_admin? || current_user&.editor? %>
+  <div class="page-actions">
+    <%= link_to "Edit Country", edit_country_path(@country.id), class: "btn btn--secondary" %>
+    <%= button_to "Delete Country", country_path(@country.id), method: :delete, class: "btn", onclick: %(return confirm('Delete this country?')) %>
+  </div>
+<% end %>
+<%= link_to "← All countries", countries_path, class: "back-link" %>

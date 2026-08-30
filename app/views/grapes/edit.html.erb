@@ -13,7 +13,7 @@
   </div>
   <div class="field">
     <%= form.label :origin_country %>
-    <%= form.text_field :origin_country %>
+    <%= form.select :origin_country, options_for_select(Country.order(:name).map { |c| [c.name, c.name] }, @grape.origin_country), include_blank: true %>
   </div>
   <div class="field">
     <%= form.label :relevance %>

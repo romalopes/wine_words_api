@@ -1,0 +1,26 @@
+<h1>Edit Country</h1>
+<%= form_with(model: @country, local: true) do |form| %>
+  <% if @country.errors.any? %>
+    <div class="flash flash--alert"><%= @country.errors.full_messages.join(", ") %></div>
+  <% end %>
+  <div class="field">
+    <%= form.label :name %>
+    <%= form.text_field :name, required: true %>
+  </div>
+  <div class="field">
+    <%= form.label :code, "ISO code (2 letters)" %>
+    <%= form.text_field :code, required: true, maxlength: 2, style: "text-transform: uppercase" %>
+  </div>
+  <div class="field">
+    <%= form.label :continent %>
+    <%= form.select :continent, options_for_select(["Africa", "Asia", "Europe", "North America", "South America", "Oceania"], @country.continent), include_blank: true %>
+  </div>
+  <div class="field">
+    <%= form.label :flag_emoji %>
+    <%= form.text_field :flag_emoji %>
+  </div>
+  <div class="page-actions">
+    <%= form.submit "Update", class: "btn" %>
+    <%= link_to "Cancel", countries_path, class: "btn btn--secondary" %>
+  </div>
+<% end %>

@@ -56,6 +56,7 @@ Rails.application.routes.draw do
     collection { patch :reorder }
   end
   resources :tags
+  resources :countries
   resources :grapes do
     collection { get :search }
   end
@@ -107,6 +108,7 @@ Rails.application.routes.draw do
       resources :grapes do
         collection { get :search }
       end
+      resources :countries
 
       get "me", to: "users#me"
       get "stats", to: "stats#index"

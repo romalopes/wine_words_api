@@ -542,11 +542,16 @@ Improve the visual when showing each grape in the list changing/alternating the 
 
 ---
 
+Create a table for countries.
+
 Create the table regions. Create a relationship many to many between wine and region. Add it to the interface when create/edit wine using a select box, where user can select multible regions.
+The region has a relationship parent with another region.
 
 ---
 
-t.string :name, null: false
+Add the missing attributes to producers. Reflect it to the interface.
+
+`t.string :name, null: false
 t.string :legal_name
 
 t.integer :producer_type, null: false
@@ -557,7 +562,6 @@ t.string :region
 t.string :subregion
 t.string :website
 
-t.string :email
 t.string :phone
 
 t.string :address
@@ -565,21 +569,17 @@ t.string :city
 t.string :state
 t.string :postal_code
 
-t.decimal :latitude, precision: 10, scale: 7
-t.decimal :longitude, precision: 10, scale: 7
-
 t.integer :founded_year
 
-t.boolean :organic, default: false
-t.boolean :biodynamic, default: false
-t.boolean :sustainable, default: false
-
-t.text :certifications, array: true, default: []
-t.text :grape_varieties, array: true, default: []
-
-t.string :logo_url
-
 t.boolean :active, default: true
+
+`
+
+Also, create a relationship many to many between producers and grapes to reflect the grape portifolio of this producer.
+
+Populate the table with the information based on the file wine_prediction/data/producers.js. Create the relatinships with grape.
+
+Change the interface rails and react to reflect the new attributes and grapes, allowing to add/remove grapes using the search mechanism.
 
 ---
 

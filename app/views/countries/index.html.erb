@@ -1,0 +1,40 @@
+<h1>Countries</h1>
+<div class="page-actions">
+  <% if current_user&.super_admin? || current_user&.editor? %>
+    <%= link_to "+ New Country", new_country_path, class: "btn" %>
+  <% end %>
+</div>
+<% if @countries.any? %>
+  <table class="grapes-table">
+    <thead>
+      <tr>
+        <th>Flag</th>
+        <th>Name</th>
+        <th>Code</th>
+        <th>Continent</th>
+        <% if current_user&.super_admin? || current_user&.editor? %>
+          <th>Actions</th>
+        <% end %>
+      </tr>
+    </thead>
+    <tbody>
+      <% @countries.each_with_index do |country, index| %>
+        <tr class="<%= index % 2 == 0 ? 'grapes-row--even' : 'grapes-row--odd' %>">
+          <td><%= country.flag_emoji %></td>
+          <td><%= link_to country.name, country_path(country.id) %></td>
+          <td><%= country.code.upcase %></td>
+          <td><%= country.continent || "—" %></td>
+          <% if current_user&.super_admin? || current_user&.editor? %>
+            <td class="actions">
+              <%= link_to "Show", country_path(country.id), class: "card-action" %>
+              <%= link_to "Edit", edit_country_path(country.id), class: "card-action" %>
+              <%= button_to "Delete", country_path(country.id), method: :delete, form_class: "inline-form", class: "card-action card-action--delete", onclick: %(return confirm('Delete this country?')) %>
+            </td>
+          <% end %>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% else %>
+  <p class="empty">No countries have been added yet.</p>
+<% end %>

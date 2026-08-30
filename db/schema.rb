@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_29_221638) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_29_231808) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -113,8 +113,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_29_221638) do
     t.index ["slug"], name: "index_categories_on_slug", unique: true
   end
 
+  create_table "countries", force: :cascade do |t|
+    t.string "code"
+    t.string "continent"
+    t.datetime "created_at", null: false
+    t.string "flag_emoji"
+    t.string "name"
+    t.datetime "updated_at", null: false
+    t.index ["code"], name: "index_countries_on_code", unique: true
+    t.index ["name"], name: "index_countries_on_name", unique: true
+  end
+
   create_table "grapes", force: :cascade do |t|
     t.string "color"
+    t.bigint "country_id"
     t.datetime "created_at", null: false
     t.boolean "is_blending_grape", default: false, null: false
     t.text "main_regions", default: [], array: true
@@ -125,6 +137,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_29_221638) do
     t.text "serving"
     t.text "synonyms", default: [], array: true
     t.datetime "updated_at", null: false
+    t.index ["country_id"], name: "index_grapes_on_country_id"
     t.index ["name"], name: "index_grapes_on_name", unique: true
   end
 
@@ -316,6 +329,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_29_221638) do
   add_foreign_key "article_vintages", "vintages"
   add_foreign_key "articles", "categories"
   add_foreign_key "articles", "users"
+  add_foreign_key "grapes", "countries"
   add_foreign_key "reviews", "categories"
   add_foreign_key "reviews", "users"
   add_foreign_key "reviews", "vintages"
