@@ -1,39 +1,47 @@
 <h1>Producers</h1>
 <p class="lede">Browse producers and their associated wines.</p>
-<% if user_signed_in? %>
-  <div class="page-actions">
+<div class="page-actions">
+  <% if user_signed_in? %>
     <%= link_to "+ New Producer", new_producer_path, class: "btn" %>
-  </div>
-<% end %>
+  <% end %>
+</div>
 <% if @producers.any? %>
-  <section class="producer-grid" aria-label="Producers">
-    <% @producers.each do |producer| %>
-      <div class="card-wrapper">
-        <% if user_signed_in? %>
-        <div class="card-actions">
-          <%= link_to "Edit", edit_producer_path(producer.slug), class: "card-action" %>
-          <%= button_to "Delete", producer_path(producer.slug), method: :delete, form_class: "card-delete-form", class: "card-action card-action--delete", onclick: %(return confirm('Delete this item? This action cannot be undone.')) %>
-        </div>
-        <% end %>
-        <%= link_to producer_path(producer.slug), class: "producer-card #{producer_color_class(producer)}" do %>
-        <% if producer.images.attached? %>
-          <%= image_tag url_for(producer.images.first), class: "card-thumb", alt: producer.name %>
-        <% end %>
-        <div class="producer-card__band"></div>
-        <div class="producer-card__content">
-          <h2><%= producer.name %></h2>
-          <% if producer_details(producer).present? %>
-            <p class="details"><%= producer_details(producer) %></p>
+  <table class="grapes-table producers-table">
+    <thead>
+      <tr>
+        <th class="producers-table__image-col">Image</th>
+        <th>Name</th>
+        <th>Address</th>
+        <th>Email</th>
+        <th>Wines</th>
+        <% if user_signed_in? %><th>Actions</th><% end %>
+      </tr>
+    </thead>
+    <tbody>
+      <% @producers.each_with_index do |producer, index| %>
+        <tr class="<%= index % 2 == 0 ? 'grapes-row--even' : 'grapes-row--odd' %>">
+          <td>
+            <% if producer.images.attached? %>
+              <%= image_tag url_for(producer.images.first), class: "producers-table__thumb", alt: producer.name %>
+            <% else %>
+              <span class="producers-table__thumb producers-table__thumb--empty" aria-hidden="true"></span>
+            <% end %>
+          </td>
+          <td><%= link_to producer.name, producer_path(producer.slug) %></td>
+          <td><%= producer.address.presence || "—" %></td>
+          <td><%= producer.email.presence || "—" %></td>
+          <td><%= link_to pluralize(producer.wines.size, "wine"), wines_path(producer: producer.slug) %></td>
+          <% if user_signed_in? %>
+            <td class="actions">
+              <%= link_to "Show", producer_path(producer.slug), class: "card-action" %>
+              <%= link_to "Edit", edit_producer_path(producer.slug), class: "card-action" %>
+              <%= button_to "Delete", producer_path(producer.slug), method: :delete, form_class: "inline-form", class: "card-action card-action--delete", onclick: %(return confirm('Delete this item? This action cannot be undone.')) %>
+            </td>
           <% end %>
-          <div class="wines">
-            <%= pluralize(producer.wines.size, "wine") %>
-          </div>
-        </div>
+        </tr>
       <% end %>
-      </div>
-    <% end %>
-  </section>
+    </tbody>
+  </table>
 <% else %>
   <p class="empty">No producers have been added yet.</p>
 <% end %>
-

@@ -12,7 +12,7 @@
         <th>Name</th>
         <th>Code</th>
         <th>Continent</th>
-        <% if current_user&.super_admin? || current_user&.editor? %>
+        <% if false && (current_user&.super_admin? || current_user&.editor?) %>
           <th>Actions</th>
         <% end %>
       </tr>
@@ -24,7 +24,7 @@
           <td><%= link_to country.name, country_path(country.id) %></td>
           <td><%= country.code.upcase %></td>
           <td><%= country.continent || "—" %></td>
-          <% if current_user&.super_admin? || current_user&.editor? %>
+          <% if false && (current_user&.super_admin? || current_user&.editor?) %>
             <td class="actions">
               <%= link_to "Show", country_path(country.id), class: "card-action" %>
               <%= link_to "Edit", edit_country_path(country.id), class: "card-action" %>

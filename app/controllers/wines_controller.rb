@@ -12,6 +12,9 @@ class WinesController < ActionController::Base
     if params[:category].present?
       @wines = @wines.joins(:category).where(categories: { name: params[:category] })
     end
+    if params[:producer].present?
+      @wines = @wines.joins(:producer).where(producers: { slug: params[:producer] })
+    end
   end
 
   def show
