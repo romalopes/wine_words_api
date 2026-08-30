@@ -93,7 +93,7 @@
       wines.forEach(function (wine) {
         var row = makeEl("div", {});
         row.style.cssText = "display:flex;align-items:center;gap:.6rem;margin:.35rem 0;padding:.45rem .6rem;border:1px solid #d8c8c0;border-radius:.5rem;max-width:32rem;background:#fff;";
-        var name = makeEl("strong", {}, wine.name + (wine.region ? " (" + wine.region + ")" : ""));
+        var name = makeEl("strong", {}, wine.name);
         row.appendChild(name);
 
         var current = wine.producer && wine.producer.slug

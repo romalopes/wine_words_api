@@ -1,0 +1,42 @@
+<h1>Regions</h1>
+<p class="lede">Browse wine regions and their associated wines.</p>
+
+<div class="page-actions">
+  <%= link_to "+ New Region", new_region_path, class: "btn" %>
+</div>
+
+<% if @regions.any? %>
+  <table class="grapes-table regions-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Country</th>
+        <th>Type</th>
+        <th>Parent</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @regions.each_with_index do |region, index| %>
+        <tr class="<%= index % 2 == 0 ? 'grapes-row--even' : 'grapes-row--odd' %>">
+          <td>
+            <%= link_to region.name, region_path(region.id), class: "grapes-table__link" %>
+          </td>
+          <td>
+            <%= region.country.flag_emoji %> <%= region.country.name %>
+          </td>
+          <td>
+            <% type_labels = [] %>
+            <% type_labels << "State" if region.is_state %>
+            <% type_labels << "Appellation" if region.is_appellation %>
+            <%= type_labels.any? ? type_labels.join(" / ") : "Region" %>
+          </td>
+          <td>
+            <%= region.parent.name if region.parent %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% else %>
+  <p class="empty">No regions have been added yet.</p>
+<% end %>

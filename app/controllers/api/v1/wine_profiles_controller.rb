@@ -62,10 +62,9 @@ class Api::V1::WineProfilesController < ApplicationController
     profile_values     = []
 
     search_terms.each do |term|
-      # wines: match by name or region
-      wine_conditions << "(similarity(wines.name, ?) > ? OR strict_word_similarity(?, wines.name) > ? OR word_similarity(?, wines.name) > ? OR similarity(wines.region, ?) > ? OR strict_word_similarity(?, wines.region) > ? OR word_similarity(?, wines.region) > ?)"
-      wine_values.concat([term, sim_threshold, term, sim_threshold, term, word_sim_threshold,
-                          term, sim_threshold, term, sim_threshold, term, word_sim_threshold])
+      # wines: match by name
+      wine_conditions << "(similarity(wines.name, ?) > ? OR strict_word_similarity(?, wines.name) > ? OR word_similarity(?, wines.name) > ?)"
+      wine_values.concat([term, sim_threshold, term, sim_threshold, term, word_sim_threshold])
 
       # wine_profiles: match by name or regions (JSON text)
       profile_conditions << "(similarity(wine_profiles.name, ?) > ? OR strict_word_similarity(?, wine_profiles.name) > ? OR word_similarity(?, wine_profiles.name) > ? OR similarity(COALESCE(wine_profiles.regions::text, ''), ?) > ? OR strict_word_similarity(?, COALESCE(wine_profiles.regions::text, '')) > ? OR word_similarity(?, COALESCE(wine_profiles.regions::text, '')) > ?)"
@@ -84,7 +83,7 @@ class Api::V1::WineProfilesController < ApplicationController
     # Build ORDER BY: rank by best trigram match across all search terms
     quoted_terms = search_terms.map { |t| ActiveRecord::Base.connection.quote(t) }
     wine_order_expr = quoted_terms.map do |qt|
-      "GREATEST(similarity(wines.name, #{qt}), strict_word_similarity(#{qt}, wines.name), word_similarity(#{qt}, wines.name) * 0.8, similarity(wines.region, #{qt}) * 0.7, strict_word_similarity(#{qt}, wines.region) * 0.7, word_similarity(#{qt}, wines.region) * 0.6)"
+      "GREATEST(similarity(wines.name, #{qt}), strict_word_similarity(#{qt}, wines.name), word_similarity(#{qt}, wines.name) * 0.8)"
     end.join(", ")
 
     profile_order_expr = quoted_terms.map do |qt|
@@ -130,10 +129,7 @@ class Api::V1::WineProfilesController < ApplicationController
     # Search wines by name AND region
     wines = Wine.includes(wine_taste_parameters: :taste_parameter, vintages: [])
                 .where(
-                  "(similarity(wines.name, ?) > ? OR strict_word_similarity(?, wines.name) > ? OR word_similarity(?, wines.name) > ?) OR (similarity(wines.region, ?) > ? OR strict_word_similarity(?, wines.region) > ? OR word_similarity(?, wines.region) > ?)",
-                  query, sim_threshold,
-                  query, sim_threshold,
-                  query, word_sim_threshold,
+                  "(similarity(wines.name, ?) > ? OR strict_word_similarity(?, wines.name) > ? OR word_similarity(?, wines.name) > ?)",
                   query, sim_threshold,
                   query, sim_threshold,
                   query, word_sim_threshold
@@ -142,10 +138,7 @@ class Api::V1::WineProfilesController < ApplicationController
                   Arel.sql("GREATEST(
                     similarity(wines.name, #{quoted_query}),
                     strict_word_similarity(#{quoted_query}, wines.name),
-                    word_similarity(#{quoted_query}, wines.name) * 0.8,
-                    similarity(wines.region, #{quoted_query}) * 0.7,
-                    strict_word_similarity(#{quoted_query}, wines.region) * 0.7,
-                    word_similarity(#{quoted_query}, wines.region) * 0.6
+                    word_similarity(#{quoted_query}, wines.name) * 0.8
                   ) DESC")
                 )
                 .limit(limit)

@@ -1,5 +1,9 @@
 <%= form_with model: @wine, local: true, html: { multipart: true } do |f| %>
   <div>
+    <%= f.label :name %><br>
+    <%= f.text_field :name %>
+  </div>
+  <div>
     <%= f.label :producer_id, "Producer" %><br>
     <%# Search-as-you-type producer picker (mirrors the React ProducerSearch).
         Selecting a result fills the hidden producer_id field; if no producer
@@ -111,114 +115,119 @@
     })();
   </script>
   <div>
-    <%= f.label :name %><br>
-    <%= f.text_field :name %>
-  </div>
-  <div>
-    <%= f.label :region %><br>
-    <%= f.text_field :region %>
-  </div>
-  <div>
     <%= f.label :colour %><br>
     <%= f.select :color, Wine.colors %>
   </div>
   <div>
     <%= f.label :closure %><br>
     <%= f.select :closure, Wine.closures %>
-  <div>
-    <%= f.label :sparkling %><br>
-    <%= f.check_box :sparkling %>
-  </div>
-  <%# --- Grape picker: search-as-you-type, multiple grapes per wine --- %>
-  <div class="wine-grape-picker">
-    <label><strong>Grapes</strong></label>
-    <div id="wine-grapes-selected"></div>
-    <input type="text" id="grape_search_input" placeholder="Start typing a grape name…" autocomplete="off">
-    <div id="grape_search_results"></div>
-  </div>
-  <script>
-    (function () {
-      var selected = [];
-      try { selected = <%= raw (@wine.grapes.map { |g| { id: g.id, name: g.name } }).to_json %>; } catch (e) {}
-      var selectedBox = document.getElementById("wine-grapes-selected");
-      var input = document.getElementById("grape_search_input");
-      var resultsBox = document.getElementById("grape_search_results");
-      var form = input.closest("form");
-      var timer = null;
+    <div>
+      <%= f.label :sparkling %><br>
+      <%= f.check_box :sparkling %>
+    </div>
+    <%# --- Regions multi-select --- %>
+    <div class="wine-region-picker">
+      <label><strong>Regions</strong><br>
+        <em style="font-weight:normal;font-size:.85rem">Hold Ctrl/Cmd to select multiple</em>
+      </label>
+      <%= select_tag "wine[region_ids][]",
+          options_for_select(Region.includes(:country).order(:name).map { |r|
+            [ "#{r.name} (#{r.country&.name})", r.id ]
+          }, @wine.region_ids),
+          multiple: true,
+          size: 8,
+          class: "wine-region-select",
+          style: "width:100%;max-width:480px;padding:.4rem" %>
+    </div>
+    <div class="wine-grape-picker">
+      <label><strong>Grapes</strong></label>
+      <div id="wine-grapes-selected"></div>
+      <input type="text" id="grape_search_input" placeholder="Start typing a grape name…" autocomplete="off">
+      <div id="grape_search_results"></div>
+    </div>
+    <script>
+      (function () {
+        var selected = [];
+        try { selected = <%= raw (@wine.grapes.map { |g| { id: g.id, name: g.name } }).to_json %>; } catch (e) {}
+        var selectedBox = document.getElementById("wine-grapes-selected");
+        var input = document.getElementById("grape_search_input");
+        var resultsBox = document.getElementById("grape_search_results");
+        var form = input.closest("form");
+        var timer = null;
 
-      function hiddenInputs() {
-        return selected.map(function (g) {
-          return '<input type="hidden" name="wine[grape_ids][]" value="' + g.id + '">';
-        }).join("");
-      }
+        function hiddenInputs() {
+          return selected.map(function (g) {
+            return '<input type="hidden" name="wine[grape_ids][]" value="' + g.id + '">';
+          }).join("");
+        }
 
-      function renderSelected() {
-        selectedBox.innerHTML = selected.map(function (g) {
-          return '<span class="grape-tag" data-id="' + g.id + '">' + g.name +
-            ' <button type="button" class="grape-tag__remove" aria-label="Remove ' + g.name + '">&times;</button></span>';
-        }).join("") + hiddenInputs();
-        selectedBox.querySelectorAll(".grape-tag__remove").forEach(function (btn, i) {
-          btn.addEventListener("click", function () {
-            selected.splice(i, 1);
-            renderSelected();
+        function renderSelected() {
+          selectedBox.innerHTML = selected.map(function (g) {
+            return '<span class="grape-tag" data-id="' + g.id + '">' + g.name +
+              ' <button type="button" class="grape-tag__remove" aria-label="Remove ' + g.name + '">&times;</button></span>';
+          }).join("") + hiddenInputs();
+          selectedBox.querySelectorAll(".grape-tag__remove").forEach(function (btn, i) {
+            btn.addEventListener("click", function () {
+              selected.splice(i, 1);
+              renderSelected();
+            });
           });
-        });
-      }
+        }
 
-      function clearResults() { resultsBox.innerHTML = ""; }
+        function clearResults() { resultsBox.innerHTML = ""; }
 
-      function renderResults(grapes) {
-        clearResults();
-        if (grapes.length === 0) return;
-        grapes.forEach(function (grape) {
-          if (selected.some(function (g) { return g.id === grape.id; })) return;
-          var btn = document.createElement("button");
-          btn.type = "button";
-          var label = grape.name + (grape.color ? " (" + grape.color + ")" : "");
-          if (grape.synonyms && grape.synonyms.length > 0) {
-            label += " (" + grape.synonyms.join(", ") + ")";
-          }
-          btn.textContent = label;
-          btn.style.display = "block";
-          btn.addEventListener("click", function () {
-            selected.push({ id: grape.id, name: grape.name });
-            renderSelected();
-            input.value = "";
-            clearResults();
+        function renderResults(grapes) {
+          clearResults();
+          if (grapes.length === 0) return;
+          grapes.forEach(function (grape) {
+            if (selected.some(function (g) { return g.id === grape.id; })) return;
+            var btn = document.createElement("button");
+            btn.type = "button";
+            var label = grape.name + (grape.color ? " (" + grape.color + ")" : "");
+            if (grape.synonyms && grape.synonyms.length > 0) {
+              label += " (" + grape.synonyms.join(", ") + ")";
+            }
+            btn.textContent = label;
+            btn.style.display = "block";
+            btn.addEventListener("click", function () {
+              selected.push({ id: grape.id, name: grape.name });
+              renderSelected();
+              input.value = "";
+              clearResults();
+            });
+            resultsBox.appendChild(btn);
           });
-          resultsBox.appendChild(btn);
+        }
+
+        function performSearch(query) {
+          var trimmed = query.trim();
+          if (trimmed.length < 2) { clearResults(); return; }
+          fetch("/api/v1/grapes/search?q=" + encodeURIComponent(trimmed), { credentials: "same-origin" })
+            .then(function (r) { return r.json(); })
+            .then(renderResults)
+            .catch(clearResults);
+        }
+
+        input.addEventListener("input", function () {
+          if (timer) clearTimeout(timer);
+          timer = setTimeout(function () { performSearch(input.value); }, 300);
         });
-      }
 
-      function performSearch(query) {
-        var trimmed = query.trim();
-        if (trimmed.length < 2) { clearResults(); return; }
-        fetch("/api/v1/grapes/search?q=" + encodeURIComponent(trimmed), { credentials: "same-origin" })
-          .then(function (r) { return r.json(); })
-          .then(renderResults)
-          .catch(clearResults);
-      }
-
-      input.addEventListener("input", function () {
-        if (timer) clearTimeout(timer);
-        timer = setTimeout(function () { performSearch(input.value); }, 300);
-      });
-
-      renderSelected();
-    })();
-  </script>
-  <style>
-    .grape-tag { display:inline-flex; align-items:center; gap:.3rem; background:#f3e8e4; border:1px solid #d8c8c0; border-radius:1rem; padding:.15rem .6rem; margin:0 .35rem .35rem 0; font-size:.9rem; }
-    .grape-tag__remove { background:none; border:none; cursor:pointer; color:#8a273c; font-weight:700; padding:0; }
-    #grape_search_results button { background:#fff; border:1px solid #d8c8c0; border-radius:.45rem; padding:.4rem .6rem; cursor:pointer; }
-  </style>
-  <%# --- Taste Parameters sliders (mirrors the React app) --- %>
+        renderSelected();
+      })();
+    </script>
+    <style>
+      .grape-tag { display:inline-flex; align-items:center; gap:.3rem; background:#f3e8e4; border:1px solid #d8c8c0; border-radius:1rem; padding:.15rem .6rem; margin:0 .35rem .35rem 0; font-size:.9rem; }
+      .grape-tag__remove { background:none; border:none; cursor:pointer; color:#8a273c; font-weight:700; padding:0; }
+      #grape_search_results button { background:#fff; border:1px solid #d8c8c0; border-radius:.45rem; padding:.4rem .6rem; cursor:pointer; }
+    </style>
+    <%# --- Taste Parameters sliders (mirrors the React app) --- %>
   </div>
   <div>
     <%= f.label :alcohol_percentage %><br>
     <%= f.number_field :alcohol_percentage, step: 0.5 %>
   </div>
-    <div>
+  <div>
     <%= f.label :volume_ml, "Volume" %><br>
     <%#= f.select :volume_ml, Wine.volumes, { selected: '750 ml' } %>
     <%= f.select :volume_ml, Wine.volumes.map { |value, label| [label, value] }, { selected: 750 } %>

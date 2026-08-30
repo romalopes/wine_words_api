@@ -96,7 +96,6 @@ class Api::V1::ProducersController < ApplicationController
           id: wine.id,
           slug: wine.slug,
           name: wine.name,
-          region: wine.region,
           color: wine.color
         }
       end

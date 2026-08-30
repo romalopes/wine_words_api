@@ -9,7 +9,6 @@ class WineSerializer
       id: @wine.id,
       slug: @wine.slug,
       name: @wine.name,
-      region: @wine.region,
       color: @wine.color,
       sparkling: @wine.sparkling,
       closure: @wine.closure,
@@ -17,12 +16,13 @@ class WineSerializer
             volume_ml: @wine.volume_ml,
              volume_label: @wine.volume_label,
       prompt: @wine.prompt,
-      images: image_urls(@wine),
+            images: image_urls(@wine),
       image_ids: image_ids(@wine),
       producer: producer,
       category: @wine.category&.name,
       category_id: @wine.category_id,
       grapes: grapes,
+      regions: regions,
       parameters: parameters,
       vintages: @wine.vintages.order(year: :desc).map do |v|
         {
@@ -78,12 +78,29 @@ class WineSerializer
 end
   end
 
-  def grapes
+    def grapes
     @wine.grapes.map do |grape|
       {
         id: grape.id,
         name: grape.name,
         color: grape.color
+      }
+    end
+  end
+
+  def regions
+    @wine.regions.includes(:country).map do |region|
+      {
+        id: region.id,
+        name: region.name,
+        country: {
+          id: region.country.id,
+          name: region.country.name,
+          code: region.country.code,
+          flag_emoji: region.country.flag_emoji
+        },
+        is_state: region.is_state,
+        is_appellation: region.is_appellation
       }
     end
   end

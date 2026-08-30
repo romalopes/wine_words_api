@@ -31,7 +31,7 @@ class ArticleSerializer
 
   def wine_list
     @article.wines.map do |wine|
-      { id: wine.id, name: wine.name, slug: wine.slug, region: wine.region, color: wine.color }
+      { id: wine.id, name: wine.name, slug: wine.slug, color: wine.color }
     end
   end
 

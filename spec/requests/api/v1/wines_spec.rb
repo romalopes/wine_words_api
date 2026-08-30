@@ -14,7 +14,6 @@ RSpec.describe "Api::V1::Wines", type: :request do
     Wine.create!(
       slug: "penfolds-bin-389",
       name: "Penfolds Bin 389",
-      region: "South Australia",
       color: "Red",
       prompt: "Classic Australian cabernet shiraz.",
     )
@@ -24,7 +23,6 @@ RSpec.describe "Api::V1::Wines", type: :request do
     Wine.create!(
       slug: "tyrrells-vat-1-semillon",
       name: "Tyrrell's Vat 1 Semillon",
-      region: "Hunter Valley",
       color: "White",
       prompt: "Classic Hunter semillon.",
     )
@@ -57,7 +55,6 @@ RSpec.describe "Api::V1::Wines", type: :request do
       first = body.find { |w| w["slug"] == wine_one.slug }
       expect(first).to include(
         "name"   => "Penfolds Bin 389",
-        "region" => "South Australia",
         "color"  => "Red",
         "prompt" => "Classic Australian cabernet shiraz.",
       )
@@ -99,7 +96,6 @@ RSpec.describe "Api::V1::Wines", type: :request do
       {
         wine: {
           name: "Henschke Hill of Grace",
-          region: "Eden Valley",
           color: "Red",
           prompt: "Old-vine shiraz.",
         },
@@ -117,13 +113,12 @@ RSpec.describe "Api::V1::Wines", type: :request do
       post "/api/v1/wines", params: valid_params, as: :json
       wine = Wine.find_by!(slug: "henschke-hill-of-grace")
       expect(wine.name).to eq("Henschke Hill of Grace")
-      expect(wine.region).to eq("Eden Valley")
       expect(wine.color).to eq("Red")
       expect(wine.prompt).to eq("Old-vine shiraz.")
     end
 
     it "returns 422 with error details when attributes are invalid" do
-      post "/api/v1/wines", params: { wine: { name: "", region: "", color: "" } }, as: :json
+      post "/api/v1/wines", params: { wine: { name: "", color: "" } }, as: :json
       expect(response).to have_http_status(:unprocessable_entity)
       expect(JSON.parse(response.body)).to be_a(Hash)
     end

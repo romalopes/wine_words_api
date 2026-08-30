@@ -71,7 +71,7 @@
             <div class="wine-card__band"></div>
             <div class="wine-card__content">
               <h3><%= vintage.wine.name %> <%= vintage.year %></h3>
-              <p class="region"><%= [vintage.wine.producer&.name, vintage.wine.region, vintage.wine.color].compact.join(" · ") %></p>
+              <p class="region"><%= [vintage.wine.producer&.name, vintage.wine.color].compact.join(" · ") %></p>
             </div>
           <% end %>
         </div>

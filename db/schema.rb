@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_29_231808) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_30_030028) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -165,6 +165,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_29_231808) do
     t.index ["slug"], name: "index_producers_on_slug", unique: true
   end
 
+  create_table "regions", force: :cascade do |t|
+    t.bigint "country_id", null: false
+    t.datetime "created_at", null: false
+    t.boolean "is_appellation", default: false, null: false
+    t.boolean "is_state", default: false, null: false
+    t.string "name", null: false
+    t.bigint "parent_id"
+    t.datetime "updated_at", null: false
+    t.index ["country_id"], name: "index_regions_on_country_id"
+    t.index ["name", "country_id"], name: "index_regions_on_name_and_country_id", unique: true
+    t.index ["parent_id"], name: "index_regions_on_parent_id"
+  end
+
   create_table "reviews", force: :cascade do |t|
     t.bigint "category_id"
     t.text "comment"
@@ -284,6 +297,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_29_231808) do
     t.index ["slug"], name: "index_wine_profiles_on_slug", unique: true
   end
 
+  create_table "wine_regions", force: :cascade do |t|
+    t.bigint "region_id", null: false
+    t.bigint "wine_id", null: false
+    t.index ["region_id"], name: "index_wine_regions_on_region_id"
+    t.index ["wine_id", "region_id"], name: "index_wine_regions_on_wine_id_and_region_id", unique: true
+  end
+
   create_table "wine_taste_parameters", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.integer "score"
@@ -305,7 +325,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_29_231808) do
     t.string "name"
     t.bigint "producer_id", null: false
     t.text "prompt"
-    t.string "region"
     t.string "slug"
     t.boolean "sparkling", default: false, null: false
     t.datetime "updated_at", null: false
@@ -313,7 +332,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_29_231808) do
     t.index ["category_id"], name: "index_wines_on_category_id"
     t.index ["name"], name: "index_wines_on_name_trgm", opclass: :gin_trgm_ops, using: :gin
     t.index ["producer_id"], name: "index_wines_on_producer_id"
-    t.index ["region"], name: "index_wines_on_region_trgm", opclass: :gin_trgm_ops, using: :gin
     t.index ["slug"], name: "index_wines_on_slug", unique: true
   end
 
@@ -330,6 +348,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_29_231808) do
   add_foreign_key "articles", "categories"
   add_foreign_key "articles", "users"
   add_foreign_key "grapes", "countries"
+  add_foreign_key "regions", "countries"
+  add_foreign_key "regions", "regions", column: "parent_id"
   add_foreign_key "reviews", "categories"
   add_foreign_key "reviews", "users"
   add_foreign_key "reviews", "vintages"
@@ -340,6 +360,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_29_231808) do
   add_foreign_key "wine_grapes", "wines"
   add_foreign_key "wine_profile_taste_parameters", "taste_parameters"
   add_foreign_key "wine_profile_taste_parameters", "wine_profiles"
+  add_foreign_key "wine_regions", "regions"
+  add_foreign_key "wine_regions", "wines"
   add_foreign_key "wine_taste_parameters", "taste_parameters"
   add_foreign_key "wine_taste_parameters", "wines"
   add_foreign_key "wines", "categories"

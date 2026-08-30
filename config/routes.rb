@@ -57,6 +57,7 @@ Rails.application.routes.draw do
   end
   resources :tags
   resources :countries
+  resources :regions
   resources :grapes do
     collection { get :search }
   end
@@ -104,11 +105,12 @@ Rails.application.routes.draw do
           get :search
         end
       end
-      resources :taste_parameters
+            resources :taste_parameters
       resources :grapes do
         collection { get :search }
       end
       resources :countries
+      resources :regions
 
       get "me", to: "users#me"
       get "stats", to: "stats#index"

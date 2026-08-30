@@ -14,10 +14,9 @@
 # a join model), this script will associate producers to existing Grape
 # records by name, creating any that don't exist yet with just a name.
 
-PRODUCERS = [
+ALL_PRODUCERS = [
   {
     name: "Penfolds",
-    legal_name: nil,
     region: "Barossa Valley",
     state: "South Australia",
     country: "Australia",
@@ -62,7 +61,6 @@ PRODUCERS = [
   },
   {
     name: "Torbreck Vintners",
-    legal_name: nil,
     region: "Barossa Valley",
     state: "South Australia",
     country: "Australia",
@@ -77,7 +75,6 @@ PRODUCERS = [
   },
   {
     name: "Grant Burge",
-    legal_name: nil,
     region: "Barossa Valley",
     state: "South Australia",
     country: "Australia",
@@ -92,7 +89,6 @@ PRODUCERS = [
   },
   {
     name: "Peter Lehmann Wines",
-    legal_name: nil,
     region: "Barossa Valley",
     state: "South Australia",
     country: "Australia",
@@ -107,7 +103,6 @@ PRODUCERS = [
   },
   {
     name: "Rockford Wines",
-    legal_name: nil,
     region: "Barossa Valley",
     state: "South Australia",
     country: "Australia",
@@ -122,7 +117,6 @@ PRODUCERS = [
   },
   {
     name: "Charles Melton Wines",
-    legal_name: nil,
     region: "Barossa Valley",
     state: "South Australia",
     country: "Australia",
@@ -137,7 +131,6 @@ PRODUCERS = [
   },
   {
     name: "Elderton Wines",
-    legal_name: nil,
     region: "Barossa Valley",
     state: "South Australia",
     country: "Australia",
@@ -152,7 +145,6 @@ PRODUCERS = [
   },
   {
     name: "Chateau Tanunda",
-    legal_name: nil,
     region: "Barossa Valley",
     state: "South Australia",
     country: "Australia",
@@ -167,7 +159,6 @@ PRODUCERS = [
   },
   {
     name: "St Hallett",
-    legal_name: nil,
     region: "Barossa Valley",
     state: "South Australia",
     country: "Australia",
@@ -197,7 +188,6 @@ PRODUCERS = [
   },
   {
     name: "Wolf Blass",
-    legal_name: nil,
     region: "Barossa Valley",
     state: "South Australia",
     country: "Australia",
@@ -212,7 +202,6 @@ PRODUCERS = [
   },
   {
     name: "Seppeltsfield",
-    legal_name: nil,
     region: "Barossa Valley",
     state: "South Australia",
     country: "Australia",
@@ -227,7 +216,6 @@ PRODUCERS = [
   },
   {
     name: "Two Hands Wines",
-    legal_name: nil,
     region: "Barossa Valley",
     state: "South Australia",
     country: "Australia",
@@ -242,7 +230,6 @@ PRODUCERS = [
   },
   {
     name: "Turkey Flat",
-    legal_name: nil,
     region: "Barossa Valley",
     state: "South Australia",
     country: "Australia",
@@ -257,7 +244,6 @@ PRODUCERS = [
   },
   {
     name: "Langmeil Winery",
-    legal_name: nil,
     region: "Barossa Valley",
     state: "South Australia",
     country: "Australia",
@@ -272,7 +258,6 @@ PRODUCERS = [
   },
   {
     name: "Kalleske",
-    legal_name: nil,
     region: "Barossa Valley",
     state: "South Australia",
     country: "Australia",
@@ -287,7 +272,6 @@ PRODUCERS = [
   },
   {
     name: "Spinifex Wines",
-    legal_name: nil,
     region: "Barossa Valley",
     state: "South Australia",
     country: "Australia",
@@ -302,7 +286,6 @@ PRODUCERS = [
   },
   {
     name: "Teusner Wines",
-    legal_name: nil,
     region: "Barossa Valley",
     state: "South Australia",
     country: "Australia",
@@ -317,7 +300,6 @@ PRODUCERS = [
   },
   {
     name: "Glaetzer Wines",
-    legal_name: nil,
     region: "Barossa Valley",
     state: "South Australia",
     country: "Australia",
@@ -347,7 +329,6 @@ PRODUCERS = [
   },
   {
     name: "Wirra Wirra",
-    legal_name: nil,
     region: "McLaren Vale",
     state: "South Australia",
     country: "Australia",
@@ -362,7 +343,6 @@ PRODUCERS = [
   },
   {
     name: "Chapel Hill",
-    legal_name: nil,
     region: "McLaren Vale",
     state: "South Australia",
     country: "Australia",
@@ -377,7 +357,6 @@ PRODUCERS = [
   },
   {
     name: "Coriole",
-    legal_name: nil,
     region: "McLaren Vale",
     state: "South Australia",
     country: "Australia",
@@ -392,7 +371,6 @@ PRODUCERS = [
   },
   {
     name: "S.C. Pannell",
-    legal_name: nil,
     region: "McLaren Vale",
     state: "South Australia",
     country: "Australia",
@@ -407,7 +385,6 @@ PRODUCERS = [
   },
   {
     name: "Yangarra Estate Vineyard",
-    legal_name: nil,
     region: "McLaren Vale",
     state: "South Australia",
     country: "Australia",
@@ -422,7 +399,6 @@ PRODUCERS = [
   },
   {
     name: "Gemtree Wines",
-    legal_name: nil,
     region: "McLaren Vale",
     state: "South Australia",
     country: "Australia",
@@ -437,7 +413,6 @@ PRODUCERS = [
   },
   {
     name: "Kay Brothers",
-    legal_name: nil,
     region: "McLaren Vale",
     state: "South Australia",
     country: "Australia",
@@ -452,7 +427,6 @@ PRODUCERS = [
   },
   {
     name: "Clarendon Hills",
-    legal_name: nil,
     region: "McLaren Vale",
     state: "South Australia",
     country: "Australia",
@@ -467,7 +441,6 @@ PRODUCERS = [
   },
   {
     name: "Ochota Barrels",
-    legal_name: nil,
     region: "McLaren Vale / Adelaide Hills",
     state: "South Australia",
     country: "Australia",
@@ -482,7 +455,6 @@ PRODUCERS = [
   },
   {
     name: "Brash Higgins",
-    legal_name: nil,
     region: "McLaren Vale",
     state: "South Australia",
     country: "Australia",
@@ -512,7 +484,6 @@ PRODUCERS = [
   },
   {
     name: "Grosset Wines",
-    legal_name: nil,
     region: "Clare Valley",
     state: "South Australia",
     country: "Australia",
@@ -527,7 +498,6 @@ PRODUCERS = [
   },
   {
     name: "Jim Barry Wines",
-    legal_name: nil,
     region: "Clare Valley",
     state: "South Australia",
     country: "Australia",
@@ -542,7 +512,6 @@ PRODUCERS = [
   },
   {
     name: "Kilikanoon Wines",
-    legal_name: nil,
     region: "Clare Valley",
     state: "South Australia",
     country: "Australia",
@@ -572,7 +541,6 @@ PRODUCERS = [
   },
   {
     name: "Pikes Wines",
-    legal_name: nil,
     region: "Clare Valley",
     state: "South Australia",
     country: "Australia",
@@ -587,7 +555,6 @@ PRODUCERS = [
   },
   {
     name: "Mount Horrocks",
-    legal_name: nil,
     region: "Clare Valley",
     state: "South Australia",
     country: "Australia",
@@ -602,7 +569,6 @@ PRODUCERS = [
   },
   {
     name: "Skillogalee",
-    legal_name: nil,
     region: "Clare Valley",
     state: "South Australia",
     country: "Australia",
@@ -617,7 +583,6 @@ PRODUCERS = [
   },
   {
     name: "Pewsey Vale",
-    legal_name: nil,
     region: "Eden Valley",
     state: "South Australia",
     country: "Australia",
@@ -632,7 +597,6 @@ PRODUCERS = [
   },
   {
     name: "Heggies Vineyard",
-    legal_name: nil,
     region: "Eden Valley",
     state: "South Australia",
     country: "Australia",
@@ -647,7 +611,6 @@ PRODUCERS = [
   },
   {
     name: "Shaw + Smith",
-    legal_name: nil,
     region: "Adelaide Hills",
     state: "South Australia",
     country: "Australia",
@@ -662,7 +625,6 @@ PRODUCERS = [
   },
   {
     name: "Ashton Hills",
-    legal_name: nil,
     region: "Adelaide Hills",
     state: "South Australia",
     country: "Australia",
@@ -677,7 +639,6 @@ PRODUCERS = [
   },
   {
     name: "The Lane Vineyard",
-    legal_name: nil,
     region: "Adelaide Hills",
     state: "South Australia",
     country: "Australia",
@@ -692,7 +653,6 @@ PRODUCERS = [
   },
   {
     name: "Bird in Hand",
-    legal_name: nil,
     region: "Adelaide Hills",
     state: "South Australia",
     country: "Australia",
@@ -707,7 +667,6 @@ PRODUCERS = [
   },
   {
     name: "Petaluma",
-    legal_name: nil,
     region: "Adelaide Hills",
     state: "South Australia",
     country: "Australia",
@@ -722,7 +681,6 @@ PRODUCERS = [
   },
   {
     name: "Wynns Coonawarra Estate",
-    legal_name: nil,
     region: "Coonawarra",
     state: "South Australia",
     country: "Australia",
@@ -737,7 +695,6 @@ PRODUCERS = [
   },
   {
     name: "Katnook Estate",
-    legal_name: nil,
     region: "Coonawarra",
     state: "South Australia",
     country: "Australia",
@@ -752,7 +709,6 @@ PRODUCERS = [
   },
   {
     name: "Parker Coonawarra Estate",
-    legal_name: nil,
     region: "Coonawarra",
     state: "South Australia",
     country: "Australia",
@@ -767,7 +723,6 @@ PRODUCERS = [
   },
   {
     name: "Balnaves of Coonawarra",
-    legal_name: nil,
     region: "Coonawarra",
     state: "South Australia",
     country: "Australia",
@@ -782,7 +737,6 @@ PRODUCERS = [
   },
   {
     name: "Leconfield",
-    legal_name: nil,
     region: "Coonawarra",
     state: "South Australia",
     country: "Australia",
@@ -797,7 +751,6 @@ PRODUCERS = [
   },
   {
     name: "Cullen Wines",
-    legal_name: nil,
     region: "Margaret River",
     state: "Western Australia",
     country: "Australia",
@@ -812,7 +765,6 @@ PRODUCERS = [
   },
   {
     name: "Vasse Felix",
-    legal_name: nil,
     region: "Margaret River",
     state: "Western Australia",
     country: "Australia",
@@ -827,7 +779,6 @@ PRODUCERS = [
   },
   {
     name: "Leeuwin Estate",
-    legal_name: nil,
     region: "Margaret River",
     state: "Western Australia",
     country: "Australia",
@@ -842,7 +793,6 @@ PRODUCERS = [
   },
   {
     name: "Moss Wood",
-    legal_name: nil,
     region: "Margaret River",
     state: "Western Australia",
     country: "Australia",
@@ -857,7 +807,6 @@ PRODUCERS = [
   },
   {
     name: "Voyager Estate",
-    legal_name: nil,
     region: "Margaret River",
     state: "Western Australia",
     country: "Australia",
@@ -872,7 +821,6 @@ PRODUCERS = [
   },
   {
     name: "Woodlands",
-    legal_name: nil,
     region: "Margaret River",
     state: "Western Australia",
     country: "Australia",
@@ -887,7 +835,6 @@ PRODUCERS = [
   },
   {
     name: "Xanadu Wines",
-    legal_name: nil,
     region: "Margaret River",
     state: "Western Australia",
     country: "Australia",
@@ -902,7 +849,6 @@ PRODUCERS = [
   },
   {
     name: "Fraser Gallop Estate",
-    legal_name: nil,
     region: "Margaret River",
     state: "Western Australia",
     country: "Australia",
@@ -917,7 +863,6 @@ PRODUCERS = [
   },
   {
     name: "Pierro",
-    legal_name: nil,
     region: "Margaret River",
     state: "Western Australia",
     country: "Australia",
@@ -932,7 +877,6 @@ PRODUCERS = [
   },
   {
     name: "Cape Mentelle",
-    legal_name: nil,
     region: "Margaret River",
     state: "Western Australia",
     country: "Australia",
@@ -947,7 +891,6 @@ PRODUCERS = [
   },
   {
     name: "Howard Park",
-    legal_name: nil,
     region: "Margaret River / Great Southern",
     state: "Western Australia",
     country: "Australia",
@@ -962,7 +905,6 @@ PRODUCERS = [
   },
   {
     name: "Frankland Estate",
-    legal_name: nil,
     region: "Great Southern",
     state: "Western Australia",
     country: "Australia",
@@ -977,7 +919,6 @@ PRODUCERS = [
   },
   {
     name: "Plantagenet Wines",
-    legal_name: nil,
     region: "Great Southern",
     state: "Western Australia",
     country: "Australia",
@@ -992,7 +933,6 @@ PRODUCERS = [
   },
   {
     name: "Domaine Naturaliste",
-    legal_name: nil,
     region: "Margaret River",
     state: "Western Australia",
     country: "Australia",
@@ -1007,7 +947,6 @@ PRODUCERS = [
   },
   {
     name: "Giaconda",
-    legal_name: nil,
     region: "Beechworth",
     state: "Victoria",
     country: "Australia",
@@ -1022,7 +961,6 @@ PRODUCERS = [
   },
   {
     name: "Yering Station",
-    legal_name: nil,
     region: "Yarra Valley",
     state: "Victoria",
     country: "Australia",
@@ -1037,7 +975,6 @@ PRODUCERS = [
   },
   {
     name: "Mount Mary",
-    legal_name: nil,
     region: "Yarra Valley",
     state: "Victoria",
     country: "Australia",
@@ -1052,7 +989,6 @@ PRODUCERS = [
   },
   {
     name: "Yarra Yering",
-    legal_name: nil,
     region: "Yarra Valley",
     state: "Victoria",
     country: "Australia",
@@ -1082,7 +1018,6 @@ PRODUCERS = [
   },
   {
     name: "Coldstream Hills",
-    legal_name: nil,
     region: "Yarra Valley",
     state: "Victoria",
     country: "Australia",
@@ -1097,7 +1032,6 @@ PRODUCERS = [
   },
   {
     name: "Oakridge Wines",
-    legal_name: nil,
     region: "Yarra Valley",
     state: "Victoria",
     country: "Australia",
@@ -1112,7 +1046,6 @@ PRODUCERS = [
   },
   {
     name: "Giant Steps",
-    legal_name: nil,
     region: "Yarra Valley",
     state: "Victoria",
     country: "Australia",
@@ -1127,7 +1060,6 @@ PRODUCERS = [
   },
   {
     name: "TarraWarra Estate",
-    legal_name: nil,
     region: "Yarra Valley",
     state: "Victoria",
     country: "Australia",
@@ -1142,7 +1074,6 @@ PRODUCERS = [
   },
   {
     name: "Mac Forbes",
-    legal_name: nil,
     region: "Yarra Valley",
     state: "Victoria",
     country: "Australia",
@@ -1157,7 +1088,6 @@ PRODUCERS = [
   },
   {
     name: "Tahbilk",
-    legal_name: nil,
     region: "Nagambie Lakes",
     state: "Victoria",
     country: "Australia",
@@ -1172,7 +1102,6 @@ PRODUCERS = [
   },
   {
     name: "Mitchelton",
-    legal_name: nil,
     region: "Nagambie Lakes",
     state: "Victoria",
     country: "Australia",
@@ -1187,7 +1116,6 @@ PRODUCERS = [
   },
   {
     name: "Jasper Hill",
-    legal_name: nil,
     region: "Heathcote",
     state: "Victoria",
     country: "Australia",
@@ -1217,7 +1145,6 @@ PRODUCERS = [
   },
   {
     name: "Campbells Wines",
-    legal_name: nil,
     region: "Rutherglen",
     state: "Victoria",
     country: "Australia",
@@ -1232,7 +1159,6 @@ PRODUCERS = [
   },
   {
     name: "All Saints Estate",
-    legal_name: nil,
     region: "Rutherglen",
     state: "Victoria",
     country: "Australia",
@@ -1247,7 +1173,6 @@ PRODUCERS = [
   },
   {
     name: "Stanton & Killeen",
-    legal_name: nil,
     region: "Rutherglen",
     state: "Victoria",
     country: "Australia",
@@ -1262,7 +1187,6 @@ PRODUCERS = [
   },
   {
     name: "Bindi Wines",
-    legal_name: nil,
     region: "Macedon Ranges",
     state: "Victoria",
     country: "Australia",
@@ -1277,7 +1201,6 @@ PRODUCERS = [
   },
   {
     name: "Paringa Estate",
-    legal_name: nil,
     region: "Mornington Peninsula",
     state: "Victoria",
     country: "Australia",
@@ -1292,7 +1215,6 @@ PRODUCERS = [
   },
   {
     name: "Ten Minutes by Tractor",
-    legal_name: nil,
     region: "Mornington Peninsula",
     state: "Victoria",
     country: "Australia",
@@ -1307,7 +1229,6 @@ PRODUCERS = [
   },
   {
     name: "Kooyong",
-    legal_name: nil,
     region: "Mornington Peninsula",
     state: "Victoria",
     country: "Australia",
@@ -1322,7 +1243,6 @@ PRODUCERS = [
   },
   {
     name: "Moorooduc Estate",
-    legal_name: nil,
     region: "Mornington Peninsula",
     state: "Victoria",
     country: "Australia",
@@ -1337,7 +1257,6 @@ PRODUCERS = [
   },
   {
     name: "Main Ridge Estate",
-    legal_name: nil,
     region: "Mornington Peninsula",
     state: "Victoria",
     country: "Australia",
@@ -1352,7 +1271,6 @@ PRODUCERS = [
   },
   {
     name: "Tyrrell's Wines",
-    legal_name: nil,
     region: "Hunter Valley",
     state: "New South Wales",
     country: "Australia",
@@ -1367,7 +1285,6 @@ PRODUCERS = [
   },
   {
     name: "Brokenwood Wines",
-    legal_name: nil,
     region: "Hunter Valley",
     state: "New South Wales",
     country: "Australia",
@@ -1397,7 +1314,6 @@ PRODUCERS = [
   },
   {
     name: "Tulloch",
-    legal_name: nil,
     region: "Hunter Valley",
     state: "New South Wales",
     country: "Australia",
@@ -1412,7 +1328,6 @@ PRODUCERS = [
   },
   {
     name: "Lake's Folly",
-    legal_name: nil,
     region: "Hunter Valley",
     state: "New South Wales",
     country: "Australia",
@@ -1427,7 +1342,6 @@ PRODUCERS = [
   },
   {
     name: "Clonakilla",
-    legal_name: nil,
     region: "Canberra District",
     state: "New South Wales / ACT",
     country: "Australia",
@@ -1442,7 +1356,6 @@ PRODUCERS = [
   },
   {
     name: "Mount Majura Vineyard",
-    legal_name: nil,
     region: "Canberra District",
     state: "Australian Capital Territory",
     country: "Australia",
@@ -1457,7 +1370,6 @@ PRODUCERS = [
   },
   {
     name: "Freycinet Vineyard",
-    legal_name: nil,
     region: "East Coast Tasmania",
     state: "Tasmania",
     country: "Australia",
@@ -1472,7 +1384,6 @@ PRODUCERS = [
   },
   {
     name: "Josef Chromy Wines",
-    legal_name: nil,
     region: "Tamar Valley",
     state: "Tasmania",
     country: "Australia",
@@ -1487,7 +1398,6 @@ PRODUCERS = [
   },
   {
     name: "Bay of Fires",
-    legal_name: nil,
     region: "North East Tasmania",
     state: "Tasmania",
     country: "Australia",
@@ -1502,7 +1412,6 @@ PRODUCERS = [
   },
   {
     name: "Tolpuddle Vineyard",
-    legal_name: nil,
     region: "Coal River Valley",
     state: "Tasmania",
     country: "Australia",
@@ -1517,7 +1426,6 @@ PRODUCERS = [
   },
   {
     name: "Stefano Lubiana",
-    legal_name: nil,
     region: "Derwent Valley",
     state: "Tasmania",
     country: "Australia",
@@ -1532,7 +1440,6 @@ PRODUCERS = [
   },
   {
     name: "Domaine A",
-    legal_name: nil,
     region: "Coal River Valley",
     state: "Tasmania",
     country: "Australia",
@@ -1547,7 +1454,6 @@ PRODUCERS = [
   },
   {
     name: "Pooley Wines",
-    legal_name: nil,
     region: "Coal River Valley",
     state: "Tasmania",
     country: "Australia",
@@ -1562,7 +1468,6 @@ PRODUCERS = [
   },
   {
     name: "Best's Wines",
-    legal_name: nil,
     region: "Great Western",
     state: "Victoria",
     country: "Australia",
@@ -1577,7 +1482,6 @@ PRODUCERS = [
   },
   {
     name: "Seppelt",
-    legal_name: nil,
     region: "Grampians",
     state: "Victoria",
     country: "Australia",
@@ -1592,7 +1496,6 @@ PRODUCERS = [
   },
   {
     name: "Craiglee",
-    legal_name: nil,
     region: "Sunbury",
     state: "Victoria",
     country: "Australia",
@@ -1607,7 +1510,6 @@ PRODUCERS = [
   },
   {
     name: "Bannockburn Vineyards",
-    legal_name: nil,
     region: "Geelong",
     state: "Victoria",
     country: "Australia",
@@ -1622,7 +1524,6 @@ PRODUCERS = [
   },
   {
     name: "Scotchmans Hill",
-    legal_name: nil,
     region: "Geelong",
     state: "Victoria",
     country: "Australia",
@@ -1637,7 +1538,6 @@ PRODUCERS = [
   },
   {
     name: "Punt Road Wines",
-    legal_name: nil,
     region: "Yarra Valley",
     state: "Victoria",
     country: "Australia",
@@ -1652,7 +1552,6 @@ PRODUCERS = [
   },
   {
     name: "De Iuliis",
-    legal_name: nil,
     region: "Hunter Valley",
     state: "New South Wales",
     country: "Australia",
@@ -1667,7 +1566,6 @@ PRODUCERS = [
   },
   {
     name: "Audrey Wilkinson",
-    legal_name: nil,
     region: "Hunter Valley",
     state: "New South Wales",
     country: "Australia",
@@ -1682,7 +1580,6 @@ PRODUCERS = [
   },
   {
     name: "Margan Wines",
-    legal_name: nil,
     region: "Hunter Valley",
     state: "New South Wales",
     country: "Australia",
@@ -1697,7 +1594,6 @@ PRODUCERS = [
   },
   {
     name: "Tempus Two",
-    legal_name: nil,
     region: "Hunter Valley",
     state: "New South Wales",
     country: "Australia",
@@ -1712,7 +1608,6 @@ PRODUCERS = [
   },
   {
     name: "Thomas Wines",
-    legal_name: nil,
     region: "Hunter Valley",
     state: "New South Wales",
     country: "Australia",
@@ -1727,7 +1622,6 @@ PRODUCERS = [
   },
   {
     name: "Meerea Park",
-    legal_name: nil,
     region: "Hunter Valley",
     state: "New South Wales",
     country: "Australia",
@@ -1742,7 +1636,6 @@ PRODUCERS = [
   },
   {
     name: "Keith Tulloch Wine",
-    legal_name: nil,
     region: "Hunter Valley",
     state: "New South Wales",
     country: "Australia",
@@ -1757,7 +1650,6 @@ PRODUCERS = [
   },
   {
     name: "Scarborough Wine Co",
-    legal_name: nil,
     region: "Hunter Valley",
     state: "New South Wales",
     country: "Australia",
@@ -1772,7 +1664,6 @@ PRODUCERS = [
   },
   {
     name: "Logan Wines",
-    legal_name: nil,
     region: "Orange",
     state: "New South Wales",
     country: "Australia",
@@ -1787,7 +1678,6 @@ PRODUCERS = [
   },
   {
     name: "Printhie Wines",
-    legal_name: nil,
     region: "Orange",
     state: "New South Wales",
     country: "Australia",
@@ -1802,7 +1692,6 @@ PRODUCERS = [
   },
   {
     name: "Robert Oatley Vineyards",
-    legal_name: nil,
     region: "Mudgee",
     state: "New South Wales",
     country: "Australia",
@@ -1817,7 +1706,6 @@ PRODUCERS = [
   },
   {
     name: "Huntington Estate",
-    legal_name: nil,
     region: "Mudgee",
     state: "New South Wales",
     country: "Australia",
@@ -1832,7 +1720,6 @@ PRODUCERS = [
   },
   {
     name: "Lowe Wines",
-    legal_name: nil,
     region: "Mudgee",
     state: "New South Wales",
     country: "Australia",
@@ -1847,7 +1734,6 @@ PRODUCERS = [
   },
   {
     name: "Nick O'Leary Wines",
-    legal_name: nil,
     region: "Canberra District",
     state: "New South Wales",
     country: "Australia",
@@ -1862,7 +1748,6 @@ PRODUCERS = [
   },
   {
     name: "Lark Hill",
-    legal_name: nil,
     region: "Canberra District",
     state: "New South Wales",
     country: "Australia",
@@ -1877,7 +1762,6 @@ PRODUCERS = [
   },
   {
     name: "Helm Wines",
-    legal_name: nil,
     region: "Canberra District",
     state: "New South Wales",
     country: "Australia",
@@ -1892,7 +1776,6 @@ PRODUCERS = [
   },
   {
     name: "Ravensworth",
-    legal_name: nil,
     region: "Canberra District",
     state: "New South Wales",
     country: "Australia",
@@ -1907,7 +1790,6 @@ PRODUCERS = [
   },
   {
     name: "Ngeringa",
-    legal_name: nil,
     region: "Adelaide Hills",
     state: "South Australia",
     country: "Australia",
@@ -1922,7 +1804,6 @@ PRODUCERS = [
   },
   {
     name: "Deviation Road",
-    legal_name: nil,
     region: "Adelaide Hills",
     state: "South Australia",
     country: "Australia",
@@ -1937,7 +1818,6 @@ PRODUCERS = [
   },
   {
     name: "Nepenthe",
-    legal_name: nil,
     region: "Adelaide Hills",
     state: "South Australia",
     country: "Australia",
@@ -1952,7 +1832,6 @@ PRODUCERS = [
   },
   {
     name: "Hahndorf Hill Winery",
-    legal_name: nil,
     region: "Adelaide Hills",
     state: "South Australia",
     country: "Australia",
@@ -1967,7 +1846,6 @@ PRODUCERS = [
   },
   {
     name: "Barossa Valley Estate",
-    legal_name: nil,
     region: "Barossa Valley",
     state: "South Australia",
     country: "Australia",
@@ -1982,7 +1860,6 @@ PRODUCERS = [
   },
   {
     name: "Bethany Wines",
-    legal_name: nil,
     region: "Barossa Valley",
     state: "South Australia",
     country: "Australia",
@@ -1997,7 +1874,6 @@ PRODUCERS = [
   },
   {
     name: "Schild Estate",
-    legal_name: nil,
     region: "Barossa Valley",
     state: "South Australia",
     country: "Australia",
@@ -2012,7 +1888,6 @@ PRODUCERS = [
   },
   {
     name: "Saltram",
-    legal_name: nil,
     region: "Barossa Valley",
     state: "South Australia",
     country: "Australia",
@@ -2027,7 +1902,6 @@ PRODUCERS = [
   },
   {
     name: "Hentley Farm",
-    legal_name: nil,
     region: "Barossa Valley",
     state: "South Australia",
     country: "Australia",
@@ -2042,7 +1916,6 @@ PRODUCERS = [
   },
   {
     name: "Dutschke Wines",
-    legal_name: nil,
     region: "Barossa Valley",
     state: "South Australia",
     country: "Australia",
@@ -2057,7 +1930,6 @@ PRODUCERS = [
   },
   {
     name: "First Drop Wines",
-    legal_name: nil,
     region: "Barossa Valley",
     state: "South Australia",
     country: "Australia",
@@ -2072,7 +1944,6 @@ PRODUCERS = [
   },
   {
     name: "Thorn-Clarke Wines",
-    legal_name: nil,
     region: "Barossa Valley",
     state: "South Australia",
     country: "Australia",
@@ -2087,7 +1958,6 @@ PRODUCERS = [
   },
   {
     name: "Rusden Wines",
-    legal_name: nil,
     region: "Barossa Valley",
     state: "South Australia",
     country: "Australia",
@@ -2102,7 +1972,6 @@ PRODUCERS = [
   },
   {
     name: "Sons of Eden",
-    legal_name: nil,
     region: "Barossa Valley / Eden Valley",
     state: "South Australia",
     country: "Australia",
@@ -2117,7 +1986,6 @@ PRODUCERS = [
   },
   {
     name: "Cirillo Estate Wines",
-    legal_name: nil,
     region: "Barossa Valley",
     state: "South Australia",
     country: "Australia",
@@ -2132,7 +2000,6 @@ PRODUCERS = [
   },
   {
     name: "Dandelion Vineyards",
-    legal_name: nil,
     region: "Barossa Valley / McLaren Vale",
     state: "South Australia",
     country: "Australia",
@@ -2147,7 +2014,7 @@ PRODUCERS = [
   },
 ].freeze
 
-PRODUCERS.each do |attrs|
+ALL_PRODUCERS.each do |attrs|
   grape_names = attrs.delete(:grapes) || []
 
   producer = Producer.find_or_initialize_by(name: attrs[:name])

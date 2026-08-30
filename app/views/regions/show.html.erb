@@ -1,0 +1,31 @@
+<h1><%= @region.name %></h1>
+
+<div class="wine-detail__section">
+  <h2>Details</h2>
+  <p><strong>Country:</strong> <%= @region.country.flag_emoji %> <%= link_to @region.country.name, country_path(@region.country.id) %></p>
+  <p><strong>Type:</strong>
+    <% type_labels = [] %>
+    <% type_labels << "State" if @region.is_state %>
+    <% type_labels << "Appellation" if @region.is_appellation %>
+    <%= type_labels.any? ? type_labels.join(" / ") : "Region" %>
+  </p>
+  <p><strong>Parent:</strong> <%= @region.parent.name if @region.parent %></p>
+</div>
+
+<div class="wine-detail__section">
+  <h2>Wines</h2>
+  <% if @region.wines.any? %>
+    <ul>
+      <% @region.wines.each do |wine| %>
+        <li><%= link_to wine.name, wine_path(wine.slug) %></li>
+      <% end %>
+    </ul>
+  <% else %>
+    <p>No wines are associated with this region yet.</p>
+  <% end %>
+</div>
+
+<div class="page-actions">
+  <%= link_to "Edit", edit_region_path(@region.id), class: "btn" %>
+  <%= button_to "Delete", region_path(@region.id), method: :delete, class: "btn btn--delete",
+        form: { data: { confirm: "Delete this region? This action cannot be undone." } } %></div>

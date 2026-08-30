@@ -546,11 +546,17 @@ Create a table for countries.
 
 ---
 
-Create the table regions with attributes name, parent_id(if the region has a parent), is_state, is_appellation, country_id(with relationship with country)
+Create the table regions with attributes name, country_id(with relationship with country), parent_id(if the region has a parent), is_state, is_appellation.
 
 Create a relationship many to many between wine and region. Add it to the interface when create/edit wine using a select box, where user can select multible regions.
 
+Populate the database with the file db/seeds/regions.rb. where the country is the relashionship with country.
+
 ---
+
+Create the interface for Regions. Add the link in the Settings.
+
+Show the regions in a idented tree where I can open and close the leaves.
 
 Add the missing attributes to Producers table. Reflect it to the interface.
 
@@ -699,3 +705,7 @@ GERAÇÃO DO PDF — REGRAS TÉCNICAS:
 - Páginas A4, margens ~2cm, cabeçalho/rodapé com nome do relatório e número de página.
 
 Me entregue ao final: o relatório em PDF, a lista de achados no chat (arquivo por arquivo, linha por linha) e o caminho de todos os arquivos gerados.
+
+---
+
+load Rails.root.join("db/seeds/regions_2.rb")

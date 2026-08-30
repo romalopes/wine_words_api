@@ -6,14 +6,15 @@ class Wine < ApplicationRecord
   has_many :wine_taste_parameters, dependent: :destroy
   has_many :taste_parameters, through: :wine_taste_parameters
   has_many :vintages, dependent: :destroy
-  has_many :wine_grapes, dependent: :destroy
+      has_many :wine_grapes, dependent: :destroy
   has_many :grapes, through: :wine_grapes
+  has_many :wine_regions, dependent: :destroy
+  has_many :regions, through: :wine_regions, source: :region
 
   accepts_nested_attributes_for :vintages, allow_destroy: true, reject_if: :all_blank
   accepts_nested_attributes_for :wine_taste_parameters, allow_destroy: true, reject_if: :all_blank
 
   validates :name, presence: true
-  validates :region, presence: true
   validates :color, presence: true
   # Closure must be one of the known options — a blank value is rejected
   # (use the model default instead). Mirrors the colour requirement.

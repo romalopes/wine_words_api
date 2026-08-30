@@ -203,7 +203,7 @@
           wines.forEach(function (wine) {
             resultsBox.appendChild(makeButton(
               wine.name,
-              [wine.color, wine.region].filter(Boolean).join(" · "),
+              [wine.color].filter(Boolean).join(" · "),
               function () {
                 if (selectedWine !== wine) selectWine(wine);
               }
