@@ -579,7 +579,33 @@ In the show of region. Show the tree relating to the region from the country unt
 
 ---
 
-Instead of showing the number of children(regions) per country, do it more complex. Sum all the wines from all children and show the count.
+Instead of showing the number of children(regions) per country, do it more complex. Sum all the wines from all children and show the count of all wines of all leaves.
+For exemple, if we have the following tree:
+
+- Australia
+  - New South Wales
+    - Big Rivers
+      - Perricoota
+      - Riverina
+    - Central Rangers
+      - Orange
+    - Hunter valley
+
+If we have: - 1 Wines linked to Big Rivers - 2 wines linked to Perricoota - 2 wines linked to Riverina - 3 wines linked to Orange - 5 Wines linked to Hunter Valley
+
+    In Australia leaf it should show the sum of all children = 13
+    In Big Rivers leaf should show the wines from Perricota(2) + Riverina(2) + Big Rivers(1) = 5
+    In Orange leaf it should show 3
+    - In Centra Rangers also 3, which is the value from it child Orange.
+    - In Hunter Valley leaf, 5
+
+## Also, only show countries that have wines linked to their regions.
+
+In the list of producers, when the user click on the number of wines(fifth column "Wines"), instead of showing the wines in the same way as the dashboad or wine click, show the wines in a list, one wine per row, similar to the way the producers are shown. Create a new page for that. Leave the buttons edit/delete and if the user click on the name of the wine, it will go to show wine.
+
+In each row, the system should show:
+
+- Name, Producer(link to producer), Regions(link to the regions),
 
 Add the missing attributes to Producers table. Reflect it to the interface.
 

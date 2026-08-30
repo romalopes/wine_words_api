@@ -16,38 +16,47 @@ class Region < ApplicationRecord
     # Get all regions with their countries
     all_regions = includes(:country).order(:name)
     
+    # Get wine counts per region (region_id => count) in a single query
+    wine_counts = WineRegion.group(:region_id).count
+    
     # Group by country and build tree structure
     countries = Country.includes(:regions).order(:name)
 
     countries.map do |country|
+      tree = build_region_tree(all_regions, country.id, wine_counts)
       {
         id: country.id,
         name: country.name,
         code: country.code,
         flag_emoji: country.flag_emoji,
         continent: country.continent,
-        regions: build_region_tree(all_regions, country.id)
+        wine_count: tree.sum { |r| r[:wine_count] },
+        regions: tree
       }
     end
   end
 
   # Recursively build region tree for a country
-  def self.build_region_tree(all_regions, country_id)
+  def self.build_region_tree(all_regions, country_id, wine_counts)
     # Get top-level regions for this country
     country_regions = all_regions.select { |r| r.country_id == country_id }
-    build_tree_nodes(country_regions, nil)
+    build_tree_nodes(country_regions, nil, wine_counts)
   end
 
-  # Build tree nodes recursively
-  def self.build_tree_nodes(regions, parent_id = nil)
+  # Build tree nodes recursively, computing wine counts bottom-up
+  def self.build_tree_nodes(regions, parent_id, wine_counts)
     nodes = regions.select { |r| r.parent_id == parent_id }.map do |region|
+      children = build_tree_nodes(regions, region.id, wine_counts)
+      direct_wines = wine_counts[region.id] || 0
+      child_wines = children.sum { |c| c[:wine_count] }
       {
         id: region.id,
         name: region.name,
         is_state: region.is_state,
         is_appellation: region.is_appellation,
         parent_id: region.parent_id,
-        children: build_tree_nodes(regions, region.id)
+        wine_count: direct_wines + child_wines,
+        children: children
       }
     end
 
