@@ -14,6 +14,9 @@
 # a join model), this script will associate producers to existing Grape
 # records by name, creating any that don't exist yet with just a name.
 
+Producer.delete_all
+ActiveRecord::Base.connection.reset_pk_sequence!('producers')
+
 ALL_PRODUCERS = [
   {
     name: "Penfolds",
@@ -2021,12 +2024,8 @@ ALL_PRODUCERS.each do |attrs|
   producer.assign_attributes(attrs)
   producer.save!
 
-  if defined?(Grape) && producer.respond_to?(:grapes)
-    grape_records = grape_names.map do |gname|
-      Grape.find_or_create_by!(name: gname)
-    end
-    producer.grapes = grape_records
-  end
+   # MAKE  TO ASSOCIATE GRAPES WITH THE PRODUCER BASED ON THE GRAPE NAMES
+   # MAKE THE ASSOCIATION BETWEEN THE PRODUCER AND THE REGIONS.
 
   puts "Seeded producer: #{producer.name}"
 end

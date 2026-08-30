@@ -1,6 +1,9 @@
 # Seed wine-producing countries and link grapes to their country of origin.
 # Usage: rails runner db/seeds/countries.rb   (or require from db/seeds.rb)
 
+Country.delete_all
+ActiveRecord::Base.connection.reset_pk_sequence!('countries')
+
 countries_data = [
   { name: "Argentina",      code: "AR", continent: "South America", flag_emoji: "🇦🇷" },
   { name: "Australia",      code: "AU", continent: "Oceania",       flag_emoji: "🇦🇺" },

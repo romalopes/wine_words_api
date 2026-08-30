@@ -3,6 +3,9 @@
 # Seeds Region records as a nested tree: Country -> State/Region -> Appellation
 # Usage: rails runner db/seeds/regions.rb
 
+Region.delete_all
+ActiveRecord::Base.connection.reset_pk_sequence!('regions')
+
 REGIONS = {
   "Australia" => {
     "South Australia" => {
@@ -1205,26 +1208,35 @@ REGIONS = {
   }
 }
 
-def seed_regions(tree, country = nil, parent = nil)
+def seed_regions(tree, country, parent = nil)
   tree.each do |name, payload|
     puts "\n\n\nname:#{name} ---- payload:#{payload}\n\n\n"
 
-    country = Country.find_by(name: name) if parent.nil?
     is_state = payload[:is_state] || false
     is_appellation = payload[:is_appellation] || false
     children = payload[:children]
-
+puts "\n1\n"
     region = Region.find_or_create_by!(name: name, country: country, parent: parent) do |r|
       r.is_state = is_state
       r.is_appellation = is_appellation
     end
-
+puts "\n2\n"
     region.update!(is_state: is_state, is_appellation: is_appellation)
-
+puts "\n3\n"
     seed_regions(children, country, region) if children.is_a?(Hash) && children.any?
+puts "\n4\n"
   end
 end
 
-seed_regions(REGIONS)
+def seed_countries(tree)
+  tree.each do |name, payload|
+    puts "\n\n\nname:#{name} " #---- payload:#{payload}\n\n\n"
+    country = Country.find_or_create_by!(name: name)
+    puts "Seeding regions for country: #{country.name}"
+    seed_regions(payload, country) if payload.is_a?(Hash) && payload.any?
+  end
+end
+
+seed_countries(REGIONS)
 
 puts "Done. Seeded #{Region.count} region records."

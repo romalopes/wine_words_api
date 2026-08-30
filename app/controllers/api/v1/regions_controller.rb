@@ -51,6 +51,7 @@ class Api::V1::RegionsController < ApplicationController
       country_id: region.country_id,
       country: region.country ? { id: region.country.id, name: region.country.name, code: region.country.code, flag_emoji: region.country.flag_emoji } : nil,
       parent_id: region.parent_id,
+      parent_name: region.parent_id ? region.parent&.name : nil,
       is_state: region.is_state,
       is_appellation: region.is_appellation,
     }

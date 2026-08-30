@@ -7,7 +7,7 @@ class Region < ApplicationRecord
   has_many :wines, through: :wine_regions
 
   validates :name, presence: true
-  validates :name, uniqueness: { scope: :country_id }
+  validates :name, uniqueness: { scope: :parent_id }
   validates :country, presence: true
   validate :parent_must_be_in_same_country
 

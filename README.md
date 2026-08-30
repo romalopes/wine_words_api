@@ -554,9 +554,30 @@ Populate the database with the file db/seeds/regions.rb. where the country is th
 
 ---
 
-Create the interface for Regions. Add the link in the Settings.
+Change the interface to show the list of regions.
 
-Show the regions in a idented tree where I can open and close the leaves.
+Show the regions in a idented tree where I can open and close the leaves. Only show the names. Start with only Autralia leaf open as "+". All other countries should be closed as "-"
+
+The tree should be like:
+
+- Country(show the name and flag)
+  - Region(that can be a State)
+    - Region
+      - Region
+        - Region
+- Country
+  - Region(that can be a State)
+    - Region
+
+* Country
+* Australia
+  - New South Wales
+    - Central Ranges
+      ...
+
+In the show of region. Show the tree relating to the region from the country until the last leaves, highlighting the specificied region.
+
+---
 
 Add the missing attributes to Producers table. Reflect it to the interface.
 
@@ -580,13 +601,13 @@ t.integer :founded_year
 t.boolean :active, default: true
 `
 
-Also create relationship to country and to region.
+Populate the table with the information based on the file wine_prediction_api/db/seeds/producers.rb.
 
-Also, create a relationship many to many between producers and grapes to reflect the grape portifolio of this producer.
+- Modify the file wine_prediction_api/db/seeds/producers.rb. to reflect the specially from 2027 and 2028 to make the relationships with grapes and regions. It should find the grapes in the list of grapes and add in the list grapes. Also, it should find the region and add it to the list of regions.
 
-Create the relatinships many to many with grape.
-
-Populate the table with the information based on the file wine_prediction_api/db/seeds/producerss.rb.
+Create relationship to country.
+Create relationship many to many to regions. In the interface allow adding it using the search method like in other places.
+Create relationship many to many to grapes. In the interface allow adding it using the search method like in other places.
 
 Change the interface rails and react to reflect the new attributes and grapes, allowing to add/remove grapes using the search mechanism.
 

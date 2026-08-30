@@ -174,7 +174,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_30_030028) do
     t.bigint "parent_id"
     t.datetime "updated_at", null: false
     t.index ["country_id"], name: "index_regions_on_country_id"
-    t.index ["name", "country_id"], name: "index_regions_on_name_and_country_id", unique: true
+    t.index ["name", "parent_id"], name: "index_regions_on_name_and_parent_id"
     t.index ["parent_id"], name: "index_regions_on_parent_id"
   end
 

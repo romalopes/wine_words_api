@@ -1,6 +1,9 @@
 # Seed grapes from the grapes.js data
 # Run with: rails db:seed:grapes
 
+Grape.delete_all
+ActiveRecord::Base.connection.reset_pk_sequence!('grapes')
+
 grapes_data = [
   {
     name: "Cabernet Sauvignon",

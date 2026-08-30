@@ -9,7 +9,7 @@ class CreateRegionsAndWineRegionsJoinTableAndJoinTable < ActiveRecord::Migration
 
         add_reference :regions, :country, null: false, foreign_key: true
     add_reference :regions, :parent, null: true, foreign_key: { to_table: :regions }
-    add_index :regions, [:name, :country_id], unique: true, name: "index_regions_on_name_and_country_id"
+    add_index :regions, [:name, :parent_id], name: "index_regions_on_name_and_parent_id"
 
         create_table :wine_regions do |t|
       t.bigint :wine_id, null: false
