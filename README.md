@@ -627,15 +627,25 @@ In the list of producers, when the user click on the number of wines(fifth colum
 
 In each row, the system should show:
 
-- Name, Producer(link to producer), Regions(link to the regions),
+- Name, Producer(link to producer), Regions(link to the regions), Number of vintages.
+
+---
+
+Create a component with this table of wines. In the show of the Producer(ProducerDetails.jsx from line 309), Regions(RegionDetails.jsx from line 121) and Category show the wines using this table style.
+
+Also, in the Regions details, line in producerDetails, add the search to add wine to the region.
+
+also, do both, the search to add wine and the list of wines for grape.
+
+In the grape list, put the number of wines linked to that grape. And if the user clicks on it, show the wines using the component of table of wines.
+
+Do the same for rails and react apps.
+
+---
 
 Add the missing attributes to Producers table. Reflect it to the interface.
 
-`t.string :name, null: false
 t.string :legal_name
-
-t.integer :producer_type, null: false
-t.text :description
 
 t.string :website
 
