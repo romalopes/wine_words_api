@@ -1,25 +1,6 @@
 # db/seeds/producer_seeds.rb
 #
 # Seeds Producer records for major Australian wine producers.
-# Generated from producers_all.js — see notes in that file regarding
-# fields intentionally left blank (email, phone, instagram, facebook,
-# most legal_name/address values) pending verified enrichment.
-#
-# Usage: rails runner db/seeds/producer_seeds.rb
-#   or require it from db/seeds.rb
-#
-# Assumes a Producer model with the columns below. If you also have a
-# Grape model (e.g. from grapes.js) with a unique `name` column and a
-# many-to-many association `has_and_belongs_to_many :grapes` (or through
-# a join model), this script will associate producers to existing Grape
-# records by name, creating any that don't exist yet with just a name.
-
-# Producer.delete_all
-# ActiveRecord::Base.connection.reset_pk_sequence!('producers')
-
-# db/seeds/producer_seeds.rb
-#
-# Seeds Producer records for major Australian wine producers.
 # Updated with logo_url support, new producers (including Pedlidis),
 # and complete Grape/Region association logic.
 #
@@ -44,7 +25,7 @@ ALL_PRODUCERS = [
     website: "https://www.pedlidiswines.com.au",
     logo_url: "https://www.pedlidiswines.com.au/assets/logo.png",
     founded_year: 2015,
-    grapes: ["Riesling", "Shiraz", "Grenache", "Mataro"]
+    grapes: ["Shiraz", "Grenache", "Mataro"]
   },
   {
     name: "Alkina Wine Estate",
@@ -2310,16 +2291,21 @@ ALL_PRODUCERS = [
   }
 ].freeze
 
-
-# ALL_PRODUCERS.each do |attrs|
+# ALL_PRODUCERS.each do |producer_attrs|
+#   attrs = producer_attrs.dup
 #   grape_names = attrs.delete(:grapes) || []
 
 #   producer = Producer.find_or_initialize_by(name: attrs[:name])
 #   producer.assign_attributes(attrs)
 #   producer.save!
 
-#    # MAKE  TO ASSOCIATE GRAPES WITH THE PRODUCER BASED ON THE GRAPE NAMES
-#    # MAKE THE ASSOCIATION BETWEEN THE PRODUCER AND THE GRAPES
+#   # Associated Grape lookup and linkage
+#   if defined?(Grape)
+#     grapes = grape_names.map do |g_name|
+#       Grape.find_or_create_by!(name: g_name)
+#     end
+#     producer.grapes = grapes
+#   end
 
 #   puts "Seeded producer: #{producer.name}"
 # end

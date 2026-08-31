@@ -12,7 +12,11 @@
 
   <h1><%= @article.title %></h1>
   <p class="lede">
-    <%= [@article.category&.name, "by #{@article.user.name.presence || @article.user.email}", @article.published_at&.strftime("%B %d, %Y")].compact.join(" · ") %>
+    <%= [
+      (@article.category ? link_to(@article.category.name, category_path(@article.category.id), class: "text-link") : nil),
+      "by #{@article.user.name.presence || @article.user.email}",
+      @article.published_at&.strftime("%B %d, %Y")
+    ].compact.join(" · ").html_safe %>
     <span class="tag"><%= @article.status %></span>
     <% @article.tags.each do |tag| %>
       <span class="tag"><%= tag.name %></span>

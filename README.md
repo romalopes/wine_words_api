@@ -647,7 +647,18 @@ Add the list of grapes in the componet table of the wines.
 
 In rails app, when I click in the Category(in the list of categories, it goes to a show category). Do the same with react.
 
-## In both rails and react apps, in the show category. List the wines, reviews, artices linked to the this category. Create similar componenets as wines table to reviews and articles to show them as tables.
+In both rails and react apps, in the show category. List the wines, reviews, artices linked to the this category. Create similar componenets as wines table to reviews and articles to show them as tables.
+
+---
+
+In rails app, in the list of categories, when I click in a category, it goes to the show category, but it just shows:
+"No articles in this category yet."
+
+Show the list of wines, reviews and article using the component table.
+
+In react app, in the list of categories, when I click in a category it is not going to show category. Do the same as with rails, show a table with all wines, reviews and article linked to this category using the component table.
+
+---
 
 Add the missing attributes to Producers table. Reflect it to the interface.
 
@@ -666,6 +677,7 @@ t.integer :founded_year
 
 t.boolean :active, default: true
 `
+Also add a logo_url to be added a image(logo) for each producer if they have it.
 
 Populate the table with the information based on the file wine_prediction_api/db/seeds/producers.rb.
 

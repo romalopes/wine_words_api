@@ -30,7 +30,8 @@ class WineSerializer
           year: v.year,
           prompt: v.prompt,
           price: v.price&.to_f,
-          no_vintage: v.no_vintage
+          no_vintage: v.no_vintage,
+          reviews_count: v.reviews.size
         }
       end
     }

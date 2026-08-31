@@ -24,6 +24,9 @@
   <% end %>
   <ul class="facts" aria-label="Review details">
     <li><strong>Status:</strong> <%= @review.status %></li>
+    <% if @review.category.present? %>
+      <li><strong>Category:</strong> <%= link_to @review.category.name, category_path(@review.category.id), class: "text-link" %></li>
+    <% end %>
     <% if @review.drink_from.present? || @review.drink_to.present? %>
       <% window = [@review.drink_from, "–", @review.drink_to].map(&:to_s).reject(&:blank?).join %>
       <li><strong>Drinking window:</strong> <%= "#{window}#{'+' if @review.drink_plus}" %></li>

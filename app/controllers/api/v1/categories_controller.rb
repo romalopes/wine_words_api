@@ -1,5 +1,5 @@
 class Api::V1::CategoriesController < ApplicationController
-  skip_before_action :authenticate_user!, only: [:index]
+  skip_before_action :authenticate_user!, only: [:index, :show]
 
   SORT_COLUMNS = {
     "wine" => :sort_order_wine,
@@ -31,6 +31,50 @@ class Api::V1::CategoriesController < ApplicationController
         sort_order_review: c.sort_order_review,
         sort_order_article: c.sort_order_article }
     end
+  end
+
+  # Category show: returns the category plus its wines, reviews and articles
+  # (used by the React category detail page).
+  def show
+    category = Category.find(params[:id])
+
+    wines = category.wines.includes(
+      wine_taste_parameters: :taste_parameter, vintages: [], producer: [],
+      grapes: [], regions: [:country]
+    ).order(:name)
+
+    reviews = category.reviews
+    reviews = reviews.visible_to(current_user) unless current_user&.wine_manager?
+    reviews = reviews.by_recency.includes(:user, vintage: :wine)
+
+    articles =
+      if current_user&.wine_manager? || user_signed_in?
+        category.articles.visible_to(current_user)
+      else
+        category.articles.published
+      end.recent
+
+    render json: {
+      id: category.id,
+      name: category.name,
+      slug: category.slug,
+      for_wine: category.for_wine,
+      for_review: category.for_review,
+      for_article: category.for_article,
+      wines: wines.map { |wine| WineSerializer.new(wine, request.base_url).as_json },
+      reviews: reviews.map { |review| ReviewSerializer.new(review, request.base_url).as_json },
+      articles: articles.map do |article|
+        {
+          id: article.id,
+          title: article.title,
+          status: article.status,
+          author: article.user&.name.presence || article.user&.email,
+          published_at: article.published_at&.iso8601
+        }
+      end
+    }
+  rescue ActiveRecord::RecordNotFound
+    render json: { error: "Category not found" }, status: :not_found
   end
 
   def create

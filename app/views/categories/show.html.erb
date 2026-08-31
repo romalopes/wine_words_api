@@ -1,24 +1,78 @@
-<% content_for :title, "#{@category.name} · Articles" %>
+<% content_for :title, "#{@category.name} · Category" %>
 <h1>Category: <%= @category.name %></h1>
 <%= link_to "← All categories", categories_path, class: "back-link" %>
-<% if @articles.any? %>
-  <section class="wine-grid" aria-label="Articles">
-    <% @articles.each do |article| %>
-      <div class="card-wrapper">
-        <%= link_to article_path(article.id), class: "wine-card" do %>
-          <% if article.images.attached? %>
-            <%= image_tag url_for(article.images.first), class: "card-thumb", alt: article.title %>
-          <% end %>
-          <div class="wine-card__band"></div>
-          <div class="wine-card__content">
-            <h2><%= article.title %></h2>
-            <p class="region">by <%= article.user.name.presence || article.user.email %></p>
-            <span class="tag"><%= article.status %></span>
-          </div>
+
+<div class="wine-detail__section">
+  <h2>Wines</h2>
+  <% if @wines.any? %>
+    <%= render "wines/wine_table", wines: @wines %>
+  <% else %>
+    <p class="empty">No wines in this category yet.</p>
+  <% end %>
+</div>
+
+<div class="wine-detail__section">
+  <h2>Reviews</h2>
+  <% if @reviews.any? %>
+    <table class="grapes-table producers-table">
+      <thead>
+        <tr>
+          <th>Score</th>
+          <th>Wine</th>
+          <th>Vintage</th>
+          <th>Reviewer</th>
+          <th>Status</th>
+          <th>Published</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @reviews.each_with_index do |review, index| %>
+          <tr class="<%= index.even? ? "grapes-row--even" : "grapes-row--odd" %>">
+            <td><strong><%= review.score %></strong></td>
+            <td>
+              <% if review.vintage&.wine %>
+                <%= link_to review.vintage.wine.name, wine_path(review.vintage.wine.slug), class: "grapes-table__link" %>
+              <% else %>
+                —
+              <% end %>
+            </td>
+            <td><%= review.vintage&.no_vintage ? "NV" : review.vintage&.year || "—" %></td>
+            <td><%= review.user.name.presence || review.user.email %></td>
+            <td><%= review.status %></td>
+            <td><%= review.published_at&.strftime("%Y-%m-%d") || "—" %></td>
+          </tr>
         <% end %>
-      </div>
-    <% end %>
-  </section>
-<% else %>
-  <p class="empty">No articles in this category yet.</p>
-<% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="empty">No reviews in this category yet.</p>
+  <% end %>
+</div>
+
+<div class="wine-detail__section">
+  <h2>Articles</h2>
+  <% if @articles.any? %>
+    <table class="grapes-table producers-table">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Author</th>
+          <th>Status</th>
+          <th>Published</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @articles.each_with_index do |article, index| %>
+          <tr class="<%= index.even? ? "grapes-row--even" : "grapes-row--odd" %>">
+            <td><%= link_to article.title, article_path(article.id), class: "grapes-table__link" %></td>
+            <td><%= article.user.name.presence || article.user.email %></td>
+            <td><%= article.status %></td>
+            <td><%= article.published_at&.strftime("%Y-%m-%d") || "—" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="empty">No articles in this category yet.</p>
+  <% end %>
+</div>

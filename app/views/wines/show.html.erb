@@ -3,7 +3,7 @@
   <%= link_to "← All wines", wines_path, class: "back-link" %>
   <h1><%= @wine.name %></h1>
   <p class="lede">
-    <% if @wine.producer.present? %><%= link_to @wine.producer.name, producer_path(@wine.producer.slug), class: "text-link" %> · <% end %><%= @wine.color %><%= " · " %><strong><%= @wine.category&.name || "Uncategorized" %></strong>
+    <% if @wine.producer.present? %><%= link_to @wine.producer.name, producer_path(@wine.producer.slug), class: "text-link" %> · <% end %><%= @wine.color %><%= " · " %><strong><% if @wine.category %><%= link_to @wine.category.name, category_path(@wine.category.id), class: "text-link" %><% else %>Uncategorized<% end %></strong>
   </p>
   <% if can_manage_wines? %>
     <div class="page-actions">

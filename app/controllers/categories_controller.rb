@@ -17,6 +17,13 @@ class CategoriesController < ActionController::Base
       else
         @category.articles.published.recent
       end
+    @wines = @category.wines.includes(:producer, :regions, :vintages).order(:name)
+    @reviews =
+      if user_signed_in?
+        @category.reviews.visible_to(current_user)
+      else
+        @category.reviews.published
+      end.by_recency.includes(:user, vintage: :wine)
   end
 
   def new
