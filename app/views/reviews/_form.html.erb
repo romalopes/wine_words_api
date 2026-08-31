@@ -66,8 +66,17 @@
     <%= f.label :drink_plus, "Can be extended (+)" %>
   </div>
   <div class="field">
-    <%= f.label :category_id, "Category" %><br>
-    <%= f.collection_select :category_id, Category.where(for_review: true).order(sort_order_review: :asc), :id, :name, include_blank: true %>
+    <%= f.label :category_ids, "Categories" %><br>
+    <div class="category-checkboxes">
+      <% Category.where(for_review: true).order(sort_order_review: :asc).each do |cat| %>
+        <label class="category-checkbox">
+          <%= check_box_tag "review[category_ids][]", cat.id,
+                review.categories.include?(cat),
+                id: "review_category_ids_#{cat.id}" %>
+          <%= cat.name %>
+        </label>
+      <% end %>
+    </div>
   </div>
   <div>
     <%= f.label :comment %><br>

@@ -43,6 +43,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_30_030028) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
+  create_table "article_categories", force: :cascade do |t|
+    t.bigint "article_id", null: false
+    t.bigint "category_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["article_id", "category_id"], name: "index_article_categories_on_article_id_and_category_id", unique: true
+    t.index ["article_id"], name: "index_article_categories_on_article_id"
+    t.index ["category_id"], name: "index_article_categories_on_category_id"
+  end
+
   create_table "article_producers", force: :cascade do |t|
     t.bigint "article_id", null: false
     t.datetime "created_at", null: false
@@ -178,6 +188,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_30_030028) do
     t.index ["parent_id"], name: "index_regions_on_parent_id"
   end
 
+  create_table "review_categories", force: :cascade do |t|
+    t.bigint "category_id", null: false
+    t.datetime "created_at", null: false
+    t.bigint "review_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["category_id"], name: "index_review_categories_on_category_id"
+    t.index ["review_id", "category_id"], name: "index_review_categories_on_review_id_and_category_id", unique: true
+    t.index ["review_id"], name: "index_review_categories_on_review_id"
+  end
+
   create_table "reviews", force: :cascade do |t|
     t.bigint "category_id"
     t.text "comment"
@@ -256,6 +276,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_30_030028) do
     t.bigint "wine_id"
     t.integer "year", null: false
     t.index ["wine_id"], name: "index_vintages_on_wine_id"
+  end
+
+  create_table "wine_categories", force: :cascade do |t|
+    t.bigint "category_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "wine_id", null: false
+    t.index ["category_id"], name: "index_wine_categories_on_category_id"
+    t.index ["wine_id", "category_id"], name: "index_wine_categories_on_wine_id_and_category_id", unique: true
+    t.index ["wine_id"], name: "index_wine_categories_on_wine_id"
   end
 
   create_table "wine_grapes", force: :cascade do |t|
@@ -337,6 +367,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_30_030028) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "article_categories", "articles"
+  add_foreign_key "article_categories", "categories"
   add_foreign_key "article_producers", "articles"
   add_foreign_key "article_producers", "producers"
   add_foreign_key "article_reviews", "articles"
@@ -350,12 +382,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_30_030028) do
   add_foreign_key "grapes", "countries"
   add_foreign_key "regions", "countries"
   add_foreign_key "regions", "regions", column: "parent_id"
+  add_foreign_key "review_categories", "categories"
+  add_foreign_key "review_categories", "reviews"
   add_foreign_key "reviews", "categories"
   add_foreign_key "reviews", "users"
   add_foreign_key "reviews", "vintages"
   add_foreign_key "user_roles", "roles"
   add_foreign_key "user_roles", "users"
   add_foreign_key "vintages", "wines"
+  add_foreign_key "wine_categories", "categories"
+  add_foreign_key "wine_categories", "wines"
   add_foreign_key "wine_grapes", "grapes"
   add_foreign_key "wine_grapes", "wines"
   add_foreign_key "wine_profile_taste_parameters", "taste_parameters"

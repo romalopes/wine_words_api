@@ -13,8 +13,9 @@ class ArticleSerializer
       status: @article.status,
       author_name: @article.user&.name || @article.user&.email || "Unknown",
       user_id: @article.user_id,
-                  category: @article.category&.name,
+      category: @article.categories.map(&:name).join(", ").presence,
       category_id: @article.category_id,
+      categories: @article.categories.map { |c| { id: c.id, name: c.name, slug: c.slug } },
       tags: @article.tags.map(&:name),
       wines: wine_list,
       vintages: vintage_list,
@@ -47,7 +48,7 @@ class ArticleSerializer
         wine_id: vintage.wine_id,
         wine_name: vintage.wine&.name,
         wine_slug: vintage.wine&.slug,
-        region: vintage.wine&.region,
+        region: vintage.wine&.regions&.map(&:name)&.join(", "),
         color: vintage.wine&.color
       }.compact
     end.compact

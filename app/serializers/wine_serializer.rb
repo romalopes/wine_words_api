@@ -19,8 +19,9 @@ class WineSerializer
             images: image_urls(@wine),
       image_ids: image_ids(@wine),
       producer: producer,
-      category: @wine.category&.name,
+      category: @wine.categories.map(&:name).join(", ").presence,
       category_id: @wine.category_id,
+      categories: categories_list(@wine),
       grapes: grapes,
       regions: regions,
       parameters: parameters,
@@ -103,6 +104,12 @@ end
         is_state: region.is_state,
         is_appellation: region.is_appellation
       }
+    end
+  end
+
+  def categories_list(wine)
+    wine.categories.map do |cat|
+      { id: cat.id, name: cat.name, slug: cat.slug }
     end
   end
 end

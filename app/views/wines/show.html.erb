@@ -3,7 +3,7 @@
   <%= link_to "← All wines", wines_path, class: "back-link" %>
   <h1><%= @wine.name %></h1>
   <p class="lede">
-    <% if @wine.producer.present? %><%= link_to @wine.producer.name, producer_path(@wine.producer.slug), class: "text-link" %> · <% end %><%= @wine.color %><%= " · " %><strong><% if @wine.category %><%= link_to @wine.category.name, category_path(@wine.category.id), class: "text-link" %><% else %>Uncategorized<% end %></strong>
+    <% if @wine.producer.present? %><%= link_to @wine.producer.name, producer_path(@wine.producer.slug), class: "text-link" %> · <% end %><%= @wine.color %><%= " · " %><strong><% if @wine.categories.any? %><%= @wine.categories.map { |c| link_to c.name, category_path(c.id), class: "text-link" }.join(", ").html_safe %><% else %>Uncategorised<% end %></strong>
   </p>
   <% if can_manage_wines? %>
     <div class="page-actions">
@@ -23,7 +23,7 @@
       <li><strong>Alcohol:</strong> <%= @wine.alcohol_percentage %>% ABV</li>
     <% end %>
     <% if @wine.volume_ml.present? %>
-            <li><strong>Volume:</strong> <%= @wine.volume_label %></li>
+      <li><strong>Volume:</strong> <%= @wine.volume_label %></li>
     <% end %>
     <% if @wine.color.present? %>
       <li><strong>Colour:</strong> <%= @wine.color %></li>

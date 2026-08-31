@@ -79,14 +79,14 @@ class Api::V1::WinesController < ApplicationController
 
   def wine_params
     permitted = params.require(:wine).permit(
-      :name, :color, :sparkling, :prompt, :closure, :alcohol_percentage, :volume_ml, :producer_id, :category_id,
+      :name, :color, :sparkling, :prompt, :closure, :alcohol_percentage, :volume_ml, :producer_id,
       images: [],
       grape_ids: [],
       region_ids: [],
+      category_ids: [],
       vintages_attributes: [:id, :year, :prompt, :price, :no_vintage, :_destroy],
       wine_taste_parameters_attributes: [:id, :taste_parameter_id, :taste_parameter_slug, :score, :_destroy]
     )
-
 
     # Convert taste_parameter_slug to taste_parameter_id
     if permitted[:wine_taste_parameters_attributes]

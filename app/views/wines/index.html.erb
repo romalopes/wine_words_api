@@ -7,52 +7,52 @@
   </div>
 <% end %>
 <% if @wines.any? %>
-  <% 
-    grouped = @wines.includes(:category).group_by { |w| w.category&.name || "Uncategorized" }
+  <%
+    grouped = @wines.includes(:category).group_by { |w| w.category&.name || "Uncategorised" }
     sorted_groups = category_group_sort(grouped, :sort_order_wine)
     sorted_groups.each_with_index do |(group_name, wines_in_group), gi|
   %>
-    <section class="wine-grid-group" aria-labelledby="group-<%= gi %>">
-      <h2 id="group-<%= gi %>" class="group-title"><%= group_name %></h2>
-      <section class="wine-grid" aria-label="Wines in <%= group_name %>">
-        <% wines_in_group.each do |wine| %>
-      <div class="card-wrapper">
-        <% if can_manage_wines? %>
-          <div class="card-actions">
-            <%= link_to "Edit", edit_wine_path(wine.slug), class: "card-action" %>
-            <%= button_to "Delete", wine_path(wine.slug), method: :delete, form_class: "card-delete-form", class: "card-action card-action--delete", onclick: %(return confirm('Delete this item? This action cannot be undone.')) %>
-          </div>
-        <% end %>
-        <%= link_to wine_path(wine.slug), class: "wine-card #{wine_color_class(wine)}" do %>
-          <% if wine.images.attached? %>
-          <%= image_tag url_for(wine.images.first), class: "card-thumb", alt: wine.name %>
-        <% end %>
-        <div class="wine-card__band"></div>
-          <div class="wine-card__content">
-            <h2><%= wine.name %></h2>
-            <p class="region"><%= [wine.producer&.name, wine.color].compact.join(" · ") %></p>
-            <% if wine.grapes.any? %>
-              <p class="details"><strong>Grapes:</strong> <%= wine.grapes.order(:name).limit(3).map(&:name).join(", ") %><%= "…" if wine.grapes.size > 3 %></p>
-            <% end %>
-            <% if wine.regions.any? %>
-              <p class="details"><strong>Regions:</strong> <%= wine.regions.limit(3).map(&:name).join(", ") %><%= "…" if wine.regions.size > 3 %></p>
-            <% end %>
-            <% if wine_details(wine).present? %>
-              <p class="details"><%= wine_details(wine) %></p>
-            <% end %>
-            <div class="vintages">
-              <%= pluralize(wine.vintages.size, "vintage") %>
-              <%# wine.taste_parameters.each do |parameter| %>
-                <!-- <span class="tag"><%#= parameter.label %></span> -->
-                <%# end %>
-              </div>
+  <section class="wine-grid-group" aria-labelledby="group-<%= gi %>">
+    <h2 id="group-<%= gi %>" class="group-title"><%= group_name %></h2>
+    <section class="wine-grid" aria-label="Wines in <%= group_name %>">
+      <% wines_in_group.each do |wine| %>
+        <div class="card-wrapper">
+          <% if can_manage_wines? %>
+            <div class="card-actions">
+              <%= link_to "Edit", edit_wine_path(wine.slug), class: "card-action" %>
+              <%= button_to "Delete", wine_path(wine.slug), method: :delete, form_class: "card-delete-form", class: "card-action card-action--delete", onclick: %(return confirm('Delete this item? This action cannot be undone.')) %>
             </div>
           <% end %>
-        </div>
+          <%= link_to wine_path(wine.slug), class: "wine-card #{wine_color_class(wine)}" do %>
+            <% if wine.images.attached? %>
+              <%= image_tag url_for(wine.images.first), class: "card-thumb", alt: wine.name %>
+            <% end %>
+            <div class="wine-card__band"></div>
+            <div class="wine-card__content">
+              <h2><%= wine.name %></h2>
+              <p class="region"><%= [wine.producer&.name, wine.color].compact.join(" · ") %></p>
+              <% if wine.grapes.any? %>
+                <p class="details"><strong>Grapes:</strong> <%= wine.grapes.order(:name).limit(3).map(&:name).join(", ") %><%= "…" if wine.grapes.size > 3 %></p>
+              <% end %>
+              <% if wine.regions.any? %>
+                <p class="details"><strong>Regions:</strong> <%= wine.regions.limit(3).map(&:name).join(", ") %><%= "…" if wine.regions.size > 3 %></p>
+              <% end %>
+              <% if wine_details(wine).present? %>
+                <p class="details"><%= wine_details(wine) %></p>
+              <% end %>
+              <div class="vintages">
+                <%= pluralize(wine.vintages.size, "vintage") %>
+                <%# wine.taste_parameters.each do |parameter| %>
+                  <!-- <span class="tag"><%#= parameter.label %></span> -->
+                  <%# end %>
+                </div>
+              </div>
+            <% end %>
+          </div>
         <% end %>
       </section>
     </section>
   <% end %>
-  <% else %>
-    <p class="empty">No wines have been added yet.</p>
-  <% end %>
+<% else %>
+  <p class="empty">No wines have been added yet.</p>
+<% end %>

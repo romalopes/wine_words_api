@@ -2311,17 +2311,17 @@ ALL_PRODUCERS = [
 ].freeze
 
 
-# ALL_PRODUCERS.each do |attrs|
-#   grape_names = attrs.delete(:grapes) || []
+ALL_PRODUCERS.each do |attrs|
+  grape_names = attrs.delete(:grapes) || []
 
-#   producer = Producer.find_or_initialize_by(name: attrs[:name])
-#   producer.assign_attributes(attrs)
-#   producer.save!
+  producer = Producer.find_or_initialize_by(name: attrs[:name])
+  producer.assign_attributes(attrs)
+  producer.save!
 
-#    # MAKE  TO ASSOCIATE GRAPES WITH THE PRODUCER BASED ON THE GRAPE NAMES
-#    # MAKE THE ASSOCIATION BETWEEN THE PRODUCER AND THE GRAPES
+   # MAKE  TO ASSOCIATE GRAPES WITH THE PRODUCER BASED ON THE GRAPE NAMES
+   # MAKE THE ASSOCIATION BETWEEN THE PRODUCER AND THE GRAPES
 
-#   puts "Seeded producer: #{producer.name}"
-# end
+  puts "Seeded producer: #{producer.name}"
+end
 
 puts "Done. Seeded #{ALL_PRODUCERS.size} producers."

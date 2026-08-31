@@ -1,71 +1,67 @@
 <% content_for :title, "Articles" %>
 <h1>Articles</h1>
 <p class="lede">Stories, guides and tasting journeys from the community.</p>
-
 <% if can_manage_wines? %>
-<%# Scope toggle: All Articles / My Articles %>
-<div class="filter-pills">
-  <%= link_to "All Articles", articles_path(scope: "all", status: @status), class: "filter-pill #{@scope == 'all' ? 'active' : ''}" %>
-  <% if user_signed_in? %>
-    <%= link_to "My Articles", articles_path(scope: "mine", status: @status), class: "filter-pill #{@scope == 'mine' ? 'active' : ''}" %>
-  <% end %>
-</div>
-
-<%# Status filter: All / Draft / Published %>
-<div class="filter-pills filter-pills--status">
-  <% { "all" => "All", "draft" => "Draft", "published" => "Published" }.each do |key, label| %>
-    <%= link_to label, articles_path(scope: @scope, status: key), class: "filter-pill filter-pill--status #{@status == key ? 'active' : ''}" %>
-  <% end %>
-</div>
-
-<div class="page-actions">
-  <%= link_to "+ New Article", new_article_path, class: "btn" %>
-</div>
+  <%# Scope toggle: All Articles / My Articles %>
+  <div class="filter-pills">
+    <%= link_to "All Articles", articles_path(scope: "all", status: @status), class: "filter-pill #{@scope == 'all' ? 'active' : ''}" %>
+    <% if user_signed_in? %>
+      <%= link_to "My Articles", articles_path(scope: "mine", status: @status), class: "filter-pill #{@scope == 'mine' ? 'active' : ''}" %>
+    <% end %>
+  </div>
+  <%# Status filter: All / Draft / Published %>
+  <div class="filter-pills filter-pills--status">
+    <% { "all" => "All", "draft" => "Draft", "published" => "Published" }.each do |key, label| %>
+      <%= link_to label, articles_path(scope: @scope, status: key), class: "filter-pill filter-pill--status #{@status == key ? 'active' : ''}" %>
+    <% end %>
+  </div>
+  <div class="page-actions">
+    <%= link_to "+ New Article", new_article_path, class: "btn" %>
+  </div>
 <% end %>
-
 <% if @articles.any? %>
-  <% 
-    grouped = @articles.group_by { |a| a.category&.name || "Uncategorized" }
+  <%
+    grouped = @articles.group_by { |a| a.category&.name || "Uncategorised" }
     sorted_groups = category_group_sort(grouped, :sort_order_article)
     sorted_groups.each_with_index do |(group_name, articles_in_group), gi|
   %>
-    <section class="wine-grid-group" aria-labelledby="group-<%= gi %>">
-      <h2 id="group-<%= gi %>" class="group-title"><%= group_name %></h2>
-      <section class="wine-grid" aria-label="Articles in <%= group_name %>">
-        <% articles_in_group.each do |article| %>
-      <div class="card-wrapper">
-        <% if can_manage_article?(article) %>
-          <div class="card-actions">
-            <%= link_to "Edit", edit_article_path(article.id), class: "card-action" %>
-            <%= button_to "Delete", article_path(article.id), method: :delete, form_class: "card-delete-form", class: "card-action card-action--delete", onclick: %(return confirm('Delete this article? This action cannot be undone.')) %>
-          </div>
-        <% end %>
-        <%= link_to article_path(article.id), class: "wine-card" do %>
-          <% if article.images.attached? %>
-            <%= image_tag url_for(article.images.first), class: "card-thumb", alt: article.title %>
-          <% end %>
-          <div class="wine-card__band"></div>
-          <div class="wine-card__content">
-            <h2><%= article.title %></h2>
-            <p class="region"><%= [article.category&.name, article.user.name.presence || article.user.email].compact.join(" · ") %></p>
-            <% if article.abstract.present? %>
-              <p class="details"><%= truncate(strip_tags(article.abstract), length: 140) %></p>
-            <% end %>
-            <div class="status">
-              <% if can_manage_wines? %>
-                <span class="tag"><%= article.status %></span>
-              <% end %>
-              <% article.tags.limit(3).each do |tag| %>
-                <span class="tag"><%= tag.name %></span>
-              <% end %>
+  <section class="wine-grid-group" aria-labelledby="group-<%= gi %>">
+    <h2 id="group-<%= gi %>" class="group-title"><%= group_name %></h2>
+    <section class="wine-grid" aria-label="Articles in <%= group_name %>">
+      <% articles_in_group.each do |article| %>
+        <div class="card-wrapper">
+          <% if can_manage_article?(article) %>
+            <div class="card-actions">
+              <%= link_to "Edit", edit_article_path(article.id), class: "card-action" %>
+              <%= button_to "Delete", article_path(article.id), method: :delete, form_class: "card-delete-form", class: "card-action card-action--delete", onclick: %(return confirm('Delete this article? This action cannot be undone.')) %>
             </div>
-          </div>
-        <% end %>
-      </div>
-        <% end %>
-      </section>
+          <% end %>
+          <%= link_to article_path(article.id), class: "wine-card" do %>
+            <% if article.images.attached? %>
+              <%= image_tag url_for(article.images.first), class: "card-thumb", alt: article.title %>
+            <% end %>
+            <div class="wine-card__band"></div>
+            <div class="wine-card__content">
+              <h2><%= article.title %></h2>
+              <p class="region"><%= [article.category&.name, article.user.name.presence || article.user.email].compact.join(" · ") %></p>
+              <% if article.abstract.present? %>
+                <p class="details"><%= truncate(strip_tags(article.abstract), length: 140) %></p>
+              <% end %>
+              <div class="status">
+                <% if can_manage_wines? %>
+                  <span class="tag"><%= article.status %></span>
+                <% end %>
+                <% article.tags.limit(3).each do |tag| %>
+                  <span class="tag"><%= tag.name %></span>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
     </section>
-  <% end %>
+  </section>
+<% end %>
 <% else %>
   <p class="empty"><%= @articles.any? ? "No #{@status} articles." : (@scope == "mine" ? "You haven't written any articles yet." : "No articles have been added yet.") %></p>
 <% end %>

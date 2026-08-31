@@ -3,6 +3,8 @@ class Review < ApplicationRecord
   belongs_to :vintage
   belongs_to :user
   belongs_to :category, optional: true
+  has_many :review_categories, dependent: :destroy
+  has_many :categories, through: :review_categories
 
   validates :score, presence: true,
                     numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100 }

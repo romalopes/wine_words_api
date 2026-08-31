@@ -98,7 +98,10 @@ Rails.application.routes.draw do
         end
       end
       resources :categories, only: [:index] do
-        collection { patch :reorder }
+        collection do
+          patch :reorder
+          get :counts
+        end
       end
       get "categories/:id", to: "categories#show"
       post "categories", to: "categories#create"

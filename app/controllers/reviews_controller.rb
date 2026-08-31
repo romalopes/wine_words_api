@@ -24,8 +24,10 @@ class ReviewsController < ActionController::Base
       end
     base = base.where(status: @status) unless @status == "all"
     @reviews = base.order(published_at: :desc)
-    if params[:category].present?
-      @reviews = @reviews.joins(:category).where(categories: { name: params[:category] })
+        if params[:category] == "Uncategorised"
+      @reviews = @reviews.left_outer_joins(:categories).where(categories: { id: nil })
+    elsif params[:category].present?
+      @reviews = @reviews.joins(:categories).where(categories: { name: params[:category] })
     end
   end
 
@@ -123,6 +125,6 @@ class ReviewsController < ActionController::Base
     # :comment, :score, :vintage_id, :status, :published_at
     def review_params
       params.require(:review).permit(:title, :comment, :score, :vintage_id, :status, :published_at,
-                                     :category_id, :drink_from, :drink_to, :drink_plus)
+                                     :drink_from, :drink_to, :drink_plus, category_ids: [])
     end
 end

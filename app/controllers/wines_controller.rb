@@ -9,8 +9,10 @@ class WinesController < ActionController::Base
 
   def index
     @wines = Wine.includes(:vintages, :grapes, :regions, wine_taste_parameters: :taste_parameter).order(:name)
-    if params[:category].present?
-      @wines = @wines.joins(:category).where(categories: { name: params[:category] })
+        if params[:category] == "Uncategorised"
+      @wines = @wines.left_outer_joins(:categories).where(categories: { id: nil })
+    elsif params[:category].present?
+      @wines = @wines.joins(:categories).where(categories: { name: params[:category] })
     end
     if params[:producer].present?
       @wines = @wines.joins(:producer).where(producers: { slug: params[:producer] })
@@ -164,10 +166,11 @@ class WinesController < ActionController::Base
   private
 
   def wine_params
-        params.require(:wine).permit(
-      :name, :color, :prompt, :closure, :alcohol_percentage, :volume_ml, :producer_id, :category_id, :sparkling,
+    params.require(:wine).permit(
+      :name, :color, :prompt, :closure, :alcohol_percentage, :volume_ml, :producer_id, :sparkling,
       grape_ids: [],
       region_ids: [],
+      category_ids: [],
       vintages_attributes: [:id, :year, :prompt, :price, :no_vintage, :_destroy],
       wine_taste_parameters_attributes: [:id, :taste_parameter_id, :taste_parameter_slug, :score, :_destroy]
     )

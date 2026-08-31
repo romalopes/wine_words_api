@@ -3,6 +3,13 @@ class Category < ApplicationRecord
   has_many :wines, dependent: :nullify
   has_many :reviews, dependent: :nullify
 
+  has_many :wine_categories, dependent: :destroy
+  has_many :category_wines, through: :wine_categories, source: :wine
+  has_many :review_categories, dependent: :destroy
+  has_many :category_reviews, through: :review_categories, source: :review
+  has_many :article_categories, dependent: :destroy
+  has_many :category_articles, through: :article_categories, source: :article
+
   validates :name, presence: true, uniqueness: true
   validates :slug, presence: true, uniqueness: true
 

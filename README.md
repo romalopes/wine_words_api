@@ -660,6 +660,15 @@ In react app, in the list of categories, when I click in a category it is not go
 
 ---
 
+Change the database and the interface so wines, reviews and articles can have many categories.
+In the interface ot create/edit of the items(wines, reviews and articles) make a checkbox with all categories marker for_wine(in the wine page), for_article(in article page), for_review(in review page), so the user can select as many categories they want.
+
+Do if for both react and rails apps.
+
+Also, in the pages of edit, change the dimensions of the image so if can fit in the page. It is showing too big.
+
+---
+
 Add the missing attributes to Producers table. Reflect it to the interface.
 
 t.string :legal_name
@@ -677,17 +686,108 @@ t.integer :founded_year
 
 t.boolean :active, default: true
 `
-Also add a logo_url to be added a image(logo) for each producer if they have it.
-
-Populate the table with the information based on the file wine_prediction_api/db/seeds/producers.rb.
-
-- Modify the file wine_prediction_api/db/seeds/producers.rb. to reflect the specially from 2027 and 2028 to make the relationships with grapes and regions. It should find the grapes in the list of grapes and add in the list grapes. Also, it should find the region and add it to the list of regions.
+Also add a logo_url to be added a image(logo) for each producer if they have it. If possible use a specific advanced gem to save the logo for that.
 
 Create relationship to country.
 Create relationship many to many to regions. In the interface allow adding it using the search method like in other places.
 Create relationship many to many to grapes. In the interface allow adding it using the search method like in other places.
 
 Change the interface rails and react to reflect the new attributes and grapes, allowing to add/remove grapes using the search mechanism.
+
+---
+
+## Full Plan: Producer Details + Dedicated Logo + Country/Regions/Grapes
+
+### Goal
+
+Extend the `Producer` entity with the new attributes, a dedicated logo upload, a Country relationship, and many-to-many Regions & Grapes. Update both the **Rails** and **React** interfaces (reflecting grapes/regions with the existing search-add/remove mechanism).
+
+---
+
+### Backend — Rails
+
+**1. Migration** `db/migrate/*_add_producer_details.rb`
+
+- Add to `producers`: `legal_name`, `phone`, `city`, `state`, `postal_code` (string); `founded_year` (integer); `active` (boolean, default: true, null: false); `logo_url` (string); `country_id` (bigint FK → countries)
+- _(`website`, `address`, `description`, `instagram`, `facebook` already exist)_
+- Create join tables `producer_regions` and `producer_grapes` (unique composite indices: `[producer_id, region_id]`, `[producer_id, grape_id]`)
+
+**2. `app/models/producer.rb`**
+
+- `belongs_to :country, optional: true`
+- `has_one_attached :logo` (ActiveStorage)
+- `has_many :producer_regions` / `has_many :regions, through:`
+- `has_many :producer_grapes` / `has_many :grapes, through:`
+
+**3. New join models** `producer_region.rb`, `producer_grape.rb` (mirror `WineRegion`/`WineGrape` with uniqueness validation)
+
+**4. `app/controllers/api/v1/producers_controller.rb`**
+
+- `producer_params` permits: new fields + `country_id` + `region_ids: []` + `grape_ids: []`
+- Add **logo upload** handling (attach single file to `logo`)
+- `producer_json` / `producer_search_json` return: new attributes + `country` `{id,name,code,flag_emoji}` + `regions` `[{id,name,country_name}]` + `grapes` `[{id,name,color}]` + `logo_url`
+
+**5. Rails `producers_controller.rb`**
+
+- Extend `producer_params`
+- Attach `logo` on create/update
+- Preload country/regions/grapes in `set_producer` and `index`
+
+**6. Rails views**
+
+- `_form.html.erb`: new text/number fields, country select, dedicated **logo file field**, and search-based multi-add for grapes & regions (inline JS, mirroring the wine-link pattern)
+- `show.html.erb`: display logo, all new attributes, country, grapes, regions
+- `index.html.erb`: show logo in image column, add Active/Type/Country columns
+
+---
+
+### Frontend — React
+
+**7. `ProducerForm.jsx`**
+
+- New fields: `legal_name`, `phone`, `city`, `state`, `postal_code`, `founded_year`, `active` checkbox (website/address/instagram/facebook/description exist)
+- Country select via `countriesApi.list()`
+- Reuse **`GrapeSearch`** and **`RegionSearch`** components (multi-select, removable tags)
+- Dedicated **logo file upload** (single image, FormData → `logo` name)
+- Submit `country_id`, `grape_ids`, `region_ids`, `logo`, plus new fields
+
+**8. `ProducerDetail.jsx`**
+
+- Display logo prominently, country, grapes, regions, and new attribute fields (legal_name, phone, city/state/postcode, founded_year, active, website)
+
+**9. `ProducerList.jsx`**
+
+- Show logo in the image column, add active/type/country columns (edit/delete gates already role-aware)
+
+---
+
+### Logo Storage
+
+- **Dedicated** single upload via `has_one_attached :logo` (ActiveStorage — no new gem).
+- `logo_url` cached on the row and exposed in API responses.
+- Existing `images` gallery untouched (photos remain separate).
+
+---
+
+### Verification
+
+- `rails db:migrate` runs cleanly; `rails routes` intact
+- `ruby -c` on modified controllers/models
+- `curl` producers endpoints return new fields + `logo_url` + country/regions/grapes
+- `/grapes/search`, `/regions`, `/countries` working for the search mechanism
+- React `npm run build` passes
+
+---
+
+Modify the file wine_prediction_api/db/seeds/producers.rb. to reflect the specially from 2321 and 2322 to make the relationships with grapes and regions. It should find the grapes in the list of grapes and add in the list grapes. Also, it should find the region and add it to the list of regions.
+
+Populate the table with the information based on the file wine_prediction_api/db/seeds/producers.rb. Try to find the region in Regions table and add the regions. Try to find the grapes and add the grapes. Try to find the country and link the country.
+
+---
+
+For Wines, Producers, Grapes, Regions, Categories and Countries, just show the buttons to "add new", "edit" and "delete" to the roles "Super User" and "Editor". Also, make sure that these actions in the back end just just work for these role.
+
+Reviews and Articles create/edit/delete shoulbe be available to "Super User" and "Editor", and "Reviewer"
 
 ---
 

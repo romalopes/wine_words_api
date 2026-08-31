@@ -29,7 +29,7 @@ class User < ApplicationRecord
   # Super Users, Reviewers and Editors may manage wines/producers —
   # anywhere a Reviewer is allowed, an Editor is allowed too.
   def wine_manager?
-    super_admin? || reviewer? || role?(:editor)
+    super_admin? || role?(:editor)
   end
 
   def role_names

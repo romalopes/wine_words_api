@@ -13,16 +13,16 @@ class CategoriesController < ActionController::Base
   def show
     @articles =
       if user_signed_in?
-        @category.articles.visible_to(current_user).recent
+        @category.category_articles.visible_to(current_user).recent
       else
-        @category.articles.published.recent
+        @category.category_articles.published.recent
       end
-    @wines = @category.wines.includes(:producer, :regions, :vintages).order(:name)
+    @wines = @category.category_wines.includes(:producer, :regions, :vintages).order(:name)
     @reviews =
       if user_signed_in?
-        @category.reviews.visible_to(current_user)
+        @category.category_reviews.visible_to(current_user)
       else
-        @category.reviews.published
+        @category.category_reviews.published
       end.by_recency.includes(:user, vintage: :wine)
   end
 

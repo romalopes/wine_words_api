@@ -1,5 +1,6 @@
 class Api::V1::CategoriesController < ApplicationController
-  skip_before_action :authenticate_user!, only: [:index, :show]
+    skip_before_action :authenticate_user!, only: [:index, :show, :counts]
+  before_action :ensure_wine_manager!, only: [:create, :update, :destroy, :reorder]
 
   SORT_COLUMNS = {
     "wine" => :sort_order_wine,
@@ -12,6 +13,59 @@ class Api::V1::CategoriesController < ApplicationController
   #   ?type=article   -> for_article categories
   #   ?type=review    -> for_review categories
   #   ?type=managed   -> all categories (Super User / Editor / Reviewer form use)
+    # Returns per-category counts for each item type, respecting the current
+  # user's visibility scope.  Used by the React nav dropdown to show only
+  # categories that have at least one linked item, along with the count.
+  def counts
+    is_manager = current_user&.wine_manager?
+
+    wine_counts = WineCategory
+      .joins(:wine)
+      .where(category_id: Category.where(for_wine: true).select(:id))
+      .group(:category_id)
+      .count
+
+    review_scope = is_manager ? Review.all : Review.published
+    review_counts = ReviewCategory
+      .joins(:review)
+      .merge(review_scope)
+      .where(category_id: Category.where(for_review: true).select(:id))
+      .group(:category_id)
+      .count
+
+    article_scope = is_manager ? Article.all : Article.published
+    article_counts = ArticleCategory
+      .joins(:article)
+      .merge(article_scope)
+      .where(category_id: Category.where(for_article: true).select(:id))
+      .group(:category_id)
+      .count
+
+    # Count uncategorised items (no join record)
+    uncategorised_wine = Wine.left_outer_joins(:wine_categories)
+                             .where(wine_categories: { id: nil }).count
+    uncategorised_review = review_scope.left_outer_joins(:review_categories)
+                               .where(review_categories: { id: nil }).count
+    uncategorised_article = article_scope.left_outer_joins(:article_categories)
+                                .where(article_categories: { id: nil }).count
+
+    render json: {
+      wine: wine_counts,
+      review: review_counts,
+      article: article_counts,
+      uncategorised: {
+        wine: uncategorised_wine,
+        review: uncategorised_review,
+        article: uncategorised_article,
+      },
+      totals: {
+        wine: Wine.count,
+        review: (is_manager ? Review.count : Review.published.count),
+        article: (is_manager ? Article.count : Article.published.count),
+      },
+    }
+  end
+
   def index
     case params[:type]
     when "wine"
@@ -38,20 +92,20 @@ class Api::V1::CategoriesController < ApplicationController
   def show
     category = Category.find(params[:id])
 
-    wines = category.wines.includes(
+    wines = category.category_wines.includes(
       wine_taste_parameters: :taste_parameter, vintages: [], producer: [],
       grapes: [], regions: [:country]
     ).order(:name)
 
-    reviews = category.reviews
+    reviews = category.category_reviews
     reviews = reviews.visible_to(current_user) unless current_user&.wine_manager?
     reviews = reviews.by_recency.includes(:user, vintage: :wine)
 
     articles =
       if current_user&.wine_manager? || user_signed_in?
-        category.articles.visible_to(current_user)
+        category.category_articles.visible_to(current_user)
       else
-        category.articles.published
+        category.category_articles.published
       end.recent
 
     render json: {
@@ -125,6 +179,11 @@ class Api::V1::CategoriesController < ApplicationController
   end
 
   private
+
+  def ensure_wine_manager!
+    return if current_user&.wine_manager?
+    render json: { error: "Forbidden" }, status: :forbidden
+  end
 
   def category_params
     params.require(:category).permit(:name, :for_wine, :for_review, :for_article)

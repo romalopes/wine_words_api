@@ -233,12 +233,17 @@
     <%= f.select :volume_ml, Wine.volumes.map { |value, label| [label, value] }, { selected: 750 } %>
   </div>
   <div>
-    <%= f.label :category_id, "Category" %><br>
-    <%= f.collection_select :category_id,
-          (@wine_categories || Category.where(for_wine: true).order("sort_order_wine asc, name asc")),
-          :id, :name,
-          { include_blank: "Choose a category..." },
-          { class: "category-select" } %>
+    <%= f.label :category_ids, "Categories" %><br>
+    <div class="category-checkboxes">
+      <% (@wine_categories || Category.where(for_wine: true).order("sort_order_wine asc, name asc")).each do |cat| %>
+        <label class="category-checkbox">
+          <%= check_box_tag "wine[category_ids][]", cat.id,
+                @wine.categories.include?(cat),
+                id: "wine_category_ids_#{cat.id}" %>
+          <%= cat.name %>
+        </label>
+      <% end %>
+    </div>
   </div>
   <div>
     <%= f.label :prompt %><br>

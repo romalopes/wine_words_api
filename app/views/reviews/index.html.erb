@@ -1,73 +1,69 @@
 <h1>Reviews</h1>
 <p class="lede">Browse reviews and their associated vintages.</p>
-
 <% if can_manage_wines? %>
-<%# Scope toggle: All Reviews / My Reviews %>
-<div class="filter-pills">
-  <%= link_to "All Reviews", reviews_path(scope: "all", status: @status), class: "filter-pill #{@scope == 'all' ? 'active' : ''}" %>
-  <% if user_signed_in? %>
-    <%= link_to "My Reviews", reviews_path(scope: "mine", status: @status), class: "filter-pill #{@scope == 'mine' ? 'active' : ''}" %>
-  <% end %>
-</div>
-
-<%# Status filter: All / Draft / Published %>
-<div class="filter-pills filter-pills--status">
-  <% { "all" => "All", "draft" => "Draft", "published" => "Published" }.each do |key, label| %>
-    <%= link_to label, reviews_path(scope: @scope, status: key), class: "filter-pill filter-pill--status #{@status == key ? 'active' : ''}" %>
-  <% end %>
-</div>
-
-<div class="page-actions">
-  <%= link_to "+ New Review", new_review_path, class: "btn" %>
-</div>
+  <%# Scope toggle: All Reviews / My Reviews %>
+  <div class="filter-pills">
+    <%= link_to "All Reviews", reviews_path(scope: "all", status: @status), class: "filter-pill #{@scope == 'all' ? 'active' : ''}" %>
+    <% if user_signed_in? %>
+      <%= link_to "My Reviews", reviews_path(scope: "mine", status: @status), class: "filter-pill #{@scope == 'mine' ? 'active' : ''}" %>
+    <% end %>
+  </div>
+  <%# Status filter: All / Draft / Published %>
+  <div class="filter-pills filter-pills--status">
+    <% { "all" => "All", "draft" => "Draft", "published" => "Published" }.each do |key, label| %>
+      <%= link_to label, reviews_path(scope: @scope, status: key), class: "filter-pill filter-pill--status #{@status == key ? 'active' : ''}" %>
+    <% end %>
+  </div>
+  <div class="page-actions">
+    <%= link_to "+ New Review", new_review_path, class: "btn" %>
+  </div>
 <% end %>
-
 <% if @reviews.any? %>
-  <% 
-    grouped = @reviews.group_by { |r| r.category&.name || "Uncategorized" }
+  <%
+    grouped = @reviews.group_by { |r| r.category&.name || "Uncategorised" }
     sorted_groups = category_group_sort(grouped, :sort_order_review)
     sorted_groups.each_with_index do |(group_name, reviews_in_group), gi|
   %>
-    <section class="wine-grid-group" aria-labelledby="group-<%= gi %>">
-      <h2 id="group-<%= gi %>" class="group-title"><%= group_name %></h2>
-      <section class="review-grid" aria-label="Reviews in <%= group_name %>">
-        <% reviews_in_group.each do |review| %>
-      <div class="card-wrapper">
-        <% if can_manage_review?(review) %>
-          <div class="card-actions">
-            <%= link_to "Edit", edit_review_path(review.id), class: "card-action" %>
-            <% if review.status == "draft" %>
-              <%= button_to "Publish", review_path(review.id), method: :patch, params: { review: { status: "published", published_at: Time.current } }, form_class: "card-delete-form", class: "card-action" %>
-            <% else %>
-              <%= button_to "Unpublish", review_path(review.id), method: :patch, params: { review: { status: "draft" } }, form_class: "card-delete-form", class: "card-action" %>
-            <% end %>
-            <%= button_to "Delete", review_path(review.id), method: :delete, form_class: "card-delete-form", class: "card-action card-action--delete", onclick: %(return confirm('Delete this review? This action cannot be undone.')) %>
-          </div>
-        <% end %>
-        <%= link_to review_path(review.id), class: "review-card #{review_status_class(review)}" do %>
-          <% thumb = review.images.attached? ? review.images.first : review.vintage&.wine&.images&.first %>
-          <% if thumb %>
-            <%= image_tag url_for(thumb), class: "card-thumb", alt: review.title.presence || review.vintage&.name %>
-          <% end %>
-          <div class="review-card__band"></div>
-          <div class="review-card__content">
-            <h2><%= review.title.presence || review.vintage&.name %></h2>
-            <p class="meta"><%= review_score(review) %></p>
-            <% if review.comment.present? %>
-              <p class="details"><%= truncate(strip_tags(review.comment), length: 140) %></p>
-            <% end %>
-            <div class="status">
-              <% if can_manage_wines? %>
-                <span class="tag"><%= review.status %></span>
+  <section class="wine-grid-group" aria-labelledby="group-<%= gi %>">
+    <h2 id="group-<%= gi %>" class="group-title"><%= group_name %></h2>
+    <section class="review-grid" aria-label="Reviews in <%= group_name %>">
+      <% reviews_in_group.each do |review| %>
+        <div class="card-wrapper">
+          <% if can_manage_review?(review) %>
+            <div class="card-actions">
+              <%= link_to "Edit", edit_review_path(review.id), class: "card-action" %>
+              <% if review.status == "draft" %>
+                <%= button_to "Publish", review_path(review.id), method: :patch, params: { review: { status: "published", published_at: Time.current } }, form_class: "card-delete-form", class: "card-action" %>
+              <% else %>
+                <%= button_to "Unpublish", review_path(review.id), method: :patch, params: { review: { status: "draft" } }, form_class: "card-delete-form", class: "card-action" %>
               <% end %>
+              <%= button_to "Delete", review_path(review.id), method: :delete, form_class: "card-delete-form", class: "card-action card-action--delete", onclick: %(return confirm('Delete this review? This action cannot be undone.')) %>
             </div>
-          </div>
-        <% end %>
-      </div>
-        <% end %>
-      </section>
+          <% end %>
+          <%= link_to review_path(review.id), class: "review-card #{review_status_class(review)}" do %>
+            <% thumb = review.images.attached? ? review.images.first : review.vintage&.wine&.images&.first %>
+            <% if thumb %>
+              <%= image_tag url_for(thumb), class: "card-thumb", alt: review.title.presence || review.vintage&.name %>
+            <% end %>
+            <div class="review-card__band"></div>
+            <div class="review-card__content">
+              <h2><%= review.title.presence || review.vintage&.name %></h2>
+              <p class="meta"><%= review_score(review) %></p>
+              <% if review.comment.present? %>
+                <p class="details"><%= truncate(strip_tags(review.comment), length: 140) %></p>
+              <% end %>
+              <div class="status">
+                <% if can_manage_wines? %>
+                  <span class="tag"><%= review.status %></span>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
     </section>
-  <% end %>
+  </section>
+<% end %>
 <% else %>
-      <p class="empty"><%= @reviews.any? ? "No #{@status} reviews." : (@scope == "mine" ? "You haven't written any reviews yet." : "No reviews have been added yet.") %></p>
+  <p class="empty"><%= @reviews.any? ? "No #{@status} reviews." : (@scope == "mine" ? "You haven't written any reviews yet." : "No reviews have been added yet.") %></p>
 <% end %>

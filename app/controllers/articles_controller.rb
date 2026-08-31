@@ -27,8 +27,10 @@ class ArticlesController < ActionController::Base
       end
     base = base.where(status: @status) unless @status == "all"
     @articles = base.recent.includes(:user, :category)
-    if params[:category].present?
-      @articles = @articles.joins(:category).where(categories: { name: params[:category] })
+        if params[:category] == "Uncategorised"
+      @articles = @articles.left_outer_joins(:categories).where(categories: { id: nil })
+    elsif params[:category].present?
+      @articles = @articles.joins(:categories).where(categories: { name: params[:category] })
     end
   end
 
@@ -158,8 +160,9 @@ class ArticlesController < ActionController::Base
 
   def article_params
     permitted = params.require(:article).permit(
-      :title, :abstract, :body, :status, :published_at, :category_id,
-      :tag_names, vintage_ids: [], review_ids: [], producer_ids: []
+      :title, :abstract, :body, :status, :published_at,
+      :tag_names, vintage_ids: [], review_ids: [], producer_ids: [],
+      category_ids: []
     )
 
     if permitted.key?(:tag_names)

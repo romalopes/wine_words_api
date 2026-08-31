@@ -34,9 +34,17 @@
   </div>
 
   <div class="field">
-    <%= form.label :category_id, "Category" %>
-    <%= form.collection_select :category_id, Category.where(for_article: true).order(sort_order_article: :asc), :id, :name,
-          include_blank: "None" %>
+    <%= form.label :category_ids, "Categories" %>
+    <div class="category-checkboxes">
+      <% Category.where(for_article: true).order(sort_order_article: :asc).each do |cat| %>
+        <label class="category-checkbox">
+          <%= check_box_tag "article[category_ids][]", cat.id,
+                article.categories.include?(cat),
+                id: "article_category_ids_#{cat.id}" %>
+          <%= cat.name %>
+        </label>
+      <% end %>
+    </div>
   </div>
 
   <div class="field">
