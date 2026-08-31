@@ -3,8 +3,8 @@
 # Seeds Region records as a nested tree: Country -> State/Region -> Appellation
 # Usage: rails runner db/seeds/regions.rb
 
-Region.delete_all
-ActiveRecord::Base.connection.reset_pk_sequence!('regions')
+# Region.delete_all
+# ActiveRecord::Base.connection.reset_pk_sequence!('regions')
 
 REGIONS = {
   "Australia" => {
@@ -828,163 +828,163 @@ REGIONS = {
       }
     }
   },
-  # "Austria" => {
-  #   "Wachau" => {
-  #     is_state: false,
-  #     is_appellation: false,
-  #     children: {
-  #       "Wachau DAC" => { is_state: false, is_appellation: true }
-  #     }
-  #   },
-  #   "Kamptal" => {
-  #     is_state: false,
-  #     is_appellation: false,
-  #     children: {
-  #       "Kamptal DAC" => { is_state: false, is_appellation: true }
-  #     }
-  #   },
-  #   "Kremstal" => {
-  #     is_state: false,
-  #     is_appellation: false,
-  #     children: {
-  #       "Kremstal DAC" => { is_state: false, is_appellation: true }
-  #     }
-  #   },
-  #   "Burgenland" => {
-  #     is_state: false,
-  #     is_appellation: false,
-  #     children: {
-  #       "Neusiedlersee DAC" => { is_state: false, is_appellation: true },
-  #       "Mittelburgenland DAC" => { is_state: false, is_appellation: true },
-  #       "Leithaberg DAC" => { is_state: false, is_appellation: true }
-  #     }
-  #   },
-  #   "Weinviertel" => {
-  #     is_state: false,
-  #     is_appellation: false,
-  #     children: {
-  #       "Weinviertel DAC" => { is_state: false, is_appellation: true }
-  #     }
-  #   },
-  #   "Styria" => {
-  #     is_state: false,
-  #     is_appellation: false,
-  #     children: {
-  #       "Sudsteiermark DAC" => { is_state: false, is_appellation: true }
-  #     }
-  #   }
-  # },
-  # "Greece" => {
-  #   "Santorini" => {
-  #     is_state: false,
-  #     is_appellation: false,
-  #     children: {
-  #       "Santorini PDO" => { is_state: false, is_appellation: true }
-  #     }
-  #   },
-  #   "Macedonia" => {
-  #     is_state: false,
-  #     is_appellation: false,
-  #     children: {
-  #       "Naoussa PDO" => { is_state: false, is_appellation: true },
-  #       "Amyndeon PDO" => { is_state: false, is_appellation: true }
-  #     }
-  #   },
-  #   "Peloponnese" => {
-  #     is_state: false,
-  #     is_appellation: false,
-  #     children: {
-  #       "Nemea PDO" => { is_state: false, is_appellation: true },
-  #       "Mantinia PDO" => { is_state: false, is_appellation: true }
-  #     }
-  #   },
-  #   "Crete" => {
-  #     is_state: false,
-  #     is_appellation: false,
-  #     children: {
-  #       "Peza PDO" => { is_state: false, is_appellation: true }
-  #     }
-  #   }
-  # },
-  # "Hungary" => {
-  #   "Tokaj" => {
-  #     is_state: false,
-  #     is_appellation: false,
-  #     children: {
-  #       "Tokaji PDO" => { is_state: false, is_appellation: true }
-  #     }
-  #   },
-  #   "Eger" => {
-  #     is_state: false,
-  #     is_appellation: false,
-  #     children: {
-  #       "Eger PDO (Egri Bikaver)" => { is_state: false, is_appellation: true }
-  #     }
-  #   },
-  #   "Villany" => {
-  #     is_state: false,
-  #     is_appellation: false,
-  #     children: {
-  #       "Villany PDO" => { is_state: false, is_appellation: true }
-  #     }
-  #   }
-  # },
-  # "Georgia" => {
-  #   "Kakheti" => {
-  #     is_state: false,
-  #     is_appellation: false,
-  #     children: {
-  #       "Kakheti PDO" => { is_state: false, is_appellation: true }
-  #     }
-  #   },
-  #   "Kartli" => {
-  #     is_state: false,
-  #     is_appellation: false,
-  #     children: {
-  #       "Kartli PDO" => { is_state: false, is_appellation: true }
-  #     }
-  #   },
-  #   "Imereti" => {
-  #     is_state: false,
-  #     is_appellation: false,
-  #     children: {
-  #       "Imereti PDO" => { is_state: false, is_appellation: true }
-  #     }
-  #   }
-  # },
-  # "Romania" => {
-  #   "Dealu Mare" => {
-  #     is_state: false,
-  #     is_appellation: false,
-  #     children: {
-  #       "Dealu Mare DOC" => { is_state: false, is_appellation: true }
-  #     }
-  #   },
-  #   "Moldavia" => {
-  #     is_state: false,
-  #     is_appellation: false,
-  #     children: {
-  #       "Cotnari DOC" => { is_state: false, is_appellation: true }
-  #     }
-  #   }
-  # },
-  # "Croatia" => {
-  #   "Istria" => {
-  #     is_state: false,
-  #     is_appellation: false,
-  #     children: {
-  #       "Istria PDO" => { is_state: false, is_appellation: true }
-  #     }
-  #   },
-  #   "Dalmatia" => {
-  #     is_state: false,
-  #     is_appellation: false,
-  #     children: {
-  #       "Peljesac" => { is_state: false, is_appellation: true },
-  #       "Hvar" => { is_state: false, is_appellation: true }
-  #     }
-  #   }
-  # },
+  "Austria" => {
+    "Wachau" => {
+      is_state: false,
+      is_appellation: false,
+      children: {
+        "Wachau DAC" => { is_state: false, is_appellation: true }
+      }
+    },
+    "Kamptal" => {
+      is_state: false,
+      is_appellation: false,
+      children: {
+        "Kamptal DAC" => { is_state: false, is_appellation: true }
+      }
+    },
+    "Kremstal" => {
+      is_state: false,
+      is_appellation: false,
+      children: {
+        "Kremstal DAC" => { is_state: false, is_appellation: true }
+      }
+    },
+    "Burgenland" => {
+      is_state: false,
+      is_appellation: false,
+      children: {
+        "Neusiedlersee DAC" => { is_state: false, is_appellation: true },
+        "Mittelburgenland DAC" => { is_state: false, is_appellation: true },
+        "Leithaberg DAC" => { is_state: false, is_appellation: true }
+      }
+    },
+    "Weinviertel" => {
+      is_state: false,
+      is_appellation: false,
+      children: {
+        "Weinviertel DAC" => { is_state: false, is_appellation: true }
+      }
+    },
+    "Styria" => {
+      is_state: false,
+      is_appellation: false,
+      children: {
+        "Sudsteiermark DAC" => { is_state: false, is_appellation: true }
+      }
+    }
+  },
+  "Greece" => {
+    "Santorini" => {
+      is_state: false,
+      is_appellation: false,
+      children: {
+        "Santorini PDO" => { is_state: false, is_appellation: true }
+      }
+    },
+    "Macedonia" => {
+      is_state: false,
+      is_appellation: false,
+      children: {
+        "Naoussa PDO" => { is_state: false, is_appellation: true },
+        "Amyndeon PDO" => { is_state: false, is_appellation: true }
+      }
+    },
+    "Peloponnese" => {
+      is_state: false,
+      is_appellation: false,
+      children: {
+        "Nemea PDO" => { is_state: false, is_appellation: true },
+        "Mantinia PDO" => { is_state: false, is_appellation: true }
+      }
+    },
+    "Crete" => {
+      is_state: false,
+      is_appellation: false,
+      children: {
+        "Peza PDO" => { is_state: false, is_appellation: true }
+      }
+    }
+  },
+  "Hungary" => {
+    "Tokaj" => {
+      is_state: false,
+      is_appellation: false,
+      children: {
+        "Tokaji PDO" => { is_state: false, is_appellation: true }
+      }
+    },
+    "Eger" => {
+      is_state: false,
+      is_appellation: false,
+      children: {
+        "Eger PDO (Egri Bikaver)" => { is_state: false, is_appellation: true }
+      }
+    },
+    "Villany" => {
+      is_state: false,
+      is_appellation: false,
+      children: {
+        "Villany PDO" => { is_state: false, is_appellation: true }
+      }
+    }
+  },
+  "Georgia" => {
+    "Kakheti" => {
+      is_state: false,
+      is_appellation: false,
+      children: {
+        "Kakheti PDO" => { is_state: false, is_appellation: true }
+      }
+    },
+    "Kartli" => {
+      is_state: false,
+      is_appellation: false,
+      children: {
+        "Kartli PDO" => { is_state: false, is_appellation: true }
+      }
+    },
+    "Imereti" => {
+      is_state: false,
+      is_appellation: false,
+      children: {
+        "Imereti PDO" => { is_state: false, is_appellation: true }
+      }
+    }
+  },
+  "Romania" => {
+    "Dealu Mare" => {
+      is_state: false,
+      is_appellation: false,
+      children: {
+        "Dealu Mare DOC" => { is_state: false, is_appellation: true }
+      }
+    },
+    "Moldavia" => {
+      is_state: false,
+      is_appellation: false,
+      children: {
+        "Cotnari DOC" => { is_state: false, is_appellation: true }
+      }
+    }
+  },
+  "Croatia" => {
+    "Istria" => {
+      is_state: false,
+      is_appellation: false,
+      children: {
+        "Istria PDO" => { is_state: false, is_appellation: true }
+      }
+    },
+    "Dalmatia" => {
+      is_state: false,
+      is_appellation: false,
+      children: {
+        "Peljesac" => { is_state: false, is_appellation: true },
+        "Hvar" => { is_state: false, is_appellation: true }
+      }
+    }
+  },
   "Poland" => {
     "Lubusz Voivodeship" => {
       is_state: true,
@@ -1176,36 +1176,36 @@ REGIONS = {
         "Martinborough GI" => { is_state: false, is_appellation: true }
       }
     }
+  },
+  "South Africa" => {
+    "Western Cape" => {
+      is_state: false,
+      is_appellation: true,
+      children: {
+        "Stellenbosch" => { is_state: false, is_appellation: true },
+        "Paarl" => { is_state: false, is_appellation: true },
+        "Swartland" => { is_state: false, is_appellation: true },
+        "Constantia" => { is_state: false, is_appellation: true },
+        "Walker Bay" => { is_state: false, is_appellation: true }
+      }
+    }
+  },
+  "Uruguay" => {
+    "Canelones" => {
+      is_state: false,
+      is_appellation: false,
+      children: {
+        "Canelones DO" => { is_state: false, is_appellation: true }
+      }
+    },
+    "Maldonado" => {
+      is_state: false,
+      is_appellation: false,
+      children: {
+        "Maldonado DO" => { is_state: false, is_appellation: true }
+      }
+    }
   }
-  # "South Africa" => {
-  #   "Western Cape" => {
-  #     is_state: false,
-  #     is_appellation: true,
-  #     children: {
-  #       "Stellenbosch" => { is_state: false, is_appellation: true },
-  #       "Paarl" => { is_state: false, is_appellation: true },
-  #       "Swartland" => { is_state: false, is_appellation: true },
-  #       "Constantia" => { is_state: false, is_appellation: true },
-  #       "Walker Bay" => { is_state: false, is_appellation: true }
-  #     }
-  #   }
-  # },
-  # "Uruguay" => {
-  #   "Canelones" => {
-  #     is_state: false,
-  #     is_appellation: false,
-  #     children: {
-  #       "Canelones DO" => { is_state: false, is_appellation: true }
-  #     }
-  #   },
-  #   "Maldonado" => {
-  #     is_state: false,
-  #     is_appellation: false,
-  #     children: {
-  #       "Maldonado DO" => { is_state: false, is_appellation: true }
-  #     }
-  #   }
-  # }
 }
 
 def seed_regions(tree, country, parent = nil)

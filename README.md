@@ -599,7 +599,29 @@ If we have: - 1 Wines linked to Big Rivers - 2 wines linked to Perricoota - 2 wi
     - In Centra Rangers also 3, which is the value from it child Orange.
     - In Hunter Valley leaf, 5
 
-## Also, only show countries that have wines linked to their regions.
+Also, only show countries that have wines linked to their regions.
+
+---
+
+In reviews list for both react and reails app. Create a toggle to show all countries or to only show the countries that have wines in the hieraqui for the leaves.
+For example:
+
+- Australia
+  - New South Wales
+    - Big Rivers
+      - Perricoota (1 wine)
+      - Riverina ( 3 wines)
+- Argentina
+  - Mendoza (No wine)
+- USA
+  - California
+    - Santa Rosa (No wine)
+- Brazil
+  - Serra Gaucha ( 5 wines)
+
+In the toggle, it would show only Australia and Brazil because their children have wines and hide Argentina and USA. If change the toggle, it would show all countries and their regions.
+
+---
 
 In the list of producers, when the user click on the number of wines(fifth column "Wines"), instead of showing the wines in the same way as the dashboad or wine click, show the wines in a list, one wine per row, similar to the way the producers are shown. Create a new page for that. Leave the buttons edit/delete and if the user click on the name of the wine, it will go to show wine.
 

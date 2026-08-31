@@ -4,6 +4,10 @@
   <%= link_to "+ New Region", new_region_path, class: "btn" %>
 </div>
 <% if @countries_tree.any? %>
+  <label class="region-tree-filter">
+    <input type="checkbox" id="only-with-wines" />
+    <span>Only countries with wines</span>
+  </label>
   <div class="region-tree-container">
     <% @countries_tree.each do |country| %>
       <% c_name = country[:name] || country["name"] %>
@@ -13,7 +17,7 @@
       <% c_wine_count = country[:wine_count] || country["wine_count"] || 0 %>
       <% is_expanded = c_name.to_s.downcase == "australia" %>
       <% if c_regions.count > 0 %>
-        <div class="region-tree-country">
+        <div class="region-tree-country" data-wine-count="<%= c_wine_count %>">
           <details class="region-tree-country__details" <%= "open" if is_expanded %>>
             <summary class="region-tree-country__summary">
               <span class="region-tree-country__toggle"><%= is_expanded ? "-" : "+" %></span>
@@ -160,4 +164,34 @@
     border-radius: 999px;
     white-space: nowrap;
   }
+
+  .region-tree-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.75rem 0 0.5rem;
+    cursor: pointer;
+    user-select: none;
+    color: #495057;
+    font-size: 0.9rem;
+  }
+
+  .region-tree-filter input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+    cursor: pointer;
+  }
 </style>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var checkbox = document.getElementById('only-with-wines');
+    if (!checkbox) return;
+    checkbox.addEventListener('change', function () {
+      var countries = document.querySelectorAll('.region-tree-country');
+      countries.forEach(function (country) {
+        var count = parseInt(country.dataset.wineCount, 10) || 0;
+        country.style.display = (checkbox.checked && count === 0) ? 'none' : '';
+      });
+    });
+  });
+</script>
