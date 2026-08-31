@@ -2,11 +2,28 @@ class GrapesController < ActionController::Base
   layout "application"
   include RequireLogin
 
-  before_action :set_grape, only: [:show, :edit, :update, :destroy]
+  before_action :set_grape, only: [:show, :edit, :update, :destroy, :link_wine]
   before_action :ensure_grape_manager!, only: [:new, :edit, :create, :update, :destroy]
 
+  def link_wine
+    unless current_user&.wine_manager?
+      return redirect_to @grape, alert: "You are not allowed to manage wines."
+    end
+    wine = Wine.find_by(slug: params[:wine_id]) || Wine.find_by(id: params[:wine_id])
+    unless wine
+      return redirect_to @grape, alert: "Wine not found."
+    end
+
+    if wine.grapes.include?(@grape)
+      redirect_to @grape, notice: "#{wine.name} is already linked to #{@grape.name}."
+    else
+      wine.grapes << @grape
+      redirect_to @grape, notice: "#{wine.name} was added to #{@grape.name}."
+    end
+  end
+
   def index
-    @grapes = sort_grapes(Grape.all)
+    @grapes = sort_grapes(Grape.includes(:wines).all)
   end
 
   def search
@@ -20,7 +37,9 @@ class GrapesController < ActionController::Base
     render json: grapes.map { |grape| { id: grape.id, name: grape.name, color: grape.color, synonyms: grape.synonyms } }
   end
 
-  def show; end
+  def show
+    @wines = @grape.wines.includes(:producer, :regions, :vintages).order(:name)
+  end
 
   def new
     @grape = Grape.new

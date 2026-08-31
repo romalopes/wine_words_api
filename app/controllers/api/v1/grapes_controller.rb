@@ -1,11 +1,11 @@
 class Api::V1::GrapesController < ApplicationController
   before_action :authenticate_user!, except: [:index, :show, :search]
-  before_action :ensure_wine_manager!, only: [:create, :update, :destroy]
-  before_action :set_grape, only: [:show, :update, :destroy]
+  before_action :ensure_wine_manager!, only: [:create, :update, :destroy, :link_wine]
+  before_action :set_grape, only: [:show, :update, :destroy, :link_wine]
 
   def index
-    grapes = Grape.relevance_order
-    render json: grapes
+    grapes = Grape.relevance_order.includes(:wine_grapes)
+    render json: grapes.map { |grape| grape_json(grape) }
   end
 
   def search
@@ -20,7 +20,17 @@ class Api::V1::GrapesController < ApplicationController
   end
 
   def show
-    render json: @grape
+    render json: grape_json(@grape)
+  end
+
+  def link_wine
+    wine = Wine.find_by(slug: params[:wine_id]) || Wine.find_by(id: params[:wine_id])
+    unless wine
+      return render json: { error: "Wine not found" }, status: :not_found
+    end
+
+    wine.grapes << @grape unless wine.grapes.include?(@grape)
+    render json: grape_json(@grape)
   end
 
   def create
@@ -58,6 +68,19 @@ class Api::V1::GrapesController < ApplicationController
       :name, :color, :origin_country, :is_blending_grape, :serving, :relevance,
       main_regions: [], synonyms: [], notes: []
     )
+  end
+
+  def grape_json(grape)
+    data = grape.as_json
+    data["wines_count"] = grape.wines.size
+    if action_name == "show" || action_name == "link_wine"
+      wines = grape.wines.includes(
+        wine_taste_parameters: :taste_parameter, vintages: [], producer: [],
+        grapes: [], regions: [:country]
+      )
+      data["wines"] = wines.map { |wine| WineSerializer.new(wine, request.base_url).as_json }
+    end
+    data
   end
 
   def ensure_wine_manager!

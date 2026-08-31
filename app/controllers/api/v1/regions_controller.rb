@@ -2,8 +2,8 @@ class Api::V1::RegionsController < ApplicationController
   # Regions are read publicly (used by the wine-form picker).
   # Create/update/destroy is restricted to wine managers.
   before_action :authenticate_user!, except: [:index, :show, :tree]
-  before_action :ensure_wine_manager!, only: [:create, :update, :destroy]
-  before_action :set_region, only: [:show, :update, :destroy]
+  before_action :ensure_wine_manager!, only: [:create, :update, :destroy, :link_wine]
+  before_action :set_region, only: [:show, :update, :destroy, :link_wine]
 
   def index
     regions = Region.includes(:country).order(:name)
@@ -45,8 +45,18 @@ class Api::V1::RegionsController < ApplicationController
       is_state: region.is_state,
       is_appellation: region.is_appellation,
       full_path: path,
-      wines: region.wines.map { |w| { id: w.id, name: w.name, slug: w.slug } }
+      wines: wines_serialized(region)
     }
+  end
+
+  def link_wine
+    wine = Wine.find_by(slug: params[:wine_id]) || Wine.find_by(id: params[:wine_id])
+    unless wine
+      return render json: { error: "Wine not found" }, status: :not_found
+    end
+
+    wine.regions << @region unless wine.regions.include?(@region)
+    render json: region_with_path(@region)
   end
 
   def create
@@ -72,6 +82,14 @@ class Api::V1::RegionsController < ApplicationController
   end
 
   private
+
+  def wines_serialized(region)
+    wines = region.wines.includes(
+      wine_taste_parameters: :taste_parameter, vintages: [], producer: [],
+      grapes: [], regions: [:country]
+    )
+    wines.map { |wine| WineSerializer.new(wine, request.base_url).as_json }
+  end
 
   def set_region
     @region = Region.includes(:country).find(params[:id])

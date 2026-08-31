@@ -641,7 +641,13 @@ In the grape list, put the number of wines linked to that grape. And if the user
 
 Do the same for rails and react apps.
 
+Add the list of grapes in the componet table of the wines.
+
 ---
+
+In rails app, when I click in the Category(in the list of categories, it goes to a show category). Do the same with react.
+
+## In both rails and react apps, in the show category. List the wines, reviews, artices linked to the this category. Create similar componenets as wines table to reviews and articles to show them as tables.
 
 Add the missing attributes to Producers table. Reflect it to the interface.
 

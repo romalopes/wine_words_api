@@ -53,11 +53,7 @@
 
   <h2>Wines</h2>
   <% if @producer.wines.any? %>
-    <ul class="wine-list">
-      <% @producer.wines.each do |wine| %>
-        <li><%= link_to wine.name, wine_path(wine.slug) %></li>
-      <% end %>
-    </ul>
+    <%= render "wines/wine_table", wines: @producer.wines.includes(:producer, :regions, :vintages) %>
   <% else %>
     <p class="empty">No wines are associated with this producer yet.</p>
   <% end %>

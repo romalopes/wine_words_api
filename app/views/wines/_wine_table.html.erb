@@ -1,0 +1,59 @@
+<%# Shared table of wines (one wine per row): Name, Producer, Regions,
+    Vintages and Edit/Delete actions for wine managers. %>
+<table class="grapes-table producers-table">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Producer</th>
+      <th>Regions</th>
+      <th>Grapes</th>
+      <th>Vintages</th>
+      <% if false && can_manage_wines? %>
+        <th>Actions</th>
+      <% end %>
+    </tr>
+  </thead>
+  <tbody>
+    <% wines.each_with_index do |wine, index| %>
+      <tr class="<%= index.even? ? "grapes-row--even" : "grapes-row--odd" %>">
+        <td><%= link_to wine.name, wine_path(wine.slug), class: "grapes-table__link" %></td>
+        <td>
+          <% if wine.producer %>
+            <%= link_to wine.producer.name, producer_path(wine.producer.slug), class: "grapes-table__link" %>
+          <% else %>
+            —
+          <% end %>
+        </td>
+        <td>
+          <% if wine.regions.any? %>
+            <%= safe_join(wine.regions.map { |region| link_to(region.name, region_path(region.id), class: "grapes-table__link") }, ", ") %>
+          <% else %>
+            —
+          <% end %>
+        </td>
+        <td>
+          <% if wine.grapes.any? %>
+            <%= safe_join(wine.grapes.map { |grape| link_to(grape.name, grape_path(grape.id), class: "grapes-table__link") }, ", ") %>
+          <% else %>
+            —
+          <% end %>
+        </td>
+        <td>
+          <% if wine.vintages.any? %>
+            <%= wine.vintages.size %> vintage<%= wine.vintages.size == 1 ? "" : "s" %>
+          <% else %>
+            —
+          <% end %>
+        </td>
+        <% if false && can_manage_wines? %>
+          <td class="actions">
+            <%= link_to "Edit", edit_wine_path(wine.slug), class: "btn-action" %>
+            <%= button_to "Delete", wine_path(wine.slug), method: :delete,
+                  class: "btn-action btn-action--delete",
+                  form: { data: { confirm: "Delete \"#{wine.name}\"? This action cannot be undone." } } %>
+          </td>
+        <% end %>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

@@ -34,18 +34,110 @@
   <p><strong>Parent:</strong> <%= @region.parent.name if @region.parent %></p>
 </div>
 
+<% if can_manage_wines? %>
+  <div id="region-wine-linker" style="margin-bottom:1.4rem;">
+    <label for="wine-link-search"><strong>Link a wine</strong></label>
+    <input type="text" id="wine-link-search" placeholder="Search wines by name…"
+           style="display:block;max-width:26rem;border:1px solid #d8c8c0;border-radius:.45rem;padding:.5rem .7rem;margin:.35rem 0;">
+    <div id="wine-link-results"></div>
+    <small class="lede">Only Super Users and Reviewers can add a wine to a region.</small>
+  </div>
+<% end %>
+
 <div class="wine-detail__section">
   <h2>Wines</h2>
-  <% if @region.wines.any? %>
-    <ul>
-      <% @region.wines.each do |wine| %>
-        <li><%= link_to wine.name, wine_path(wine.slug) %></li>
-      <% end %>
-    </ul>
+  <% if @wines.any? %>
+    <%= render "wines/wine_table", wines: @wines %>
   <% else %>
     <p>No wines are associated with this region yet.</p>
   <% end %>
 </div>
+
+<% if can_manage_wines? %>
+<script>
+  (function () {
+    var input = document.getElementById("wine-link-search");
+    var resultsBox = document.getElementById("wine-link-results");
+    if (!input || !resultsBox) return;
+
+    var regionId = "<%= @region.id %>";
+    var regionName = "<%= j @region.name %>";
+    var linkUrl = "<%= j link_wine_region_path(@region) %>";
+    var csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+    var timer = null;
+    var lastQuery = "";
+
+    function makeEl(tag, attrs, textContent) {
+      var el = document.createElement(tag);
+      Object.keys(attrs || {}).forEach(function (k) { el.setAttribute(k, attrs[k]); });
+      if (textContent != null) el.textContent = textContent;
+      return el;
+    }
+
+    function renderResults(wines) {
+      resultsBox.innerHTML = "";
+      if (!wines.length) {
+        resultsBox.appendChild(makeEl("p", { class: "lede" }, "No matching wines."));
+        return;
+      }
+      wines.forEach(function (wine) {
+        var row = makeEl("div", {});
+        row.style.cssText = "display:flex;align-items:center;gap:.6rem;margin:.35rem 0;padding:.45rem .6rem;border:1px solid #d8c8c0;border-radius:.5rem;max-width:32rem;background:#fff;";
+        var name = makeEl("strong", {}, wine.name);
+        row.appendChild(name);
+
+        var linkedHere = Array.isArray(wine.regions) && wine.regions.some(function (r) {
+          return String(r.id) === regionId;
+        });
+
+        if (linkedHere) {
+          var already = makeEl("span", { style: "color:#2e7d43;font-weight:700;" }, "Linked here \\u2713");
+          row.appendChild(already);
+          resultsBox.appendChild(row);
+          return;
+        }
+
+        var btn = makeEl("button", { type: "button", class: "btn btn--secondary", style: "padding:.25rem .7rem;" }, "Link");
+        btn.addEventListener("click", function () {
+          if (!window.confirm('Add "' + wine.name + '" to "' + regionName + '"?')) return;
+          fetch(linkUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRF-Token": csrfToken,
+              "Accept": "text/vnd.turbo-stream.html, text/html, application/json"
+            },
+            credentials: "same-origin",
+            body: JSON.stringify({ wine_id: wine.slug })
+          }).then(function (r) {
+            if (!r.ok) throw new Error("Failed to link wine");
+            window.location.reload();
+          }).catch(function (err) { alert(err.message); });
+        });
+        row.appendChild(btn);
+        resultsBox.appendChild(row);
+      });
+    }
+
+    function search() {
+      var query = input.value.trim();
+      lastQuery = query;
+      if (query.length < 2) { resultsBox.innerHTML = ""; return; }
+      fetch("/api/v1/wines/search?q=" + encodeURIComponent(query), { headers: { "Accept": "application/json" } })
+        .then(function (r) { return r.json(); })
+        .then(function (wines) {
+          if (lastQuery === query || query === "") renderResults(Array.isArray(wines) ? wines.slice(0, 8) : []);
+        })
+        .catch(function () { resultsBox.innerHTML = ""; });
+    }
+
+    input.addEventListener("input", function () {
+      clearTimeout(timer);
+      timer = setTimeout(search, 300);
+    });
+  })();
+</script>
+<% end %>
 
 <div class="page-actions">
   <%= link_to "Edit", edit_region_path(@region.id), class: "btn" %>

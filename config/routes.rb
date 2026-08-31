@@ -57,9 +57,12 @@ Rails.application.routes.draw do
   end
   resources :tags
   resources :countries
-  resources :regions
+  resources :regions do
+    member { post :link_wine }
+  end
   resources :grapes do
     collection { get :search }
+    member { post :link_wine }
   end
   resources :wine_taste_parameters
   resources :test_parameters
@@ -108,11 +111,15 @@ Rails.application.routes.draw do
             resources :taste_parameters
       resources :grapes do
         collection { get :search }
+        member { post :link_wine }
       end
       resources :countries
       resources :regions do
         collection do
           get :tree
+        end
+        member do
+          post :link_wine
         end
       end
 

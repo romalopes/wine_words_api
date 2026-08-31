@@ -24,6 +24,7 @@
         <th>Color</th>
         <th>Origin</th>
         <th>Synonyms</th>
+        <th>Wines</th>
         <% if false && (current_user&.super_admin? || current_user&.editor?) %>
           <th>Actions</th>
         <% end %>
@@ -36,6 +37,13 @@
           <td><%= grape.color || "—" %></td>
           <td><%= grape.origin_country || "—" %></td>
           <td><%= grape.synonyms.present? ? grape.synonyms.first(3).join(", ") + (grape.synonyms.length > 3 ? "…" : "") : "—" %></td>
+          <td>
+            <% if grape.wines.size > 0 %>
+              <%= link_to "#{grape.wines.size} wine#{grape.wines.size == 1 ? '' : 's'}", grape_path(grape.id), class: "grapes-table__link" %>
+            <% else %>
+              —
+            <% end %>
+          </td>
           <% if false && (current_user&.super_admin? || current_user&.editor?) %>
             <td class="actions">
               <%= link_to "Show", grape_path(grape.id), class: "card-action" %>

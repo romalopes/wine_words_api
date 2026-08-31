@@ -2,7 +2,7 @@ class RegionsController < ActionController::Base
   layout "application"
   include RequireLogin
 
-  before_action :set_region, only: [:show, :edit, :update, :destroy]
+  before_action :set_region, only: [:show, :edit, :update, :destroy, :link_wine]
   before_action :ensure_manager!, only: [:new, :edit, :create, :update, :destroy]
 
   def index
@@ -10,6 +10,25 @@ class RegionsController < ActionController::Base
   end
 
   def show
+    @wines = @region.wines.includes(:producer, :regions, :vintages).order(:name)
+  end
+
+  # POST /regions/:id/link_wine (wine_id may be a slug or numeric id).
+  def link_wine
+    unless current_user&.wine_manager?
+      return redirect_to @region, alert: "You are not allowed to manage wines."
+    end
+    wine = Wine.find_by(slug: params[:wine_id]) || Wine.find_by(id: params[:wine_id])
+    unless wine
+      return redirect_to @region, alert: "Wine not found."
+    end
+
+    if wine.regions.include?(@region)
+      redirect_to @region, notice: "#{wine.name} is already linked to #{@region.name}."
+    else
+      wine.regions << @region
+      redirect_to @region, notice: "#{wine.name} was added to #{@region.name}."
+    end
   end
 
   def new

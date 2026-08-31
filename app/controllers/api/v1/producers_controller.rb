@@ -91,15 +91,16 @@ class Api::V1::ProducersController < ApplicationController
       instagram: producer.instagram,
       facebook: producer.facebook,
       images: image_urls(producer),
-      wines: producer.wines.map do |wine|
-        {
-          id: wine.id,
-          slug: wine.slug,
-          name: wine.name,
-          color: wine.color
-        }
-      end
+      wines: wines_serialized(producer)
     }
+  end
+
+  def wines_serialized(producer)
+    wines = producer.wines.includes(
+      wine_taste_parameters: :taste_parameter, vintages: [], producer: [],
+      grapes: [], regions: [:country]
+    )
+    wines.map { |wine| WineSerializer.new(wine, request.base_url).as_json }
   end
 
     def image_urls(record)
