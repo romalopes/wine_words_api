@@ -1136,6 +1136,16 @@ Reviews and Articles create/edit/delete shoulbe be available to "Super User" and
 
 #
 
+When I remove a category from wine and there is no wine linked to that category, in the menu, it still shows the old number of wines linked to that category. It should reflect automatically.
+
+Also, if there is only wines with no categories. It shows All Wines(0), as if there is no wine.
+
+#
+
+##########################################################################
+
+#
+
 Create a subscription concept to the system. Don't link with any payment yet, but keep it open for the future. A user can have one kind of subscription.
 A user with the "super user" role will be able to add new substription
 

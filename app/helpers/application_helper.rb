@@ -1,5 +1,18 @@
 module ApplicationHelper
-    # Renders a nav dropdown ("details/summary") with the "All ..." link first
+  # Version constants shown in the site footer (kept in sync with the React app).
+  VERSION_FRONT_END = "0.0.20" # front-end version (matches package.json)
+  VERSION_BACK_END = "0.0.20" # backend API version
+
+  # Helper methods so the footer can access the versions in a view.
+  def version_front_end
+    VERSION_FRONT_END
+  end
+
+  def version_back_end
+    VERSION_BACK_END
+  end
+
+  # Renders a nav dropdown ("details/summary") with the "All ..." link first
   # (showing the total visible count), followed by one link per enabled
   # category that has at least one linked item.  Category links show the
   # item count, e.g. "News (3)".  Selecting a category navigates to
