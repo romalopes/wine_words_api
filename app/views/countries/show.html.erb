@@ -2,6 +2,7 @@
 <ul class="facts" aria-label="Country details">
   <li><strong>ISO code:</strong> <%= @country.code.upcase %></li>
   <li><strong>Continent:</strong> <%= @country.continent || "—" %></li>
+  <li><strong>Wine country:</strong> <%= @country.is_wine_country ? "Yes" : "No" %></li>
   <li><strong>Grapes:</strong> <%= @country.grapes.any? ? @country.grapes.order(:name).map(&:name).join(", ") : "—" %></li>
 </ul>
 <% if current_user&.super_admin? || current_user&.editor? %>

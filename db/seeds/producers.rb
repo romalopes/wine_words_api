@@ -31,6 +31,11 @@
 ALL_PRODUCERS = [
   # --- NEW PRODUCERS ADDED ---
   {
+    name: "Unknown Producer",
+    legal_name: "Unkown Producer",
+    country: "Australia",
+  },
+  {
     name: "Pedlidis",
     legal_name: "Pedlidis Family Wines",
     region: "Barossa Valley",

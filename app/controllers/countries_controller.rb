@@ -53,6 +53,6 @@ class CountriesController < ActionController::Base
   end
 
   def country_params
-    params.require(:country).permit(:name, :code, :continent, :flag_emoji)
+    params.require(:country).permit(:name, :code, :continent, :flag_emoji, :is_wine_country)
   end
 end

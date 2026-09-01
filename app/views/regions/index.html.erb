@@ -5,7 +5,7 @@
 </div>
 <% if @countries_tree.any? %>
   <label class="region-tree-filter">
-    <input type="checkbox" id="only-with-wines" />
+    <input type="checkbox" id="only-with-wines" checked />
     <span>Only countries with wines</span>
   </label>
   <div class="region-tree-container">
@@ -187,11 +187,16 @@
     var checkbox = document.getElementById('only-with-wines');
     if (!checkbox) return;
     checkbox.addEventListener('change', function () {
+      applyFilter();
+    });
+    applyFilter();
+
+    function applyFilter() {
       var countries = document.querySelectorAll('.region-tree-country');
       countries.forEach(function (country) {
         var count = parseInt(country.dataset.wineCount, 10) || 0;
         country.style.display = (checkbox.checked && count === 0) ? 'none' : '';
       });
-    });
+    }
   });
 </script>

@@ -78,6 +78,10 @@ Rails.application.routes.draw do
         collection do
           get :search
         end
+        member do
+          post :logo, action: :attach_logo
+          delete :logo, action: :remove_logo
+        end
       end
       resources :wines do
         collection do

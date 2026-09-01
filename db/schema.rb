@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_30_030028) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_01_040000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -128,6 +128,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_30_030028) do
     t.string "continent"
     t.datetime "created_at", null: false
     t.string "flag_emoji"
+    t.boolean "is_wine_country", default: false, null: false
     t.string "name"
     t.datetime "updated_at", null: false
     t.index ["code"], name: "index_countries_on_code", unique: true
@@ -159,16 +160,44 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_30_030028) do
     t.index ["jti"], name: "index_jwt_denylists_on_jti"
   end
 
+  create_table "producer_grapes", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "grape_id", null: false
+    t.bigint "producer_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["grape_id"], name: "index_producer_grapes_on_grape_id"
+    t.index ["producer_id", "grape_id"], name: "index_producer_grapes_on_producer_id_and_grape_id", unique: true
+    t.index ["producer_id"], name: "index_producer_grapes_on_producer_id"
+  end
+
+  create_table "producer_regions", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "producer_id", null: false
+    t.bigint "region_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["producer_id", "region_id"], name: "index_producer_regions_on_producer_id_and_region_id", unique: true
+    t.index ["producer_id"], name: "index_producer_regions_on_producer_id"
+    t.index ["region_id"], name: "index_producer_regions_on_region_id"
+  end
+
   create_table "producers", force: :cascade do |t|
+    t.boolean "active", default: true, null: false
     t.string "address"
+    t.string "city"
+    t.bigint "country_id", null: false
     t.datetime "created_at", null: false
     t.text "description"
     t.string "email"
     t.string "facebook"
+    t.integer "founded_year"
     t.string "instagram"
+    t.string "legal_name"
     t.string "name"
+    t.string "phone"
+    t.string "postal_code"
     t.integer "producer_type", default: 0, null: false
     t.string "slug"
+    t.string "state"
     t.datetime "updated_at", null: false
     t.string "website"
     t.index ["name"], name: "index_producers_on_name", unique: true
@@ -380,6 +409,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_30_030028) do
   add_foreign_key "articles", "categories"
   add_foreign_key "articles", "users"
   add_foreign_key "grapes", "countries"
+  add_foreign_key "producer_grapes", "grapes"
+  add_foreign_key "producer_grapes", "producers"
+  add_foreign_key "producer_regions", "producers"
+  add_foreign_key "producer_regions", "regions"
   add_foreign_key "regions", "countries"
   add_foreign_key "regions", "regions", column: "parent_id"
   add_foreign_key "review_categories", "categories"

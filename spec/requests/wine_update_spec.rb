@@ -2,10 +2,11 @@ require "rails_helper"
 
 RSpec.describe "Wine update flow", type: :request do
   let(:user) { User.create!(email: "spec@example.com", password: "password123", password_confirmation: "password123") }
-  let!(:producer) { Producer.create!(name: "Spec Producer #{rand(100000)}") }
+  let!(:producer) { Producer.create!(name: "Spec Producer #{rand(100000)}", email: "spec#{rand(100000)}@example.com") }
   let!(:wine) { producer.wines.create!(name: "Spec Wine #{rand(100000)}", color: "Red") }
 
   before do
+    user.roles << Role.find_or_create_by!(name: "Editor")
     post "/login", params: { email: user.email, password: "password123" }
   end
 

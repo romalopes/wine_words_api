@@ -19,6 +19,10 @@
     <%= form.label :flag_emoji %>
     <%= form.text_field :flag_emoji %>
   </div>
+  <div class="field">
+    <%= form.check_box :is_wine_country %>
+    <%= form.label :is_wine_country, "Wine country" %>
+  </div>
   <div class="page-actions">
     <%= form.submit "Update", class: "btn" %>
     <%= link_to "Cancel", countries_path, class: "btn btn--secondary" %>

@@ -11,6 +11,11 @@
             onclick: %(return confirm('Delete "#{@producer.name}"? This action cannot be undone.')) %>
     </div>
   <% end %>
+  <% if @producer.logo.attached? %>
+    <div style="margin:.6rem 0 1rem;">
+      <%= image_tag url_for(@producer.logo), style: "max-width:180px;", alt: "#{@producer.name} logo" %>
+    </div>
+  <% end %>
   <% if @producer.images.attached? %>
     <div class="image-gallery">
       <% @producer.images.each do |image| %>
@@ -19,9 +24,25 @@
     </div>
   <% end %>
   <ul class="facts" aria-label="Producer details">
+    <% if @producer.legal_name.present? %>
+      <li><strong>Legal name:</strong> <%= @producer.legal_name %></li>
+    <% end %>
+    <% if @producer.country.present? %>
+      <li><strong>Country:</strong> <%= [@producer.country.flag_emoji, @producer.country.name].compact.join(" ") %></li>
+    <% end %>
     <% if @producer.address.present? %>
       <li><strong>Address:</strong> <%= @producer.address %></li>
     <% end %>
+    <% if [@producer.city, @producer.state, @producer.postal_code].any?(&:present?) %>
+      <li><strong>Location:</strong> <%= [@producer.city, @producer.state, @producer.postal_code].compact.join(", ") %></li>
+    <% end %>
+    <% if @producer.phone.present? %>
+      <li><strong>Phone:</strong> <%= @producer.phone %></li>
+    <% end %>
+    <% if @producer.founded_year.present? %>
+      <li><strong>Founded:</strong> <%= @producer.founded_year %></li>
+    <% end %>
+    <li><strong>Status:</strong> <%= @producer.active? ? "Active" : "Inactive" %></li>
     <% if @producer.producer_type.present? %>
       <li><strong>Type:</strong> <%= @producer.producer_type.titleize %></li>
     <% end %>
@@ -41,6 +62,15 @@
       <li><strong>Email:</strong> <%= mail_to @producer.email %></li>
     <% end %>
   </ul>
+  <% if @producer.regions.any? %>
+    <h2>Regions</h2>
+    <p><%= @producer.regions.order(:name).map(&:name).join(", ") %></p>
+  <% end %>
+  <% if @producer.grapes.any? %>
+    <h2>Grapes</h2>
+    <p><%= @producer.grapes.order(:name).map(&:name).join(", ") %></p>
+  <% end %>
+
   <% if can_manage_producers? %>
     <div id="producer-wine-linker" style="margin-bottom:1.4rem;">
       <label for="wine-link-search"><strong>Link a wine</strong></label>

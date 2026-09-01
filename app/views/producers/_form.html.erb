@@ -4,20 +4,54 @@
     <%= f.text_field :name %>
   </div>
   <div>
-    <%= f.label :address %><br>
-    <%= f.text_field :address %>
+    <%= f.label :legal_name, "Legal name" %><br>
+    <%= f.text_field :legal_name, placeholder: "Legal corporate name (if different)" %>
   </div>
   <div>
     <%= f.label :email %><br>
     <%= f.email_field :email, required: true %>
   </div>
   <div>
+    <%= f.label :phone %><br>
+    <%= f.text_field :phone, placeholder: "e.g. +61 2 9999 9999" %>
+  </div>
+  <div>
     <%= f.label :producer_type %><br>
     <%= f.select :producer_type, Producer.producer_types.keys.map { |k| [k.titleize, k] } %>
   </div>
   <div>
+    <%= f.label :country_id, "Country" %><br>
+    <%= f.select :country_id,
+          options_from_collection_for_select(@countries || Country.order(:name), :id, :name, producer.country_id || Country.find_by(code: "AU")&.id),
+          {}, { id: "producer-country-select", required: true } %>
+  </div>
+  <div>
     <%= f.label :website %><br>
     <%= f.url_field :website, placeholder: "https://..." %>
+  </div>
+  <div>
+    <%= f.label :address %><br>
+    <%= f.text_field :address %>
+  </div>
+  <div>
+    <%= f.label :city %><br>
+    <%= f.text_field :city %>
+  </div>
+  <div>
+    <%= f.label :state %><br>
+    <%= f.text_field :state %>
+  </div>
+  <div>
+    <%= f.label :postal_code, "Postal code" %><br>
+    <%= f.text_field :postal_code %>
+  </div>
+  <div>
+    <%= f.label :founded_year, "Founded year" %><br>
+    <%= f.number_field :founded_year, min: 1, max: Date.current.year %>
+  </div>
+  <div>
+    <%= f.label :active %><br>
+    <%= f.check_box :active %>
   </div>
   <div>
     <%= f.label :instagram %><br>
@@ -32,8 +66,186 @@
     <%= f.text_area :description, rows: 4 %>
   </div>
   <div>
+    <%= f.label :logo, "Logo" %><br>
+    <% if producer.logo.attached? %>
+      <%= image_tag url_for(producer.logo), style: "max-width:120px;display:block;margin-bottom:.4rem;", alt: producer.name %>
+    <% end %>
+    <%= f.file_field :logo, accept: "image/png,image/jpeg,image/gif,image/webp,image/svg+xml" %>
+    <small class="lede">PNG, JPEG, GIF, WEBP or SVG — max 10 MB.</small>
+  </div>
+  <div>
     <%= f.label :images, "Images" %>
     <%= f.file_field :images, multiple: true, direct_upload: false %>
   </div>
+
+  <div id="producer-region-picker">
+    <label><strong>Regions</strong></label>
+    <small class="lede">Only regions of the selected country can be added.</small>
+    <div class="picker-selected" id="producer-region-selected">
+      <% producer.regions.order(:name).each do |region| %>
+        <span class="grape-tag" data-region-id="<%= region.id %>">
+          <%= region.name %>
+          <button type="button" class="wine-form__remove-vintage" data-remove-region="<%= region.id %>">&times;</button>
+          <input type="hidden" name="producer[region_ids][]" value="<%= region.id %>">
+        </span>
+      <% end %>
+    </div>
+    <input type="text" id="producer-region-search" placeholder="Start typing a region name…" autocomplete="off">
+    <div id="producer-region-results"></div>
+  </div>
+
+  <div id="producer-grape-picker">
+    <label><strong>Grapes</strong></label>
+    <div class="picker-selected" id="producer-grape-selected">
+      <% producer.grapes.order(:name).each do |grape| %>
+        <span class="grape-tag" data-grape-id="<%= grape.id %>">
+          <%= grape.name %>
+          <button type="button" class="wine-form__remove-vintage" data-remove-grape="<%= grape.id %>">&times;</button>
+          <input type="hidden" name="producer[grape_ids][]" value="<%= grape.id %>">
+        </span>
+      <% end %>
+    </div>
+    <input type="text" id="producer-grape-search" placeholder="Start typing a grape name…" autocomplete="off">
+    <div id="producer-grape-results"></div>
+  </div>
+
   <div><%= f.submit class: "btn" %></div>
 <% end %>
+
+<script>
+  (function () {
+    var countrySelect = document.getElementById("producer-country-select");
+
+    function makePicker(opts) {
+      var input = document.getElementById(opts.inputId);
+      var results = document.getElementById(opts.resultsId);
+      var selected = document.getElementById(opts.selectedId);
+      var allItems = null;
+      var timer = null;
+      var lastQuery = "";
+
+      function selectedIds() {
+        return Array.prototype.map.call(
+          selected.querySelectorAll("input[type=hidden]"),
+          function (el) { return el.value; }
+        );
+      }
+
+      function addChip(item) {
+        if (selectedIds().indexOf(String(item.id)) !== -1) return;
+        var chip = document.createElement("span");
+        chip.className = "grape-tag";
+        chip.textContent = opts.labelFor(item);
+        var removeBtn = document.createElement("button");
+        removeBtn.type = "button";
+        removeBtn.className = "wine-form__remove-vintage";
+        removeBtn.setAttribute("aria-label", "Remove");
+        removeBtn.addEventListener("click", function () { chip.remove(); });
+        var hidden = document.createElement("input");
+        hidden.type = "hidden";
+        hidden.name = opts.fieldName;
+        hidden.value = item.id;
+        chip.appendChild(removeBtn);
+        chip.appendChild(hidden);
+        selected.appendChild(chip);
+      }
+
+      function renderResults(items) {
+        results.innerHTML = "";
+        if (!items.length) {
+          var none = document.createElement("p");
+          none.className = "lede";
+          none.textContent = "No matches.";
+          results.appendChild(none);
+          return;
+        }
+        items.forEach(function (item) {
+          var btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "review-card";
+          btn.textContent = opts.labelFor(item);
+          btn.addEventListener("click", function () {
+            addChip(item);
+            input.value = "";
+            results.innerHTML = "";
+          });
+          results.appendChild(btn);
+        });
+      }
+
+      function inSelectedCountry(item) {
+        if (!countrySelect || !countrySelect.value) return false;
+        return item.country && String(item.country.id) === String(countrySelect.value);
+      }
+
+      function runSearch() {
+        var raw = input.value.trim();
+        var query = raw.toLowerCase();
+        lastQuery = raw;
+        if (query.length < 2) { results.innerHTML = ""; return; }
+
+        if (opts.mode === "regions") {
+          var load = function () {
+            if (!allItems) return;
+            renderResults(allItems.filter(function (item) {
+              if (!inSelectedCountry(item)) return false;
+              var name = (item.name || "").toLowerCase();
+              var country = ((item.country || {}).name || "").toLowerCase();
+              return name.indexOf(query) !== -1 || country.indexOf(query) !== -1;
+            }).slice(0, 20));
+          };
+          if (allItems) { load(); return; }
+          fetch(opts.searchUrl, { headers: { "Accept": "application/json" } })
+            .then(function (r) { return r.json(); })
+            .then(function (data) { allItems = Array.isArray(data) ? data : []; load(); })
+            .catch(function () { results.innerHTML = ""; });
+        } else {
+          fetch(opts.searchUrl + "?q=" + encodeURIComponent(raw), { headers: { "Accept": "application/json" } })
+            .then(function (r) { return r.json(); })
+            .then(function (data) { if (lastQuery === raw) renderResults(Array.isArray(data) ? data : []); })
+            .catch(function () { results.innerHTML = ""; });
+        }
+      }
+
+      input.addEventListener("input", function () {
+        clearTimeout(timer);
+        timer = setTimeout(runSearch, 300);
+      });
+    }
+
+    var regionPicker = document.getElementById("producer-region-picker");
+    if (regionPicker) {
+      makePicker({
+        inputId: "producer-region-search",
+        resultsId: "producer-region-results",
+        selectedId: "producer-region-selected",
+        fieldName: "producer[region_ids][]",
+        searchUrl: "/api/v1/regions",
+        mode: "regions",
+        labelFor: function (r) {
+          return r.name + ((r.country && r.country.flag_emoji) ? " " + r.country.flag_emoji : "");
+        }
+      });
+    }
+
+    var grapePicker = document.getElementById("producer-grape-picker");
+    if (grapePicker) {
+      makePicker({
+        inputId: "producer-grape-search",
+        resultsId: "producer-grape-results",
+        selectedId: "producer-grape-selected",
+        fieldName: "producer[grape_ids][]",
+        searchUrl: "/api/v1/grapes/search",
+        mode: "grapes",
+        labelFor: function (g) { return g.name + (g.color ? " (" + g.color + ")" : ""); }
+      });
+    }
+
+    document.querySelectorAll("[data-remove-region]").forEach(function (btn) {
+      btn.addEventListener("click", function () { btn.closest(".grape-tag").remove(); });
+    });
+    document.querySelectorAll("[data-remove-grape]").forEach(function (btn) {
+      btn.addEventListener("click", function () { btn.closest(".grape-tag").remove(); });
+    });
+  })();
+</script>

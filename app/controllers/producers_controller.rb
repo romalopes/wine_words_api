@@ -6,10 +6,11 @@ class ProducersController < ActionController::Base
   # Only Super Users and Reviewers may add, edit, delete or link wines.
   before_action :set_producer, only: [:show, :edit, :update, :destroy, :link_wine]
   before_action :deny_unless_wine_manager!, only: [:new, :create, :edit, :update, :destroy, :link_wine]
+  before_action :load_countries, only: [:new, :edit, :create, :update]
   helper_method :can_manage_producers?
 
   def index
-    @producers = Producer.includes(:wines).order(:name)
+    @producers = Producer.includes(:wines, :country, :logo_attachment).order(:name)
   end
 
   def show
@@ -24,6 +25,7 @@ class ProducersController < ActionController::Base
     @producer = Producer.new(producer_params)
     if @producer.save
       @producer.images.attach(params[:producer][:images]) if params[:producer][:images].present?
+      attach_logo
       redirect_to @producer, notice: "Producer was successfully created."
     else
       render :new, status: :unprocessable_entity
@@ -37,6 +39,7 @@ class ProducersController < ActionController::Base
   def update
     if @producer.update(producer_params)
       @producer.images.attach(params[:producer][:images]) if params[:producer][:images].present?
+      attach_logo
       redirect_to @producer, notice: "Producer was successfully updated."
     else
       render :edit, status: :unprocessable_entity
@@ -70,7 +73,11 @@ class ProducersController < ActionController::Base
   private
 
   def set_producer
-    @producer = Producer.includes(:wines).find_by!(slug: params[:id])
+    @producer = Producer.includes(:wines, :country, :regions, :grapes).find_by!(slug: params[:id])
+  end
+
+  def load_countries
+    @countries = Country.where(is_wine_country: true).order(:name)
   end
 
   # Authorisation for producer management (Super User or Reviewer only).
@@ -85,8 +92,21 @@ class ProducersController < ActionController::Base
     false
   end
 
+  def attach_logo
+    logo = params[:producer]&.dig(:logo)
+    return if logo.blank?
+
+    @producer.logo.purge if @producer.logo.attached?
+    @producer.logo.attach(logo)
+  rescue StandardError => e
+    Rails.logger.warn("Producer logo attach failed: #{e.message}")
+  end
+
   def producer_params
-    params.require(:producer).permit(:name, :address, :email, :website, :description,
-                                     :producer_type, :instagram, :facebook)
+    params.require(:producer).permit(
+      :name, :address, :email, :website, :description, :producer_type,
+      :instagram, :facebook, :legal_name, :phone, :city, :state, :postal_code,
+      :founded_year, :active, :country_id, region_ids: [], grape_ids: []
+    )
   end
 end
