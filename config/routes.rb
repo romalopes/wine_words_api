@@ -137,9 +137,11 @@ Rails.application.routes.draw do
 
       resources :users, only: [] do
         collection { get :search }
-        member { patch :assign_roles }
+        member { patch :assign_roles; patch :assign_subscription }
       end
       get "roles", to: "users#roles"
+
+      resources :subscriptions, only: [:index, :show, :create, :update, :destroy]
     end
   end
 end

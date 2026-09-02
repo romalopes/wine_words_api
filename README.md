@@ -1186,181 +1186,57 @@ Make a interface based on the websites:
 
 #
 
-# Plan: Subscription System
+Excellent — those rules clarify the role model completely. Here's the finalized plan with the base-access-role logic integrated.
 
-### Goal
+## Finalized Plan: Subscription System (with base-access-role model)
 
-Add a subscription concept (no payments yet, but structured to allow future billing integration). A user holds **one** subscription. Super Users can manage subscriptions (CRUD). Public/pricing pages are modeled on the Wine Front / Jancis Robinson style (tier cards, "Most Popular" badge, price, feature list, CTA).
+### Role model rules (now locked in)
 
----
+- **Base access roles** (`Guest`, `Reader`) are **mutually exclusive** and **controlled by the subscription**: FREE → `Guest`, any paid → `Reader`.
+- **Privileged roles** (`Reviewer`, `Super User`) are **independent** of subscription and **never touched** by subscription changes.
+- `apply_subscription!(sub)` therefore: swap only the base role (`Guest` ↔ `Reader`), preserving all other roles. Upgrade between paid plans (Consumer → Trade) changes features only — no role write at all. Downgrade to FREE swaps `Reader` → `Guest`, keeps `Reviewer`/`Super User`.
 
-### Data Model (Rails)
+### Phase 1 — Data model
 
-**Tables** (new migration `db/migrate/*_add_subscriptions.rb` + seed)
+**Migration(s):**
 
-- **`subscriptions`**: `name` (string, null:false), `slug` (string, null:false), `popular` (boolean, default:false), `visible` (boolean, default:true), `description` (text), `monthly_price` (integer), `yearly_price` (integer), currency(string, default:"AUD"), `active` (boolean, default:true), position(integer, default: the last created), created_at, updated_at
+- `subscriptions`: `name` (unique), `slug` (unique), `popular`, `visible`, `active` (bools with defaults), `description` (text), `monthly_price_cents` (nullable), `yearly_price_cents` (nullable), `currency` (default "AUD", null: false), `is_default` (partial unique index `where: "is_default = true"`), `position`.
+- `subscription_features`: `name`, `slug` (unique), `description` — standalone catalogue.
+- `subscription_subscription_features` join: `subscription_id`, `subscription_feature_id`, `position`, unique composite index.
+- `user_subscriptions`: `user_id`, `subscription_id`, `started_at`, `ended_at`, `cancelled_at`, `status` enum (`active`/`cancelled`/`expired`/`trial`, default `active`).
+- `users.subscription_id` (nullable FK).
 
-  Also:
-  Add a default_role, linking to "READER" role.
+**Soft-delete policy:** subscriptions with assigned users or history are never destroyed — instead `active: false, visible: false` (hide from pricing page, keep history intact). The API `destroy` action will refuse when `users.exists?` or `user_subscriptions.exists?`; the admin UI will offer "Deactivate" in that case.
 
-  Only the "Super User" and "Editor roles should see and have access to the "show" page of the non visible and non active subscriptions.
+**Models:**
 
-- subscription_features
-  id
-  name
-  slug
-  description
-  created_at
-  updated_at
+- `Subscription` — through-association to features + `accepts_nested_attributes_for :subscription_subscription_features` (feature add/remove/reorder via `position`); validations incl. exactly one `is_default`; scopes `visible`, `active`, `paid`; `before_destroy` guard.
+- `SubscriptionFeature`, `UserSubscription` (status enum, `scope :current`).
+- `User`:
+  - `BASE_ROLES = ["Guest", "Reader"]` (conceptual grouping, documented in code, not DB).
+  - `belongs_to :subscription, optional: true`; `has_many :user_subscriptions`.
+  - `after_create`: assign FREE subscription + `Guest`.
+  - `apply_subscription!(sub)` (transaction): set `subscription_id`; close prior `user_subscriptions` row (`ended_at`), create new `active` row; **base-role swap only** — `roles.where(name: BASE_ROLES).destroy_all` then add `sub.free? ? "Guest" : "Reader"`; privileged roles untouched; skip role writes entirely if the base role is already correct (paid → paid upgrade).
 
-  subscription_subscription_features
-  id
-  subscription_id
-  subscription_feature_id
-  created_at
-  updated_at
+**Seeds** (`db/seeds/subscriptions.rb` ← `db/seeds.rb`): FREE (default, $0), Consumer (7000¢, popular), Trade (24000¢), Distributor (40000¢), Retail (60000¢); all visible/active; `monthly_price_cents: nil`; representative features (catalogue + per-subscription links).
 
-  # db/migrate/\*\_add_subscriptions.rb
+### Phase 2 — API
 
-  add_index :subscriptions, :is_default, unique: true, where: "is_default = true"
+- `Api::V1::SubscriptionsController`: `index` (public → visible+active; Super User → all), `show`, `create`/`update`/`destroy` (Super User only; destroy refuses when users/history exist; nested features incl. position).
+- `Api::V1::UsersController#assign_subscription` (`PATCH /users/:id/assign_subscription`, Super User only, `assign_roles` auth pattern) → calls `apply_subscription!`. Extend `user_json`/`me` with `subscription: {id, name}`.
+- Routes: `resources :subscriptions` + member `assign_subscription`.
 
-  # Model validation
+### Phase 3 — React frontend
 
-  validates :is_default, uniqueness: true, if: :is_default?
-
-- **`subscription_features`**: `subscription_id` (FK), `name` (string, null:false); unique index per subscription+name
-- Add **`subscription_id`** column to `users` (nullable FK → subscriptions). A user belongs to one subscription (FREE by default).
-  - Make subscription_id non-null (null: false) once seeds/migrations run, pointing to the default FREE plan.
-  - Build `Subscription::AssignPlanService` to encapsulate role switching (FREE → Guest | Paid → Reader)
-
-  - Downgrades/Upgrades: What happens when a user's paid subscription expires or is removed? Ensure the system explicitly reverts their role back to Guest upon shifting back to the FREE plan.
-
-- \*\*
-  I want to save:
-  - subscription history
-  - expiration dates
-  - cancellations
-  - upgrades
-  - downgrades
-  - trials
-  - payment provider IDs
-  - invoices
-  - renewal dates
-
-  Add a user_subscriptions
-
-then you'll eventually want:
-
-users
-↓
-user_subscriptions
-↓
-subscriptions
-
-For example:
-
-## user_subscriptions
-
-id
-user_id
-subscription_id
-started_at
-ended_at
-payment_provider
-external_subscription_id
-renewal_at
-cancelled_at
-status
-
-**Models**
-
-- `Subscription`: `has_many :subscription_features, dependent: :destroy`, `accepts_nested_attributes_for :subscription_features, allow_destroy: true`; `has_many :users`; validates name/prices; scopes `visible` and `paid`.
-- `SubscriptionFeature`: `belongs_to :subscription`; validates `name`.
-- `User`: `belongs_to :subscription, optional: true`. Extend the `after_create :assign_default_role` to also assign the **FREE subscription**. Add a `role_for_subscription` mapping (FREE → Guest, paid → Reader) and a method to apply the role on subscription change.
-
-Price should be referred as cents. Store prices as integer cents (e.g., AUD 70/year becomes 7000) and enforce currency (ISO 4217 code AUD) at the DB level (default: 'AUD', null: false).
-
-**Seeds** (`db/seeds.rb` — 5 plans + features):
-| Plan | Price |
-|---|---|
-| FREE | $0 |
-| Consumer | AUD 70/yr |
-| Trade | AUD 240/yr |
-| Distributor | AUD 400/yr |
-| Retail | AUD 600/yr |
-Free comes with no paid features; Consumer/Trade/Distributor/Retail get representative feature lists (republishing rights tiers, all Consumer features, etc.).
-
----
-
-### Backend — Rails API
-
-**`Api::V1::SubscriptionsController`**
-
-- `index` — public: returns `visible` subscriptions + their features (for the pricing page). Super Users get all (incl. hidden).
-- `show` — subscription + features.
-- `create` / `update` / `destroy` — **Super User only** (`before_action :ensure_super_user!`). Supports nested `subscription_features_attributes` (add/remove features).
-- JSON shape: `{ id, name, popular, visible, description, monthly_price, yearly_price, features: [{id, name}] }`
-
-**Users / subscription linkage**
-
-- `me` + `user_json` include the user's `subscription` (`{id, name}`).
-- New endpoint **`PATCH /api/v1/users/:id/subscription`** (Super User only): set a user's subscription and apply the mapped role (FREE→Guest, paid→Reader).
-- Registration: FREE subscription + Guest role assigned on creation (server-side).
-
-**Routes** (`config/routes.rb`): add `resources :subscriptions` namespace `api/v1`, plus the user subscription endpoint.
-
-### Backend — Rails Web UI (server-rendered, Super User only)
-
-- New controller + views (`index`, `show`, `new`, `edit`, `_form`): subscription fields + nested feature editor (search/checkbox list of features).
-- Nav dropdown entry (Settings) → "Subscriptions" (Super User only, consistent with "Users & Roles").
-
----
-
-### Frontend — React
-
-**`services/api.js`** — add `subscriptionsApi` (list/show/create/update/destroy) and extend `usersApi` with `assignSubscription(userId, subscriptionId)`.
-
-**Public pricing page** `/subscribe` (modeled on reference sites)
-
-- Don't add Monthly plan in the interface yet. Just in the back end:
-  monthly_price = NULL
-  yearly_price = 7000
-- Tier cards for visible paid plans; **"Most Popular"** badge on the `popular` plan.
-- Each card: name, price, short description, **feature list with ✓ checkmarks**, "$/yr" + "$/mo" billing hint, and a "Select / Subscribe" CTA.
-- Since payments are future: the CTA is **non-functional placeholder** ("Payment coming soon" / contact) — or, in-admin, it routes to Super-User-only assignment.
-- A FREE card at the bottom ("Start free").
-
-**Admin management page** `/subscriptions` (Super User only, hidden from others)
-
-- List of all subscriptions (grid/cards) with edit/delete + "add".
-- **`SubscriptionForm`** component: name, popular toggle, visible toggle, description, monthly & yearly price, and a dynamic **Subscription Feature** editor (add/remove feature name rows → `subscription_features_attributes`).
-- Don't allow delete subscriptions that have users.
-
-**User subscription assignment**
-
-- In `UserRoles.jsx` (Super User): add a subscription picker when assigning roles, or a small dedicated admin section to set a user's subscription (calls `assignSubscription`).
-- `AuthContext`/`me` displays the user's current subscription.
-
-**Nav & routes**
-
-- Add `/subscribe` (public) and `/subscriptions` (admin) to `AppRoutes.jsx`.
-- Add "Subscribe" to the main nav and "Subscriptions" under Settings (Super-User only).
-
----
+- `api.js`: `subscriptionsApi` + `usersApi.assignSubscription`.
+- Public `/subscribe` page: tier cards, "Most Popular" badge, ✓ features, AUD/yr pricing, FREE card, disabled "Payments coming soon" CTA.
+- Admin `/subscriptions` (Super User): list + `SubscriptionForm` (fields + feature picker w/ ordering) + **Deactivate** action when delete is blocked.
+- `UserRoles.jsx`: per-user subscription picker (calls `assignSubscription`).
+- `AppRoutes.jsx` (`/subscribe`, `/subscriptions`) + `Header.jsx` (Subscribe in main nav; Subscriptions in Settings, Super User only).
 
 ### Verification
 
-- `rails db:migrate` + `db:seed` runs clean; schema includes the three tables/column.
-- `ruby -c` on all new/modified controllers & models.
-- `curl` subscriptions endpoints (public filtered by `visible`, super-user full CRUD); `me` returns subscription; registration returns FREE/Guest.
-- React `npm run build` passes; route wiring works.
-
----
-
-### Open items I'll default unless you say otherwise
-
-1. **Distributor spelling** — I'll use "Distributor" (matching the reference site).
-2. **Paid plan features** — since features are free-form data, I'll seed sensible defaults (mirroring Consumer "includes all Consumer features" + republishing-rights tiers) that a Super User can edit later.
+- `db:migrate` + seeds; model/request specs: public filtering, Super User CRUD, **base-role swap matrix** (FREE→paid, paid→FREE, paid→paid, Reviewer/Super User preserved), history rows (open/close), delete guard, soft-delete behavior; `npm run build` + ESLint.
 
 #
 

@@ -5,7 +5,8 @@ class Api::V1::UsersController < ApplicationController
         id: current_user.id,
         email: current_user.email,
         name: current_user.name,
-        roles: current_user.role_names
+        roles: current_user.role_names,
+        subscription: current_user.subscription ? { id: current_user.subscription.id, name: current_user.subscription.name } : nil
       }
     }
   end
@@ -42,6 +43,22 @@ class Api::V1::UsersController < ApplicationController
     render json: user_json(user.reload)
   end
 
+  # PATCH /api/v1/users/:id/assign_subscription  body: { subscription_id: 2 }
+  # Super User only. Applies the subscription and swaps the base access role
+  # (Guest <-> Reader) while preserving privileged roles and history.
+  def assign_subscription
+    return head(:forbidden) unless current_user.super_admin?
+
+    user = User.find(params[:id])
+    subscription = Subscription.find(params[:subscription_id])
+
+    if user.apply_subscription!(subscription)
+      render json: user_json(user.reload)
+    else
+      render json: { errors: user.errors.full_messages }, status: :unprocessable_entity
+    end
+  end
+
   private
 
   def user_json(user)
@@ -50,7 +67,8 @@ class Api::V1::UsersController < ApplicationController
       email: user.email,
       name: user.name,
       role_ids: user.role_ids,
-      roles: user.role_names
+      roles: user.role_names,
+      subscription: user.subscription ? { id: user.subscription.id, name: user.subscription.name } : nil
     }
   end
 end
