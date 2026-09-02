@@ -87,4 +87,54 @@ RSpec.describe Producer, type: :model do
       expect(producer.errors[:logo].join).to match(/image/i)
     end
   end
+
+  describe "default email" do
+    it "generates an email from the slug when none is provided" do
+      producer = build_producer(name: "Dandelion Vineyards", email: nil)
+      producer.save!
+      expect(producer.email).to eq("dandelion_vineyards@winewords.com.au")
+    end
+
+    it "generates an email from a single-word slug" do
+      producer = build_producer(name: "Pedlidis", email: nil)
+      producer.save!
+      expect(producer.email).to eq("pedlidis@winewords.com.au")
+    end
+
+    it "preserves an explicitly provided email" do
+      producer = build_producer(email: "winery@example.com")
+      producer.save!
+      expect(producer.email).to eq("winery@example.com")
+    end
+  end
+
+  describe "deleting a producer" do
+    it "reassigns its wines to the Unknown Producer" do
+      producer = build_producer
+      producer.save!
+      wine = Wine.create!(name: "Test Wine", color: "Red", producer: producer)
+
+      expect { producer.destroy }
+        .to change { wine.reload.producer_id }
+        .to(Producer.unknown_producer.id)
+      expect(Producer).not_to exist(producer.id)
+    end
+
+    it "still leaves the wines valid (producer never nil)" do
+      producer = build_producer
+      producer.save!
+      wine = Wine.create!(name: "Test Wine", color: "Red", producer: producer)
+
+      producer.destroy
+
+      expect(wine.reload.producer).to eq(Producer.unknown_producer)
+      expect(wine).to be_valid
+    end
+
+    it "creates the shared Unknown Producer with a valid auto-generated email" do
+      unknown = Producer.unknown_producer
+      expect(unknown.email).to eq("unknown_producer@winewords.com.au")
+      expect(unknown).to be_valid
+    end
+  end
 end

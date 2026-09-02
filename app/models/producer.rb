@@ -4,13 +4,13 @@ class Producer < ApplicationRecord
   ALLOWED_LOGO_TYPES = %w[image/png image/jpeg image/gif image/webp image/svg+xml].freeze
   DEFAULT_COUNTRY_CODE = "AU"
 
-  has_many :wines, dependent: :nullify
+  has_many :wines
   has_many_attached :images
   has_one_attached :logo
 
   belongs_to :country
 
-  has_many :producer_regions, dependent: :destroy, autosave: true
+  has_many :producer_regions, dependent: :destroy
   has_many :regions, through: :producer_regions
   has_many :producer_grapes, dependent: :destroy
   has_many :grapes, through: :producer_grapes
@@ -51,7 +51,20 @@ class Producer < ApplicationRecord
     slug
   end
 
+  # The record that orphaned wines are reassigned to when a producer is
+  # deleted. Found (or created) by name so it also gets the auto-generated
+  # email via the before_create callback below.
+  def self.unknown_producer
+    find_or_create_by!(name: "Unknown Producer")
+  end
+
   before_validation :generate_slug, on: :create
+
+  # Default the email to a slug-derived address on create. It must run in
+  # before_validation (after generate_slug) because the email is required,
+  # and validations run before before_create would fire.
+  before_validation :set_default_email, on: :create
+  before_destroy :reassign_wines_to_unknown_producer
 
   private
 
@@ -100,6 +113,29 @@ class Producer < ApplicationRecord
       candidate = "#{base}-#{suffix}"
     end
     self.slug = candidate
+  end
+
+  def set_default_email
+    return if email.present?
+
+    # Slug runs in before_validation, so it's available here.
+    # e.g. "Dandelion Vineyards" -> "dandelion_vineyards@winewords.com.au"
+    self.email = "#{slug.tr("-", "_")}@winewords.com.au"
+  end
+
+  # Requirement: deleting a producer must not orphan its wines (the wines
+  # column is NOT NULL). Reassign them to the shared "Unknown Producer".
+  # The sink record is only created when the destroyed producer actually
+  # has wines, so deleting an empty producer has no side effects.
+  def reassign_wines_to_unknown_producer
+    # Don't touch the sink record (or this producer) when there are no
+    # wines to reassign — deleting an empty producer has no side effects.
+    return if wines.none?
+
+    unknown = Producer.unknown_producer
+    return if self == unknown
+
+    Wine.where(producer_id: id).update_all(producer_id: unknown.id)
   end
 end
 

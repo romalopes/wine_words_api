@@ -42,6 +42,7 @@ class Wine < ApplicationRecord
     "Synthetic",
     "Glass Stopper",
     "Nomacorc PlantCorc",
+    "Vino-Lok",
     "Agglomerate"
   ].freeze
   DEFAULT_CLOSURE = "Cork"

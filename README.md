@@ -1551,3 +1551,7 @@ Me entregue ao final: o relatório em PDF, a lista de achados no chat (arquivo p
 ---
 
 load Rails.root.join("db/seeds/countries.rb")
+load Rails.root.join("db/seeds/regions.rb")
+load Rails.root.join("db/seeds/grapes.rb")
+
+load Rails.root.join("db/seeds/producers.rb")
