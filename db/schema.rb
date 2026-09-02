@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_01_040000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_02_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -299,7 +299,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_01_040000) do
   create_table "vintages", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.boolean "no_vintage", default: false, null: false
-    t.decimal "price", precision: 10, scale: 2
+    t.integer "price_cents"
     t.text "prompt"
     t.datetime "updated_at", null: false
     t.bigint "wine_id"

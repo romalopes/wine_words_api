@@ -1362,8 +1362,6 @@ Free comes with no paid features; Consumer/Trade/Distributor/Retail get represen
 1. **Distributor spelling** — I'll use "Distributor" (matching the reference site).
 2. **Paid plan features** — since features are free-form data, I'll seed sensible defaults (mirroring Consumer "includes all Consumer features" + republishing-rights tiers) that a Super User can edit later.
 
-This is ready to implement. **Toggle to Act mode** and I'll start with the migrations, models, and seeds, then the API, then both UIs.
-
 #
 
 ##########################################################################
