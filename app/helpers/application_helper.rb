@@ -1,7 +1,9 @@
 module ApplicationHelper
   # Version constants shown in the site footer (kept in sync with the React app).
+  # The backend version comes from the VERSION file via config/initializers/app_version.rb,
+  # so it stays in sync with what Api::V1::HealthController reports.
   VERSION_FRONT_END = "0.0.20" # front-end version (matches package.json)
-  VERSION_BACK_END = "0.0.20" # backend API version
+  VERSION_BACK_END = APP_VERSION # backend API version (from the VERSION file)
 
   # Helper methods so the footer can access the versions in a view.
   def version_front_end

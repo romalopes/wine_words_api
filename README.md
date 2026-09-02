@@ -1165,11 +1165,12 @@ Subscription Feature for now, just have a name.
 
 Create the following subscriptions types:
 
-- FREE
-- Consumer ($AUD 70/year)
-- Trade ($AUD 240/year)
-- Distributer ($AUD 400/year)
-- Retail ($AUD 600/year)
+Subscription Annual Monthly Visible Active
+FREE $0 — Yes Yes
+Consumer $70 — Yes Yes
+Trade $240 — Yes Yes
+Distributor $400 — Yes Yes
+Retail $600 — Yes Yes
 
 When the user is created the use will be assigned to the FREE subscription with the role "Guest".
 If he gets one of the other subscription, he will get the role "
@@ -1197,12 +1198,31 @@ Add a subscription concept (no payments yet, but structured to allow future bill
 
 **Tables** (new migration `db/migrate/*_add_subscriptions.rb` + seed)
 
-- **`subscriptions`**: `name` (string, null:false), `popular` (boolean, default:false), `visible` (boolean, default:true), `description` (text), `monthly_price` (integer), `yearly_price` (integer), currency(string, default:"AUD")
+- **`subscriptions`**: `name` (string, null:false), `slug` (string, null:false), `popular` (boolean, default:false), `visible` (boolean, default:true), `description` (text), `monthly_price` (integer), `yearly_price` (integer), currency(string, default:"AUD"), `active` (boolean, default:true), position(integer, default: the last created), created_at, updated_at
+
   Also:
+  Add a default_role, linking to "READER" role.
+
+  Only the "Super User" and "Editor roles should see and have access to the "show" page of the non visible and non active subscriptions.
+
+- subscription_features
+  id
+  name
+  slug
+  description
+  created_at
+  updated_at
+
+  subscription_subscription_features
+  id
+  subscription_id
+  subscription_feature_id
+  created_at
+  updated_at
 
   # db/migrate/\*\_add_subscriptions.rb
 
-  add_column :subscriptions, :is_default, :boolean, default: false, null: false
+  add_index :subscriptions, :is_default, unique: true, where: "is_default = true"
 
   # Model validation
 
@@ -1210,12 +1230,55 @@ Add a subscription concept (no payments yet, but structured to allow future bill
 
 - **`subscription_features`**: `subscription_id` (FK), `name` (string, null:false); unique index per subscription+name
 - Add **`subscription_id`** column to `users` (nullable FK → subscriptions). A user belongs to one subscription (FREE by default).
+  - Make subscription_id non-null (null: false) once seeds/migrations run, pointing to the default FREE plan.
+  - Build `Subscription::AssignPlanService` to encapsulate role switching (FREE → Guest | Paid → Reader)
+
+  - Downgrades/Upgrades: What happens when a user's paid subscription expires or is removed? Ensure the system explicitly reverts their role back to Guest upon shifting back to the FREE plan.
+
+- \*\*
+  I want to save:
+  - subscription history
+  - expiration dates
+  - cancellations
+  - upgrades
+  - downgrades
+  - trials
+  - payment provider IDs
+  - invoices
+  - renewal dates
+
+  Add a user_subscriptions
+
+then you'll eventually want:
+
+users
+↓
+user_subscriptions
+↓
+subscriptions
+
+For example:
+
+## user_subscriptions
+
+id
+user_id
+subscription_id
+started_at
+ended_at
+payment_provider
+external_subscription_id
+renewal_at
+cancelled_at
+status
 
 **Models**
 
 - `Subscription`: `has_many :subscription_features, dependent: :destroy`, `accepts_nested_attributes_for :subscription_features, allow_destroy: true`; `has_many :users`; validates name/prices; scopes `visible` and `paid`.
 - `SubscriptionFeature`: `belongs_to :subscription`; validates `name`.
 - `User`: `belongs_to :subscription, optional: true`. Extend the `after_create :assign_default_role` to also assign the **FREE subscription**. Add a `role_for_subscription` mapping (FREE → Guest, paid → Reader) and a method to apply the role on subscription change.
+
+Price should be referred as cents. Store prices as integer cents (e.g., AUD 70/year becomes 7000) and enforce currency (ISO 4217 code AUD) at the DB level (default: 'AUD', null: false).
 
 **Seeds** (`db/seeds.rb` — 5 plans + features):
 | Plan | Price |
@@ -1225,7 +1288,7 @@ Add a subscription concept (no payments yet, but structured to allow future bill
 | Trade | AUD 240/yr |
 | Distributor | AUD 400/yr |
 | Retail | AUD 600/yr |
-_(I'll spell it "Distributor" to match the reference site; can switch to "Distributer" if preferred.)_ Free comes with no paid features; Consumer/Trade/Distributor/Retail get representative feature lists (republishing rights tiers, all Consumer features, etc.).
+Free comes with no paid features; Consumer/Trade/Distributor/Retail get representative feature lists (republishing rights tiers, all Consumer features, etc.).
 
 ---
 
@@ -1259,6 +1322,9 @@ _(I'll spell it "Distributor" to match the reference site; can switch to "Distri
 
 **Public pricing page** `/subscribe` (modeled on reference sites)
 
+- Don't add Monthly plan in the interface yet. Just in the back end:
+  monthly_price = NULL
+  yearly_price = 7000
 - Tier cards for visible paid plans; **"Most Popular"** badge on the `popular` plan.
 - Each card: name, price, short description, **feature list with ✓ checkmarks**, "$/yr" + "$/mo" billing hint, and a "Select / Subscribe" CTA.
 - Since payments are future: the CTA is **non-functional placeholder** ("Payment coming soon" / contact) — or, in-admin, it routes to Super-User-only assignment.
@@ -1268,6 +1334,7 @@ _(I'll spell it "Distributor" to match the reference site; can switch to "Distri
 
 - List of all subscriptions (grid/cards) with edit/delete + "add".
 - **`SubscriptionForm`** component: name, popular toggle, visible toggle, description, monthly & yearly price, and a dynamic **Subscription Feature** editor (add/remove feature name rows → `subscription_features_attributes`).
+- Don't allow delete subscriptions that have users.
 
 **User subscription assignment**
 
