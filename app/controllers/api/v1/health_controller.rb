@@ -22,7 +22,7 @@ class Api::V1::HealthController < ApplicationController
       database: database_connected? ? "ok" : "error",
       storage: storage_healthy? ? "ok" : "error",
       environment: Rails.env,
-      version: APP_VERSION, # single source: config/initializers/app_version.rb
+      version: BACK_END_VERSION, # single source: config/initializers/app_version.rb
       timestamp: Time.current.utc.iso8601
     }, status: database_connected? ? :ok : :service_unavailable
   end

@@ -1186,8 +1186,6 @@ Make a interface based on the websites:
 
 #
 
-Excellent — those rules clarify the role model completely. Here's the finalized plan with the base-access-role logic integrated.
-
 ## Finalized Plan: Subscription System (with base-access-role model)
 
 ### Role model rules (now locked in)
