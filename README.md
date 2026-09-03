@@ -1494,3 +1494,5 @@ load Rails.root.join("db/seeds/regions.rb")
 load Rails.root.join("db/seeds/grapes.rb")
 
 load Rails.root.join("db/seeds/producers.rb")
+
+load Rails.root.join("db/seeds/article_and_reviews.rb")
