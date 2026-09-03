@@ -5,7 +5,25 @@ class Api::V1::CountriesController < ApplicationController
 
   def index
     countries = Country.order(:name)
-    render json: countries
+    country_ids = countries.pluck(:id)
+
+    producer_counts = Producer
+      .where(country_id: country_ids)
+      .group(:country_id)
+      .count
+
+    wine_counts = Wine
+      .joins(:producer)
+      .where(producers: { country_id: country_ids })
+      .group("producers.country_id")
+      .count
+
+    render json: countries.map { |country|
+      country.as_json(only: %i[id name code continent flag_emoji is_wine_country]).merge(
+        producers_count: producer_counts[country.id] || 0,
+        wines_count: wine_counts[country.id] || 0
+      )
+    }
   end
 
   def show

@@ -1,6 +1,11 @@
 <% content_for :title, "Wine Library" %>
 <h1>Wine Library</h1>
 <p class="lede">Browse the collection, discover each wine’s profile, and compare its vintages.</p>
+<% if params[:category].present? %>
+  <div class="filter-pills">
+    <%= link_to "Show all categories", wines_path, class: "filter-pill active" %>
+  </div>
+<% end %>
 <% if can_manage_wines? %>
   <div class="page-actions">
     <%= link_to "+ New Wine", new_wine_path, class: "btn" %>
@@ -13,9 +18,12 @@
     sorted_groups.each_with_index do |(group_name, wines_in_group), gi|
   %>
   <section class="wine-grid-group" aria-labelledby="group-<%= gi %>">
-    <h2 id="group-<%= gi %>" class="group-title"><%= group_name %></h2>
+    <h2 id="group-<%= gi %>" class="group-title">
+      <%= group_name %>
+      <%= link_to "Show all (#{wines_in_group.size})", wines_path(category: group_name), class: "group-show-all" %>
+    </h2>
     <section class="wine-grid" aria-label="Wines in <%= group_name %>">
-      <% wines_in_group.each do |wine| %>
+      <% (params[:category].present? ? wines_in_group : wines_in_group.first(12)).each do |wine| %>
         <div class="card-wrapper">
           <% if can_manage_wines? %>
             <div class="card-actions">

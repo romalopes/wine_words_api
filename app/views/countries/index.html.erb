@@ -1,6 +1,6 @@
 <h1>Countries</h1>
 <label class="region-tree-filter">
-  <input type="checkbox" id="only-wine-countries" />
+  <input type="checkbox" id="only-wine-countries" checked />
   <span>Only show wine countries</span>
 </label>
 <div class="page-actions">
@@ -16,6 +16,8 @@
         <th>Name</th>
         <th>Code</th>
         <th>Continent</th>
+        <th>Producers</th>
+        <th>Wines</th>
         <% if current_user&.wine_manager? %>
           <th>Actions</th>
         <% end %>
@@ -23,16 +25,17 @@
     </thead>
     <tbody>
       <% @countries.each_with_index do |country, index| %>
-        <tr class="<%= index % 2 == 0 ? 'grapes-row--even' : 'grapes-row--odd' %>" data-wine-country="<%= country.is_wine_country %>">
+        <tr class="<%= index % 2 == 0 ? "grapes-row--even" : "grapes-row--odd" %>" data-wine-country="<%= country.is_wine_country %>">
           <td><%= country.flag_emoji %></td>
           <td><%= link_to country.name, country_path(country.id) %></td>
           <td><%= country.code.upcase %></td>
           <td><%= country.continent || "—" %></td>
+          <td><%= @producer_counts[country.id] || 0 %></td>
+          <td><%= @wine_counts[country.id] || 0 %></td>
           <% if current_user&.wine_manager? %>
             <td class="actions">
               <%= link_to "Show", country_path(country.id), class: "card-action" %>
               <%= link_to "Edit", edit_country_path(country.id), class: "card-action" %>
-              <%#= button_to "Delete", country_path(country.id), method: :delete, form_class: "inline-form", class: "card-action card-action--delete", onclick: %(return confirm('Delete this country?')) %>
             </td>
           <% end %>
         </tr>
@@ -43,15 +46,17 @@
   <p class="empty">No countries have been added yet.</p>
 <% end %>
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    var checkbox = document.getElementById('only-wine-countries');
+  document.addEventListener("DOMContentLoaded", function () {
+    var checkbox = document.getElementById("only-wine-countries");
     if (!checkbox) return;
-    checkbox.addEventListener('change', function () {
-      var rows = document.querySelectorAll('tr[data-wine-country]');
+    function applyFilter() {
+      var rows = document.querySelectorAll("tr[data-wine-country]");
       rows.forEach(function (row) {
-        var isWine = row.dataset.wineCountry === 'true';
-        row.style.display = (checkbox.checked && !isWine) ? 'none' : '';
+        var isWine = row.dataset.wineCountry === "true";
+        row.style.display = (checkbox.checked && !isWine) ? "none" : "";
       });
-    });
+    }
+    checkbox.addEventListener("change", applyFilter);
+    applyFilter();
   });
 </script>

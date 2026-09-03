@@ -19,6 +19,11 @@
     <%= link_to "+ New Article", new_article_path, class: "btn" %>
   </div>
 <% end %>
+<% if params[:category].present? %>
+  <div class="filter-pills">
+    <%= link_to "Show all categories", articles_path(scope: @scope, status: @status), class: "filter-pill active" %>
+  </div>
+<% end %>
 <% if @articles.any? %>
   <%
     grouped = @articles.group_by { |a| a.category&.name || "Uncategorised" }
@@ -26,9 +31,12 @@
     sorted_groups.each_with_index do |(group_name, articles_in_group), gi|
   %>
   <section class="wine-grid-group" aria-labelledby="group-<%= gi %>">
-    <h2 id="group-<%= gi %>" class="group-title"><%= group_name %></h2>
+    <h2 id="group-<%= gi %>" class="group-title">
+      <%= group_name %>
+      <%= link_to "Show all (#{articles_in_group.size})", articles_path(category: group_name), class: "group-show-all" %>
+    </h2>
     <section class="wine-grid" aria-label="Articles in <%= group_name %>">
-      <% articles_in_group.each do |article| %>
+      <% (params[:category].present? ? articles_in_group : articles_in_group.first(12)).each do |article| %>
         <div class="card-wrapper">
           <% if can_manage_article?(article) %>
             <div class="card-actions">

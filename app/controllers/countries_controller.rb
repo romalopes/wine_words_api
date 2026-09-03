@@ -7,9 +7,19 @@ class CountriesController < ActionController::Base
 
   def index
     @countries = Country.order(:name)
-  end
+    country_ids = @countries.pluck(:id)
 
-  def show; end
+    @producer_counts = Producer
+      .where(country_id: country_ids)
+      .group(:country_id)
+      .count
+
+    @wine_counts = Wine
+      .joins(:producer)
+      .where(producers: { country_id: country_ids })
+      .group("producers.country_id")
+      .count
+  end
 
   def new
     @country = Country.new

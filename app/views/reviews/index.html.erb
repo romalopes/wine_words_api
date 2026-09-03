@@ -18,6 +18,11 @@
     <%= link_to "+ New Review", new_review_path, class: "btn" %>
   </div>
 <% end %>
+<% if params[:category].present? %>
+  <div class="filter-pills">
+    <%= link_to "Show all categories", reviews_path(scope: @scope, status: @status), class: "filter-pill active" %>
+  </div>
+<% end %>
 <% if @reviews.any? %>
   <%
     grouped = @reviews.group_by { |r| r.category&.name || "Uncategorised" }
@@ -25,9 +30,12 @@
     sorted_groups.each_with_index do |(group_name, reviews_in_group), gi|
   %>
   <section class="wine-grid-group" aria-labelledby="group-<%= gi %>">
-    <h2 id="group-<%= gi %>" class="group-title"><%= group_name %></h2>
+    <h2 id="group-<%= gi %>" class="group-title">
+      <%= group_name %>
+      <%= link_to "Show all (#{reviews_in_group.size})", reviews_path(category: group_name), class: "group-show-all" %>
+    </h2>
     <section class="review-grid" aria-label="Reviews in <%= group_name %>">
-      <% reviews_in_group.each do |review| %>
+      <% (params[:category].present? ? reviews_in_group : reviews_in_group.first(12)).each do |review| %>
         <div class="card-wrapper">
           <% if can_manage_review?(review) %>
             <div class="card-actions">
