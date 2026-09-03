@@ -27,7 +27,7 @@ class Api::V1::CountriesController < ApplicationController
   end
 
   def show
-    render json: @country
+    render json: country_detail_json(@country)
   end
 
   def create
@@ -58,6 +58,76 @@ class Api::V1::CountriesController < ApplicationController
     @country = Country.find(params[:id])
   rescue ActiveRecord::RecordNotFound
     render json: { error: "Country not found" }, status: :not_found
+  end
+
+  def country_detail_json(country)
+    {
+      id: country.id,
+      name: country.name,
+      code: country.code,
+      continent: country.continent,
+      flag_emoji: country.flag_emoji,
+      is_wine_country: country.is_wine_country,
+      producers: country_producers_json(country),
+      wines: country_wines_json(country),
+    }
+  end
+
+  def country_producers_json(country)
+    producers = Producer.where(country_id: country.id).order(:name)
+    producer_ids = producers.map(&:id)
+    wines_count_map = Wine
+      .where(producer_id: producer_ids)
+      .group(:producer_id)
+      .count
+
+    producers.map do |producer|
+      {
+        id: producer.id,
+        slug: producer.slug,
+        name: producer.name,
+        producer_type: producer.producer_type,
+        founded_year: producer.founded_year,
+        country: country_json(producer.country),
+        wines_count: wines_count_map[producer.id] || 0,
+        logo_url: producer_logo_url(producer),
+      }
+    end
+  end
+
+  def country_wines_json(country)
+    Wine
+      .joins(:producer)
+      .where(producers: { country_id: country.id })
+      .includes(
+        vintages: [],
+        wine_taste_parameters: :taste_parameter,
+        producer: [],
+        grapes: [],
+        regions: [:country],
+      )
+      .order(:name)
+      .map { |wine| WineSerializer.new(wine, request.base_url).as_json }
+  end
+
+  def country_json(country)
+    return nil if country.blank?
+
+    {
+      id: country.id,
+      name: country.name,
+      code: country.code,
+      flag_emoji: country.flag_emoji,
+    }
+  end
+
+  def producer_logo_url(producer)
+    return nil unless producer.logo.attached?
+
+    Rails.application.routes.url_helpers.rails_blob_url(
+      producer.logo,
+      host: request.base_url,
+    )
   end
 
   def country_params

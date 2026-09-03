@@ -30,8 +30,22 @@
           <td><%= link_to country.name, country_path(country.id) %></td>
           <td><%= country.code.upcase %></td>
           <td><%= country.continent || "—" %></td>
-          <td><%= @producer_counts[country.id] || 0 %></td>
-          <td><%= @wine_counts[country.id] || 0 %></td>
+          <td>
+            <% count = @producer_counts[country.id] || 0 %>
+            <% if count > 0 %>
+              <%= link_to "#{count} producer#{count == 1 ? '' : 's'}", country_path(country.id, anchor: "producers"), class: "grapes-table__link" %>
+            <% else %>
+              —
+            <% end %>
+          </td>
+          <td>
+            <% count = @wine_counts[country.id] || 0 %>
+            <% if count > 0 %>
+              <%= link_to "#{count} wine#{count == 1 ? '' : 's'}", country_path(country.id, anchor: "wines"), class: "grapes-table__link" %>
+            <% else %>
+              —
+            <% end %>
+          </td>
           <% if current_user&.wine_manager? %>
             <td class="actions">
               <%= link_to "Show", country_path(country.id), class: "card-action" %>

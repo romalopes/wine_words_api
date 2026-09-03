@@ -21,6 +21,15 @@ class CountriesController < ActionController::Base
       .count
   end
 
+  def show
+    @producers = Producer.where(country_id: @country.id).order(:name)
+    @wines = Wine
+      .joins(:producer)
+      .where(producers: { country_id: @country.id })
+      .includes(:producer, :category, :grapes, :regions, :vintages)
+      .order(:name)
+  end
+
   def new
     @country = Country.new
   end

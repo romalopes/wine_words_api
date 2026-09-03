@@ -55,7 +55,7 @@ ActiveRecord::Base.transaction do
       a.body         = article_bodies[i]
       a.status       = "published"
       a.published_at = now
-            a.user         = author
+      a.user         = author
     end
   end
 
@@ -119,7 +119,7 @@ ActiveRecord::Base.transaction do
       r.user         = author
       r.published_at = now
       r.drink_from   = vintage.year            # drink_from >= vintage.year -> validation passes
-            r.drink_to     = vintage.year + 5
+      r.drink_to     = vintage.year + 5
     end
   end
 
