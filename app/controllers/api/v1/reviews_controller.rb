@@ -61,6 +61,11 @@ class Api::V1::ReviewsController < ApplicationController
     review = @vintage.reviews.new(review_params)
     review.user = current_user
 
+    if review.title.blank?
+      year = @vintage.no_vintage? ? "NV" : @vintage.year
+      review.title = "Review of #{@vintage.wine.name} - #{year}"
+    end
+
     if review.save
       render json: ReviewSerializer.new(review, request.base_url).as_json, status: :created
     else
