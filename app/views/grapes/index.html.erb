@@ -34,29 +34,29 @@
     <tbody>
       <% @grapes.each_with_index do |grape, index| %>
         <tr class="<%= index % 2 == 0 ? 'grapes-row--even' : 'grapes-row--odd' %>">
-          <td><%= link_to grape.name, grape_path(grape.id) %></td>
+          <td><%= link_to grape.name, grape_path(grape) %></td>
           <td><%= grape.color || "—" %></td>
           <td><%= grape.origin_country || "—" %></td>
           <td><%= grape.synonyms.present? ? grape.synonyms.first(3).join(", ") + (grape.synonyms.length > 3 ? "…" : "") : "—" %></td>
           <td>
             <% if grape.wines.size > 0 %>
-              <%= link_to "#{grape.wines.size} wine#{grape.wines.size == 1 ? '' : 's'}", grape_path(grape.id), class: "grapes-table__link" %>
+              <%= link_to "#{grape.wines.size} wine#{grape.wines.size == 1 ? '' : 's'}", grape_path(grape), class: "grapes-table__link" %>
             <% else %>
               —
             <% end %>
           </td>
           <td>
             <% if grape.producers.size > 0 %>
-              <%= link_to "#{grape.producers.size} producer#{grape.producers.size == 1 ? '' : 's'}", producers_grape_path(grape.id), class: "grapes-table__link" %>
+              <%= link_to "#{grape.producers.size} producer#{grape.producers.size == 1 ? '' : 's'}", producers_grape_path(grape), class: "grapes-table__link" %>
             <% else %>
               —
             <% end %>
           </td>
           <% if false && (current_user&.super_admin? || current_user&.editor?) %>
             <td class="actions">
-              <%= link_to "Show", grape_path(grape.id), class: "card-action" %>
-              <%= link_to "Edit", edit_grape_path(grape.id), class: "card-action" %>
-              <%= button_to "Delete", grape_path(grape.id), method: :delete, form_class: "inline-form", class: "card-action card-action--delete", onclick: %(return confirm('Delete this grape?')) %>
+              <%= link_to "Show", grape_path(grape), class: "card-action" %>
+              <%= link_to "Edit", edit_grape_path(grape), class: "card-action" %>
+              <%= button_to "Delete", grape_path(grape), method: :delete, form_class: "inline-form", class: "card-action card-action--delete", onclick: %(return confirm('Delete this grape?')) %>
             </td>
           <% end %>
         </tr>

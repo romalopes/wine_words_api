@@ -46,7 +46,7 @@
   <section class="wine-grid" aria-label="Latest articles">
     <% @recent_articles.each do |article| %>
       <div class="card-wrapper">
-        <%= link_to article_path(article.id), class: "wine-card" do %>
+        <%= link_to article_path(article), class: "wine-card" do %>
           <% if article.images.attached? %>
             <%= image_tag url_for(article.images.first), class: "card-thumb", alt: article.title %>
           <% end %>
@@ -68,7 +68,7 @@
   <section class="wine-grid" aria-label="Latest reviews">
     <% @recent_reviews.each do |review| %>
       <div class="card-wrapper">
-        <%= link_to review_path(review.id), class: "wine-card" do %>
+        <%= link_to review_path(review), class: "wine-card" do %>
           <div class="wine-card__band wine-card--rose"></div>
           <div class="wine-card__content">
             <h3><%= review.title.presence || review.vintage&.name %></h3>

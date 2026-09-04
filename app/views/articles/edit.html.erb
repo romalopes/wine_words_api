@@ -28,9 +28,9 @@
         <strong><%= link.review.title.presence || link.review.vintage&.name %></strong>
         — <span class="tag"><%= link.status %></span>
         <%= button_to (link.status == "published" ? "Hide from article" : "Show in article"),
-              toggle_review_status_article_path(@article.id), method: :patch,
+              toggle_review_status_article_path(@article), method: :patch,
               params: { review_id: link.review_id }, class: "btn btn--secondary", form_class: "inline-form" %>
-        <%= button_to "Remove", remove_review_article_path(@article.id), method: :patch,
+        <%= button_to "Remove", remove_review_article_path(@article), method: :patch,
               params: { review_id: link.review_id }, class: "btn btn--secondary", form_class: "inline-form" %>
       </li>
     <% end %>

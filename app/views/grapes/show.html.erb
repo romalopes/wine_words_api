@@ -2,8 +2,8 @@
 <%= link_to "← All grapes", grapes_path, class: "back-link" %>
 <% if current_user&.super_admin? || current_user&.editor? %>
   <div class="page-actions">
-    <%= link_to "Edit Grape", edit_grape_path(@grape.id), class: "btn btn--secondary" %>
-    <%= button_to "Delete Grape", grape_path(@grape.id), method: :delete, class: "btn", onclick: %(return confirm('Delete this grape? This action cannot be undone.')) %>
+    <%= link_to "Edit Grape", edit_grape_path(@grape), class: "btn btn--secondary" %>
+    <%= button_to "Delete Grape", grape_path(@grape), method: :delete, class: "btn", onclick: %(return confirm('Delete this grape? This action cannot be undone.')) %>
   </div>
 <% end %>
 <ul class="facts" aria-label="Grape details">

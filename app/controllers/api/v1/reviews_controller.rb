@@ -110,7 +110,9 @@ class Api::V1::ReviewsController < ApplicationController
   end
 
   def set_review
-    @review = Review.includes(:user, vintage: :wine).find(params[:id])
+    @review = Review.includes(:user, vintage: :wine)
+                    .find_by(slug: params[:id]) ||
+              Review.includes(:user, vintage: :wine).find(params[:id])
   rescue ActiveRecord::RecordNotFound
     render json: { error: "Review not found" }, status: :not_found
   end

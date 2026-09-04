@@ -104,7 +104,7 @@
     <% article.images.each do |image| %>
       <div class="image-gallery__item">
         <%= image_tag url_for(image), class: "gallery-img", alt: article.title %>
-        <%= button_to "Remove", purge_image_article_path(article.id), method: :patch, params: { image_id: image.id }, class: "image-gallery__remove" %>
+        <%= button_to "Remove", purge_image_article_path(article), method: :patch, params: { image_id: image.id }, class: "image-gallery__remove" %>
       </div>
     <% end %>
   </div>

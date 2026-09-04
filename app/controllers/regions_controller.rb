@@ -98,7 +98,9 @@ class RegionsController < ActionController::Base
   end
 
   def set_region
-    @region = Region.includes(:country).find(params[:id])
+    @region = Region.includes(:country).find_by(slug: params[:id]) ||
+              Region.includes(:country).find_by(id: params[:id]) ||
+              not_found
   rescue ActiveRecord::RecordNotFound
     redirect_to regions_path, alert: "Region not found."
   end

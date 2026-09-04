@@ -6,13 +6,13 @@
 
   <% if user_signed_in? && @review.user_id == current_user.id %>
     <div class="page-actions">
-      <%= link_to "Edit Review", edit_review_path(@review.id), class: "btn btn--secondary" %>
+      <%= link_to "Edit Review", edit_review_path(@review), class: "btn btn--secondary" %>
       <% if @review.status == "draft" %>
-        <%= button_to "Publish", review_path(@review.id), method: :patch, params: { review: { status: "published", published_at: Time.current } }, class: "btn btn--secondary" %>
+        <%= button_to "Publish", review_path(@review), method: :patch, params: { review: { status: "published", published_at: Time.current } }, class: "btn btn--secondary" %>
       <% else %>
-        <%= button_to "Unpublish", review_path(@review.id), method: :patch, params: { review: { status: "draft" } }, class: "btn btn--secondary" %>
+        <%= button_to "Unpublish", review_path(@review), method: :patch, params: { review: { status: "draft" } }, class: "btn btn--secondary" %>
       <% end %>
-      <%= button_to "Delete Review", review_path(@review.id), method: :delete, class: "btn", onclick: %(return confirm('Delete this review? This action cannot be undone.')) %>
+      <%= button_to "Delete Review", review_path(@review), method: :delete, class: "btn", onclick: %(return confirm('Delete this review? This action cannot be undone.')) %>
     </div>
   <% end %>
   <% if @review.images.attached? %>
@@ -25,7 +25,7 @@
   <ul class="facts" aria-label="Review details">
     <li><strong>Status:</strong> <%= @review.status %></li>
     <% if @review.categories.any? %>
-      <li><strong>Categories:</strong> <%= @review.categories.map { |c| link_to c.name, category_path(c.id), class: "text-link" }.join(", ").html_safe %></li>
+      <li><strong>Categories:</strong> <%= @review.categories.map { |c| link_to c.name, category_path(c), class: "text-link" }.join(", ").html_safe %></li>
     <% end %>
     <% if @review.drink_from.present? || @review.drink_to.present? %>
       <% window = [@review.drink_from, "–", @review.drink_to].map(&:to_s).reject(&:blank?).join %>

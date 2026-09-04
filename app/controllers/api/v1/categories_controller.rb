@@ -90,7 +90,7 @@ class Api::V1::CategoriesController < ApplicationController
   # Category show: returns the category plus its wines, reviews and articles
   # (used by the React category detail page).
   def show
-    category = Category.find(params[:id])
+    category = find_category
 
     wines = category.category_wines.includes(
       wine_taste_parameters: :taste_parameter, vintages: [], producer: [],
@@ -138,7 +138,7 @@ class Api::V1::CategoriesController < ApplicationController
     wine = Wine.find_by(slug: params[:wine_id]) || Wine.find_by(id: params[:wine_id])
     return render json: { error: "Wine not found" }, status: :not_found unless wine
 
-    category = Category.find(params[:id])
+    category = find_category
     wine.categories << category unless wine.categories.include?(category)
     render json: { id: category.id, name: category.name, linked: true }
   end
@@ -150,7 +150,7 @@ class Api::V1::CategoriesController < ApplicationController
     producer = Producer.find_by(slug: params[:producer_id]) || Producer.find_by(id: params[:producer_id])
     return render json: { error: "Producer not found" }, status: :not_found unless producer
 
-    category = Category.find(params[:id])
+    category = find_category
     producer.categories << category unless producer.categories.include?(category)
     render json: { id: category.id, name: category.name, linked: true }
   end
@@ -165,7 +165,7 @@ class Api::V1::CategoriesController < ApplicationController
   end
 
   def update
-    category = Category.find(params[:id])
+    category = find_category
     if category.update(category_params)
       render json: category_payload(category)
     else
@@ -176,7 +176,7 @@ class Api::V1::CategoriesController < ApplicationController
   end
 
   def destroy
-    category = Category.find(params[:id])
+    category = find_category
     category.destroy!
     render json: { ok: true }
   rescue ActiveRecord::RecordNotFound
@@ -203,6 +203,11 @@ class Api::V1::CategoriesController < ApplicationController
   end
 
   private
+
+  # Resolve the category by slug (preferred) or numeric id, for backwards compat.
+  def find_category
+    Category.find_by(slug: params[:id]) || Category.find(params[:id])
+  end
 
   def ensure_wine_manager!
     return if current_user&.wine_manager?

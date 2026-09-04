@@ -10,8 +10,16 @@ class Review < ApplicationRecord
                     numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100 }
   validates :status, presence: true, inclusion: { in: %w[draft published] }
   validates :title, presence: true
+  validates :slug, presence: true, uniqueness: true
 
   validate :drink_window_is_consistent
+
+  before_validation :generate_slug
+
+  # Use slug instead of numeric id in URLs so lookups resolve via find_by!(slug:)
+  def to_param
+    slug
+  end
 
   def drink_window_is_consistent
     return unless drink_from.present? || drink_to.present?
@@ -36,6 +44,20 @@ class Review < ApplicationRecord
   after_save :demote_article_links, if: :saved_change_to_status?
 
   private
+
+  def generate_slug
+    return if slug.present? && !title_changed?
+    return if title.blank?
+
+    base = title.to_s.parameterize.presence || "review"
+    candidate = base
+    i = 2
+    while self.class.where(slug: candidate).where.not(id: id).exists?
+      candidate = "#{base}-#{i}"
+      i += 1
+    end
+    self.slug = candidate
+  end
 
   def demote_article_links
     return if status == "published"

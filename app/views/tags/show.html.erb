@@ -5,7 +5,7 @@
   <section class="wine-grid" aria-label="Articles">
     <% @articles.each do |article| %>
       <div class="card-wrapper">
-        <%= link_to article_path(article.id), class: "wine-card" do %>
+        <%= link_to article_path(article), class: "wine-card" do %>
           <% if article.images.attached? %>
             <%= image_tag url_for(article.images.first), class: "card-thumb", alt: article.title %>
           <% end %>

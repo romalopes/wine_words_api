@@ -91,7 +91,7 @@ class GrapesController < ActionController::Base
   end
 
   def set_grape
-    @grape = Grape.find(params[:id])
+    @grape = Grape.find_by(slug: params[:id]) || Grape.find(params[:id])
   rescue ActiveRecord::RecordNotFound
     redirect_to grapes_path, alert: "Grape not found."
   end

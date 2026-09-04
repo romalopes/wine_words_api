@@ -18,9 +18,9 @@
           <li data-id="<%= category.id %>">
             <span class="category-sort-list__handle" aria-hidden="true">&#8942;&#8942;</span>
             <span class="category-sort-list__order"><%= category[tab[:column]] || "&ndash;" %></span>
-            <span class="category-sort-list__name"><%= link_to category.name, category_path(category.id) %></span>
-            <%= link_to "Edit", edit_category_path(category.id), class: "card-action" %>
-            <%= button_to "Delete", category_path(category.id), method: :delete, form_class: "inline-form", class: "card-action card-action--delete", onclick: %(return confirm('Delete this category?')) %>
+            <span class="category-sort-list__name"><%= link_to category.name, category_path(category) %></span>
+            <%= link_to "Edit", edit_category_path(category), class: "card-action" %>
+            <%= button_to "Delete", category_path(category), method: :delete, form_class: "inline-form", class: "card-action card-action--delete", onclick: %(return confirm('Delete this category?')) %>
           </li>
         <% end %>
       </ul>

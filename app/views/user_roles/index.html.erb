@@ -9,7 +9,7 @@
 <% end %>
 
 <% @users.each do |user| %>
-  <%= form_with url: user_role_path(user.id), method: :patch, local: true do |f| %>
+  <%= form_with url: user_role_path(user), method: :patch, local: true do |f| %>
     <div style="margin-top:1.25rem; padding:1rem; background:#fff; border:1px solid #eaded7; border-radius:.7rem; max-width:34rem">
       <p style="margin:0 0 .5rem">
         <strong><%= user.name.presence || "(no name)" %></strong>

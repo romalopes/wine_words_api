@@ -22,6 +22,11 @@ class Category < ApplicationRecord
   before_validation :generate_slug
   before_create :assign_sort_orders
 
+  # Use slug instead of numeric id in URLs so form submissions resolve via find_by!(slug:)
+  def to_param
+    slug
+  end
+
   private
 
   # Places the new category after the last one for each enabled type.
@@ -35,6 +40,8 @@ class Category < ApplicationRecord
   end
 
   def generate_slug
-    self.slug ||= name.to_s.parameterize
+    return if slug.present? && !name_changed?
+
+    self.slug = name.to_s.parameterize.presence || "category"
   end
 end

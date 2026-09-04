@@ -7,6 +7,7 @@ class ArticleSerializer
   def as_json
     {
       id: @article.id,
+      slug: @article.slug,
       title: @article.title,
       abstract: @article.abstract,
       body: @article.body,

@@ -85,6 +85,7 @@ end
       {
         id: grape.id,
         name: grape.name,
+        slug: grape.slug,
         color: grape.color
       }
     end
@@ -94,9 +95,11 @@ end
     @wine.regions.includes(:country).map do |region|
       {
         id: region.id,
+        slug: region.slug,
         name: region.name,
         country: {
           id: region.country.id,
+          slug: region.country.slug,
           name: region.country.name,
           code: region.country.code,
           flag_emoji: region.country.flag_emoji

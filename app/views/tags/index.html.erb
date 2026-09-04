@@ -4,10 +4,10 @@
   <ul class="facts">
     <% @tags.each do |tag| %>
       <li>
-        <%= link_to tag.name, tag_path(tag.id) %>
+        <%= link_to tag.name, tag_path(tag) %>
         (<%= pluralize(tag.articles.published.count, "published article") %>)
-        <%= link_to "Edit", edit_tag_path(tag.id), class: "card-action" %>
-        <%= button_to "Delete", tag_path(tag.id), method: :delete, form_class: "inline-form", class: "card-action card-action--delete", onclick: %(return confirm('Delete this tag?')) %>
+        <%= link_to "Edit", edit_tag_path(tag), class: "card-action" %>
+        <%= button_to "Delete", tag_path(tag), method: :delete, form_class: "inline-form", class: "card-action card-action--delete", onclick: %(return confirm('Delete this tag?')) %>
       </li>
     <% end %>
   </ul>

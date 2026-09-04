@@ -13,7 +13,7 @@
   <h1><%= @article.title %></h1>
   <p class="lede">
     <%= [
-      (@article.categories.any? ? @article.categories.map { |c| link_to c.name, category_path(c.id), class: "text-link" }.join(", ").html_safe : nil),
+      (@article.categories.any? ? @article.categories.map { |c| link_to c.name, category_path(c), class: "text-link" }.join(", ").html_safe : nil),
       "by #{@article.user.name.presence || @article.user.email}",
       @article.published_at&.strftime("%B %d, %Y")
     ].compact.join(" · ").html_safe %>
@@ -25,13 +25,13 @@
 
   <% if user_signed_in? && @article.user_id == current_user.id %>
     <div class="page-actions">
-      <%= link_to "Edit Article", edit_article_path(@article.id), class: "btn btn--secondary" %>
+      <%= link_to "Edit Article", edit_article_path(@article), class: "btn btn--secondary" %>
       <% if @article.status == "draft" %>
-        <%= button_to "Publish", article_path(@article.id), method: :patch, params: { article: { status: "published", published_at: Time.current } }, class: "btn btn--secondary" %>
+        <%= button_to "Publish", article_path(@article), method: :patch, params: { article: { status: "published", published_at: Time.current } }, class: "btn btn--secondary" %>
       <% else %>
-        <%= button_to "Unpublish", article_path(@article.id), method: :patch, params: { article: { status: "draft" } }, class: "btn btn--secondary" %>
+        <%= button_to "Unpublish", article_path(@article), method: :patch, params: { article: { status: "draft" } }, class: "btn btn--secondary" %>
       <% end %>
-      <%= button_to "Delete", article_path(@article.id), method: :delete, class: "btn", onclick: %(return confirm('Delete this article? This action cannot be undone.')) %>
+      <%= button_to "Delete", article_path(@article), method: :delete, class: "btn", onclick: %(return confirm('Delete this article? This action cannot be undone.')) %>
     </div>
   <% end %>
 
@@ -48,7 +48,7 @@
     <section class="wine-grid" aria-label="Article reviews">
       <% @visible_reviews.each do |review| %>
         <div class="card-wrapper">
-          <%= link_to review_path(review.id), class: "wine-card" do %>
+          <%= link_to review_path(review), class: "wine-card" do %>
             <div class="wine-card__band"></div>
             <div class="wine-card__content">
               <h3><%= review.title.presence || review.vintage&.name %></h3>

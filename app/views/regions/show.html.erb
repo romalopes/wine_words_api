@@ -3,10 +3,10 @@
 <%# Breadcrumb path from country to region %>
 <div class="region-detail__path">
   <% country = @region.country %>
-  <% path = [{ name: country.name, id: country.id, type: 'country', flag: country.flag_emoji }] %>
+  <% path = [{ name: country.name, record: country, type: 'country', flag: country.flag_emoji }] %>
   <% current = @region %>
   <% while current.parent %>
-    <% path << { name: current.parent.name, id: current.parent.id, type: 'region' } %>
+    <% path << { name: current.parent.name, record: current.parent, type: 'region' } %>
     <% current = current.parent %>
   <% end %>
   <% path.each_with_index do |item, idx| %>
@@ -14,9 +14,9 @@
       <% if idx > 0 %><span class="region-detail__separator"> → </span><% end %>
       <% if item[:flag] %><span class="region-detail__flag"><%= item[:flag] %></span><% end %>
       <% if item[:type] == 'country' %>
-        <%= link_to item[:name], country_path(item[:id]), class: "region-detail__path-link" %>
+        <%= link_to item[:name], country_path(item[:record]), class: "region-detail__path-link" %>
       <% else %>
-        <%= link_to item[:name], region_path(item[:id]), class: "region-detail__path-link" %>
+        <%= link_to item[:name], region_path(item[:record]), class: "region-detail__path-link" %>
       <% end %>
     </span>
   <% end %>
@@ -24,7 +24,7 @@
 
 <div class="wine-detail__section">
   <h2>Details</h2>
-  <p><strong>Country:</strong> <%= @region.country.flag_emoji %> <%= link_to @region.country.name, country_path(@region.country.id) %></p>
+  <p><strong>Country:</strong> <%= @region.country.flag_emoji %> <%= link_to @region.country.name, country_path(@region.country) %></p>
   <p><strong>Type:</strong>
     <% type_labels = [] %>
     <% type_labels << "State" if @region.is_state %>
@@ -151,6 +151,6 @@
 <% end %>
 
 <div class="page-actions">
-  <%= link_to "Edit", edit_region_path(@region.id), class: "btn" %>
-  <%= button_to "Delete", region_path(@region.id), method: :delete, class: "btn btn--delete",
+  <%= link_to "Edit", edit_region_path(@region), class: "btn" %>
+  <%= button_to "Delete", region_path(@region), method: :delete, class: "btn btn--delete",
         form: { data: { confirm: "Delete this region? This action cannot be undone." } } %></div>

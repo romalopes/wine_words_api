@@ -26,14 +26,14 @@
         </td>
         <td>
           <% if wine.regions.any? %>
-            <%= safe_join(wine.regions.map { |region| link_to(region.name, region_path(region.id), class: "grapes-table__link") }, ", ") %>
+            <%= safe_join(wine.regions.map { |region| link_to(region.name, region_path(region), class: "grapes-table__link") }, ", ") %>
           <% else %>
             —
           <% end %>
         </td>
         <td>
           <% if wine.grapes.any? %>
-            <%= safe_join(wine.grapes.map { |grape| link_to(grape.name, grape_path(grape.id), class: "grapes-table__link") }, ", ") %>
+            <%= safe_join(wine.grapes.map { |grape| link_to(grape.name, grape_path(grape), class: "grapes-table__link") }, ", ") %>
           <% else %>
             —
           <% end %>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_02_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_04_000003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -100,11 +100,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_02_000001) do
     t.bigint "category_id"
     t.datetime "created_at", null: false
     t.datetime "published_at"
+    t.string "slug", null: false
     t.string "status", default: "draft", null: false
     t.string "title", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["category_id"], name: "index_articles_on_category_id"
+    t.index ["slug"], name: "index_articles_on_slug", unique: true
     t.index ["user_id"], name: "index_articles_on_user_id"
   end
 
@@ -130,9 +132,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_02_000001) do
     t.string "flag_emoji"
     t.boolean "is_wine_country", default: false, null: false
     t.string "name"
+    t.string "slug", null: false
     t.datetime "updated_at", null: false
     t.index ["code"], name: "index_countries_on_code", unique: true
     t.index ["name"], name: "index_countries_on_name", unique: true
+    t.index ["slug"], name: "index_countries_on_slug", unique: true
   end
 
   create_table "grapes", force: :cascade do |t|
@@ -146,10 +150,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_02_000001) do
     t.string "origin_country"
     t.integer "relevance"
     t.text "serving"
+    t.string "slug", null: false
     t.text "synonyms", default: [], array: true
     t.datetime "updated_at", null: false
     t.index ["country_id"], name: "index_grapes_on_country_id"
     t.index ["name"], name: "index_grapes_on_name", unique: true
+    t.index ["slug"], name: "index_grapes_on_slug", unique: true
   end
 
   create_table "jwt_denylists", force: :cascade do |t|
@@ -211,10 +217,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_02_000001) do
     t.boolean "is_state", default: false, null: false
     t.string "name", null: false
     t.bigint "parent_id"
+    t.string "slug", null: false
     t.datetime "updated_at", null: false
     t.index ["country_id"], name: "index_regions_on_country_id"
     t.index ["name", "parent_id"], name: "index_regions_on_name_and_parent_id"
     t.index ["parent_id"], name: "index_regions_on_parent_id"
+    t.index ["slug"], name: "index_regions_on_slug", unique: true
   end
 
   create_table "review_categories", force: :cascade do |t|
@@ -236,12 +244,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_02_000001) do
     t.integer "drink_to"
     t.datetime "published_at"
     t.decimal "score", precision: 5, scale: 2
+    t.string "slug", null: false
     t.string "status", default: "draft", null: false
     t.string "title"
     t.datetime "updated_at", null: false
     t.bigint "user_id"
     t.bigint "vintage_id", null: false
     t.index ["category_id"], name: "index_reviews_on_category_id"
+    t.index ["slug"], name: "index_reviews_on_slug", unique: true
     t.index ["user_id"], name: "index_reviews_on_user_id"
     t.index ["vintage_id"], name: "index_reviews_on_vintage_id"
   end

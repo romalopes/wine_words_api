@@ -67,7 +67,7 @@ class Api::V1::CountriesController < ApplicationController
   private
 
   def set_country
-    @country = Country.find(params[:id])
+    @country = Country.find_by(slug: params[:id]) || Country.find(params[:id])
   rescue ActiveRecord::RecordNotFound
     render json: { error: "Country not found" }, status: :not_found
   end
@@ -75,6 +75,7 @@ class Api::V1::CountriesController < ApplicationController
   def country_detail_json(country)
     {
       id: country.id,
+      slug: country.slug,
       name: country.name,
       code: country.code,
       continent: country.continent,

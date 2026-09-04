@@ -134,7 +134,7 @@ class ArticlesController < ActionController::Base
   end
 
   def set_article
-    @article = Article.find(params[:id])
+    @article = Article.find_by(slug: params[:id]) || Article.find(params[:id])
   rescue ActiveRecord::RecordNotFound
     redirect_to articles_path, alert: "Article not found."
   end

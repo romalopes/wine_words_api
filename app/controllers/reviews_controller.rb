@@ -32,7 +32,9 @@ class ReviewsController < ActionController::Base
   end
 
   def show
-    @review = Review.includes(:vintage).find(params[:id])
+    @review = Review.includes(:vintage).find_by(slug: params[:id]) ||
+              Review.includes(:vintage).find_by(id: params[:id]) ||
+              not_found
     if @review.status == "draft" &&
        !(current_user&.wine_manager? || @review.user_id == current_user&.id)
       redirect_to reviews_path, alert: "Review not found."
@@ -55,12 +57,12 @@ class ReviewsController < ActionController::Base
   end
 
   def edit
-    @review = Review.find(params[:id])
+    @review = Review.find_by(slug: params[:id]) || Review.find(params[:id])
     return unless deny_unless_review_manager!(@review)
   end
 
   def update
-    @review = Review.find(params[:id])
+    @review = Review.find_by(slug: params[:id]) || Review.find(params[:id])
     return unless deny_unless_review_manager!(@review)
 
     if @review.update(review_params)
@@ -72,7 +74,7 @@ class ReviewsController < ActionController::Base
   end
 
   def destroy
-    @review = Review.find(params[:id])
+    @review = Review.find_by(slug: params[:id]) || Review.find(params[:id])
     return unless deny_unless_review_manager!(@review)
 
     @review.destroy
@@ -80,7 +82,7 @@ class ReviewsController < ActionController::Base
   end
 
   def purge_image
-    @review = Review.find(params[:id])
+    @review = Review.find_by(slug: params[:id]) || Review.find(params[:id])
     return redirect_to reviews_url, alert: "Not allowed." unless @review.user_id == current_user&.id
 
     attachment = @review.images.find_by(id: params[:image_id])

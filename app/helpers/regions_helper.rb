@@ -6,7 +6,7 @@ module RegionsHelper
       r_name = region[:name] || region['name']
       r_state = region[:is_state] || region['is_state']
       r_appellation = region[:is_appellation] || region['is_appellation']
-      r_id = region[:id] || region['id']
+      r_id = region[:slug] || region['slug'] || region[:id] || region['id']
       r_children = region[:children] || region['children'] || []
       r_wine_count = region[:wine_count] || region['wine_count'] || 0
       type_labels = []

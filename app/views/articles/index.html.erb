@@ -40,11 +40,11 @@
         <div class="card-wrapper">
           <% if can_manage_article?(article) %>
             <div class="card-actions">
-              <%= link_to "Edit", edit_article_path(article.id), class: "card-action" %>
-              <%= button_to "Delete", article_path(article.id), method: :delete, form_class: "card-delete-form", class: "card-action card-action--delete", onclick: %(return confirm('Delete this article? This action cannot be undone.')) %>
+              <%= link_to "Edit", edit_article_path(article), class: "card-action" %>
+              <%= button_to "Delete", article_path(article), method: :delete, form_class: "card-delete-form", class: "card-action card-action--delete", onclick: %(return confirm('Delete this article? This action cannot be undone.')) %>
             </div>
           <% end %>
-          <%= link_to article_path(article.id), class: "wine-card" do %>
+          <%= link_to article_path(article), class: "wine-card" do %>
             <% if article.images.attached? %>
               <%= image_tag url_for(article.images.first), class: "card-thumb", alt: article.title %>
             <% end %>

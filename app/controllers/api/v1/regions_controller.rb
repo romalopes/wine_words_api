@@ -18,7 +18,8 @@ class Api::V1::RegionsController < ApplicationController
   def show
     # Load the region with its full hierarchy path and wines
     region = Region.includes(:wines, country: :grapes, parent: :country)
-                    .where(id: params[:id])
+                    .where(slug: params[:id])
+                    .or(Region.includes(:wines, country: :grapes, parent: :country).where(id: params[:id]))
                     .first
     
     if region
@@ -32,10 +33,12 @@ class Api::V1::RegionsController < ApplicationController
     path = region.full_path
     {
       id: region.id,
+      slug: region.slug,
       name: region.name,
       country_id: region.country_id,
       country: region.country ? { 
         id: region.country.id, 
+        slug: region.country.slug,
         name: region.country.name, 
         code: region.country.code, 
         flag_emoji: region.country.flag_emoji 
@@ -103,7 +106,8 @@ class Api::V1::RegionsController < ApplicationController
   end
 
   def set_region
-    @region = Region.includes(:country).find(params[:id])
+    @region = Region.includes(:country).find_by(slug: params[:id]) ||
+              Region.includes(:country).find(params[:id])
   rescue ActiveRecord::RecordNotFound
     render json: { error: "Region not found" }, status: :not_found
   end
@@ -111,6 +115,7 @@ class Api::V1::RegionsController < ApplicationController
   def region_json(region)
     {
       id: region.id,
+      slug: region.slug,
       name: region.name,
       country_id: region.country_id,
       country: region.country ? { id: region.country.id, name: region.country.name, code: region.country.code, flag_emoji: region.country.flag_emoji } : nil,

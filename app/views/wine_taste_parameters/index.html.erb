@@ -3,7 +3,7 @@
 <% if @wine_taste_parameters.any? %>
   <section class="wine-taste-parameter-grid" aria-label="Wine taste parameters">
     <% @wine_taste_parameters.each do |wtp| %>
-      <%= link_to wine_taste_parameter_path(wtp.id), class: "wine-taste-parameter-card #{wine_taste_parameter_score_class(wtp)}" do %>
+      <%= link_to wine_taste_parameter_path(wtp), class: "wine-taste-parameter-card #{wine_taste_parameter_score_class(wtp)}" do %>
         <div class="wine-taste-parameter-card__band"></div>
         <div class="wine-taste-parameter-card__content">
           <h2><%= wtp.wine&.name %></h2>

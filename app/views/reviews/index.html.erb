@@ -39,16 +39,16 @@
         <div class="card-wrapper">
           <% if can_manage_review?(review) %>
             <div class="card-actions">
-              <%= link_to "Edit", edit_review_path(review.id), class: "card-action" %>
+              <%= link_to "Edit", edit_review_path(review), class: "card-action" %>
               <% if review.status == "draft" %>
-                <%= button_to "Publish", review_path(review.id), method: :patch, params: { review: { status: "published", published_at: Time.current } }, form_class: "card-delete-form", class: "card-action" %>
+                <%= button_to "Publish", review_path(review), method: :patch, params: { review: { status: "published", published_at: Time.current } }, form_class: "card-delete-form", class: "card-action" %>
               <% else %>
-                <%= button_to "Unpublish", review_path(review.id), method: :patch, params: { review: { status: "draft" } }, form_class: "card-delete-form", class: "card-action" %>
+                <%= button_to "Unpublish", review_path(review), method: :patch, params: { review: { status: "draft" } }, form_class: "card-delete-form", class: "card-action" %>
               <% end %>
-              <%= button_to "Delete", review_path(review.id), method: :delete, form_class: "card-delete-form", class: "card-action card-action--delete", onclick: %(return confirm('Delete this review? This action cannot be undone.')) %>
+              <%= button_to "Delete", review_path(review), method: :delete, form_class: "card-delete-form", class: "card-action card-action--delete", onclick: %(return confirm('Delete this review? This action cannot be undone.')) %>
             </div>
           <% end %>
-          <%= link_to review_path(review.id), class: "review-card #{review_status_class(review)}" do %>
+          <%= link_to review_path(review), class: "review-card #{review_status_class(review)}" do %>
             <% thumb = review.images.attached? ? review.images.first : review.vintage&.wine&.images&.first %>
             <% if thumb %>
               <%= image_tag url_for(thumb), class: "card-thumb", alt: review.title.presence || review.vintage&.name %>

@@ -75,7 +75,7 @@ class Api::V1::ArticlesController < ApplicationController
   end
 
   def set_article
-    @article = Article.find(params[:id])
+    @article = Article.find_by(slug: params[:id]) || Article.find(params[:id])
   rescue ActiveRecord::RecordNotFound
     render json: { error: "Article not found" }, status: :not_found
   end

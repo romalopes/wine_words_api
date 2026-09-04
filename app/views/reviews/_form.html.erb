@@ -103,7 +103,7 @@
     <% review.images.each do |image| %>
       <div class="image-gallery__item">
         <%= image_tag url_for(image), class: "gallery-img", alt: review.title %>
-        <%= button_to "Remove", purge_image_review_path(review.id), method: :patch, params: { image_id: image.id }, class: "image-gallery__remove" %>
+        <%= button_to "Remove", purge_image_review_path(review), method: :patch, params: { image_id: image.id }, class: "image-gallery__remove" %>
       </div>
     <% end %>
   </div>

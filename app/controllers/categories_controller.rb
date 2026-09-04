@@ -75,7 +75,7 @@ class CategoriesController < ActionController::Base
   private
 
   def set_category
-    @category = Category.find(params[:id])
+    @category = Category.find_by(slug: params[:id]) || Category.find(params[:id])
   rescue ActiveRecord::RecordNotFound
     redirect_to categories_path, alert: "Category not found."
   end

@@ -71,7 +71,7 @@ class Api::V1::GrapesController < ApplicationController
   private
 
   def set_grape
-    @grape = Grape.find(params[:id])
+    @grape = Grape.find_by(slug: params[:id]) || Grape.find(params[:id])
   rescue ActiveRecord::RecordNotFound
     render json: { error: "Grape not found" }, status: :not_found
   end

@@ -27,13 +27,13 @@
       <% @countries.each_with_index do |country, index| %>
         <tr class="<%= index % 2 == 0 ? "grapes-row--even" : "grapes-row--odd" %>" data-wine-country="<%= country.is_wine_country %>">
           <td><%= country.flag_emoji %></td>
-          <td><%= link_to country.name, country_path(country.id) %></td>
+          <td><%= link_to country.name, country_path(country) %></td>
           <td><%= country.code.upcase %></td>
           <td><%= country.continent || "—" %></td>
           <td>
             <% count = @producer_counts[country.id] || 0 %>
             <% if count > 0 %>
-              <%= link_to "#{count} producer#{count == 1 ? '' : 's'}", country_path(country.id, anchor: "producers"), class: "grapes-table__link" %>
+              <%= link_to "#{count} producer#{count == 1 ? '' : 's'}", country_path(country, anchor: "producers"), class: "grapes-table__link" %>
             <% else %>
               —
             <% end %>
@@ -41,15 +41,15 @@
           <td>
             <% count = @wine_counts[country.id] || 0 %>
             <% if count > 0 %>
-              <%= link_to "#{count} wine#{count == 1 ? '' : 's'}", country_path(country.id, anchor: "wines"), class: "grapes-table__link" %>
+              <%= link_to "#{count} wine#{count == 1 ? '' : 's'}", country_path(country, anchor: "wines"), class: "grapes-table__link" %>
             <% else %>
               —
             <% end %>
           </td>
           <% if current_user&.wine_manager? %>
             <td class="actions">
-              <%= link_to "Show", country_path(country.id), class: "card-action" %>
-              <%= link_to "Edit", edit_country_path(country.id), class: "card-action" %>
+              <%= link_to "Show", country_path(country), class: "card-action" %>
+              <%= link_to "Edit", edit_country_path(country), class: "card-action" %>
             </td>
           <% end %>
         </tr>

@@ -8,8 +8,16 @@ class Region < ApplicationRecord
 
   validates :name, presence: true
   validates :name, uniqueness: { scope: :parent_id }
+  validates :slug, presence: true, uniqueness: true
   validates :country, presence: true
   validate :parent_must_be_in_same_country
+
+  before_validation :generate_slug
+
+  # Use slug instead of numeric id in URLs so lookups resolve via find_by!(slug:)
+  def to_param
+    slug
+  end
 
   # Class method to build a tree of regions grouped by country
   def self.build_tree
@@ -28,6 +36,7 @@ class Region < ApplicationRecord
         id: country.id,
         name: country.name,
         code: country.code,
+        slug: country.slug,
         flag_emoji: country.flag_emoji,
         continent: country.continent,
         wine_count: tree.sum { |r| r[:wine_count] },
@@ -51,6 +60,7 @@ class Region < ApplicationRecord
       child_wines = children.sum { |c| c[:wine_count] }
       {
         id: region.id,
+        slug: region.slug,
         name: region.name,
         is_state: region.is_state,
         is_appellation: region.is_appellation,
@@ -73,6 +83,7 @@ class Region < ApplicationRecord
     path << {
       type: 'country',
       id: country.id,
+      slug: country.slug,
       name: country.name,
       flag_emoji: country.flag_emoji,
       code: country.code
@@ -84,6 +95,7 @@ class Region < ApplicationRecord
       ancestors << {
         type: 'region',
         id: current.parent.id,
+        slug: current.parent.slug,
         name: current.parent.name,
         is_state: current.parent.is_state,
         is_appellation: current.parent.is_appellation,
@@ -96,6 +108,7 @@ class Region < ApplicationRecord
     path + ancestors.reverse + [{
       type: 'region',
       id: self.id,
+      slug: self.slug,
       name: self.name,
       is_state: self.is_state,
       is_appellation: self.is_appellation,
@@ -121,6 +134,20 @@ class Region < ApplicationRecord
   end
 
   private
+
+  def generate_slug
+    return if slug.present? && !name_changed?
+    return if name.blank?
+
+    base = name.to_s.parameterize.presence || "region"
+    candidate = base
+    i = 2
+    while self.class.where(slug: candidate).where.not(id: id).exists?
+      candidate = "#{base}-#{i}"
+      i += 1
+    end
+    self.slug = candidate
+  end
 
   def parent_must_be_in_same_country
     if parent.present? && parent.country_id != country_id

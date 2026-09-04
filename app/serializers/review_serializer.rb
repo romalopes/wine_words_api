@@ -7,6 +7,7 @@ class ReviewSerializer
   def as_json
     {
       id: @review.id,
+      slug: @review.slug,
       vintage_id: @review.vintage_id,
       user_id: @review.user_id,
       reviewer_name: @review.user&.name || @review.user&.email || "Unknown",

@@ -64,7 +64,7 @@
       <tbody>
         <% @articles.each_with_index do |article, index| %>
           <tr class="<%= index.even? ? "grapes-row--even" : "grapes-row--odd" %>">
-            <td><%= link_to article.title, article_path(article.id), class: "grapes-table__link" %></td>
+            <td><%= link_to article.title, article_path(article), class: "grapes-table__link" %></td>
             <td><%= article.user.name.presence || article.user.email %></td>
             <td><%= article.status %></td>
             <td><%= article.published_at&.strftime("%Y-%m-%d") || "—" %></td>

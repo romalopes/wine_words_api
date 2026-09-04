@@ -85,7 +85,7 @@ class CountriesController < ActionController::Base
   end
 
   def set_country
-    @country = Country.find(params[:id])
+    @country = Country.find_by(slug: params[:id]) || Country.find(params[:id])
   rescue ActiveRecord::RecordNotFound
     redirect_to countries_path, alert: "Country not found."
   end
