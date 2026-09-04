@@ -24,6 +24,7 @@ class Api::V1::ReviewsController < ApplicationController
     reviews = reviews.visible_to(current_user) unless current_user&.wine_manager?
     reviews = reviews.by_recency.includes(:user, vintage: :wine)
     reviews = reviews.joins(:review_categories).where(review_categories: { category_id: params[:category_id] }) if params[:category_id].present?
+    reviews = reviews.left_outer_joins(:review_categories).where(review_categories: { id: nil }) if params[:uncategorised] == "true"
 
     return if render_paginated(reviews) { |items| serialize_reviews(items) }
 

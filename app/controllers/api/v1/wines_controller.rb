@@ -10,6 +10,7 @@ class Api::V1::WinesController < ApplicationController
     wines = Wine.includes(wine_taste_parameters: :taste_parameter, vintages: [], producer: [], grapes: [], regions: [:country]).order(:name)
     wines = wines.joins(:grapes).where(grapes: { id: params[:grape_id] }) if params[:grape_id].present?
     wines = wines.joins(:wine_categories).where(wine_categories: { category_id: params[:category_id] }) if params[:category_id].present?
+    wines = wines.left_outer_joins(:wine_categories).where(wine_categories: { id: nil }) if params[:uncategorised] == "true"
     wines = wines.joins(:producer).where(producers: { country_id: params[:country_id] }) if params[:country_id].present?
     wines = wines.joins(:wine_regions).where(wine_regions: { region_id: params[:region_id] }) if params[:region_id].present?
     return if render_paginated(wines) { |items| items.map { |wine| WineSerializer.new(wine, request.base_url).as_json } }
