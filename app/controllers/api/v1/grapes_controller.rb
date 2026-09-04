@@ -4,8 +4,10 @@ class Api::V1::GrapesController < ApplicationController
   before_action :set_grape, only: [:show, :update, :destroy, :link_wine]
 
   def index
-    grapes = Grape.relevance_order.includes(:wine_grapes)
-    render json: grapes.map { |grape| grape_json(grape) }
+    scope = Grape.relevance_order.includes(:wine_grapes, :producer_grapes)
+    return if render_paginated(scope) { |items| items.map { |grape| grape_json(grape) } }
+
+    render json: scope.map { |grape| grape_json(grape) }
   end
 
   def search
@@ -31,6 +33,17 @@ class Api::V1::GrapesController < ApplicationController
 
     wine.grapes << @grape unless wine.grapes.include?(@grape)
     render json: grape_json(@grape)
+  end
+
+  # POST /api/v1/grapes/:id/link_producer — add the producer to this grape.
+  def link_producer
+    return render json: { error: "Forbidden" }, status: :forbidden unless current_user&.wine_manager?
+
+    producer = Producer.find_by(slug: params[:producer_id]) || Producer.find_by(id: params[:producer_id])
+    return render json: { error: "Producer not found" }, status: :not_found unless producer
+
+    producer.grapes << @grape unless producer.grapes.include?(@grape)
+    render json: { id: @grape.id, name: @grape.name, linked: true }
   end
 
   def create
@@ -73,6 +86,7 @@ class Api::V1::GrapesController < ApplicationController
   def grape_json(grape)
     data = grape.as_json
     data["wines_count"] = grape.wines.size
+    data["producers_count"] = grape.producers.size
     if action_name == "show" || action_name == "link_wine"
       wines = grape.wines.includes(
         wine_taste_parameters: :taste_parameter, vintages: [], producer: [],

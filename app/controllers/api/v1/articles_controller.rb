@@ -9,6 +9,9 @@ class Api::V1::ArticlesController < ApplicationController
     # Content managers see everything (including drafts); everyone else sees
     # only what's visible to them (published + their own drafts).
     articles = articles.visible_to(current_user) unless current_user&.wine_manager?
+    articles = articles.joins(:article_categories).where(article_categories: { category_id: params[:category_id] }) if params[:category_id].present?
+    return if render_paginated(articles) { |items| items.map { |a| ArticleSerializer.new(a, request.base_url).as_json } }
+
     render json: articles.map { |a| ArticleSerializer.new(a, request.base_url).as_json }
   end
 

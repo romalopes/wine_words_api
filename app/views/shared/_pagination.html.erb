@@ -1,0 +1,25 @@
+<%# Shared query-string pagination.
+    Locals: page, total_pages, param_name, anchor (optional). %>
+<% if total_pages.to_i > 1 %>
+  <nav class="pagination" aria-label="Pagination">
+    <% page_url = ->(p) { url_for(request.query_parameters.merge(param_name => (p <= 1 ? nil : p), anchor: local_assigns[:anchor])) } %>
+    <% if page <= 1 %>
+      <span class="page-btn page-btn--disabled">&laquo; Prev</span>
+    <% else %>
+      <%= link_to "« Prev".html_safe, page_url.call(page - 1), class: "page-btn" %>
+    <% end %>
+    <% (1..total_pages).each do |p| %>
+      <% if p == page %>
+        <span class="page-btn page-btn--active"><%= p %></span>
+      <% else %>
+        <%= link_to p, page_url.call(p), class: "page-btn" %>
+      <% end %>
+    <% end %>
+    <% if page >= total_pages %>
+      <span class="page-btn page-btn--disabled">&raquo; Next</span>
+    <% else %>
+      <%= link_to "Next »".html_safe, page_url.call(page + 1), class: "page-btn" %>
+    <% end %>
+    <span class="page-summary">Page <%= page %> of <%= total_pages %></span>
+  </nav>
+<% end %>

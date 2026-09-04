@@ -6,50 +6,7 @@
   <% end %>
 </div>
 <% if @producers.any? %>
-  <table class="grapes-table producers-table">
-    <thead>
-      <tr>
-        <th class="producers-table__image-col">Image</th>
-        <th>Name</th>
-        <th>Country</th>
-        <th>Type</th>
-        <th>Status</th>
-        <th>Address</th>
-        <th>Email</th>
-        <th>Wines</th>
-        <% if user_signed_in? %><th>Actions</th><% end %>
-      </tr>
-    </thead>
-    <tbody>
-      <% @producers.each_with_index do |producer, index| %>
-        <tr class="<%= index % 2 == 0 ? 'grapes-row--even' : 'grapes-row--odd' %>">
-          <td>
-            <% if producer.logo.attached? %>
-              <%= image_tag url_for(producer.logo), class: "producers-table__thumb", alt: producer.name %>
-            <% elsif producer.images.attached? %>
-              <%= image_tag url_for(producer.images.first), class: "producers-table__thumb", alt: producer.name %>
-            <% else %>
-              <span class="producers-table__thumb producers-table__thumb--empty" aria-hidden="true"></span>
-            <% end %>
-          </td>
-          <td><%= link_to producer.name, producer_path(producer.slug) %></td>
-          <td><%= [producer.country&.flag_emoji, producer.country&.name].compact.join(" ").presence || "—" %></td>
-          <td><%= producer.producer_type&.titleize.presence || "—" %></td>
-          <td><%= producer.active? ? "Active" : "Inactive" %></td>
-          <td><%= producer.address.presence || "—" %></td>
-          <td><%= producer.email.presence || "—" %></td>
-          <td><%= link_to pluralize(producer.wines.size, "wine"), wines_path(producer: producer.slug) %></td>
-          <% if user_signed_in? %>
-            <td class="actions">
-              <%= link_to "Show", producer_path(producer.slug), class: "card-action" %>
-              <%= link_to "Edit", edit_producer_path(producer.slug), class: "card-action" %>
-              <%= button_to "Delete", producer_path(producer.slug), method: :delete, form_class: "inline-form", class: "card-action card-action--delete", onclick: %(return confirm('Delete this item? This action cannot be undone.')) %>
-            </td>
-          <% end %>
-        </tr>
-      <% end %>
-    </tbody>
-  </table>
+  <%= render "producers/producers_table", producers: @producers, show_actions: user_signed_in? %>
 <% else %>
   <p class="empty">No producers have been added yet.</p>
 <% end %>

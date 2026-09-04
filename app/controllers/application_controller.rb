@@ -1,4 +1,6 @@
 class ApplicationController < ActionController::Base
+  include Api::Paginatable
+
   # This controller is the base for the JSON API consumed by the React app
   # (cross-origin from localhost:5173 in development). Auth is handled via
   # Bearer JWTs (devise-jwt), not cookies, so CSRF/origin checks are disabled

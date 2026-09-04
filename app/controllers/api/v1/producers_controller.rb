@@ -2,11 +2,16 @@ class Api::V1::ProducersController < ApplicationController
   skip_before_action :authenticate_user!, only: [:index, :show, :search]
   # Only Super Users and Editors may add, edit or delete producers.
   before_action :ensure_wine_manager!, only: [:create, :update, :destroy, :attach_logo, :remove_logo]
-  before_action :set_producer, only: [:show, :update, :destroy, :attach_logo, :remove_logo]
+  before_action :set_producer, only: [:show, :update, :destroy, :attach_logo, :remove_logo, :link_wine]
 
   def index
-    producers = Producer.includes(:wines, :country, :regions, :grapes, :logo_attachment).order(:name)
-    render json: producers.map { |producer| producer_json(producer) }
+    scope = Producer.includes(:wines, :country, :regions, :grapes, :logo_attachment).order(:name)
+    scope = scope.where(country_id: params[:country_id]) if params[:country_id].present?
+    scope = scope.joins(:regions).where(regions: { id: params[:region_id] }) if params[:region_id].present?
+    scope = scope.joins(:grapes).where(grapes: { id: params[:grape_id] }) if params[:grape_id].present?
+    return if render_paginated(scope) { |items| items.map { |producer| producer_json(producer) } }
+
+    render json: scope.map { |producer| producer_json(producer) }
   end
 
   # JSON endpoint used by the wine form's "search producers" picker.
@@ -20,6 +25,17 @@ class Api::V1::ProducersController < ApplicationController
       end
 
     render json: producers.map { |producer| producer_search_json(producer) }
+  end
+
+  # POST /api/v1/producers/:id/link_wine — assign a wine to this producer.
+  def link_wine
+    return render json: { error: "Forbidden" }, status: :forbidden unless current_user&.wine_manager?
+
+    wine = Wine.find_by(slug: params[:wine_id]) || Wine.find_by(id: params[:wine_id])
+    return render json: { error: "Wine not found" }, status: :not_found unless wine
+
+    wine.update!(producer_id: @producer.id)
+    render json: producer_json(@producer)
   end
 
   def show

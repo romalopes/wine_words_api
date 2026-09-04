@@ -59,6 +59,17 @@ class Api::V1::RegionsController < ApplicationController
     render json: region_with_path(@region)
   end
 
+  # POST /api/v1/regions/:id/link_producer — add the producer to this region.
+  def link_producer
+    return render json: { error: "Forbidden" }, status: :forbidden unless current_user&.wine_manager?
+
+    producer = Producer.find_by(slug: params[:producer_id]) || Producer.find_by(id: params[:producer_id])
+    return render json: { error: "Producer not found" }, status: :not_found unless producer
+
+    producer.regions << @region unless producer.regions.include?(@region)
+    render json: { id: @region.id, name: @region.name, linked: true }
+  end
+
   def create
     region = Region.new(region_params)
     if region.save

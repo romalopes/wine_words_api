@@ -22,12 +22,31 @@ class CountriesController < ActionController::Base
   end
 
   def show
-    @producers = Producer.where(country_id: @country.id).order(:name)
-    @wines = Wine
+    # Paginated producers table (20 per page), shared with producers/index.
+    per_page = 20
+    producer_scope = Producer.where(country_id: @country.id).includes(:wines, :country, :logo_attachment).order(:name)
+    producer_count = producer_scope.count
+    @producer_count = producer_count
+    @producer_total_pages = (producer_count.to_f / per_page).ceil
+    @producer_page = (params[:producer_page] || 1).to_i
+    @producer_page = 1 if @producer_page < 1 || @producer_page > @producer_total_pages
+    @producers = producer_scope
+      .limit(per_page)
+      .offset((@producer_page - 1) * per_page)
+
+    wine_scope = Wine
       .joins(:producer)
       .where(producers: { country_id: @country.id })
       .includes(:producer, :category, :grapes, :regions, :vintages)
       .order(:name)
+    wine_count = wine_scope.count
+    @wine_count = wine_count
+    @wine_total_pages = (wine_count.to_f / per_page).ceil
+    @wine_page = (params[:wine_page] || 1).to_i
+    @wine_page = 1 if @wine_page < 1 || @wine_page > @wine_total_pages
+    @wines = wine_scope
+      .limit(per_page)
+      .offset((@wine_page - 1) * per_page)
   end
 
   def new

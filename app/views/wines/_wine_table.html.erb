@@ -8,7 +8,7 @@
       <th>Regions</th>
       <th>Grapes</th>
       <th>Vintages</th>
-      <% if false && can_manage_wines? %>
+      <% if can_manage_wines? %>
         <th>Actions</th>
       <% end %>
     </tr>
@@ -45,12 +45,9 @@
             —
           <% end %>
         </td>
-        <% if false && can_manage_wines? %>
+        <% if can_manage_wines? %>
           <td class="actions">
             <%= link_to "Edit", edit_wine_path(wine.slug), class: "btn-action" %>
-            <%= button_to "Delete", wine_path(wine.slug), method: :delete,
-                  class: "btn-action btn-action--delete",
-                  form: { data: { confirm: "Delete \"#{wine.name}\"? This action cannot be undone." } } %>
           </td>
         <% end %>
       </tr>

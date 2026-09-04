@@ -1,0 +1,12 @@
+<h1>Producers for <%= @grape.name %></h1>
+<%= link_to "← Back to grape", grape_path(@grape.id), class: "back-link" %>
+
+<section id="producers" class="wine-detail__section">
+  <h2>Producers (<%= @producer_count %>)</h2>
+  <% if @producers.any? %>
+    <%= render "producers/producers_table", producers: @producers, show_actions: user_signed_in? %>
+    <%= render "shared/pagination", page: @producer_page, total_pages: @producer_total_pages, param_name: :producer_page, anchor: "producers" %>
+  <% else %>
+    <p class="empty">No producers for this grape yet.</p>
+  <% end %>
+</section>

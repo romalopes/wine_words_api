@@ -1,6 +1,6 @@
 class Api::V1::CategoriesController < ApplicationController
     skip_before_action :authenticate_user!, only: [:index, :show, :counts]
-  before_action :ensure_wine_manager!, only: [:create, :update, :destroy, :reorder]
+  before_action :ensure_wine_manager!, only: [:create, :update, :destroy, :reorder, :link_wine, :link_producer]
 
   SORT_COLUMNS = {
     "wine" => :sort_order_wine,
@@ -129,6 +129,30 @@ class Api::V1::CategoriesController < ApplicationController
     }
   rescue ActiveRecord::RecordNotFound
     render json: { error: "Category not found" }, status: :not_found
+  end
+
+  # POST /api/v1/categories/:id/link_wine — add the wine to this category.
+  def link_wine
+    return render json: { error: "Forbidden" }, status: :forbidden unless current_user&.wine_manager?
+
+    wine = Wine.find_by(slug: params[:wine_id]) || Wine.find_by(id: params[:wine_id])
+    return render json: { error: "Wine not found" }, status: :not_found unless wine
+
+    category = Category.find(params[:id])
+    wine.categories << category unless wine.categories.include?(category)
+    render json: { id: category.id, name: category.name, linked: true }
+  end
+
+  # POST /api/v1/categories/:id/link_producer — add the producer to this category.
+  def link_producer
+    return render json: { error: "Forbidden" }, status: :forbidden unless current_user&.wine_manager?
+
+    producer = Producer.find_by(slug: params[:producer_id]) || Producer.find_by(id: params[:producer_id])
+    return render json: { error: "Producer not found" }, status: :not_found unless producer
+
+    category = Category.find(params[:id])
+    producer.categories << category unless producer.categories.include?(category)
+    render json: { id: category.id, name: category.name, linked: true }
   end
 
   def create

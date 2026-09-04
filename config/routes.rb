@@ -53,15 +53,25 @@ Rails.application.routes.draw do
   end
   resources :categories do
     collection { patch :reorder }
+    member { post :link_wine }
   end
   resources :tags
-  resources :countries
+  resources :countries do
+    member { post :link_producer }
+  end
   resources :regions do
-    member { post :link_wine }
+    member do
+      post :link_wine
+      post :link_producer
+    end
   end
   resources :grapes do
     collection { get :search }
-    member { post :link_wine }
+    member do
+      post :link_wine
+      post :link_producer
+      post :producers
+    end
   end
   resources :wine_taste_parameters
   resources :test_parameters
@@ -82,6 +92,8 @@ Rails.application.routes.draw do
         member do
           post :logo, action: :attach_logo
           delete :logo, action: :remove_logo
+          post :link_wine
+          post :link_producer
         end
       end
       resources :wines do
@@ -120,15 +132,31 @@ Rails.application.routes.draw do
             resources :taste_parameters
       resources :grapes do
         collection { get :search }
-        member { post :link_wine }
+        member do
+          post :link_wine
+          post :link_producer
+        end
       end
-      resources :countries
+      resources :countries do
+        member { post :link_producer }
+      end
       resources :regions do
         collection do
           get :tree
         end
         member do
           post :link_wine
+          post :link_producer
+        end
+      end
+      resources :categories, only: [:index] do
+        collection do
+          patch :reorder
+          get :counts
+        end
+        member do
+          post :link_wine
+          post :link_producer
         end
       end
 

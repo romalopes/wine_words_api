@@ -25,6 +25,7 @@
         <th>Origin</th>
         <th>Synonyms</th>
         <th>Wines</th>
+        <th>Producers</th>
         <% if false && (current_user&.super_admin? || current_user&.editor?) %>
           <th>Actions</th>
         <% end %>
@@ -40,6 +41,13 @@
           <td>
             <% if grape.wines.size > 0 %>
               <%= link_to "#{grape.wines.size} wine#{grape.wines.size == 1 ? '' : 's'}", grape_path(grape.id), class: "grapes-table__link" %>
+            <% else %>
+              —
+            <% end %>
+          </td>
+          <td>
+            <% if grape.producers.size > 0 %>
+              <%= link_to "#{grape.producers.size} producer#{grape.producers.size == 1 ? '' : 's'}", producers_grape_path(grape.id), class: "grapes-table__link" %>
             <% else %>
               —
             <% end %>

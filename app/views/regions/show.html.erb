@@ -44,10 +44,21 @@
   </div>
 <% end %>
 
-<div class="wine-detail__section">
-  <h2>Wines</h2>
+<div class="wine-detail__section" id="producers">
+  <h2>Producers (<%= @producer_count %>)</h2>
+  <% if @producers.any? %>
+    <%= render "producers/producers_table", producers: @producers, show_actions: user_signed_in? %>
+    <%= render "shared/pagination", page: @producer_page, total_pages: @producer_total_pages, param_name: :producer_page, anchor: "producers" %>
+  <% else %>
+    <p>No producers are associated with this region yet.</p>
+  <% end %>
+</div>
+
+<div class="wine-detail__section" id="wines">
+  <h2>Wines (<%= @wine_count %>)</h2>
   <% if @wines.any? %>
     <%= render "wines/wine_table", wines: @wines %>
+    <%= render "shared/pagination", page: @wine_page, total_pages: @wine_total_pages, param_name: :wine_page, anchor: "wines" %>
   <% else %>
     <p>No wines are associated with this region yet.</p>
   <% end %>

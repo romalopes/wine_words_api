@@ -30,6 +30,18 @@ class Api::V1::CountriesController < ApplicationController
     render json: country_detail_json(@country)
   end
 
+  # POST /api/v1/countries/:id/link_producer — assign the producer to this country.
+  def link_producer
+    return render json: { error: "Forbidden" }, status: :forbidden unless current_user&.wine_manager?
+
+    producer = Producer.find_by(slug: params[:producer_id]) || Producer.find_by(id: params[:producer_id])
+    return render json: { error: "Producer not found" }, status: :not_found unless producer
+
+    country = Country.find(params[:id])
+    producer.update!(country_id: country.id)
+    render json: { id: country.id, name: country.name, linked: true }
+  end
+
   def create
     country = Country.new(country_params)
     if country.save

@@ -22,15 +22,22 @@ class Api::V1::ReviewsController < ApplicationController
         Review.all
       end
     reviews = reviews.visible_to(current_user) unless current_user&.wine_manager?
+    reviews = reviews.by_recency.includes(:user, vintage: :wine)
+    reviews = reviews.joins(:review_categories).where(review_categories: { category_id: params[:category_id] }) if params[:category_id].present?
 
-    data = reviews.by_recency.includes(:user, vintage: :wine).map { |r|
+    return if render_paginated(reviews) { |items| serialize_reviews(items) }
+
+    render json: serialize_reviews(reviews)
+  end
+
+  def serialize_reviews(reviews)
+    reviews.map { |r|
       ReviewSerializer.new(r, request.base_url).as_json.merge(
         wine_name: r.vintage.wine.name,
         wine_slug: r.vintage.wine.slug,
         vintage_year: r.vintage.year
       )
     }
-    render json: data
   end
 
   def my_reviews

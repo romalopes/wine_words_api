@@ -7,43 +7,20 @@
 </ul>
 
 <section id="producers" class="wine-detail__section">
-  <h2>Producers</h2>
+  <h2>Producers (<%= @producer_count %>)</h2>
   <% if @producers.any? %>
-    <table class="grapes-table producers-table">
-      <thead>
-        <tr>
-          <th class="producers-table__image-col">Image</th>
-          <th>Name</th>
-          <th>Type</th>
-          <th>Wines</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% @producers.each_with_index do |producer, index| %>
-          <tr class="<%= index.even? ? "grapes-row--even" : "grapes-row--odd" %>">
-            <td>
-              <% if producer.logo.attached? %>
-                <%= image_tag url_for(producer.logo), class: "producers-table__thumb", alt: producer.name %>
-              <% else %>
-                <span class="producers-table__thumb producers-table__thumb--empty" aria-hidden="true"></span>
-              <% end %>
-            </td>
-            <td><%= link_to producer.name, producer_path(producer.slug), class: "grapes-table__link" %></td>
-            <td><%= producer.producer_type&.titleize.presence || "—" %></td>
-            <td><%= link_to pluralize(producer.wines.size, "wine"), wines_path(producer: producer.slug), class: "grapes-table__link" %></td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
-  <% else %>
-    <p class="empty">No producers for this country yet.</p>
-  <% end %>
+  <%= render "producers/producers_table", producers: @producers, show_actions: user_signed_in? %>
+  <%= render "shared/pagination", page: @producer_page, total_pages: @producer_total_pages, param_name: :producer_page, anchor: "producers" %>
+<% else %>
+  <p class="empty">No producers for this country yet.</p>
+<% end %>
 </section>
 
 <section id="wines" class="wine-detail__section">
-  <h2>Wines</h2>
+  <h2>Wines (<%= @wine_count %>)</h2>
   <% if @wines.any? %>
     <%= render "wines/wine_table", wines: @wines %>
+    <%= render "shared/pagination", page: @wine_page, total_pages: @wine_total_pages, param_name: :wine_page, anchor: "wines" %>
   <% else %>
     <p class="empty">No wines for this country yet.</p>
   <% end %>

@@ -10,7 +10,29 @@ class RegionsController < ActionController::Base
   end
 
   def show
-    @wines = @region.wines.includes(:producer, :regions, :vintages).order(:name)
+    per_page = 20
+
+    producer_scope = Producer.joins(:regions).where(regions: { id: @region.id })
+      .includes(:wines, :country, :logo_attachment).order(:name)
+    producer_count = producer_scope.count
+    @producer_count = producer_count
+    @producer_total_pages = (producer_count.to_f / per_page).ceil
+    @producer_page = (params[:producer_page] || 1).to_i
+    @producer_page = 1 if @producer_page < 1 || @producer_page > @producer_total_pages
+    @producers = producer_scope
+      .limit(per_page)
+      .offset((@producer_page - 1) * per_page)
+
+    wine_scope = @region.wines
+      .includes(:producer, :category, :grapes, :regions, :vintages).order(:name)
+    wine_count = wine_scope.count
+    @wine_count = wine_count
+    @wine_total_pages = (wine_count.to_f / per_page).ceil
+    @wine_page = (params[:wine_page] || 1).to_i
+    @wine_page = 1 if @wine_page < 1 || @wine_page > @wine_total_pages
+    @wines = wine_scope
+      .limit(per_page)
+      .offset((@wine_page - 1) * per_page)
   end
 
   # POST /regions/:id/link_wine (wine_id may be a slug or numeric id).

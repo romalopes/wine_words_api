@@ -71,6 +71,12 @@
     <p><%= @producer.grapes.order(:name).map(&:name).join(", ") %></p>
   <% end %>
 
+  <% producer_categories = @producer.wines.flat_map { |w| w.categories.to_a }.uniq { |c| c.id } %>
+  <% if producer_categories.any? %>
+    <h2>Categories</h2>
+    <p><%= producer_categories.map { |c| link_to c.name, category_path(c) }.join(", ").html_safe %></p>
+  <% end %>
+
   <% if can_manage_producers? %>
     <div id="producer-wine-linker" style="margin-bottom:1.4rem;">
       <label for="wine-link-search"><strong>Link a wine</strong></label>
