@@ -22,7 +22,7 @@ class Api::V1::ReviewsController < ApplicationController
         Review.all
       end
     reviews = reviews.visible_to(current_user) unless current_user&.wine_manager?
-    reviews = reviews.by_recency.includes(:user, vintage: :wine)
+    reviews = reviews.by_recency.includes(:user, vintage: :wine, review_categories: :category)
     reviews = reviews.joins(:review_categories).where(review_categories: { category_id: params[:category_id] }) if params[:category_id].present?
     reviews = reviews.left_outer_joins(:review_categories).where(review_categories: { id: nil }) if params[:uncategorised] == "true"
     if params[:query].present?
@@ -35,14 +35,63 @@ class Api::V1::ReviewsController < ApplicationController
     render json: serialize_reviews(reviews)
   end
 
+  # GET /api/v1/reviews/grouped?per_group=12
+  # Server-side "12 reviews per category" view for the All Reviews page.
+  def grouped
+    per_group = params[:per_group].to_i
+    per_group = 12 if per_group <= 0
+    per_group = per_group.clamp(1, 50)
+
+    rows = Review.find_by_sql([<<~SQL, per_group])
+      SELECT sub.* FROM (
+        SELECT reviews.*, COALESCE(rc.category_id, 0) AS grouped_cat_id,
+               ROW_NUMBER() OVER (
+                 PARTITION BY COALESCE(rc.category_id, 0)
+                 ORDER BY reviews.created_at DESC
+               ) AS rn
+        FROM reviews
+        LEFT JOIN review_categories rc ON rc.review_id = reviews.id
+        WHERE reviews.status = 'published'
+      ) sub
+      WHERE sub.rn <= ?
+    SQL
+
+    review_ids = rows.map(&:id).uniq
+    reviews_by_id = Review.where(id: review_ids)
+                      .includes(:user, vintage: :wine, review_categories: :category)
+                      .index_by(&:id)
+
+    groups = Hash.new { |h, k| h[k] = [] }
+    rows.each do |row|
+      cat_id = row.grouped_cat_id == 0 ? nil : row.grouped_cat_id
+      groups[cat_id] << ReviewListSerializer.new(reviews_by_id[row.id], request.base_url).as_json
+    end
+
+    category_counts = ReviewCategory.where(category_id: groups.keys.compact).group(:category_id).count
+    uncategorised_count =
+      if groups.key?(nil)
+        Review.left_outer_joins(:review_categories).where(review_categories: { id: nil }).count
+      else
+        0
+      end
+
+    categories = Category.where(id: groups.keys.compact).to_a
+    ordered = categories.select { |c| c.sort_order_review.present? }.sort_by { |c| [c.sort_order_review, c.name.to_s] }
+    unordered = categories.reject { |c| c.sort_order_review.present? }.sort_by { |c| c.name.to_s }
+
+    result = (ordered + unordered).map do |cat|
+      { category: cat.name, count: category_counts[cat.id] || groups[cat.id].size, reviews: groups[cat.id] }
+    end
+
+    if groups.key?(nil)
+      result << { category: "Uncategorised", count: uncategorised_count, reviews: groups[nil] }
+    end
+
+    render json: result
+  end
+
   def serialize_reviews(reviews)
-    reviews.map { |r|
-      ReviewSerializer.new(r, request.base_url).as_json.merge(
-        wine_name: r.vintage.wine.name,
-        wine_slug: r.vintage.wine.slug,
-        vintage_year: r.vintage.year
-      )
-    }
+    reviews.map { |r| ReviewListSerializer.new(r, request.base_url).as_json }
   end
 
   def my_reviews

@@ -1,4 +1,7 @@
-class ReviewSerializer
+# Lean serializer used by Api::V1::ReviewsController#index (list views) only.
+# Ships only the fields the list/table UIs render, avoiding the full detail
+# payload (images, comment, drink window, etc.) that dominates response size.
+class ReviewListSerializer
   def initialize(review, base_url = nil)
     @review = review
     @base_url = base_url
@@ -8,51 +11,18 @@ class ReviewSerializer
     {
       id: @review.id,
       slug: @review.slug,
-      vintage_id: @review.vintage_id,
-      user_id: @review.user_id,
-      reviewer_name: @review.user&.name || @review.user&.email || "Unknown",
       title: @review.title,
-      comment: @review.comment,
       score: @review.score&.to_f,
       status: @review.status,
-      images: image_urls(@review),
-      image_ids: image_ids(@review),
-      wine_image: wine_image_url,
-      published_at: @review.published_at&.iso8601,
-      created_at: @review.created_at&.iso8601,
+      reviewer_name: @review.user&.name || @review.user&.email || "Unknown",
       wine_name: @review.vintage&.wine&.name,
       wine_slug: @review.vintage&.wine&.slug,
       vintage_year: @review.vintage&.year,
+      vintage_no_vintage: @review.vintage&.no_vintage,
       category: @review.categories.map(&:name).join(", ").presence,
-      category_id: @review.category_id,
       categories: @review.categories.map { |c| { id: c.id, name: c.name, slug: c.slug } },
-      drink_from: @review.drink_from,
-      drink_to: @review.drink_to,
-      drink_plus: @review.drink_plus
+      published_at: @review.published_at&.iso8601,
+      created_at: @review.created_at&.iso8601
     }
-  end
-
-  private
-
-  def image_urls(record)
-    return [] unless record.images.attached?
-
-    record.images.map do |image|
-      Rails.application.routes.url_helpers.rails_blob_url(image, host: @base_url || "localhost:3000")
-    end
-  end
-
-  def image_ids(record)
-    return [] unless record.images.attached?
-
-    record.images.map(&:id)
-  end
-
-  # Fallback picture for list views: the reviewed wine's first image.
-  def wine_image_url
-    wine = @review.vintage&.wine
-    return unless wine&.images&.attached?
-
-    Rails.application.routes.url_helpers.rails_blob_url(wine.images.first, host: @base_url || "localhost:3000")
   end
 end

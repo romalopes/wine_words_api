@@ -167,7 +167,7 @@ class WinesController < ActionController::Base
 
   def wine_params
     params.require(:wine).permit(
-      :name, :color, :prompt, :closure, :alcohol_percentage, :volume_ml, :producer_id, :sparkling,
+      :name, :color, :prompt, :closure, :alcohol_percentage, :volume_ml, :producer_id, :sparkling, :fortified, :designation_name,
       grape_ids: [],
       region_ids: [],
       category_ids: [],

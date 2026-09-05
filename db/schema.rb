@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_04_000003) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_05_103817) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -446,6 +446,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_04_000003) do
     t.string "closure"
     t.string "color"
     t.datetime "created_at", null: false
+    t.string "designation_name"
+    t.boolean "fortified", default: false, null: false
     t.string "name"
     t.bigint "producer_id", null: false
     t.text "prompt"

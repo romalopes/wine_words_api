@@ -7,15 +7,89 @@ class Api::V1::WinesController < ApplicationController
   skip_before_action :authenticate_user!, only: [:index, :show, :search]
 
   def index
-    wines = Wine.includes(wine_taste_parameters: :taste_parameter, vintages: [], producer: [], grapes: [], regions: [:country]).order(:name)
+    wines = Wine.includes(producer: [], grapes: [], regions: [], wine_categories: :category).order(:name)
     wines = wines.joins(:grapes).where(grapes: { id: params[:grape_id] }) if params[:grape_id].present?
     wines = wines.joins(:wine_categories).where(wine_categories: { category_id: params[:category_id] }) if params[:category_id].present?
     wines = wines.left_outer_joins(:wine_categories).where(wine_categories: { id: nil }) if params[:uncategorised] == "true"
     wines = wines.joins(:producer).where(producers: { country_id: params[:country_id] }) if params[:country_id].present?
     wines = wines.joins(:wine_regions).where(wine_regions: { region_id: params[:region_id] }) if params[:region_id].present?
-    return if render_paginated(wines) { |items| items.map { |wine| WineSerializer.new(wine, request.base_url).as_json } }
 
-    render json: wines.map { |wine| WineSerializer.new(wine, request.base_url).as_json }
+    # Vintage counts come from a single grouped query instead of one query
+    # per vintage (the old N+1 that dominated the "All Wines" response time).
+    vintage_counts = Vintage.where(wine_id: wines).group(:wine_id).count
+
+    return if render_paginated(wines) { |items| serialize_wines(items, vintage_counts) }
+
+    render json: serialize_wines(wines, vintage_counts)
+  end
+
+  def serialize_wines(wines, vintage_counts)
+    wines.map { |wine| WineListSerializer.new(wine, request.base_url, vintage_counts).as_json }
+  end
+
+  # GET /api/v1/wines/grouped?per_group=12
+  # Server-side "12 wines per category" view for the All Wines page. Returns
+  # up to `per_group` wines per category plus each category's total count,
+  # so the response size stays ~12 × #categories regardless of how many
+  # thousands of wines exist. Uncategorised (wine_categories.id IS NULL) is
+  # grouped under "Uncategorised" and always appears last; category display
+  # order mirrors the frontend (sort_order_wine asc with nulls last, then
+  # name, Uncategorised last).
+  def grouped
+    per_group = params[:per_group].to_i
+    per_group = 12 if per_group <= 0
+    per_group = per_group.clamp(1, 50)
+
+    # One window-function query returns up to `per_group` wines per category
+    # (a wine with several categories yields one row per category).
+    rows = Wine.find_by_sql([<<~SQL, per_group])
+      SELECT sub.* FROM (
+        SELECT wines.*, COALESCE(wc.category_id, 0) AS grouped_cat_id,
+               ROW_NUMBER() OVER (
+                 PARTITION BY COALESCE(wc.category_id, 0)
+                 ORDER BY wines.name
+               ) AS rn
+        FROM wines
+        LEFT JOIN wine_categories wc ON wc.wine_id = wines.id
+      ) sub
+      WHERE sub.rn <= ?
+    SQL
+
+    wine_ids = rows.map(&:id).uniq
+    wines_by_id = Wine.where(id: wine_ids)
+                      .includes(producer: [], grapes: [], regions: [], wine_categories: :category)
+                      .index_by(&:id)
+    vintage_counts = Vintage.where(wine_id: wine_ids).group(:wine_id).count
+
+    # Bucket each window row into its category group (0 == Uncategorised).
+    groups = Hash.new { |h, k| h[k] = [] }
+    rows.each do |row|
+      cat_id = row.grouped_cat_id == 0 ? nil : row.grouped_cat_id
+      groups[cat_id] << WineListSerializer.new(wines_by_id[row.id], request.base_url, vintage_counts).as_json
+    end
+
+    # Per-category totals and the uncategorised total, each in one grouped query.
+    category_counts = WineCategory.where(category_id: groups.keys.compact).group(:category_id).count
+    uncategorised_count =
+      if groups.key?(nil)
+        Wine.left_outer_joins(:wine_categories).where(wine_categories: { id: nil }).count
+      else
+        0
+      end
+
+    categories = Category.where(id: groups.keys.compact).to_a
+    ordered = categories.select { |c| c.sort_order_wine.present? }.sort_by { |c| [c.sort_order_wine, c.name.to_s] }
+    unordered = categories.reject { |c| c.sort_order_wine.present? }.sort_by { |c| c.name.to_s }
+
+    result = (ordered + unordered).map do |cat|
+      { category: cat.name, count: category_counts[cat.id] || groups[cat.id].size, wines: groups[cat.id] }
+    end
+
+    if groups.key?(nil)
+      result << { category: "Uncategorised", count: uncategorised_count, wines: groups[nil] }
+    end
+
+    render json: result
   end
 
   def show
@@ -86,7 +160,7 @@ class Api::V1::WinesController < ApplicationController
 
   def wine_params
     permitted = params.require(:wine).permit(
-      :name, :color, :sparkling, :prompt, :closure, :alcohol_percentage, :volume_ml, :producer_id,
+      :name, :color, :sparkling, :prompt, :closure, :alcohol_percentage, :volume_ml, :producer_id, :designation_name,
       images: [],
       grape_ids: [],
       region_ids: [],

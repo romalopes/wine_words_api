@@ -99,6 +99,7 @@ Rails.application.routes.draw do
       resources :wines do
         collection do
           get :search
+          get :grouped
         end
         resources :vintages, only: [:create] do
           resources :reviews, only: [:index, :create]
@@ -107,11 +108,13 @@ Rails.application.routes.draw do
       resources :reviews, only: [:index, :show, :update, :destroy] do
         collection do
           get :my_reviews
+          get :grouped
         end
       end
       resources :articles, only: [:index, :show, :create, :update, :destroy] do
         collection do
           get :my_articles
+          get :grouped
         end
       end
       resources :categories, only: [:index] do
