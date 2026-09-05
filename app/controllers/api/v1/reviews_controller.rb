@@ -25,6 +25,10 @@ class Api::V1::ReviewsController < ApplicationController
     reviews = reviews.by_recency.includes(:user, vintage: :wine)
     reviews = reviews.joins(:review_categories).where(review_categories: { category_id: params[:category_id] }) if params[:category_id].present?
     reviews = reviews.left_outer_joins(:review_categories).where(review_categories: { id: nil }) if params[:uncategorised] == "true"
+    if params[:query].present?
+      q = "%#{params[:query].strip}%"
+      reviews = reviews.joins(vintage: :wine).where("reviews.title ILIKE :q OR wines.name ILIKE :q", q: q)
+    end
 
     return if render_paginated(reviews) { |items| serialize_reviews(items) }
 

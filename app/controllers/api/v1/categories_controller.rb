@@ -1,6 +1,6 @@
 class Api::V1::CategoriesController < ApplicationController
     skip_before_action :authenticate_user!, only: [:index, :show, :counts]
-  before_action :ensure_wine_manager!, only: [:create, :update, :destroy, :reorder, :link_wine, :link_producer]
+  before_action :ensure_wine_manager!, only: [:create, :update, :destroy, :reorder, :link_wine, :link_producer, :link_review, :link_article]
 
   SORT_COLUMNS = {
     "wine" => :sort_order_wine,
@@ -152,6 +152,30 @@ class Api::V1::CategoriesController < ApplicationController
 
     category = find_category
     producer.categories << category unless producer.categories.include?(category)
+    render json: { id: category.id, name: category.name, linked: true }
+  end
+
+  # POST /api/v1/categories/:id/link_review — add the review to this category.
+  def link_review
+    return render json: { error: "Forbidden" }, status: :forbidden unless current_user&.wine_manager?
+
+    review = Review.find_by(slug: params[:review_id]) || Review.find_by(id: params[:review_id])
+    return render json: { error: "Review not found" }, status: :not_found unless review
+
+    category = find_category
+    review.categories << category unless review.categories.include?(category)
+    render json: { id: category.id, name: category.name, linked: true }
+  end
+
+  # POST /api/v1/categories/:id/link_article — add the article to this category.
+  def link_article
+    return render json: { error: "Forbidden" }, status: :forbidden unless current_user&.wine_manager?
+
+    article = Article.find_by(slug: params[:article_id]) || Article.find_by(id: params[:article_id])
+    return render json: { error: "Article not found" }, status: :not_found unless article
+
+    category = find_category
+    article.categories << category unless article.categories.include?(category)
     render json: { id: category.id, name: category.name, linked: true }
   end
 

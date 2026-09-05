@@ -157,6 +157,8 @@ Rails.application.routes.draw do
         member do
           post :link_wine
           post :link_producer
+          post :link_review
+          post :link_article
         end
       end
 
