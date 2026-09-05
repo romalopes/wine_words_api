@@ -88,4 +88,44 @@ module ApplicationHelper
       end
     end
   end
+
+  # --- Return-to-source navigation helpers ---
+  #
+  # When linking from one detail page to another (e.g. from a Review to its
+  # Wine), the link should carry a ?returnTo= parameter so the destination
+  # page can render a "Back to {source}" button. These helpers implement that
+  # pattern across the Rails interface views.
+
+  # Returns the given path with a ?returnTo=current_path appended when the
+  # current page is itself a detail page (has an id/slug after the resource
+  # type). Non-detail pages and non-detail targets are returned unchanged.
+  DETAIL_RESOURCES = %w[wines reviews articles producers grapes regions countries categories].freeze
+
+  def return_to_link(path)
+    return path if path.blank?
+    return path unless detail_path?(request.path)
+    return path if path.include?("returnTo=")
+    return path unless detail_path?(path)
+
+    separator = path.include?("?") ? "&" : "?"
+    "#{path}#{separator}returnTo=#{CGI.escape(request.path)}"
+  end
+
+  # Renders a "Back to {source}" link when the URL carries a returnTo param.
+  # Returns nil otherwise (nothing to render).
+  def back_to_source_link
+    return nil if params[:returnTo].blank?
+
+    source_type = params[:returnTo].split("/").reject(&:blank?).first
+    label = source_type&.capitalize || "page"
+    link_to "← Back to #{label}", params[:returnTo], class: "back-link"
+  end
+
+  private
+
+  def detail_path?(path)
+    return false if path.blank?
+    segments = path.split("/").reject(&:blank?)
+    segments.length >= 2 && DETAIL_RESOURCES.include?(segments.first)
+  end
 end

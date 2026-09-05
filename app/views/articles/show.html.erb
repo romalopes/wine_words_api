@@ -1,5 +1,6 @@
 <% content_for :title, "#{@article.title} · Wine Library" %>
 <article class="article-page">
+  <%= back_to_source_link %>
   <%= link_to "← All articles", articles_path, class: "back-link" %>
 
   <% if @article.images.attached? %>
@@ -13,7 +14,7 @@
   <h1><%= @article.title %></h1>
   <p class="lede">
     <%= [
-      (@article.categories.any? ? @article.categories.map { |c| link_to c.name, category_path(c), class: "text-link" }.join(", ").html_safe : nil),
+      (@article.categories.any? ? @article.categories.map { |c| link_to c.name, return_to_link(category_path(c)), class: "text-link" }.join(", ").html_safe : nil),
       "by #{@article.user.name.presence || @article.user.email}",
       @article.published_at&.strftime("%B %d, %Y")
     ].compact.join(" · ").html_safe %>
@@ -48,7 +49,7 @@
     <section class="wine-grid" aria-label="Article reviews">
       <% @visible_reviews.each do |review| %>
         <div class="card-wrapper">
-          <%= link_to review_path(review), class: "wine-card" do %>
+          <%= link_to return_to_link(review_path(review)), class: "wine-card" do %>
             <div class="wine-card__band"></div>
             <div class="wine-card__content">
               <h3><%= review.title.presence || review.vintage&.name %></h3>
@@ -68,7 +69,7 @@
     <section class="wine-grid" aria-label="Article wines">
       <% @article.vintages.includes(:wine).order("wines.name", year: :desc).each do |vintage| %>
         <div class="card-wrapper">
-          <%= link_to wine_path(vintage.wine.slug), class: "wine-card #{wine_color_class(vintage.wine)}" do %>
+          <%= link_to return_to_link(wine_path(vintage.wine.slug)), class: "wine-card #{wine_color_class(vintage.wine)}" do %>
             <% if vintage.wine.images.attached? %>
               <%= image_tag url_for(vintage.wine.images.first), class: "card-thumb", alt: vintage.wine.name %>
             <% end %>
@@ -88,7 +89,7 @@
     <section class="wine-grid" aria-label="Article producers">
       <% @article.producers.each do |producer| %>
         <div class="card-wrapper">
-          <%= link_to producer_path(producer.slug), class: "wine-card" do %>
+          <%= link_to return_to_link(producer_path(producer.slug)), class: "wine-card" do %>
             <div class="wine-card__band"></div>
             <div class="wine-card__content">
               <h3><%= producer.name %></h3>

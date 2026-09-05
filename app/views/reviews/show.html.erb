@@ -1,10 +1,11 @@
 <% content_for :title, "Review · Wine Library" %>
 <article class="review-page">
+  <%= back_to_source_link %>
   <%= link_to "← All reviews", reviews_path, class: "back-link" %>
   <h1><%= @review.title.presence || @review.vintage&.wine&.name %></h1>
   <p class="lede">
     <% if @review.vintage&.wine %>
-      <%= link_to @review.vintage.wine.name, wine_path(@review.vintage.wine.slug) %>
+      <%= link_to @review.vintage.wine.name, return_to_link(wine_path(@review.vintage.wine.slug)) %>
       · <%= @review.vintage.no_vintage? ? "NV" : @review.vintage.year %>
     <% end %>
     <%= " · #{review_score(@review)}" if @review.vintage&.wine %>
@@ -31,7 +32,7 @@
   <ul class="facts" aria-label="Review details">
     <li><strong>Status:</strong> <%= @review.status %></li>
     <% if @review.categories.any? %>
-      <li><strong>Categories:</strong> <%= @review.categories.map { |c| link_to c.name, category_path(c), class: "text-link" }.join(", ").html_safe %></li>
+      <li><strong>Categories:</strong> <%= @review.categories.map { |c| link_to c.name, return_to_link(category_path(c)), class: "text-link" }.join(", ").html_safe %></li>
     <% end %>
     <% if @review.drink_from.present? || @review.drink_to.present? %>
       <% window = [@review.drink_from, "–", @review.drink_to].map(&:to_s).reject(&:blank?).join %>

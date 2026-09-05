@@ -67,7 +67,7 @@ class Api::V1::ReviewsController < ApplicationController
 
     if review.title.blank?
       year = @vintage.no_vintage? ? "NV" : @vintage.year
-      review.title = "Review of #{@vintage.wine.name} - #{year}"
+      review.title = "#{@vintage.wine.name} #{year}"
     end
 
     if review.save

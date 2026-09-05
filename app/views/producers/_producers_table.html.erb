@@ -26,7 +26,7 @@
             <span class="producers-table__thumb producers-table__thumb--empty" aria-hidden="true"></span>
           <% end %>
         </td>
-        <td><%= link_to producer.name, producer_path(producer.slug) %></td>
+        <td><%= link_to producer.name, return_to_link(producer_path(producer.slug)) %></td>
         <td><%= [producer.country&.flag_emoji, producer.country&.name].compact.join(" ").presence || "—" %></td>
         <td><%= producer.producer_type&.titleize.presence || "—" %></td>
         <td><%= producer.active? ? "Active" : "Inactive" %></td>

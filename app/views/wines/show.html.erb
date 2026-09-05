@@ -1,9 +1,10 @@
 <% content_for :title, "#{@wine.name} · Wine Library" %>
 <article class="wine-page">
+  <%= back_to_source_link %>
   <%= link_to "← All wines", wines_path, class: "back-link" %>
   <h1><%= @wine.name %></h1>
   <p class="lede">
-    <% if @wine.producer.present? %><%= link_to @wine.producer.name, producer_path(@wine.producer.slug), class: "text-link" %> · <% end %><%= @wine.color %><%= " · " %><strong><% if @wine.categories.any? %><%= @wine.categories.map { |c| link_to c.name, category_path(c), class: "text-link" }.join(", ").html_safe %><% else %>Uncategorised<% end %></strong>
+    <% if @wine.producer.present? %><%= link_to @wine.producer.name, return_to_link(producer_path(@wine.producer.slug)), class: "text-link" %> · <% end %><%= @wine.color %><%= " · " %><strong><% if @wine.categories.any? %><%= @wine.categories.map { |c| link_to c.name, return_to_link(category_path(c)), class: "text-link" }.join(", ").html_safe %><% else %>Uncategorised<% end %></strong>
   </p>
   <% if can_manage_wines? %>
     <div class="page-actions">
@@ -78,7 +79,7 @@
             <ul class="vintage-reviews">
               <% vintage_reviews.each do |review| %>
                 <li>
-                  <%= link_to review.title, review_path(review) %>
+                  <%= link_to review.title, return_to_link(review_path(review)) %>
                   <% if review.score.present? %> · <strong><%= review.score %></strong><% end %>
                   · <%= review.status %>
                 </li>
