@@ -73,6 +73,23 @@
               <%= button_to "Delete", vintage_path(vintage.slug), method: :delete, form_class: "card-delete-form", class: "card-action card-action--delete", onclick: %(return confirm('Delete the #{vintage.year} vintage? This action cannot be undone.')) %>
             </div>
           <% end %>
+          <% vintage_reviews = current_user&.wine_manager? ? vintage.reviews.order(created_at: :desc) : vintage.reviews.published.order(created_at: :desc) %>
+          <% if vintage_reviews.any? %>
+            <ul class="vintage-reviews">
+              <% vintage_reviews.each do |review| %>
+                <li>
+                  <%= link_to review.title, review_path(review) %>
+                  <% if review.score.present? %> · <strong><%= review.score %></strong><% end %>
+                  · <%= review.status %>
+                </li>
+              <% end %>
+            </ul>
+          <% else %>
+            <p class="empty">No reviews for this vintage yet.</p>
+          <% end %>
+          <% if user_signed_in? && can_manage_wines? %>
+            <%= link_to "+ Add Review", new_review_path(vintage_id: vintage.id), class: "card-action" %>
+          <% end %>
         </li>
       <% end %>
     </ul>

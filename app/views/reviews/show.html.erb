@@ -1,8 +1,14 @@
 <% content_for :title, "Review · Wine Library" %>
 <article class="review-page">
   <%= link_to "← All reviews", reviews_path, class: "back-link" %>
-  <h1><%= @review.title.presence || @review.vintage&.name %></h1>
-  <p class="lede"><%= [@review.vintage&.name, review_score(@review)].compact.join(" · ") %></p>
+  <h1><%= @review.title.presence || @review.vintage&.wine&.name %></h1>
+  <p class="lede">
+    <% if @review.vintage&.wine %>
+      <%= link_to @review.vintage.wine.name, wine_path(@review.vintage.wine.slug) %>
+      · <%= @review.vintage.no_vintage? ? "NV" : @review.vintage.year %>
+    <% end %>
+    <%= " · #{review_score(@review)}" if @review.vintage&.wine %>
+  </p>
 
   <% if user_signed_in? && @review.user_id == current_user.id %>
     <div class="page-actions">

@@ -43,6 +43,7 @@ class ReviewsController < ActionController::Base
 
   def new
     @review = Review.new
+    @review.vintage_id = params[:vintage_id] if params[:vintage_id].present?
   end
 
   def create
