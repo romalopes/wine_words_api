@@ -4,21 +4,25 @@
 #
 # Standalone seed (run via `bin/rails runner db/seeds/articles_and_reviews.rb`).
 #
-# Creates:
-#   * 5 published Article rows  (idempotent by title).
-#   * 20 published Review rows  (on existing seeded vintages).
+# NOT idempotent: every run creates NEW rows.
+#
+# Creates on every run:
+#   * 5 new published Article rows  (random producers/wines referenced via links).
+#   * 20 new published Review rows  (on 20 RANDOM existing vintages).
 #   * article <-> review links  (article #1 links to ALL 20 reviews; the other
 #     four articles link to rotating, overlapping subsets of ~5 reviews each;
 #     reviews are SHARED across articles).
 #   * 2 additional (existing) Producers linked to each Article.
 #   * 1-2 additional Vintages WITHOUT any review linked to each Article.
 #
+# Titles/slugs get a per-run stamp suffix so repeated runs never collide.
 # Reuses existing seeded producers / wines / vintages / users and does NOT
-# create any new producers, wines or vintages. Idempotent: re-running the file
-# is a no-op for existing rows (guards use find_or_create_by!).
+# create any new producers, wines or vintages.
 
 ActiveRecord::Base.transaction do
   puts "Seeding articles and reviews..."
+
+  run_tag = Time.current.strftime("%Y%m%d%H%M%S")
 
   # ---------------------------------------------------------------------------
   # Author. Reuse an existing seeder user; fall back to a freshly created one so
@@ -32,7 +36,7 @@ ActiveRecord::Base.transaction do
   now = Time.current
 
   # ---------------------------------------------------------------------------
-  # 1) Five published articles (find_or_create! by title -> idempotent).
+  # 1) Five new published articles on every run (titles stamped with run_tag).
   # ---------------------------------------------------------------------------
   article_titles = [
     "Regional Spotlight: Barossa Valley",
@@ -50,77 +54,51 @@ ActiveRecord::Base.transaction do
   ]
 
   articles = article_titles.map.with_index do |title, i|
-    Article.find_or_create_by!(title: title) do |a|
-      a.abstract     = "Seeded article ##{i + 1}."
-      a.body         = article_bodies[i]
-      a.status       = "published"
-      a.published_at = now
-      a.user         = author
-    end
+    Article.create!(
+      title:         "#{title} (seed #{run_tag})",
+      abstract:      "Seeded article ##{i + 1}.",
+      body:          article_bodies[i],
+      status:        "published",
+      published_at:  now,
+      user:          author
+    )
   end
 
   # ---------------------------------------------------------------------------
-  # Helpers: reuse existing producers / wines / vintages.
+  # Pick 20 RANDOM vintages (random producers / random wines). If fewer than
+  # 20 vintages exist, raise.
   # ---------------------------------------------------------------------------
-  producers = Producer.order(:id)
+  random_vintages = Vintage.includes(wine: :producer).order("RANDOM()").limit(20).to_a
 
-  # Pick 20 distinct vintages across existing producers (up to 2 per producer,
-  # latest years first). Top up from the whole vintage table if needed.
-  chosen = []
-  seen_vintage_ids = {}
-
-  producers.each do |producer|
-    break if chosen.size >= 20
-
-    Wine.where(producer_id: producer.id)
-        .joins(:vintages)
-        .distinct
-        .order(:id)
-        .limit(2)
-        .each do |wine|
-      next if chosen.size >= 20
-      wine.vintages.order(year: :desc).limit(2).each do |vt|
-        next if seen_vintage_ids[vt.id]
-        next if chosen.size >= 20
-        seen_vintage_ids[vt.id] = true
-        chosen << { producer: producer, wine: wine, vintage: vt }
-      end
-    end
+  if random_vintages.size < 20
+    raise "Not enough distinct vintages in the database to create 20 reviews (found #{random_vintages.size})."
   end
 
-  if chosen.size < 20
-    Vintage.order(:id).each do |vt|
-      break if chosen.size >= 20
-      next if seen_vintage_ids[vt.id]
-      seen_vintage_ids[vt.id] = true
-      chosen << { producer: vt.wine.producer, wine: vt.wine, vintage: vt }
-    end
+  chosen = random_vintages.map do |vt|
+    { producer: vt.wine.producer, wine: vt.wine, vintage: vt }
   end
 
-  if chosen.size < 20
-    raise "Not enough distinct vintages in the database to create 20 reviews (found #{chosen.size})."
-  end
-
-  chosen = chosen.first(20)
-
   # ---------------------------------------------------------------------------
-  # 2) Twenty reviews on the chosen vintages (find_or_create! by vintage+title).
+  # 2) Twenty NEW reviews on the randomly chosen vintages (titles stamped
+  #    with run_tag, random score 60..100).
   # ---------------------------------------------------------------------------
-  reviews = chosen.map.with_index do |c, i|
+  reviews = chosen.map do |c|
     wine    = c[:wine]
     vintage = c[:vintage]
-    title   = "#{wine.name} #{vintage.year} Review"
-    score   = 60 + (i % 41) # deterministic 60..100
+    title   = "#{wine.name} #{vintage.year} Review (seed #{run_tag})"
+    score   = rand(60..100)
 
-    Review.find_or_create_by!(vintage: vintage, title: title) do |r|
-      r.comment      = "Seeded review for #{wine.name} #{vintage.year}."
-      r.score        = score
-      r.status       = "published"
-      r.user         = author
-      r.published_at = now
-      r.drink_from   = vintage.year            # drink_from >= vintage.year -> validation passes
-      r.drink_to     = vintage.year + 5
-    end
+    Review.create!(
+      vintage:       vintage,
+      title:         title,
+      comment:       "Seeded review for #{wine.name} #{vintage.year}.",
+      score:         score,
+      status:        "published",
+      user:          author,
+      published_at:  now,
+      drink_from:    vintage.year,            # drink_from >= vintage.year -> validation passes
+      drink_to:      vintage.year + 5
+    )
   end
 
   # ---------------------------------------------------------------------------
