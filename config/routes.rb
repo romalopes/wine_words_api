@@ -100,6 +100,7 @@ Rails.application.routes.draw do
         collection do
           get :search
           get :grouped
+          get :advanced_search
         end
         resources :vintages, only: [:create] do
           resources :reviews, only: [:index, :create]

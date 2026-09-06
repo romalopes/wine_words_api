@@ -4,7 +4,7 @@ class Api::V1::WinesController < ApplicationController
   # Super Users and Reviewers; reading stays public.
   before_action :authenticate_user!, only: [:create, :update, :destroy]
   before_action :ensure_wine_manager!, only: [:create, :update, :destroy]
-  skip_before_action :authenticate_user!, only: [:index, :show, :search]
+  skip_before_action :authenticate_user!, only: [:index, :show, :search, :advanced_search]
 
   def index
     wines = Wine.includes(producer: [], grapes: [], regions: [], wine_categories: :category).order(:name)
@@ -92,6 +92,23 @@ class Api::V1::WinesController < ApplicationController
     render json: result
   end
 
+  # GET /api/v1/wines/advanced_search
+  # Complex, filter-driven wine search used by the wines page "Advanced
+  # Search" form. Every parameter is optional; blank ones are ignored.
+  # See Wine.advanced_search for the query construction (EXISTS-based,
+  # index-friendly, no row duplication).
+  def advanced_search
+    wines = Wine.includes(producer: [], grapes: [], regions: [], wine_categories: :category)
+                .advanced_search(advanced_search_filters)
+                .order(:name)
+
+    vintage_counts = Vintage.where(wine_id: wines).group(:wine_id).count
+
+    return if render_paginated(wines) { |items| serialize_wines(items, vintage_counts) }
+
+    render json: serialize_wines(wines, vintage_counts)
+  end
+
   def show
     wine = Wine.includes(vintages: [], wine_taste_parameters: :taste_parameter, producer: [], grapes: [], regions: [:country]).find_by!(slug: params[:id])
     render json: WineSerializer.new(wine, request.base_url).as_json
@@ -135,6 +152,89 @@ class Api::V1::WinesController < ApplicationController
   end
 
   private
+
+  # --- advanced_search parameter parsing ---------------------------------
+
+  def advanced_search_filters
+    p = params
+    filters = {
+      name: p[:name].presence,
+      producer_name: p[:producer_name].presence,
+      color: p[:color].presence,
+      closure: p[:closure].presence,
+      sparkling: boolean_param(:sparkling),
+      fortified: boolean_param(:fortified),
+      country_id: integer_param(:country_id),
+      region_ids: integer_array_param(:region_ids),
+      grape_ids: integer_array_param(:grape_ids),
+      alcohol_min: float_param(:alcohol_min),
+      alcohol_max: float_param(:alcohol_max),
+      vintage_year_min: integer_param(:vintage_year_min),
+      vintage_year_max: integer_param(:vintage_year_max),
+      price_min: float_param(:price_min),
+      price_max: float_param(:price_max),
+      score_min: float_param(:score_min),
+      score_max: float_param(:score_max),
+      published_from: date_param(:published_from),
+      published_to: date_param(:published_to),
+      drink_from_min: integer_param(:drink_from_min),
+      drink_from_max: integer_param(:drink_from_max),
+      drink_to_min: integer_param(:drink_to_min),
+      drink_to_max: integer_param(:drink_to_max),
+      taste_parameters: taste_parameter_filters
+    }
+    filters.compact
+  end
+
+  # Range filters for each searchable taste parameter, keyed by slug
+  # (e.g. acidity_min / acidity_max). Scores are integers, so the bounds
+  # are rounded to whole numbers to keep the binds valid for the column.
+  def taste_parameter_filters
+    Wine::TASTE_PARAMETER_FILTER_SLUGS.filter_map do |slug|
+      min = float_param("#{slug}_min")
+      max = float_param("#{slug}_max")
+      next if min.blank? && max.blank?
+
+      {
+        slug: slug,
+        min: min && min.round,
+        max: max && max.round
+      }
+    end
+  end
+
+  def boolean_param(key)
+    return nil if params[key].blank?
+
+    ActiveModel::Type::Boolean.new.cast(params[key])
+  end
+
+  def integer_param(key)
+    return nil if params[key].blank?
+
+    Integer(params[key], exception: false)
+  end
+
+  def float_param(key)
+    return nil if params[key].blank?
+
+    Float(params[key], exception: false)
+  end
+
+  def date_param(key)
+    return nil if params[key].blank?
+
+    Date.parse(params[key].to_s)
+  rescue ArgumentError
+    nil
+  end
+
+  def integer_array_param(key)
+    values = params[key]
+    return nil if values.blank?
+
+    Array(values).map { |v| Integer(v, exception: false) }.compact.uniq
+  end
 
   def ensure_wine_manager!
     return if current_user&.wine_manager?
