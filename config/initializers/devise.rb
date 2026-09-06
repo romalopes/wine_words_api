@@ -24,7 +24,7 @@ Devise.setup do |config|
   # Configure the e-mail address which will be shown in Devise::Mailer,
   # note that it will be overwritten if you use your own mailer class
   # with default "from" parameter.
-  config.mailer_sender = 'please-change-me-at-config-initializers-devise@example.com'
+  config.mailer_sender = 'romalopes@yahoo.com.br'
 
   # Configure the class responsible to send e-mails.
   # config.mailer = 'Devise::Mailer'
@@ -322,7 +322,8 @@ Devise.setup do |config|
     jwt.expiration_time = 100.years.to_i
     jwt.dispatch_requests = [
       ['POST', %r{^/api/v1/auth/sign_in$}],
-      ['POST', %r{^/api/v1/auth/sign_up$}]
+      ['POST', %r{^/api/v1/auth/sign_up$}],
+      ['PATCH', %r{^/api/v1/auth/password$}]
     ]
     jwt.revocation_requests = [
       ['DELETE', %r{^/api/v1/auth/sign_out$}]

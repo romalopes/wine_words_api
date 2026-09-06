@@ -8,7 +8,8 @@ Rails.application.routes.draw do
     },
     controllers: {
       sessions: "api/v1/sessions",
-      registrations: "api/v1/registrations"
+      registrations: "api/v1/registrations",
+      passwords: "api/v1/passwords"
     },
     defaults: { format: :json }
 
