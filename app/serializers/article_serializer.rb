@@ -1,7 +1,8 @@
-# Lean serializer used by Api::V1::ArticlesController#index (list views) only.
-# Ships only the fields the list/table UIs render, avoiding the full detail
-# payload (body, tags, wines, producers, reviews, images, etc.).
-class ArticleListSerializer
+# Full-detail serializer used by Api::V1::ArticlesController#show / #create /
+# #update / #my_articles. Ships everything the article detail and edit UIs
+# render: body, tags, categories, linked producers/vintages/reviews (with the
+# per-link status), and image URLs.
+class ArticleSerializer
   def initialize(article, base_url = nil)
     @article = article
     @base_url = base_url
@@ -13,13 +14,76 @@ class ArticleListSerializer
       slug: @article.slug,
       title: @article.title,
       abstract: @article.abstract,
+      body: @article.body,
       status: @article.status,
-      author_name: @article.user&.name || @article.user&.email || "Unknown",
       user_id: @article.user_id,
-      category: @article.categories.map(&:name).join(", ").presence,
-      categories: @article.categories.map { |c| { id: c.id, name: c.name, slug: c.slug } },
+      author_name: @article.user&.name || @article.user&.email || "Unknown",
       published_at: @article.published_at&.iso8601,
-      created_at: @article.created_at&.iso8601
+      created_at: @article.created_at&.iso8601,
+      updated_at: @article.updated_at&.iso8601,
+      tags: @article.tags.map(&:name),
+      tag_names: @article.tags.map(&:name).join(", "),
+      categories: categories,
+      category_ids: @article.categories.map(&:id),
+      images: image_urls,
+      producers: producers,
+      producer_ids: @article.producers.map(&:id),
+      vintages: vintages,
+      vintage_ids: @article.vintages.map(&:id),
+      reviews: reviews,
+      review_ids: @article.reviews.map(&:id)
     }
+  end
+
+  private
+
+  def categories
+    @article.categories.map { |c| { id: c.id, name: c.name, slug: c.slug } }
+  end
+
+  def producers
+    @article.producers.map { |p| { id: p.id, name: p.name, slug: p.slug } }
+  end
+
+  def vintages
+    @article.vintages.map do |v|
+      wine = v.wine
+      {
+        id: v.id,
+        year: v.year,
+        name: [wine&.name, v.year].compact.join(" "),
+        wine_name: wine&.name,
+        wine_slug: wine&.slug,
+        region: wine&.regions&.order(:name)&.first&.name
+      }
+    end
+  end
+
+  # Reviews linked to the article, including the per-link status from the
+  # article_reviews join record (used to filter to "published" links).
+  def reviews
+    link_by_review = @article.article_reviews.index_by(&:review_id)
+
+    @article.reviews.map do |review|
+      link = link_by_review[review.id]
+      {
+        id: review.id,
+        slug: review.slug,
+        title: review.title,
+        score: review.score&.to_f,
+        status: review.status,
+        comment: review.comment,
+        reviewer_name: review.user&.name || review.user&.email || "Unknown",
+        link_status: link&.status
+      }
+    end
+  end
+
+  def image_urls
+    return [] unless @article.images.attached?
+
+    @article.images.map do |image|
+      Rails.application.routes.url_helpers.rails_blob_url(image, host: @base_url || "localhost:3000")
+    end
   end
 end

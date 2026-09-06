@@ -31,11 +31,12 @@
     <% if @producer.country.present? %>
       <li><strong>Country:</strong> <%= [@producer.country.flag_emoji, @producer.country.name].compact.join(" ") %></li>
     <% end %>
-    <% if @producer.address.present? %>
-      <li><strong>Address:</strong> <%= @producer.address %></li>
+    <% if @producer.address&.street_address.present? %>
+      <li><strong>Address:</strong> <%= @producer.address.street_address %></li>
     <% end %>
-    <% if [@producer.city, @producer.state, @producer.postal_code].any?(&:present?) %>
-      <li><strong>Location:</strong> <%= [@producer.city, @producer.state, @producer.postal_code].compact.join(", ") %></li>
+    <% address_location = [@producer.address&.city, @producer.address&.state, @producer.address&.postal_code].compact.reject(&:blank?) %>
+    <% if address_location.any? %>
+      <li><strong>Location:</strong> <%= address_location.join(", ") %></li>
     <% end %>
     <% if @producer.phone.present? %>
       <li><strong>Phone:</strong> <%= @producer.phone %></li>

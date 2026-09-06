@@ -34,9 +34,12 @@ RSpec.describe "Api::V1::Producers", type: :request do
       email: "cellar@penfolds.com",
       legal_name: "Penfolds Wines Pty Ltd",
       phone: "+61 8 8208 0200",
-      city: "Adelaide",
-      state: "SA",
-      postal_code: "5092",
+      address_attributes: {
+        street_address: "78 Penfolds Rd",
+        city: "Adelaide",
+        state: "SA",
+        postal_code: "5092"
+      },
       founded_year: 1844,
       active: true,
       website: "https://penfolds.com",
@@ -110,12 +113,40 @@ RSpec.describe "Api::V1::Producers", type: :request do
         expect(body).to include(
           "legal_name" => "Penfolds Wines Pty Ltd",
           "phone" => "+61 8 8208 0200",
-          "city" => "Adelaide",
           "founded_year" => 1844,
           "active" => true
         )
+        expect(body["address"]).to include(
+          "street_address" => "78 Penfolds Rd",
+          "city" => "Adelaide",
+          "state" => "SA",
+          "postal_code" => "5092"
+        )
+        expect(body["address"]["country"]["code"]).to eq("AU")
         expect(body["country"]["code"]).to eq("AU")
         expect(body["grapes"].map { |g| g["name"] }).to match_array(["Shiraz", "Riesling"])
+      end
+
+      it "creates the nested address with a default country" do
+        post "/api/v1/producers", params: { producer: producer_attributes }, as: :json
+        address = Producer.last.address
+        expect(address).to be_present
+        expect(address.street_address).to eq("78 Penfolds Rd")
+        expect(address.country.code).to eq("AU")
+      end
+
+      it "updates the existing address instead of duplicating it" do
+        post "/api/v1/producers", params: { producer: producer_attributes }, as: :json
+        producer = Producer.last
+        address_id = producer.address.id
+
+        patch "/api/v1/producers/#{producer.slug}",
+              params: { producer: { address_attributes: { id: address_id, city: "Barossa Valley" } } },
+              as: :json
+        expect(response).to have_http_status(:ok)
+        expect(producer.reload.address.city).to eq("Barossa Valley")
+        expect(producer.address.id).to eq(address_id)
+        expect { Address.count }.not_to change(Address, :count)
       end
     end
 

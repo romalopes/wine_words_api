@@ -63,7 +63,7 @@ class WineSerializer
       id: @wine.producer.id,
       slug: @wine.producer.slug,
       name: @wine.producer.name,
-      address: @wine.producer.address,
+      address: @wine.producer.address&.street_address,
       email: @wine.producer.email
     }
   end

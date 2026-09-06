@@ -104,9 +104,11 @@ class ProducersController < ActionController::Base
 
   def producer_params
     params.require(:producer).permit(
-      :name, :address, :email, :website, :description, :producer_type,
-      :instagram, :facebook, :legal_name, :phone, :city, :state, :postal_code,
-      :founded_year, :active, :country_id, region_ids: [], grape_ids: []
+      :name, :email, :website, :description, :producer_type,
+      :instagram, :facebook, :legal_name, :phone,
+      :founded_year, :active, :country_id,
+      region_ids: [], grape_ids: [],
+      address_attributes: [:id, :street_address, :city, :state, :postal_code, :country_id, :_destroy]
     )
   end
 end

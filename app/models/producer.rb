@@ -10,6 +10,9 @@ class Producer < ApplicationRecord
 
   belongs_to :country
 
+  has_one :address, dependent: :destroy
+  accepts_nested_attributes_for :address, allow_destroy: true
+
   has_many :producer_regions, dependent: :destroy
   has_many :regions, through: :producer_regions
   has_many :producer_grapes, dependent: :destroy

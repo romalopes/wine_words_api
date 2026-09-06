@@ -30,20 +30,33 @@
     <%= f.url_field :website, placeholder: "https://..." %>
   </div>
   <div>
-    <%= f.label :address %><br>
-    <%= f.text_field :address %>
-  </div>
-  <div>
-    <%= f.label :city %><br>
-    <%= f.text_field :city %>
-  </div>
-  <div>
-    <%= f.label :state %><br>
-    <%= f.text_field :state %>
-  </div>
-  <div>
-    <%= f.label :postal_code, "Postal code" %><br>
-    <%= f.text_field :postal_code %>
+    <%# Nested address fields — Rails emits producer[address_attributes][...] %>
+    <%# because Producer accepts_nested_attributes_for :address. %>
+    <%= f.fields_for :address, (producer.address || producer.build_address) do |addr| %>
+      <div>
+        <%= addr.label :street_address, "Street address" %><br>
+        <%= addr.text_field :street_address %>
+      </div>
+      <div>
+        <%= addr.label :city %><br>
+        <%= addr.text_field :city %>
+      </div>
+      <div>
+        <%= addr.label :state %><br>
+        <%= addr.text_field :state %>
+      </div>
+      <div>
+        <%= addr.label :postal_code, "Postal code" %><br>
+        <%= addr.text_field :postal_code %>
+      </div>
+      <div>
+        <%= addr.label :country_id, "Address country" %><br>
+        <%= addr.select :country_id,
+              options_from_collection_for_select(@countries || Country.order(:name), :id, :name,
+                (producer.address&.country_id || producer.country_id || Country.find_by(code: "AU")&.id)),
+              { include_blank: true } %>
+      </div>
+    <% end %>
   </div>
   <div>
     <%= f.label :founded_year, "Founded year" %><br>

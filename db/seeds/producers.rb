@@ -2494,6 +2494,17 @@ ALL_PRODUCERS.each_with_index do |attrs, index|
   grapes = attrs.delete(:grapes)
   regions = attrs.delete(:regions)
   logo_url = attrs.delete(:logo_url)
+
+  # Address fields moved to the addresses table (producer has_one :address).
+  # The seed data keeps the flat keys; map them into the Address record.
+  address_attrs = {
+    street_address: attrs.delete(:address),
+    city: attrs.delete(:city),
+    state: attrs.delete(:state),
+    postal_code: attrs.delete(:postal_code),
+    country_id: attrs[:country_id]
+  }
+  has_address = address_attrs.values.any?(&:present?)
   puts "  - Grapes: #{grapes.inspect}"
   puts "  - Regions: #{regions.inspect}"
   puts "  - Logo URL: #{logo_url}"
@@ -2501,6 +2512,14 @@ ALL_PRODUCERS.each_with_index do |attrs, index|
   producer = Producer.find_or_initialize_by(name: attrs[:name])
   producer.assign_attributes(attrs)
   producer.save!
+
+  if has_address
+    if producer.address
+      producer.address.update!(address_attrs)
+    else
+      producer.create_address!(address_attrs)
+    end
+  end
 
   # Associated Grape lookup and linkage
   if grapes

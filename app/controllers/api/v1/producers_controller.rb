@@ -5,7 +5,7 @@ class Api::V1::ProducersController < ApplicationController
   before_action :set_producer, only: [:show, :update, :destroy, :attach_logo, :remove_logo, :link_wine]
 
   def index
-    scope = Producer.includes(:wines, :country, :regions, :grapes, :logo_attachment).order(:name)
+    scope = Producer.includes(:wines, :country, :regions, :grapes, :logo_attachment, address: :country).order(:name)
     scope = scope.where(country_id: params[:country_id]) if params[:country_id].present?
     scope = scope.joins(:regions).where(regions: { id: params[:region_id] }) if params[:region_id].present?
     scope = scope.joins(:grapes).where(grapes: { id: params[:grape_id] }) if params[:grape_id].present?
@@ -21,7 +21,7 @@ class Api::V1::ProducersController < ApplicationController
       if query.blank?
         Producer.none
       else
-        Producer.includes(:country).where("name ILIKE ?", "%#{query}%").order(:name).limit(20)
+        Producer.includes(:country, :address).where("name ILIKE ?", "%#{query}%").order(:name).limit(20)
       end
 
     render json: producers.map { |producer| producer_search_json(producer) }
@@ -98,7 +98,7 @@ class Api::V1::ProducersController < ApplicationController
   end
 
   def set_producer
-    @producer = Producer.includes(:country, :regions, :grapes).find_by!(slug: params[:id])
+    @producer = Producer.includes(:country, :regions, :grapes, address: :country).find_by!(slug: params[:id])
   end
 
   def producer_search_json(producer)
@@ -106,7 +106,7 @@ class Api::V1::ProducersController < ApplicationController
       id: producer.id,
       slug: producer.slug,
       name: producer.name,
-      address: producer.address,
+      address: producer.address&.street_address,
       email: producer.email,
       website: producer.website,
       description: producer.description,
@@ -120,9 +120,11 @@ class Api::V1::ProducersController < ApplicationController
 
   def producer_params
     permitted = params.require(:producer).permit(
-      :name, :address, :email, :website, :description, :producer_type,
-      :instagram, :facebook, :legal_name, :phone, :city, :state, :postal_code,
-      :founded_year, :active, :country_id, region_ids: [], grape_ids: []
+      :name, :email, :website, :description, :producer_type,
+      :instagram, :facebook, :legal_name, :phone,
+      :founded_year, :active, :country_id,
+      region_ids: [], grape_ids: [],
+      address_attributes: [:id, :street_address, :city, :state, :postal_code, :country_id, :_destroy]
     )
     # Dedupe so duplicate submissions can't break the unique join indices.
     permitted[:region_ids] = permitted[:region_ids].map(&:to_i).uniq if permitted.key?(:region_ids)
@@ -136,7 +138,7 @@ class Api::V1::ProducersController < ApplicationController
       slug: producer.slug,
       name: producer.name,
       legal_name: producer.legal_name,
-      address: producer.address,
+      address: address_json(producer.address),
       email: producer.email,
       website: producer.website,
       description: producer.description,
@@ -144,9 +146,6 @@ class Api::V1::ProducersController < ApplicationController
       instagram: producer.instagram,
       facebook: producer.facebook,
       phone: producer.phone,
-      city: producer.city,
-      state: producer.state,
-      postal_code: producer.postal_code,
       founded_year: producer.founded_year,
       active: producer.active,
       country: country_json(producer.country),
@@ -159,6 +158,19 @@ class Api::V1::ProducersController < ApplicationController
       logo_url: producer_logo_url(producer),
       images: image_urls(producer),
       wines: wines_serialized(producer)
+    }
+  end
+
+  def address_json(address)
+    return nil if address.blank?
+
+    {
+      id: address.id,
+      street_address: address.street_address,
+      city: address.city,
+      state: address.state,
+      postal_code: address.postal_code,
+      country: country_json(address.country)
     }
   end
 

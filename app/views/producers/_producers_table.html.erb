@@ -30,7 +30,7 @@
         <td><%= [producer.country&.flag_emoji, producer.country&.name].compact.join(" ").presence || "—" %></td>
         <td><%= producer.producer_type&.titleize.presence || "—" %></td>
         <td><%= producer.active? ? "Active" : "Inactive" %></td>
-        <td><%= producer.address.presence || "—" %></td>
+        <td><%= producer.address&.street_address.presence || "—" %></td>
         <td><%= producer.email.presence || "—" %></td>
         <td><%= link_to pluralize(producer.wines.size, "wine"), wines_path(producer: producer.slug) %></td>
         <% if local_assigns[:show_actions] %>

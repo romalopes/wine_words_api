@@ -5,7 +5,7 @@ module ProducersHelper
 
   def producer_details(producer)
     [
-      producer.address.presence,
+      producer.address&.street_address.presence,
       producer.email.presence
     ].compact.join(" · ")
   end
