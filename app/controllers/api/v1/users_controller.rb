@@ -1,12 +1,16 @@
 class Api::V1::UsersController < ApplicationController
   def me
+    current_sub = current_user.user_subscriptions.current.first
     render json: {
       user: {
         id: current_user.id,
         email: current_user.email,
         name: current_user.name,
         roles: current_user.role_names,
-        subscription: current_user.subscription ? { id: current_user.subscription.id, name: current_user.subscription.name } : nil
+        subscription: current_user.subscription ? { id: current_user.subscription.id, name: current_user.subscription.name } : nil,
+        billing_provider: current_sub&.billing_provider,
+        can_manage_billing: Billing.configured?,
+        subscription_status: current_sub&.status,
       }
     }
   end

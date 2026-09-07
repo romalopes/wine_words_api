@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_06_004923) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_06_081330) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -120,6 +120,29 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_06_004923) do
     t.index ["category_id"], name: "index_articles_on_category_id"
     t.index ["slug"], name: "index_articles_on_slug", unique: true
     t.index ["user_id"], name: "index_articles_on_user_id"
+  end
+
+  create_table "billing_customers", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "provider", null: false
+    t.string "provider_customer_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["provider", "provider_customer_id"], name: "index_billing_customers_on_provider_and_provider_customer_id", unique: true
+    t.index ["user_id", "provider"], name: "index_billing_customers_on_user_id_and_provider", unique: true
+    t.index ["user_id"], name: "index_billing_customers_on_user_id"
+  end
+
+  create_table "billing_events", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "event_type"
+    t.jsonb "payload", default: {}
+    t.datetime "processed_at"
+    t.string "provider", null: false
+    t.string "provider_event_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["processed_at"], name: "index_billing_events_on_processed_at", where: "(processed_at IS NULL)"
+    t.index ["provider", "provider_event_id"], name: "index_billing_events_on_provider_and_provider_event_id", unique: true
   end
 
   create_table "categories", force: :cascade do |t|
@@ -271,6 +294,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_06_004923) do
     t.index ["name"], name: "index_roles_on_name", unique: true
   end
 
+  create_table "subscription_billing_prices", force: :cascade do |t|
+    t.boolean "active", default: true, null: false
+    t.integer "amount_cents"
+    t.string "billing_interval", default: "year", null: false
+    t.datetime "created_at", null: false
+    t.string "currency", default: "AUD", null: false
+    t.string "provider", null: false
+    t.string "provider_price_id"
+    t.string "provider_product_id"
+    t.bigint "subscription_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["provider", "provider_price_id"], name: "idx_on_provider_provider_price_id_b753013e4c", unique: true
+    t.index ["subscription_id", "provider"], name: "idx_on_subscription_id_provider_4ac4f5f044", unique: true
+    t.index ["subscription_id"], name: "index_subscription_billing_prices_on_subscription_id"
+  end
+
   create_table "subscription_features", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "description"
@@ -341,9 +380,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_06_004923) do
   end
 
   create_table "user_subscriptions", force: :cascade do |t|
+    t.string "billing_provider", default: "manual", null: false
     t.datetime "cancelled_at"
     t.datetime "created_at", null: false
     t.datetime "ended_at"
+    t.string "provider_subscription_id"
     t.datetime "started_at", null: false
     t.string "status", default: "active", null: false
     t.bigint "subscription_id", null: false
@@ -485,6 +526,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_06_004923) do
   add_foreign_key "article_vintages", "vintages"
   add_foreign_key "articles", "categories"
   add_foreign_key "articles", "users"
+  add_foreign_key "billing_customers", "users"
   add_foreign_key "grapes", "countries"
   add_foreign_key "producer_grapes", "grapes"
   add_foreign_key "producer_grapes", "producers"
@@ -497,6 +539,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_06_004923) do
   add_foreign_key "reviews", "categories"
   add_foreign_key "reviews", "users"
   add_foreign_key "reviews", "vintages"
+  add_foreign_key "subscription_billing_prices", "subscriptions"
   add_foreign_key "subscription_subscription_features", "subscription_features"
   add_foreign_key "subscription_subscription_features", "subscriptions"
   add_foreign_key "user_roles", "roles"

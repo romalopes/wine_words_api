@@ -1,11 +1,16 @@
 class Subscription < ApplicationRecord
   has_many :subscription_subscription_features, dependent: :destroy
   has_many :subscription_features, through: :subscription_subscription_features
+  has_many :subscription_billing_prices, dependent: :destroy
   # Use restrict_with_error so a plan with assigned users or history cannot be
   # hard-deleted (soft-delete via active:false / visible:false instead). The
   # dependent callbacks must not clear these BEFORE the destroy guard runs.
   has_many :users, dependent: :restrict_with_error
   has_many :user_subscriptions, dependent: :restrict_with_error
+
+  def billing_price_for(provider)
+    subscription_billing_prices.active.for_provider(provider).first
+  end
 
   accepts_nested_attributes_for :subscription_subscription_features, allow_destroy: true
 

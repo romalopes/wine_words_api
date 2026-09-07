@@ -12,20 +12,6 @@ bin/rails db:prepare
 bin/rails server
 ```
 
-1AndersoneKasia1
-postgresql://postgres:1AndersoneKasia1@db.wvpqnbluzxfrontishxv.supabase.co:5432/postgres
-
-postgresql://postgres:1AndersoneKasia1@db.wvpqnbluzxfrontishxv.supabase.co:5432/postgres
-
-host: db.wvpqnbluzxfrontishxv.supabase.co
-port: 5432
-user: postgres
-
-host=db.wvpqnbluzxfrontishxv.supabase.co
-port=5432
-database=postgres
-user=postgres
-
 Open `http://localhost:3000` to use the Rails interface:
 
 - `/` — wine library

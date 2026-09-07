@@ -167,6 +167,13 @@ Rails.application.routes.draw do
         end
       end
 
+      # Billing — checkout session and customer portal (authenticated).
+      post "billing/checkout", to: "billing#checkout"
+      post "billing/portal", to: "billing#portal"
+
+      # Stripe webhook (no authentication — verified via webhook signature).
+      post "webhooks/stripe", to: "webhooks#stripe"
+
       get "me", to: "users#me"
       get "stats", to: "stats#index"
 

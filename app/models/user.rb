@@ -8,6 +8,7 @@ class User < ApplicationRecord
   has_many :reviews, dependent: :destroy
   has_many :user_roles, dependent: :destroy
   has_many :roles, through: :user_roles
+  has_many :billing_customers, dependent: :destroy
   belongs_to :subscription, optional: true
   has_many :user_subscriptions, dependent: :destroy
 
@@ -55,7 +56,11 @@ class User < ApplicationRecord
   # User, Editor). Records subscription history via user_subscriptions.
   #
   # Paid -> paid upgrades change features only and skip role writes entirely.
-  def apply_subscription!(new_subscription)
+  #
+  # Accepts optional billing metadata so a subscription can be applied from a
+  # billing provider (e.g. Stripe) as well as manually by a Super User. The
+  # role logic stays provider-independent.
+  def apply_subscription!(new_subscription, billing_provider: "manual", provider_subscription_id: nil)
     return if new_subscription.nil?
 
     new_base = new_subscription.free? ? "Guest" : "Reader"
@@ -64,7 +69,13 @@ class User < ApplicationRecord
 
     transaction do
       user_subscriptions.current.update_all(ended_at: Time.current)
-      user_subscriptions.create!(subscription: new_subscription, started_at: Time.current, status: :active)
+      user_subscriptions.create!(
+        subscription: new_subscription,
+        started_at: Time.current,
+        status: :active,
+        billing_provider: billing_provider,
+        provider_subscription_id: provider_subscription_id
+      )
 
       if changing_base
         roles.delete(Role.where(name: BASE_ROLES))

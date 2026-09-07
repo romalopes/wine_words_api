@@ -7,8 +7,16 @@
 
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
+     # origins(
+    #   "https://wine-prediction-mu.vercel.app",
+    #   "http://localhost:5173,
+    #   http://localhost:3000"
+    # )
     origins "*"
     # origins ENV.fetch("FRONTEND_URL")
+    # if Rails.env.development?
+      # allowed_origins << "http://localhost:5173"
+    # end
 
     resource "*",
       headers: :any,
@@ -16,3 +24,22 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
       methods: [:get, :post, :put, :patch, :delete, :options, :head]
   end
 end
+
+
+# allowed_origins = [
+#   "https://wine-prediction-mu.vercel.app"
+# ]
+
+# if Rails.env.development?
+#   allowed_origins << "http://localhost:5173"
+# end
+
+# Rails.application.config.middleware.insert_before 0, Rack::Cors do
+#   allow do
+#     origins(*allowed_origins)
+
+#     resource "*",
+#       headers: :any,
+#       methods: [:get, :post, :put, :patch, :delete, :options, :head]
+#   end
+# end
