@@ -1,0 +1,42 @@
+<% content_for :title, "Subscribe" %>
+<h1>Subscriptions</h1>
+<p class="lede">Choose a plan to unlock Reader access and support Wine Words.</p>
+
+<% if @current_subscription %>
+  <div class="flash flash--notice">
+    Your current plan: <strong><%= @current_subscription.name %></strong>
+  </div>
+<% end %>
+
+<% if @subscriptions.any? %>
+  <div class="wine-grid">
+    <% @subscriptions.each do |subscription| %>
+      <div class="wine-card">
+        <div class="wine-card__band wine-card--white"></div>
+        <div class="wine-card__content">
+          <h3><%= subscription.name %></h3>
+          <% if subscription.description.present? %>
+            <p class="details"><%= subscription.description %></p>
+          <% end %>
+          <p class="details">
+            <% if subscription.monthly_price_cents.to_i.positive? %>
+              <strong><%= number_to_currency(subscription.monthly_price_cents.to_f / 100) %>/month</strong>
+            <% end %>
+            <% if subscription.yearly_price_cents.to_i.positive? %>
+              <% if subscription.monthly_price_cents.to_i.positive? %><span> · </span><% end %>
+              <strong><%= number_to_currency(subscription.yearly_price_cents.to_f / 100) %>/year</strong>
+            <% end %>
+          </p>
+          <% if user_signed_in? %>
+            <%= button_to "Subscribe", subscribe_path, method: :post,
+                params: { subscription_id: subscription.id }, class: "btn" %>
+          <% else %>
+            <p><%= link_to "Sign in to subscribe", login_path %></p>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <p class="empty">No paid plans are available at the moment.</p>
+<% end %>

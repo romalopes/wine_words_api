@@ -1,0 +1,39 @@
+<%= turbo_frame_tag "finder-results" do %>
+  <% if @matches.any? %>
+    <div class="wine-match-list">
+      <% @matches.each_with_index do |entry, index| %>
+        <% profile = entry[:profile] %>
+        <article class="wine-match">
+          <div class="wine-match__header">
+            <div>
+              <span><%= profile.color || "Wine" %></span>
+              <h3><%= profile.name %></h3>
+            </div>
+            <strong><%= entry[:score] %>%</strong>
+          </div>
+          <div class="wine-meter" aria-label="<%= entry[:score] %>% match">
+            <span style="width: <%= entry[:score] %>%"></span>
+          </div>
+          <% if profile.grapes.present? || profile.regions.present? || profile.notes.present? %>
+            <dl>
+              <% if profile.grapes.present? %>
+                <div><dt>Grapes</dt><dd><%= profile.grapes %></dd></div>
+              <% end %>
+              <% if profile.regions.present? %>
+                <div><dt>Regions</dt><dd><%= profile.regions %></dd></div>
+              <% end %>
+              <% if profile.notes.present? %>
+                <div><dt>Clues</dt><dd><%= profile.notes %></dd></div>
+              <% end %>
+            </dl>
+          <% end %>
+          <% if profile.serving.present? %>
+            <p><%= profile.serving %></p>
+          <% end %>
+        </article>
+      <% end %>
+    </div>
+  <% else %>
+    <p class="empty">No wine profiles match those parameters yet.</p>
+  <% end %>
+<% end %>

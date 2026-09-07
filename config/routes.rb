@@ -21,6 +21,17 @@ Rails.application.routes.draw do
   get "signup", to: "web/registrations#new"
   post "signup", to: "web/registrations#create"
 
+  # SPA-style public pages matching the React app's routes.
+  get "quiz", to: "web/quiz#index"
+  get "quiz/search", to: "web/quiz#search", defaults: { format: :json }
+  get "finder", to: "web/finder#index"
+  get "finder/matches", to: "web/finder#matches", as: :finder_matches
+  get "search", to: "web/search#index"
+  get "search/results", to: "web/search#results", as: :search_results, defaults: { format: :json }
+  get "about", to: "web/about#index"
+  get "subscribe", to: "web/subscribe#index"
+  post "subscribe", to: "web/subscribe#create"
+
   get "wines/:wine_id/vintages/:vintage_id/reviews", to: "wines#vintage_reviews",
       defaults: { format: :json }
   resources :wines do

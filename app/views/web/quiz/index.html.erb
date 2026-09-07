@@ -1,0 +1,44 @@
+<% content_for :title, "Tasting Quiz" %>
+<h1>Tasting Quiz</h1>
+<p class="lede">Search a wine profile, then tune the sliders to your own palate and check how close you get.</p>
+
+<div class="wine-test"
+     data-controller="quiz"
+     data-quiz-params-value="<%= @taste_parameters.map { |p| { slug: p.slug, label: p.label, low: p.low, high: p.high, help: p.help } }.to_json %>">
+
+  <div class="wine-test__search" data-quiz-target="searchWrap">
+    <label class="wine-test__search-label" for="quiz-query">Find a wine profile</label>
+    <input id="quiz-query" type="search" placeholder="Type a wine name or region…"
+           data-quiz-target="query"
+           data-action="input->quiz#search keydown->quiz#searchEnter">
+    <p class="wine-test__searching hidden" data-quiz-target="searching">Searching…</p>
+    <div class="wine-search-results" data-quiz-target="results"></div>
+    <p class="wine-test__search-empty hidden" data-quiz-target="searchEmpty">No wines match your search.</p>
+    <p class="auth-form__error hidden" data-quiz-target="error">Search failed.</p>
+  </div>
+
+  <article class="wine-test-card hidden" data-quiz-target="selected">
+    <span></span>
+    <h3></h3>
+  </article>
+
+  <div class="wine-test__grid hidden" id="quiz-sliders">
+    <div class="wine-sliders" data-quiz-target="sliders"></div>
+
+    <aside class="wine-test-result" aria-live="polite">
+      <span>Your accuracy</span>
+      <strong data-quiz-target="resultValue">--</strong>
+      <p>Fill the sliders, then check your tasting profile against the stored one for the selected wine.</p>
+      <div class="wine-test-result__detail hidden" data-quiz-target="resultBlock">
+        <p>This compares your parameter set with the stored profile.</p>
+        <div data-quiz-target="resultDetail"></div>
+      </div>
+      <div class="wine-test-actions">
+        <button type="button" class="btn" data-action="quiz#checkAccuracy">Check accuracy</button>
+        <button type="button" class="btn" data-action="quiz#tryAgain">Try again</button>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<p class="empty" id="quiz-empty-hint">Search above to begin. Taste parameters load from the library.</p>

@@ -1,0 +1,17 @@
+<% content_for :title, "Search" %>
+<h1>Search Wines</h1>
+<p class="lede">Find a wine by name or producer across the library.</p>
+
+<div data-controller="wine-search">
+  <div class="page-actions">
+    <label class="sort-label" for="global-search">Search</label>
+    <input id="global-search" type="search" placeholder="Type to search wines…"
+           data-wine-search-target="query"
+           data-action="input->wine-search#search keydown->wine-search#searchEnter"
+           class="sort-select" style="min-width: 24rem; padding: .5rem .75rem;">
+  </div>
+  <p class="wine-management__loading hidden" data-wine-search-target="searching">Searching…</p>
+  <div class="wine-search-results" data-wine-search-target="results"></div>
+  <p class="wine-management__empty-state hidden" data-wine-search-target="empty">No wines match your search.</p>
+  <p class="auth-form__error hidden" data-wine-search-target="error">Search failed. Please try again.</p>
+</div>

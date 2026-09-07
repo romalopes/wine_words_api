@@ -1,0 +1,39 @@
+<% content_for :title, "Wine Finder" %>
+<h1>Identify a wine from how it tastes</h1>
+<p class="lede">Tune the main tasting parameters and get the most likely stored wine styles.</p>
+
+<%= form_with url: finder_matches_path, method: :get, id: "finder-form", data: { turbo_frame: "finder-results" } do |form| %>
+  <fieldset class="wine-segmented">
+    <legend>Wine color</legend>
+    <div>
+      <% (["All"] + @colors).each do |color| %>
+        <button type="submit" name="color" value="<%= color %>" form="finder-form"
+                class="<%= color == "All" ? "active" : "" %>"><%= color %></button>
+      <% end %>
+    </div>
+  </fieldset>
+
+  <div class="wine-sliders">
+    <% @taste_parameters.each do |param| %>
+      <label class="wine-slider">
+        <span class="wine-slider__top">
+          <strong><%= param.label %></strong>
+          <output id="finder-out-<%= param.slug %>">3</output>
+        </span>
+        <input type="range" min="1" max="5" value="3"
+               name="taste_<%= param.slug %>"
+               data-action="change->finder#updateOutput" data-output="finder-out-<%= param.slug %>"
+               data-controller="finder">
+        <span class="wine-slider__scale">
+          <small><%= param.low %></small>
+          <small><%= param.high %></small>
+        </span>
+        <% if param.help.present? %><em><%= param.help %></em><% end %>
+      </label>
+    <% end %>
+  </div>
+
+  <button type="submit" class="btn">Find matches</button>
+<% end %>
+
+<%= turbo_frame_tag "finder-results", src: finder_matches_path %>

@@ -1,0 +1,19 @@
+<% content_for :title, "About" %>
+<h1>About Wine Words</h1>
+<p class="lede">A general tasting profile for future wine data.</p>
+<section>
+  <p>
+    The finder starts with broad sensory parameters: acidity, body, tannin,
+    sweetness, alcohol warmth, and fruit intensity. Those values are stored per
+    wine style, grape, producer, region, or bottle as the library grows into a
+    database-backed project.
+  </p>
+  <p>
+    Use the <%= link_to "Finder", finder_path %> to identify likely styles from
+    taste, or the <%= link_to "Tasting Quiz", quiz_path %> to test your palate
+    against a stored wine profile.
+  </p>
+  <p>
+    <%= link_to "Back to wine list", wines_path, class: "back-link" %>
+  </p>
+</section>

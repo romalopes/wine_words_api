@@ -261,33 +261,44 @@
       .producers-table__thumb { display: block; width: 44px; height: 44px; object-fit: cover; border-radius: 6px; border: 1px solid #dee2e6; background: #fff; }
       .producers-table__thumb--empty { background: #eef2f7; border-style: dashed; }
     </style>
+    <%= javascript_importmap_tags %>
   </head>
   <body>
     <header class="site-header">
       <%= link_to root_path, class: "site-header__logo" do %>
         <img src="/wine_words.jpg" alt="Wine Words logo">
         <div>
-          <div class="site-header__title">Wine Words</div>
+          <div class="site-header__title">Wine Words - Rails</div>
           <p class="site-header__subtitle">Explore producers, wines and reviews</p>
         </div>
       <% end %>
       <nav class="site-nav" aria-label="Primary navigation">
-        <%= link_to "Dashboard", root_path %>
+        <%= link_to "Dashboard", root_path, data: { turbo_frame: "main" } %>
         <%= nav_dropdown("Wines", "All Wines", wines_path, :for_wine, :sort_order_wine) %>
         <%= nav_dropdown("Reviews", "All Reviews", reviews_path, :for_review, :sort_order_review) %>
         <%= nav_dropdown("Articles", "All Articles", articles_path, :for_article, :sort_order_article) %>
+        <details class="site-nav__settings site-nav__category-menu" data-controller="nav-dropdown">
+          <summary>Extras</summary>
+          <div class="site-nav__settings-menu">
+            <%= link_to "Finder", finder_path, data: { turbo_frame: "main" } %>
+            <%= link_to "Quiz", quiz_path, data: { turbo_frame: "main" } %>
+            <%= link_to "Search", search_path, data: { turbo_frame: "main" } %>
+          </div>
+        </details>
+        <%= link_to "About", about_path, data: { turbo_frame: "main" } %>
+        <%= link_to "Subscribe", subscribe_path, data: { turbo_frame: "main" } %>
         <% if current_user&.super_admin? || current_user&.wine_manager? %>
           <details class="site-nav__settings">
             <summary>Settings</summary>
             <div class="site-nav__settings-menu">
               <% if current_user&.super_admin? %>
-                <%= link_to "Users &amp; Roles".html_safe, user_roles_path %>
+                <%= link_to "Users &amp; Roles".html_safe, user_roles_path, data: { turbo_frame: "main" } %>
               <% end %>
-              <%= link_to "Producers", producers_path %>
-              <%= link_to "Categories", categories_path %>
-              <%= link_to "Grapes", grapes_path %>
-              <%= link_to "Countries", countries_path %>
-              <%= link_to "Regions", regions_path %>
+              <%= link_to "Producers", producers_path, data: { turbo_frame: "main" } %>
+              <%= link_to "Categories", categories_path, data: { turbo_frame: "main" } %>
+              <%= link_to "Grapes", grapes_path, data: { turbo_frame: "main" } %>
+              <%= link_to "Countries", countries_path, data: { turbo_frame: "main" } %>
+              <%= link_to "Regions", regions_path, data: { turbo_frame: "main" } %>
             </div>
           </details>
         <% end %>
@@ -295,20 +306,22 @@
           <span class="site-nav__user"><%= current_user.name.presence || current_user.email %></span>
           <%= button_to "Sign out", logout_path, method: :delete, form_class: "site-nav__signout", class: "site-nav__auth" %>
         <% else %>
-          <%= link_to "Login / Sign up", login_path, class: "site-nav__auth" %>
+          <%= link_to "Login / Sign up", login_path, class: "site-nav__auth", data: { turbo_frame: "main" } %>
         <% end %>
       </nav>
     </header>
-    <% if notice %>
-      <div class="flash flash--notice"><%= notice %></div>
+    <%= turbo_frame_tag "main" do %>
+      <% if notice %>
+        <div class="flash flash--notice"><%= notice %></div>
+      <% end %>
+      <% if alert %>
+        <div class="flash flash--alert"><%= alert %></div>
+      <% end %>
+      <main><%= yield %></main>
     <% end %>
-    <% if alert %>
-      <div class="flash flash--alert"><%= alert %></div>
-    <% end %>
-    <main><%= yield %></main>
     <footer class="site-footer">
       <p>&copy; <%= Date.current.year %> Wine Words</p>
-      <p class="site-footer__version">Frontend v<%= front_end_vers %> &middot; Backend v<%= version_back_end %></p>
+      <p class="site-footer__version">Frontend v<%= front_end_version %> &middot; Backend v<%= back_end_version %></p>
     </footer>
     <script>
       // Close any other open nav dropdown when opening/clicking another one,

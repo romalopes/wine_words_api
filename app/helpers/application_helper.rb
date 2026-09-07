@@ -55,13 +55,14 @@ module ApplicationHelper
                             item_scope.left_outer_joins(:article_categories).where(article_categories: { id: nil }).count
                           end
 
-    links = [link_to("#{all_label} (#{total})", path)] +
+    frame = { data: { turbo_frame: "main" } }
+    links = [link_to("#{all_label} (#{total})", path, frame)] +
             categories
               .select { |c| (counts[c.id] || 0) > 0 }
-              .map { |c| link_to("#{c.name} (#{counts[c.id]})", "#{path}?category=#{CGI.escape(c.name)}") }
+              .map { |c| link_to("#{c.name} (#{counts[c.id]})", "#{path}?category=#{CGI.escape(c.name)}", frame) }
 
     # Add Uncategorised link at the end if there are any
-    links << link_to("Uncategorised (#{uncategorised_count})", "#{path}?category=Uncategorised") if uncategorised_count > 0
+    links << link_to("Uncategorised (#{uncategorised_count})", "#{path}?category=Uncategorised", frame) if uncategorised_count > 0
 
     content_tag(:details, class: "site-nav__settings site-nav__category-menu") do
       safe_join(
