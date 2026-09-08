@@ -20,7 +20,7 @@ class User < ApplicationRecord
   # Base access roles are mutually exclusive and controlled by the subscription:
   #   FREE subscription  -> "Guest"
   #   any paid subscription -> "Reader"
-  # Privileged roles (Reviewer, Super User, Editor) are independent of the
+  # Privileged roles (Reviewer, Admin, Editor) are independent of the
   # subscription and are NEVER touched by subscription changes.
   BASE_ROLES = ["Guest", "Reader"].freeze
 
@@ -29,18 +29,26 @@ class User < ApplicationRecord
   end
 
 
+  def admin?
+    role?(:admin)
+  end
+
+  # "super_admin" is the platform-wide administrator role used to gate
+  # sensitive views (e.g. Users & Roles). The system currently has a single
+  # "Admin" tier, so super_admin? is an alias for admin?. If a separate
+  # SuperAdmin role is ever introduced, change this to role?(:super_admin).
   def super_admin?
-    role?(:super_user)
+    admin?
   end
 
   def reviewer?
     role?(:reviewer)
   end
 
-  # Super Users, Reviewers and Editors may manage wines/producers —
+  # Admins, Reviewers and Editors may manage wines/producers —
   # anywhere a Reviewer is allowed, an Editor is allowed too.
   def wine_manager?
-    super_admin? || role?(:editor)
+    admin? || role?(:editor)
   end
 
   def role_names
@@ -52,13 +60,13 @@ class User < ApplicationRecord
   end
 
   # Apply a subscription to this user. Switches the base access role
-  # (Guest <-> Reader) while preserving privileged roles (Reviewer, Super
-  # User, Editor). Records subscription history via user_subscriptions.
+  # (Guest <-> Reader) while preserving privileged roles (Reviewer, Admin,
+  # Editor). Records subscription history via user_subscriptions.
   #
   # Paid -> paid upgrades change features only and skip role writes entirely.
   #
   # Accepts optional billing metadata so a subscription can be applied from a
-  # billing provider (e.g. Stripe) as well as manually by a Super User. The
+  # billing provider (e.g. Stripe) as well as manually by a Admin. The
   # role logic stays provider-independent.
   def apply_subscription!(new_subscription, billing_provider: "manual", provider_subscription_id: nil)
     return if new_subscription.nil?

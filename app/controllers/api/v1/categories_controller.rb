@@ -12,7 +12,7 @@ class Api::V1::CategoriesController < ApplicationController
   #   ?type=wine      -> for_wine categories (used on the wine form)
   #   ?type=article   -> for_article categories
   #   ?type=review    -> for_review categories
-  #   ?type=managed   -> all categories (Super User / Editor / Reviewer form use)
+  #   ?type=managed   -> all categories (Admin / Editor / Reviewer form use)
     # Returns per-category counts for each item type, respecting the current
   # user's visibility scope.  Used by the React nav dropdown to show only
   # categories that have at least one linked item, along with the count.

@@ -17,7 +17,7 @@ class Api::V1::UsersController < ApplicationController
 
   # GET /api/v1/users/search?q=name-or-email
   def search
-    return head(:forbidden) unless current_user.super_admin?
+    return head(:forbidden) unless current_user.admin?
 
     query = params[:q].to_s.strip
     users =
@@ -38,7 +38,7 @@ class Api::V1::UsersController < ApplicationController
 
   # PATCH /api/v1/users/:id/roles   body: { role_ids: [1,3] }
   def assign_roles
-    return head(:forbidden) unless current_user.super_admin?
+    return head(:forbidden) unless current_user.admin?
 
     user = User.find(params[:id])
     role_ids = Array(params[:role_ids]).compact.map(&:to_i)
@@ -48,10 +48,10 @@ class Api::V1::UsersController < ApplicationController
   end
 
   # PATCH /api/v1/users/:id/assign_subscription  body: { subscription_id: 2 }
-  # Super User only. Applies the subscription and swaps the base access role
+  # Admin only. Applies the subscription and swaps the base access role
   # (Guest <-> Reader) while preserving privileged roles and history.
   def assign_subscription
-    return head(:forbidden) unless current_user.super_admin?
+    return head(:forbidden) unless current_user.admin?
 
     user = User.find(params[:id])
     subscription = Subscription.find(params[:subscription_id])

@@ -1,7 +1,7 @@
 class Api::V1::ArticlesController < ApplicationController
   before_action :authenticate_user!, except: [:index, :show]
   before_action :set_article, only: [:show, :update, :destroy]
-  # Only Super Users, Editors and Reviewers may create articles.
+  # Only Admins, Editors and Reviewers may create articles.
   before_action :ensure_wine_manager!, only: [:create]
 
   def index

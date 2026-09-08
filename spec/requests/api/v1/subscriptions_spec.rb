@@ -4,9 +4,9 @@ require "devise"
 RSpec.describe "Api::V1::Subscriptions", type: :request do
   include Devise::Test::IntegrationHelpers
 
-  let(:super_user) do
-    user = User.create!(name: "Super", email: "super@example.com", password: "password123")
-    user.roles << Role.find_or_create_by!(name: "Super User")
+  let(:admin) do
+    user = User.create!(name: "Admin", email: "admin@example.com", password: "password123")
+    user.roles << Role.find_or_create_by!(name: "Admin")
     user
   end
 
@@ -43,24 +43,24 @@ RSpec.describe "Api::V1::Subscriptions", type: :request do
       expect(body.map { |s| s["name"] }).not_to include("Consumer")
     end
 
-    it "shows all subscriptions (incl. hidden) to a super user" do
+    it "shows all subscriptions (incl. hidden) to an admin" do
       subscription("Consumer").update!(visible: false)
-      sign_in super_user
+      sign_in admin
       get "/api/v1/subscriptions"
       expect(response).to have_http_status(:ok)
       expect(JSON.parse(response.body).map { |s| s["name"] }).to include("Consumer")
     end
   end
 
-  describe "creation / update (super user only)" do
-    it "forbids non-super users from creating" do
+  describe "creation / update (admin only)" do
+    it "forbids non-admins from creating" do
       sign_in regular_user
       post "/api/v1/subscriptions", params: { subscription: { name: "Test", slug: "test" } }, as: :json
       expect(response).to have_http_status(:forbidden)
     end
 
-    it "allows a super user to create a plan with nested features" do
-      sign_in super_user
+    it "allows an admin to create a plan with nested features" do
+      sign_in admin
       feature = SubscriptionFeature.find_by!(slug: "full-archive-access")
       post "/api/v1/subscriptions",
            params: { subscription: {
@@ -76,8 +76,8 @@ RSpec.describe "Api::V1::Subscriptions", type: :request do
       expect(body["features"].map { |f| f["id"] }).to include(feature.id)
     end
 
-    it "allows a super user to update a plan" do
-      sign_in super_user
+    it "allows an admin to update a plan" do
+      sign_in admin
       patch "/api/v1/subscriptions/#{subscription('Consumer').id}",
             params: { subscription: { yearly_price_cents: 80_00 } }, as: :json
       expect(response).to have_http_status(:ok)
@@ -87,7 +87,7 @@ RSpec.describe "Api::V1::Subscriptions", type: :request do
 
   describe "DELETE /api/v1/subscriptions/:id" do
     it "refuses to destroy a plan with assigned users" do
-      sign_in super_user
+      sign_in admin
       consumer = subscription("Consumer")
       target = User.create!(name: "Target", email: "target@example.com", password: "password123")
       target.apply_subscription!(consumer)
@@ -98,7 +98,7 @@ RSpec.describe "Api::V1::Subscriptions", type: :request do
     end
 
     it "destroys an unused plan" do
-      sign_in super_user
+      sign_in admin
       sub = Subscription.create!(name: "Junk", slug: "junk", yearly_price_cents: 50_00)
       delete "/api/v1/subscriptions/#{sub.id}"
       expect(response).to have_http_status(:no_content)

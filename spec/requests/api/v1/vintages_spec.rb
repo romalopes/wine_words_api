@@ -9,7 +9,7 @@ RSpec.describe "Vintage price (price_cents)", type: :request do
 
   let(:manager) do
     user = User.create!(name: "Manager", email: "manager@example.com", password: "password123")
-    user.roles << Role.find_or_create_by!(name: "Super User")
+    user.roles << Role.find_or_create_by!(name: "Admin")
     user
   end
 

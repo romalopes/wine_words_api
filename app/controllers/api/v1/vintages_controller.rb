@@ -1,7 +1,7 @@
 class Api::V1::VintagesController < ApplicationController
   before_action :authenticate_user!
   before_action :set_wine, only: [:create]
-  # Only Super Users, Editors and Reviewers may add vintages.
+  # Only Admins, Editors and Reviewers may add vintages.
   before_action :ensure_wine_manager!, only: [:create]
 
   # POST /api/v1/wines/:wine_id/vintages

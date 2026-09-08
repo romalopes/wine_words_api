@@ -193,14 +193,14 @@ Attributes of the role:
 
 Create the following roles as instance in the database:
 
-- Super User
+- Admin
 - Reviewer
 - Reader
 - Guest
 
 Create the interface where a user can be linked to many roles. It will search for a user and select the roles.
 
-Add the link in the menu. Only "Super User" has access to this link.
+Add the link in the menu. Only "Admin" has access to this link.
 
 #
 
@@ -219,18 +219,18 @@ Attributes of the role:
 
 Create the following roles as instance in the database:
 
-- Super User
+- Admin
 - Reviewer
 - Reader
 - Guest
 
-Link the first user to "Super User" role.
+Link the first user to "Admin" role.
 
 When a new user is created or in the first login link the user to "Guest" role.
 
 Create the interface where a user can be linked to many roles. It will search for a user and select the roles.
 
-Only "Super User" has access to this link.
+Only "Admin" has access to this link.
 
 Add a link in the menu for this setting.
 
@@ -384,7 +384,7 @@ In react app. Join the "Reviews" and "My Reviews page. Keep the button "add Revi
 
 Put all with "My reviews" page. Change the name of "My Reviews to "Reviews".
 
-In this page show the list of reviews and I can click in the review to show. If I'm the author or super user, I can edit and delete.
+In this page show the list of reviews and I can click in the review to show. If I'm the author or admin, I can edit and delete.
 
 In both react and rails apps.
 
@@ -398,7 +398,7 @@ Create a toggle for "My Reviews" where I can see only my reviews with All, Draft
 
 Do the same concept as "Reviews" with "Articles".
 
-In this page show the list of articles and I can click in the article to show. If I'm the author or super user, I can edit and delete.
+In this page show the list of articles and I can click in the article to show. If I'm the author or admin, I can edit and delete.
 
 Create a toggle for "My Article" where I can see only my articles with All, Draft and Published.
 
@@ -428,7 +428,7 @@ When adding or editing article and Review, hide the list of existing article and
 
 #
 
-In Wines. Allow only the user with Super User or Reviewer roles to add, edit and delete.
+In Wines. Allow only the user with Admin or Reviewer roles to add, edit and delete.
 
 #
 
@@ -504,7 +504,7 @@ In the react app
 
 In both react and rails apps, add a search of wines so the user can link the wine to the producer. If a wine already has a producer, inform it to the user.
 
-Only the Super User and Review can edit, delete and link producer to wines.
+Only the Admin and Review can edit, delete and link producer to wines.
 
 #
 
@@ -524,10 +524,10 @@ Create a new role called "Editor"
 
 Change the permissions:
 
-- New Article, New Review, New Producer: Only "Super User", "Editor" and "Reviewr" can do it.
-- In wines: Add Vintages: Only "Super User", "Editor" and "Reviewr" can do it.
+- New Article, New Review, New Producer: Only "Admin", "Editor" and "Reviewr" can do it.
+- In wines: Add Vintages: Only "Admin", "Editor" and "Reviewr" can do it.
 
-In Articles(when showing the list of articles): - Only "Super User", "Editor" and "Reviewr" can see the buttons "all articles", "My Articles", "All", "Draft", "Published". - Guest and Readers can only see published wines. Hide the buttons "all articles", "My Articles", "All", "Draft", "Published". - Also, don't need to inform that each article is published.
+In Articles(when showing the list of articles): - Only "Admin", "Editor" and "Reviewr" can see the buttons "all articles", "My Articles", "All", "Draft", "Published". - Guest and Readers can only see published wines. Hide the buttons "all articles", "My Articles", "All", "Draft", "Published". - Also, don't need to inform that each article is published.
 Do the same to Reviews.
 
 Do it in both react and rails apps
@@ -635,7 +635,7 @@ Change the Producer selection in the react and rails apps, in the way that the u
 Based on wine_prediction/data/grapes.js, create a table and interface for CRUD of grapes.
 In list of the grapes, create a table with the grape info with one line per grape.
 
-Put the link of grapes the dropbox "Extras". Just allow Super User and Editor to create/edit/delete a grape.
+Put the link of grapes the dropbox "Extras". Just allow Admin and Editor to create/edit/delete a grape.
 
 #
 
@@ -1112,9 +1112,9 @@ Populate the table with the information based on the file wine_prediction_api/db
 
 #
 
-For Wines, Producers, Grapes, Regions, Categories and Countries, just show the buttons to "add new", "edit" and "delete" to the roles "Super User" and "Editor". Also, make sure that these actions in the back end just just work for these role.
+For Wines, Producers, Grapes, Regions, Categories and Countries, just show the buttons to "add new", "edit" and "delete" to the roles "Admin" and "Editor". Also, make sure that these actions in the back end just just work for these role.
 
-Reviews and Articles create/edit/delete shoulbe be available to "Super User" and "Editor", and "Reviewer"
+Reviews and Articles create/edit/delete shoulbe be available to "Admin" and "Editor", and "Reviewer"
 
 #
 
@@ -1133,7 +1133,7 @@ Also, if there is only wines with no categories. It shows All Wines(0), as if th
 #
 
 Create a subscription concept to the system. Don't link with any payment yet, but keep it open for the future. A user can have one kind of subscription.
-A user with the "super user" role will be able to add new substription
+A user with the "admin" role will be able to add new substription
 
 Attributes of subscriptions:
 
@@ -1177,8 +1177,8 @@ Make a interface based on the websites:
 ### Role model rules (now locked in)
 
 - **Base access roles** (`Guest`, `Reader`) are **mutually exclusive** and **controlled by the subscription**: FREE → `Guest`, any paid → `Reader`.
-- **Privileged roles** (`Reviewer`, `Super User`) are **independent** of subscription and **never touched** by subscription changes.
-- `apply_subscription!(sub)` therefore: swap only the base role (`Guest` ↔ `Reader`), preserving all other roles. Upgrade between paid plans (Consumer → Trade) changes features only — no role write at all. Downgrade to FREE swaps `Reader` → `Guest`, keeps `Reviewer`/`Super User`.
+- **Privileged roles** (`Reviewer`, `Admin`) are **independent** of subscription and **never touched** by subscription changes.
+- `apply_subscription!(sub)` therefore: swap only the base role (`Guest` ↔ `Reader`), preserving all other roles. Upgrade between paid plans (Consumer → Trade) changes features only — no role write at all. Downgrade to FREE swaps `Reader` → `Guest`, keeps `Reviewer`/`Admin`.
 
 ### Phase 1 — Data model
 
@@ -1206,21 +1206,21 @@ Make a interface based on the websites:
 
 ### Phase 2 — API
 
-- `Api::V1::SubscriptionsController`: `index` (public → visible+active; Super User → all), `show`, `create`/`update`/`destroy` (Super User only; destroy refuses when users/history exist; nested features incl. position).
-- `Api::V1::UsersController#assign_subscription` (`PATCH /users/:id/assign_subscription`, Super User only, `assign_roles` auth pattern) → calls `apply_subscription!`. Extend `user_json`/`me` with `subscription: {id, name}`.
+- `Api::V1::SubscriptionsController`: `index` (public → visible+active; Admin → all), `show`, `create`/`update`/`destroy` (Admin only; destroy refuses when users/history exist; nested features incl. position).
+- `Api::V1::UsersController#assign_subscription` (`PATCH /users/:id/assign_subscription`, Admin only, `assign_roles` auth pattern) → calls `apply_subscription!`. Extend `user_json`/`me` with `subscription: {id, name}`.
 - Routes: `resources :subscriptions` + member `assign_subscription`.
 
 ### Phase 3 — React frontend
 
 - `api.js`: `subscriptionsApi` + `usersApi.assignSubscription`.
 - Public `/subscribe` page: tier cards, "Most Popular" badge, ✓ features, AUD/yr pricing, FREE card, disabled "Payments coming soon" CTA.
-- Admin `/subscriptions` (Super User): list + `SubscriptionForm` (fields + feature picker w/ ordering) + **Deactivate** action when delete is blocked.
+- Admin `/subscriptions` (Admin): list + `SubscriptionForm` (fields + feature picker w/ ordering) + **Deactivate** action when delete is blocked.
 - `UserRoles.jsx`: per-user subscription picker (calls `assignSubscription`).
-- `AppRoutes.jsx` (`/subscribe`, `/subscriptions`) + `Header.jsx` (Subscribe in main nav; Subscriptions in Settings, Super User only).
+- `AppRoutes.jsx` (`/subscribe`, `/subscriptions`) + `Header.jsx` (Subscribe in main nav; Subscriptions in Settings, Admin only).
 
 ### Verification
 
-- `db:migrate` + seeds; model/request specs: public filtering, Super User CRUD, **base-role swap matrix** (FREE→paid, paid→FREE, paid→paid, Reviewer/Super User preserved), history rows (open/close), delete guard, soft-delete behavior; `npm run build` + ESLint.
+- `db:migrate` + seeds; model/request specs: public filtering, Admin CRUD, **base-role swap matrix** (FREE→paid, paid→FREE, paid→paid, Reviewer/Admin preserved), history rows (open/close), delete guard, soft-delete behavior; `npm run build` + ESLint.
 
 #
 
@@ -1320,7 +1320,7 @@ In the interface, the user will be able to link article and reviews.
 
 ### `Api::V1::ProjectsController`
 
-- **Authorization**: `ensure_wine_manager!` (Super User / Editor) for create/update/destroy; read for managers (or visible scope).
+- **Authorization**: `ensure_wine_manager!` (Admin / Editor) for create/update/destroy; read for managers (or visible scope).
 - **Actions**:
   - `index` — list projects with a counts summary.
   - `show` — project + linked `article`, `reviews`, `producers` (with `contacted`/`confirmed_request`), `vintages` (with all flags + `date_received` + `bottle_condition`), and `counts`.
@@ -1392,7 +1392,7 @@ In the interface, the user will be able to link article and reviews.
 ### Routing & nav
 
 - Add routes to `AppRoutes.jsx`: `/projects`, `/projects/new`, `/projects/:id`, `/projects/:id/edit`.
-- Add a nav entry (Settings menu), visible to content managers (Super User / Editor).
+- Add a nav entry (Settings menu), visible to content managers (Admin / Editor).
 
 ---
 

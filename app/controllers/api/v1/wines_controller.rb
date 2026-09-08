@@ -1,7 +1,7 @@
 class Api::V1::WinesController < ApplicationController
 
   # Wine management (create/update/destroy) is restricted to signed-in
-  # Super Users and Reviewers; reading stays public.
+  # Admins and Reviewers; reading stays public.
   before_action :authenticate_user!, only: [:create, :update, :destroy]
   before_action :ensure_wine_manager!, only: [:create, :update, :destroy]
   skip_before_action :authenticate_user!, only: [:index, :show, :search, :advanced_search]

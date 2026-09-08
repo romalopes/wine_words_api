@@ -20,12 +20,12 @@ RSpec.describe "Api::V1::Producers", type: :request do
   let!(:grape_shiraz) { Grape.create!(name: "Shiraz", color: "red") }
   let!(:grape_riesling) { Grape.create!(name: "Riesling", color: "white") }
 
-  let(:super_user) do
-    User.create!(name: "Super", email: "super@example.com", password: "password123")
+  let(:admin) do
+    User.create!(name: "Admin", email: "admin@example.com", password: "password123")
   end
 
   before do
-    super_user.roles << Role.find_or_create_by!(name: "Super User")
+    admin.roles << Role.find_or_create_by!(name: "Admin")
   end
 
   def producer_attributes
@@ -55,8 +55,8 @@ RSpec.describe "Api::V1::Producers", type: :request do
   end
 
   describe "POST /api/v1/producers" do
-    context "as a Super User" do
-      before { sign_in super_user }
+    context "as an Admin" do
+      before { sign_in admin }
 
       it "creates the producer and returns 201" do
         expect {
@@ -206,7 +206,7 @@ RSpec.describe "Api::V1::Producers", type: :request do
       end
     end
 
-    before { sign_in super_user }
+    before { sign_in admin }
 
     it "updates simple fields" do
       patch "/api/v1/producers/#{producer.slug}",
@@ -256,7 +256,7 @@ RSpec.describe "Api::V1::Producers", type: :request do
       end
     end
 
-    before { sign_in super_user }
+    before { sign_in admin }
 
     it "destroys the producer and returns 204" do
       expect {
@@ -283,7 +283,7 @@ RSpec.describe "Api::V1::Producers", type: :request do
   describe "logo endpoint" do
     let!(:producer) { Producer.create!(producer_attributes.except(:region_ids, :grape_ids)) }
 
-    before { sign_in super_user }
+    before { sign_in admin }
 
     it "attaches a valid logo and returns its url" do
       post "/api/v1/producers/#{producer.slug}/logo", params: { logo: logo_file }

@@ -1,6 +1,6 @@
 class Api::V1::ProducersController < ApplicationController
   skip_before_action :authenticate_user!, only: [:index, :show, :search]
-  # Only Super Users and Editors may add, edit or delete producers.
+  # Only Admins and Editors may add, edit or delete producers.
   before_action :ensure_wine_manager!, only: [:create, :update, :destroy, :attach_logo, :remove_logo]
   before_action :set_producer, only: [:show, :update, :destroy, :attach_logo, :remove_logo, :link_wine]
 

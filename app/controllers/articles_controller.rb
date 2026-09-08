@@ -6,7 +6,7 @@ class ArticlesController < ActionController::Base
                                      :purge_image, :add_review, :remove_review, :toggle_review_status]
   before_action :ensure_author!, only: [:edit, :update, :destroy, :purge_image,
                                         :add_review, :remove_review, :toggle_review_status]
-  # Only Super Users, Editors and Reviewers may create articles.
+  # Only Admins, Editors and Reviewers may create articles.
   before_action :deny_unless_wine_manager!, only: [:new, :create]
   helper_method :can_manage_wines?
 
@@ -139,13 +139,13 @@ class ArticlesController < ActionController::Base
     redirect_to articles_path, alert: "Article not found."
   end
 
-  # Author, super admin, or any content manager (editor/reviewer/super user)
+  # Author, admin, or any content manager (editor/reviewer/admin)
   # may manage an article (used by the index view too).
   def can_manage_article?(article)
     user_signed_in? &&
       (current_user.wine_manager? ||
        article.user_id == current_user.id ||
-       current_user.super_admin?)
+       current_user.admin?)
   end
   helper_method :can_manage_article?
 
@@ -153,7 +153,7 @@ class ArticlesController < ActionController::Base
     return if response.committed?
     return if current_user&.wine_manager?
     return if @article&.user_id == current_user&.id
-    return if current_user&.super_admin?
+    return if current_user&.admin?
 
     redirect_to articles_path, alert: "You are not allowed to do that."
   end

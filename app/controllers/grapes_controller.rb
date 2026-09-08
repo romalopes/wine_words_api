@@ -86,8 +86,8 @@ class GrapesController < ActionController::Base
   private
 
   def ensure_grape_manager!
-    return if @current_user&.super_admin? || @current_user&.editor?
-    redirect_to grapes_path, alert: "Only Super Users and Editors can manage grapes."
+    return if @current_user&.admin? || @current_user&.editor?
+    redirect_to grapes_path, alert: "Only Admins and Editors can manage grapes."
   end
 
   def set_grape

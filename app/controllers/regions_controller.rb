@@ -93,8 +93,8 @@ class RegionsController < ActionController::Base
   private
 
   def ensure_manager!
-    return if @current_user&.super_admin? || @current_user&.editor?
-    redirect_to regions_path, alert: "Only Super Users and Editors can manage regions."
+    return if @current_user&.admin? || @current_user&.editor?
+    redirect_to regions_path, alert: "Only Admins and Editors can manage regions."
   end
 
   def set_region

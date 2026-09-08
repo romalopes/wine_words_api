@@ -1,12 +1,12 @@
 class Api::V1::SubscriptionsController < ApplicationController
-  # Public read of visible+active plans; Super Users also see hidden/inactive ones.
+  # Public read of visible+active plans; Admins also see hidden/inactive ones.
   skip_before_action :authenticate_user!, only: :index
 
-  before_action :ensure_super_user!, only: [:show, :create, :update, :destroy]
+  before_action :ensure_admin!, only: [:show, :create, :update, :destroy]
 
   # GET /api/v1/subscriptions
   def index
-    subs = current_user&.super_admin? ? Subscription.all : Subscription.active.visible
+    subs = current_user&.admin? ? Subscription.all : Subscription.active.visible
     render json: subs.by_position.map { |s| subscription_json(s) }
   end
 
@@ -49,8 +49,8 @@ class Api::V1::SubscriptionsController < ApplicationController
 
   private
 
-  def ensure_super_user!
-    return if current_user&.super_admin?
+  def ensure_admin!
+    return if current_user&.admin?
 
     render json: { error: "Forbidden" }, status: :forbidden
   end

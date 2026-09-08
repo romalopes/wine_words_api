@@ -6,12 +6,12 @@ require "devise"
 RSpec.describe "Api::V1::Health", type: :request do
   include Devise::Test::IntegrationHelpers
 
-  let(:super_user) do
-    User.create!(name: "Super", email: "super@example.com", password: "password123")
+  let(:admin) do
+    User.create!(name: "Admin", email: "admin@example.com", password: "password123")
   end
 
   before do
-    super_user.roles << Role.find_or_create_by!(name: "Super User")
+    admin.roles << Role.find_or_create_by!(name: "Admin")
   end
 
   describe "GET /api/v1/health" do
@@ -49,7 +49,7 @@ RSpec.describe "Api::V1::Health", type: :request do
     end
 
     context "as an admin" do
-      before { sign_in super_user }
+      before { sign_in admin }
 
       it "returns the detailed payload" do
         get "/api/v1/health/detailed"
@@ -59,7 +59,7 @@ RSpec.describe "Api::V1::Health", type: :request do
         expect(body["service"]).to eq("wine-api")
         expect(body["database"]).to eq("ok")
         expect(body["environment"]).to eq(Rails.env)
-        expect(body["version"]).to eq("0.0.20")
+        expect(body["version"]).to eq("0.0.21")
         expect(body["timestamp"]).to be_present
       end
 

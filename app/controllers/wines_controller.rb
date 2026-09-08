@@ -3,7 +3,7 @@ class WinesController < ActionController::Base
   helper :wines
   include RequireLogin
 
-  # Only Super Users and Reviewers may add, edit or delete wines.
+  # Only Admins and Reviewers may add, edit or delete wines.
   before_action :deny_unless_wine_manager!, only: [:new, :create, :edit, :update, :destroy, :purge_image]
   helper_method :can_manage_wines?
 
@@ -98,7 +98,7 @@ class WinesController < ActionController::Base
   end
 
   # JSON endpoint used by the article form: published reviews of one vintage.
-  # Content managers (editor/reviewer/super user) can link any published review
+  # Content managers (editor/reviewer/admin) can link any published review
   # of the vintage; regular users only see their own.
   def vintage_reviews
     wine = Wine.find_by!(slug: params[:wine_id])
@@ -118,7 +118,7 @@ class WinesController < ActionController::Base
     render json: { error: "Vintage not found" }, status: :not_found
   end
 
-  # Authorisation for wine management (Super User or Reviewer only).
+  # Authorisation for wine management (Admin or Reviewer only).
   def can_manage_wines?
     user_signed_in? && current_user.wine_manager?
   end

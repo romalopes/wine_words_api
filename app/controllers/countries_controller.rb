@@ -80,8 +80,8 @@ class CountriesController < ActionController::Base
   private
 
   def ensure_manager!
-    return if @current_user&.super_admin? || @current_user&.editor?
-    redirect_to countries_path, alert: "Only Super Users and Editors can manage countries."
+    return if @current_user&.admin? || @current_user&.editor?
+    redirect_to countries_path, alert: "Only Admins and Editors can manage countries."
   end
 
   def set_country

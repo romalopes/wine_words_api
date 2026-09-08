@@ -3,7 +3,7 @@ class ProducersController < ActionController::Base
   helper :producers
   include RequireLogin
 
-  # Only Super Users and Reviewers may add, edit, delete or link wines.
+  # Only Admins and Reviewers may add, edit, delete or link wines.
   before_action :set_producer, only: [:show, :edit, :update, :destroy, :link_wine]
   before_action :deny_unless_wine_manager!, only: [:new, :create, :edit, :update, :destroy, :link_wine]
   before_action :load_countries, only: [:new, :edit, :create, :update]
@@ -80,7 +80,7 @@ class ProducersController < ActionController::Base
     @countries = Country.where(is_wine_country: true).order(:name)
   end
 
-  # Authorisation for producer management (Super User or Reviewer only).
+  # Authorisation for producer management (Admin or Reviewer only).
   def can_manage_producers?
     user_signed_in? && current_user.wine_manager?
   end

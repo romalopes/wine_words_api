@@ -6,7 +6,7 @@ class UserRolesController < ActionController::Base
   # and this controller has none of those actions, which Rails 7.1+ rejects
   # ("The new action could not be found for the :require_login callback").
   before_action :set_current_user
-  before_action :super_admin!
+  before_action :require_admin!
 
   def set_current_user
     @current_user = warden.user(:user) if respond_to?(:warden) && warden
@@ -35,8 +35,8 @@ class UserRolesController < ActionController::Base
 
   private
 
-  def super_admin!
-    return if current_user&.super_admin?
+  def require_admin!
+    return if current_user&.admin?
 
     redirect_to root_path, alert: "You are not allowed to do that."
   end

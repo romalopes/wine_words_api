@@ -1,5 +1,5 @@
 class Api::V1::ReviewsController < ApplicationController
-  # Only Super Users, Editors and Reviewers may create reviews.
+  # Only Admins, Editors and Reviewers may create reviews.
   before_action :authenticate_user!, except: [:index, :show]
   before_action :ensure_wine_manager!, only: [:create]
   # Resolve @vintage for nested routes. Required for #create; optional for

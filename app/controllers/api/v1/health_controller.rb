@@ -33,7 +33,7 @@ class Api::V1::HealthController < ApplicationController
     unless current_user
       return render json: { error: "Authentication required" }, status: :unauthorized
     end
-    return if current_user.super_admin?
+    return if current_user.admin?
 
     render json: { error: "Forbidden" }, status: :forbidden
   end

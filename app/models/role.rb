@@ -1,8 +1,8 @@
 class Role < ApplicationRecord
   # Rails 8.1 string-backed enum: the stored column is a human-readable name
-  # ("Super User"), while the enum keys give convenient predicates/scopes.
+  # ("Admin"), while the enum keys give convenient predicates/scopes.
   enum :name, {
-    super_user: "Super User",
+    admin: "Admin",
     editor: "Editor",
     reviewer: "Reviewer",
     reader: "Reader",

@@ -4,9 +4,9 @@ require "devise"
 RSpec.describe "Api::V1::Users#assign_subscription", type: :request do
   include Devise::Test::IntegrationHelpers
 
-  let(:super_user) do
-    user = User.create!(name: "Super", email: "super@example.com", password: "password123")
-    user.roles << Role.find_or_create_by!(name: "Super User")
+  let(:admin) do
+    user = User.create!(name: "Admin", email: "admin@example.com", password: "password123")
+    user.roles << Role.find_or_create_by!(name: "Admin")
     user
   end
 
@@ -19,7 +19,7 @@ RSpec.describe "Api::V1::Users#assign_subscription", type: :request do
   end
 
   it "updates the user's subscription and swaps the base access role" do
-    sign_in super_user
+    sign_in admin
     user = User.create!(name: "John", email: "john@example.com", password: "password123")
     expect(user.reload.role_names).to include("Guest")
 
@@ -34,7 +34,7 @@ RSpec.describe "Api::V1::Users#assign_subscription", type: :request do
   end
 
   it "preserves privileged roles when downgrading a user" do
-    sign_in super_user
+    sign_in admin
     user = User.create!(name: "Jane", email: "jane@example.com", password: "password123")
     user.roles << Role.find_or_create_by!(name: "Reviewer")
     user.apply_subscription!(sub("Trade"))
@@ -49,7 +49,7 @@ RSpec.describe "Api::V1::Users#assign_subscription", type: :request do
     expect(body["roles"]).not_to include("Reader")
   end
 
-  it "forbids non-super users from assigning subscriptions" do
+  it "forbids non-admins from assigning subscriptions" do
     user = User.create!(name: "Regular", email: "rg@example.com", password: "password123")
     sign_in user
     patch "/api/v1/users/#{user.id}/assign_subscription",
@@ -58,7 +58,7 @@ RSpec.describe "Api::V1::Users#assign_subscription", type: :request do
   end
 
   it "records subscription history" do
-    sign_in super_user
+    sign_in admin
     user = User.create!(name: "Hist", email: "hist@example.com", password: "password123")
     consumer = sub("Consumer")
     free = sub("FREE")

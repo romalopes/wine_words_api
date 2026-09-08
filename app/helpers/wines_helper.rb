@@ -1,5 +1,5 @@
 module WinesHelper
-  # Super Users, Reviewers and Editors may manage wines.
+  # Admins, Reviewers and Editors may manage wines.
   def can_manage_wines?
     user_signed_in? && current_user.wine_manager?
   end
