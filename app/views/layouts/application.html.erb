@@ -200,7 +200,15 @@
       .site-nav a { color: #ead7d1; padding: .25rem 0; border-bottom: 2px solid transparent; }
       .site-nav a:hover, .site-nav a.active { color: #fff8f0; border-bottom-color: #c49b38; }
       .site-nav__auth { margin-left: auto; background: #8a273c; border-radius: 99px; color: #fff8f0; padding: .35rem 1rem; }
-      .site-nav__user { color: #fff8f0; font-weight: 700; align-self: center; }
+      .site-nav__user { color: #fff8f0; font-weight: 700; align-self: center; display: inline-flex; flex-direction: column; align-items: flex-end; line-height: 1.2; }
+      .site-nav__user-name { display: block; }
+      .site-nav__user-roles { display: inline-flex; flex-wrap: wrap; gap: .25rem; justify-content: flex-end; margin-top: .15rem; }
+      .site-nav__user-role { background: #c49b38; border-radius: 99px; color: #4a1020; font: 600 .65rem system-ui, sans-serif; letter-spacing: .03em; padding: .1rem .55rem; text-transform: uppercase; }
+      .site-nav__user-role--admin { background: #8a273c; color: #fff8f0; }
+      .site-nav__user-role--editor { background: #27615e; color: #fff8f0; }
+      .site-nav__user-role--reviewer { background: #4a1020; color: #c49b38; }
+      .site-nav__user-role--reader { background: #ead7d1; color: #4a1020; }
+      .site-nav__user-role--guest { background: #f3e9e3; color: #6b5855; }
       .filter-pills { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: .75rem; }
       .filter-pill { display: inline-block; border: 1px solid #d7c8bb; border-radius: 999px; padding: .35rem 1rem; font: 0.85rem system-ui, sans-serif; font-weight: 700; color: #4f4440; background: #fff; text-decoration: none; }
       .filter-pill:hover { border-color: #8a273c; color: #8a273c; }
@@ -303,7 +311,16 @@
           </details>
         <% end %>
         <% if user_signed_in? %>
-          <span class="site-nav__user"><%= current_user.name.presence || current_user.email %></span>
+          <span class="site-nav__user">
+            <span class="site-nav__user-name"><%= current_user.name.presence || current_user.email %></span>
+            <% if current_user.role_names.any? %>
+              <span class="site-nav__user-roles">
+                <% current_user.role_names.each do |role| %>
+                  <span class="site-nav__user-role site-nav__user-role--<%= role.downcase %>"><%= role %></span>
+                <% end %>
+              </span>
+            <% end %>
+          </span>
           <%= button_to "Sign out", logout_path, method: :delete, form_class: "site-nav__signout", class: "site-nav__auth" %>
         <% else %>
           <%= link_to "Login / Sign up", login_path, class: "site-nav__auth", data: { turbo_frame: "main" } %>

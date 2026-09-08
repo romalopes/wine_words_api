@@ -10,8 +10,11 @@ test:
 
 production:
   adapter: solid_cable
-  connects_to:
-    database:
-      writing: cable
+  # Solid Cable shares the primary database connection on Render. If you
+  # ever add a separate `cable:` sub-connection to config/database.yml,
+  # uncomment the `connects_to` block below.
+  # connects_to:
+  #   database:
+  #     writing: cable
   polling_interval: 0.1.seconds
   message_retention: 1.day

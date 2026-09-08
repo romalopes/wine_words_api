@@ -12,5 +12,9 @@ test:
   <<: *default
 
 production:
-  database: cache
+  # Solid Cache shares the primary database on Render, so no explicit
+  # `database:` key is set here. If you ever split it out to a separate
+  # Render Postgres, set `database: cache` (or your connection name)
+  # back and add a corresponding `cache:` sub-connection in
+  # config/database.yml.
   <<: *default
