@@ -1,135 +1,137 @@
 # # # db/seeds.rb
 # # # Seed data for wine_prediction API
 
+Wine.destroy_all
+WineProfile.destroy_all
+TasteParameter.destroy_all
+WineProfileTasteParameter.destroy_all
+WineTasteParameter.destroy_all
+Vintage.destroy_all
+User.destroy_all
+Review.destroy_all
+Article.destroy_all
+Role.destroy_all
+
+ActiveRecord::Base.connection.reset_pk_sequence!("wines")
+ActiveRecord::Base.connection.reset_pk_sequence!("wine_profiles")
+ActiveRecord::Base.connection.reset_pk_sequence!("taste_parameters")
+ActiveRecord::Base.connection.reset_pk_sequence!("wine_profile_taste_parameters")
+ActiveRecord::Base.connection.reset_pk_sequence!("wine_taste_parameters")
+ActiveRecord::Base.connection.reset_pk_sequence!("vintages")
+ActiveRecord::Base.connection.reset_pk_sequence!("articles")
+ActiveRecord::Base.connection.reset_pk_sequence!("reviews")
+ActiveRecord::Base.connection.reset_pk_sequence!("roles")
+
 # # --- Roles (instance rows in the DB: name + id) ---
-# Role.find_or_create_by!(name: "Admin")
-# Role.find_or_create_by!(name: "Editor")
-# Role.find_or_create_by!(name: "Reviewer")
-# Role.find_or_create_by!(name: "Reader")
-# Role.find_or_create_by!(name: "Guest")
+Role.find_or_create_by!(name: "Admin")
+Role.find_or_create_by!(name: "Editor")
+Role.find_or_create_by!(name: "Reviewer")
+Role.find_or_create_by!(name: "Reader")
+Role.find_or_create_by!(name: "Guest")
 
-# Wine.destroy_all
-# WineProfile.destroy_all
-# TasteParameter.destroy_all
-# WineProfileTasteParameter.destroy_all
-# WineTasteParameter.destroy_all
-# Vintage.destroy_all
-# User.destroy_all
-# Review.destroy_all
-# Article.destroy_all
-
-
-# ActiveRecord::Base.connection.reset_pk_sequence!("wines")
-# ActiveRecord::Base.connection.reset_pk_sequence!("wine_profiles")
-# ActiveRecord::Base.connection.reset_pk_sequence!("taste_parameters")
-# ActiveRecord::Base.connection.reset_pk_sequence!("wine_profile_taste_parameters")
-# ActiveRecord::Base.connection.reset_pk_sequence!("wine_taste_parameters")
-# ActiveRecord::Base.connection.reset_pk_sequence!("vintages")
-# ActiveRecord::Base.connection.reset_pk_sequence!("articles")
-# ActiveRecord::Base.connection.reset_pk_sequence!("reviews")
 
 # # Create taste parameters
-# taste_params_data = [
-#   { slug: 'acidity', label: 'Acidity', low: 'Soft', high: 'Sharp', help: 'How bright, fresh, or mouth-watering the wine feels.' },
-#   { slug: 'body', label: 'Body', low: 'Light', high: 'Full', help: 'The weight and richness of the wine on your palate.' },
-#   { slug: 'tannin', label: 'Tannin', low: 'Silky', high: 'Grippy', help: 'The drying texture, common in red wines.' },
-#   { slug: 'sweetness', label: 'Sweetness', low: 'Dry', high: 'Sweet', help: 'How much sugar or ripe sweetness you perceive.' },
-#   { slug: 'alcohol', label: 'Alcohol warmth', low: 'Cool', high: 'Warm', help: 'The heat or weight from alcohol.' },
-#   { slug: 'fruit', label: 'Fruit intensity', low: 'Subtle', high: 'Expressive', help: 'How strongly fruit aromas and flavors stand out.' }
-# ]
+taste_params_data = [
+  { slug: 'acidity', label: 'Acidity', low: 'Soft', high: 'Sharp', help: 'How bright, fresh, or mouth-watering the wine feels.' },
+  { slug: 'body', label: 'Body', low: 'Light', high: 'Full', help: 'The weight and richness of the wine on your palate.' },
+  { slug: 'tannin', label: 'Tannin', low: 'Silky', high: 'Grippy', help: 'The drying texture, common in red wines.' },
+  { slug: 'sweetness', label: 'Sweetness', low: 'Dry', high: 'Sweet', help: 'How much sugar or ripe sweetness you perceive.' },
+  { slug: 'alcohol', label: 'Alcohol warmth', low: 'Cool', high: 'Warm', help: 'The heat or weight from alcohol.' },
+  { slug: 'fruit', label: 'Fruit intensity', low: 'Subtle', high: 'Expressive', help: 'How strongly fruit aromas and flavors stand out.' }
+]
 
-# TasteParameter.create(taste_params_data.map { |tp| {
-#   slug: tp[:slug],
-#   label: tp[:label],
-#   low: tp[:low],
-#   high: tp[:high],
-#   help: tp[:help]
-# } })
+TasteParameter.create(taste_params_data.map { |tp| {
+  slug: tp[:slug],
+  label: tp[:label],
+  low: tp[:low],
+  high: tp[:high],
+  help: tp[:help]
+} })
 
-# p = {
-#   pinotNoir: { acidity: 4, body: 2, tannin: 2, sweetness: 1, alcohol: 2, fruit: 3 },
-#   cab: { acidity: 3, body: 5, tannin: 5, sweetness: 1, alcohol: 4, fruit: 4 },
-#   merlot: { acidity: 3, body: 4, tannin: 3, sweetness: 1, alcohol: 3, fruit: 4 },
-#   syrah: { acidity: 3, body: 5, tannin: 4, sweetness: 1, alcohol: 4, fruit: 5 },
-#   sangiovese: { acidity: 5, body: 3, tannin: 4, sweetness: 1, alcohol: 3, fruit: 3 },
-#   chardonnay: { acidity: 3, body: 4, tannin: 1, sweetness: 1, alcohol: 3, fruit: 3 },
-#   sauvBlanc: { acidity: 5, body: 2, tannin: 1, sweetness: 1, alcohol: 2, fruit: 4 },
-#   riesling: { acidity: 5, body: 2, tannin: 1, sweetness: 3, alcohol: 2, fruit: 4 },
-#   prosecco: { acidity: 4, body: 1, tannin: 1, sweetness: 2, alcohol: 1, fruit: 4 },
-#   rose: { acidity: 4, body: 2, tannin: 1, sweetness: 1, alcohol: 2, fruit: 3 },
-#   tempranillo: { acidity: 4, body: 4, tannin: 4, sweetness: 1, alcohol: 3, fruit: 4 },
-#   malbec: { acidity: 3, body: 5, tannin: 4, sweetness: 1, alcohol: 4, fruit: 5 },
-#   zinfandel: { acidity: 3, body: 5, tannin: 4, sweetness: 2, alcohol: 5, fruit: 5 },
-#   nebbiolo: { acidity: 4, body: 4, tannin: 5, sweetness: 1, alcohol: 4, fruit: 3 },
-#   gamay: { acidity: 4, body: 2, tannin: 2, sweetness: 1, alcohol: 2, fruit: 4 },
-#   pinotGrigio: { acidity: 4, body: 2, tannin: 1, sweetness: 1, alcohol: 2, fruit: 3 },
-#   pinotGris: { acidity: 3, body: 3, tannin: 1, sweetness: 2, alcohol: 3, fruit: 4 },
-#   viognier: { acidity: 3, body: 4, tannin: 1, sweetness: 2, alcohol: 4, fruit: 5 },
-#   gewurz: { acidity: 3, body: 4, tannin: 1, sweetness: 3, alcohol: 4, fruit: 5 },
-#   chenin: { acidity: 5, body: 3, tannin: 1, sweetness: 2, alcohol: 2, fruit: 3 },
-#   semillon: { acidity: 4, body: 2, tannin: 1, sweetness: 1, alcohol: 2, fruit: 2 },
-#   gruner: { acidity: 4, body: 3, tannin: 1, sweetness: 1, alcohol: 3, fruit: 3 },
-#   albarino: { acidity: 5, body: 2, tannin: 1, sweetness: 1, alcohol: 2, fruit: 4 },
-#   verdejo: { acidity: 4, body: 2, tannin: 1, sweetness: 1, alcohol: 2, fruit: 3 },
-#   champagne: { acidity: 5, body: 2, tannin: 1, sweetness: 1, alcohol: 3, fruit: 3 },
-#   cava: { acidity: 4, body: 2, tannin: 1, sweetness: 1, alcohol: 2, fruit: 3 },
-#   franciacorta: { acidity: 4, body: 3, tannin: 1, sweetness: 1, alcohol: 3, fruit: 3 },
-#   moscato: { acidity: 4, body: 2, tannin: 1, sweetness: 5, alcohol: 1, fruit: 5 },
-#   sauternes: { acidity: 4, body: 4, tannin: 1, sweetness: 5, alcohol: 3, fruit: 5 },
-#   port: { acidity: 3, body: 4, tannin: 3, sweetness: 5, alcohol: 4, fruit: 4 },
-#   sherry: { acidity: 3, body: 4, tannin: 1, sweetness: 2, alcohol: 5, fruit: 3 },
-#   pinotage: { acidity: 3, body: 4, tannin: 3, sweetness: 1, alcohol: 4, fruit: 4 },
-#   torrontes: { acidity: 4, body: 2, tannin: 1, sweetness: 1, alcohol: 3, fruit: 5 },
-#   superTuscan: { acidity: 4, body: 5, tannin: 4, sweetness: 1, alcohol: 4, fruit: 4 },
-# }
+p = {
+  pinotNoir: { acidity: 4, body: 2, tannin: 2, sweetness: 1, alcohol: 2, fruit: 3 },
+  cab: { acidity: 3, body: 5, tannin: 5, sweetness: 1, alcohol: 4, fruit: 4 },
+  merlot: { acidity: 3, body: 4, tannin: 3, sweetness: 1, alcohol: 3, fruit: 4 },
+  syrah: { acidity: 3, body: 5, tannin: 4, sweetness: 1, alcohol: 4, fruit: 5 },
+  sangiovese: { acidity: 5, body: 3, tannin: 4, sweetness: 1, alcohol: 3, fruit: 3 },
+  chardonnay: { acidity: 3, body: 4, tannin: 1, sweetness: 1, alcohol: 3, fruit: 3 },
+  sauvBlanc: { acidity: 5, body: 2, tannin: 1, sweetness: 1, alcohol: 2, fruit: 4 },
+  riesling: { acidity: 5, body: 2, tannin: 1, sweetness: 3, alcohol: 2, fruit: 4 },
+  prosecco: { acidity: 4, body: 1, tannin: 1, sweetness: 2, alcohol: 1, fruit: 4 },
+  rose: { acidity: 4, body: 2, tannin: 1, sweetness: 1, alcohol: 2, fruit: 3 },
+  tempranillo: { acidity: 4, body: 4, tannin: 4, sweetness: 1, alcohol: 3, fruit: 4 },
+  malbec: { acidity: 3, body: 5, tannin: 4, sweetness: 1, alcohol: 4, fruit: 5 },
+  zinfandel: { acidity: 3, body: 5, tannin: 4, sweetness: 2, alcohol: 5, fruit: 5 },
+  nebbiolo: { acidity: 4, body: 4, tannin: 5, sweetness: 1, alcohol: 4, fruit: 3 },
+  gamay: { acidity: 4, body: 2, tannin: 2, sweetness: 1, alcohol: 2, fruit: 4 },
+  pinotGrigio: { acidity: 4, body: 2, tannin: 1, sweetness: 1, alcohol: 2, fruit: 3 },
+  pinotGris: { acidity: 3, body: 3, tannin: 1, sweetness: 2, alcohol: 3, fruit: 4 },
+  viognier: { acidity: 3, body: 4, tannin: 1, sweetness: 2, alcohol: 4, fruit: 5 },
+  gewurz: { acidity: 3, body: 4, tannin: 1, sweetness: 3, alcohol: 4, fruit: 5 },
+  chenin: { acidity: 5, body: 3, tannin: 1, sweetness: 2, alcohol: 2, fruit: 3 },
+  semillon: { acidity: 4, body: 2, tannin: 1, sweetness: 1, alcohol: 2, fruit: 2 },
+  gruner: { acidity: 4, body: 3, tannin: 1, sweetness: 1, alcohol: 3, fruit: 3 },
+  albarino: { acidity: 5, body: 2, tannin: 1, sweetness: 1, alcohol: 2, fruit: 4 },
+  verdejo: { acidity: 4, body: 2, tannin: 1, sweetness: 1, alcohol: 2, fruit: 3 },
+  champagne: { acidity: 5, body: 2, tannin: 1, sweetness: 1, alcohol: 3, fruit: 3 },
+  cava: { acidity: 4, body: 2, tannin: 1, sweetness: 1, alcohol: 2, fruit: 3 },
+  franciacorta: { acidity: 4, body: 3, tannin: 1, sweetness: 1, alcohol: 3, fruit: 3 },
+  moscato: { acidity: 4, body: 2, tannin: 1, sweetness: 5, alcohol: 1, fruit: 5 },
+  sauternes: { acidity: 4, body: 4, tannin: 1, sweetness: 5, alcohol: 3, fruit: 5 },
+  port: { acidity: 3, body: 4, tannin: 3, sweetness: 5, alcohol: 4, fruit: 4 },
+  sherry: { acidity: 3, body: 4, tannin: 1, sweetness: 2, alcohol: 5, fruit: 3 },
+  pinotage: { acidity: 3, body: 4, tannin: 3, sweetness: 1, alcohol: 4, fruit: 4 },
+  torrontes: { acidity: 4, body: 2, tannin: 1, sweetness: 1, alcohol: 3, fruit: 5 },
+  superTuscan: { acidity: 4, body: 5, tannin: 4, sweetness: 1, alcohol: 4, fruit: 4 },
+}
 
-# # # Packaging details per wine slug
-# # wine_details = {
-# #   "pinot-noir" => { closure: "Cork", alcohol_percentage: 13.5, volume_ml: 750 },
-# #   "cabernet-sauvignon" => { closure: "Cork", alcohol_percentage: 14.5, volume_ml: 750 },
-# #   "merlot" => { closure: "Cork", alcohol_percentage: 14.0, volume_ml: 750 },
-# #   "syrah-shiraz" => { closure: "Screw cap", alcohol_percentage: 14.5, volume_ml: 750 },
-# #   "sangiovese" => { closure: "Cork", alcohol_percentage: 13.5, volume_ml: 750 },
-# #   "chardonnay" => { closure: "Cork", alcohol_percentage: 13.5, volume_ml: 750 },
-# #   "sauvignon-blanc" => { closure: "Screw cap", alcohol_percentage: 12.5, volume_ml: 750 },
-# #   "riesling" => { closure: "Screw cap", alcohol_percentage: 12.0, volume_ml: 750 },
-# #   "prosecco" => { closure: "Cork", alcohol_percentage: 11.5, volume_ml: 750 },
-# #   "rose" => { closure: "Cork", alcohol_percentage: 12.5, volume_ml: 750 },
-# #   "tempranillo" => { closure: "Cork", alcohol_percentage: 14.0, volume_ml: 750 },
-# #   "malbec" => { closure: "Cork", alcohol_percentage: 14.0, volume_ml: 750 },
-# #   "zinfandel" => { closure: "Cork", alcohol_percentage: 14.5, volume_ml: 750 },
-# #   "nebbiolo" => { closure: "Cork", alcohol_percentage: 14.0, volume_ml: 750 },
-# #   "gamay" => { closure: "Cork", alcohol_percentage: 12.5, volume_ml: 750 },
-# #   "pinot-grigio" => { closure: "Cork", alcohol_percentage: 12.5, volume_ml: 750 },
-# #   "pinot-gris" => { closure: "Cork", alcohol_percentage: 13.5, volume_ml: 750 },
-# #   "viognier" => { closure: "Screw cap", alcohol_percentage: 13.5, volume_ml: 750 },
-# #   "gewurztraminer" => { closure: "Cork", alcohol_percentage: 13.5, volume_ml: 750 },
-# #   "chenin-blanc" => { closure: "Cork", alcohol_percentage: 12.5, volume_ml: 750 },
-# #   "semillon" => { closure: "Screw cap", alcohol_percentage: 11.5, volume_ml: 750 },
-# #   "gruner-veltliner" => { closure: "Screw cap", alcohol_percentage: 12.5, volume_ml: 750 },
-# #   "albarino" => { closure: "Cork", alcohol_percentage: 12.5, volume_ml: 750 },
-# #   "verdejo" => { closure: "Cork", alcohol_percentage: 13.0, volume_ml: 750 },
-# #   "champagne" => { closure: "Cork", alcohol_percentage: 12.5, volume_ml: 750 },
-# #   "cava" => { closure: "Cork", alcohol_percentage: 11.5, volume_ml: 750 },
-# #   "franciacorta" => { closure: "Cork", alcohol_percentage: 12.5, volume_ml: 750 },
-# #   "moscato-d-asti" => { closure: "Cork", alcohol_percentage: 5.5, volume_ml: 750 },
-# #   "sauternes" => { closure: "Cork", alcohol_percentage: 14.0, volume_ml: 375 },
-# #   "port-tawny" => { closure: "Cork", alcohol_percentage: 19.5, volume_ml: 750 },
-# #   "sherry-oloroso" => { closure: "Cork", alcohol_percentage: 18.0, volume_ml: 750 },
-# #   "pinotage" => { closure: "Screw cap", alcohol_percentage: 14.0, volume_ml: 750 },
-# #   "torrontes" => { closure: "Cork", alcohol_percentage: 13.0, volume_ml: 750 },
-# #   "sangiovese-blend-super-tuscan" => { closure: "Cork", alcohol_percentage: 14.5, volume_ml: 750 },
-# #   "penfolds-bin-389" => { closure: "Screw cap", alcohol_percentage: 14.5, volume_ml: 750 },
-# #   "henschke-hill-of-grace" => { closure: "Cork", alcohol_percentage: 14.5, volume_ml: 750 },
-# #   "leeuwin-estate-art-series" => { closure: "Screw cap", alcohol_percentage: 13.5, volume_ml: 750 },
-# #   "grosset-polish-hill" => { closure: "Screw cap", alcohol_percentage: 12.5, volume_ml: 750 },
-# #   "tyrrells-vat-1-semillon" => { closure: "Screw cap", alcohol_percentage: 10.5, volume_ml: 750 },
-# #   "giaconda-chardonnay" => { closure: "Cork", alcohol_percentage: 13.5, volume_ml: 750 },
-# #   "yalumba-signature" => { closure: "Screw cap", alcohol_percentage: 14.5, volume_ml: 750 },
-# #   "tolpuddle-pinot-noir" => { closure: "Cork", alcohol_percentage: 13.0, volume_ml: 750 },
-# #   "de-bortoli-noble-one" => { closure: "Screw cap", alcohol_percentage: 10.5, volume_ml: 375 },
-# #   "rockford-basket-press" => { closure: "Cork", alcohol_percentage: 14.5, volume_ml: 750 },
-# # }
+# Packaging details per wine slug
+wine_details = {
+  "pinot-noir" => { closure: "Cork", alcohol_percentage: 13.5, volume_ml: 750 },
+  "cabernet-sauvignon" => { closure: "Cork", alcohol_percentage: 14.5, volume_ml: 750 },
+  "merlot" => { closure: "Cork", alcohol_percentage: 14.0, volume_ml: 750 },
+  "syrah-shiraz" => { closure: "Screw cap", alcohol_percentage: 14.5, volume_ml: 750 },
+  "sangiovese" => { closure: "Cork", alcohol_percentage: 13.5, volume_ml: 750 },
+  "chardonnay" => { closure: "Cork", alcohol_percentage: 13.5, volume_ml: 750 },
+  "sauvignon-blanc" => { closure: "Screw cap", alcohol_percentage: 12.5, volume_ml: 750 },
+  "riesling" => { closure: "Screw cap", alcohol_percentage: 12.0, volume_ml: 750 },
+  "prosecco" => { closure: "Cork", alcohol_percentage: 11.5, volume_ml: 750 },
+  "rose" => { closure: "Cork", alcohol_percentage: 12.5, volume_ml: 750 },
+  "tempranillo" => { closure: "Cork", alcohol_percentage: 14.0, volume_ml: 750 },
+  "malbec" => { closure: "Cork", alcohol_percentage: 14.0, volume_ml: 750 },
+  "zinfandel" => { closure: "Cork", alcohol_percentage: 14.5, volume_ml: 750 },
+  "nebbiolo" => { closure: "Cork", alcohol_percentage: 14.0, volume_ml: 750 },
+  "gamay" => { closure: "Cork", alcohol_percentage: 12.5, volume_ml: 750 },
+  "pinot-grigio" => { closure: "Cork", alcohol_percentage: 12.5, volume_ml: 750 },
+  "pinot-gris" => { closure: "Cork", alcohol_percentage: 13.5, volume_ml: 750 },
+  "viognier" => { closure: "Screw cap", alcohol_percentage: 13.5, volume_ml: 750 },
+  "gewurztraminer" => { closure: "Cork", alcohol_percentage: 13.5, volume_ml: 750 },
+  "chenin-blanc" => { closure: "Cork", alcohol_percentage: 12.5, volume_ml: 750 },
+  "semillon" => { closure: "Screw cap", alcohol_percentage: 11.5, volume_ml: 750 },
+  "gruner-veltliner" => { closure: "Screw cap", alcohol_percentage: 12.5, volume_ml: 750 },
+  "albarino" => { closure: "Cork", alcohol_percentage: 12.5, volume_ml: 750 },
+  "verdejo" => { closure: "Cork", alcohol_percentage: 13.0, volume_ml: 750 },
+  "champagne" => { closure: "Cork", alcohol_percentage: 12.5, volume_ml: 750 },
+  "cava" => { closure: "Cork", alcohol_percentage: 11.5, volume_ml: 750 },
+  "franciacorta" => { closure: "Cork", alcohol_percentage: 12.5, volume_ml: 750 },
+  "moscato-d-asti" => { closure: "Cork", alcohol_percentage: 5.5, volume_ml: 750 },
+  "sauternes" => { closure: "Cork", alcohol_percentage: 14.0, volume_ml: 375 },
+  "port-tawny" => { closure: "Cork", alcohol_percentage: 19.5, volume_ml: 750 },
+  "sherry-oloroso" => { closure: "Cork", alcohol_percentage: 18.0, volume_ml: 750 },
+  "pinotage" => { closure: "Screw cap", alcohol_percentage: 14.0, volume_ml: 750 },
+  "torrontes" => { closure: "Cork", alcohol_percentage: 13.0, volume_ml: 750 },
+  "sangiovese-blend-super-tuscan" => { closure: "Cork", alcohol_percentage: 14.5, volume_ml: 750 },
+  "penfolds-bin-389" => { closure: "Screw cap", alcohol_percentage: 14.5, volume_ml: 750 },
+  "henschke-hill-of-grace" => { closure: "Cork", alcohol_percentage: 14.5, volume_ml: 750 },
+  "leeuwin-estate-art-series" => { closure: "Screw cap", alcohol_percentage: 13.5, volume_ml: 750 },
+  "grosset-polish-hill" => { closure: "Screw cap", alcohol_percentage: 12.5, volume_ml: 750 },
+  "tyrrells-vat-1-semillon" => { closure: "Screw cap", alcohol_percentage: 10.5, volume_ml: 750 },
+  "giaconda-chardonnay" => { closure: "Cork", alcohol_percentage: 13.5, volume_ml: 750 },
+  "yalumba-signature" => { closure: "Screw cap", alcohol_percentage: 14.5, volume_ml: 750 },
+  "tolpuddle-pinot-noir" => { closure: "Cork", alcohol_percentage: 13.0, volume_ml: 750 },
+  "de-bortoli-noble-one" => { closure: "Screw cap", alcohol_percentage: 10.5, volume_ml: 375 },
+  "rockford-basket-press" => { closure: "Cork", alcohol_percentage: 14.5, volume_ml: 750 },
+}
 
 # # # Vintage data for wine profiles
 # # vintage_library = {
@@ -319,68 +321,68 @@
 # # }
 
 # # # Create wine profiles
-# wine_profiles_data = [
-#   { slug: "pinot-noir", name: "Pinot Noir", color: "Red", grapes: ["Pinot Noir"], regions: ["Burgundy", "Oregon", "New Zealand"], notes: ["cherry", "raspberry", "earth", "violet"], serving: "Great with roast chicken, mushrooms, salmon, and charcuterie.", params_key: :pinotNoir },
-#   { slug: "cabernet-sauvignon", name: "Cabernet Sauvignon", color: "Red", grapes: ["Cabernet Sauvignon"], regions: ["Bordeaux", "Napa Valley", "Coonawarra"], notes: ["blackcurrant", "cedar", "graphite", "mint"], serving: "Built for steak, lamb, hard cheeses, and richer sauces.", params_key: :cab },
-#   { slug: "merlot", name: "Merlot", color: "Red", grapes: ["Merlot"], regions: ["Right Bank Bordeaux", "Washington State", "Chile"], notes: ["plum", "black cherry", "cocoa", "bay leaf"], serving: "Easy with burgers, roast pork, tomato pasta, and soft cheeses.", params_key: :merlot },
-#   { slug: "syrah-shiraz", name: "Syrah / Shiraz", color: "Red", grapes: ["Syrah", "Shiraz"], regions: ["Northern Rhone", "Barossa Valley", "McLaren Vale"], notes: ["blackberry", "pepper", "smoke", "olive"], serving: "Strong match for barbecue, grilled vegetables, lamb, and spices.", params_key: :syrah },
-#   { slug: "sangiovese", name: "Sangiovese", color: "Red", grapes: ["Sangiovese"], regions: ["Chianti", "Brunello di Montalcino", "Tuscany"], notes: ["red cherry", "tomato leaf", "dried herbs", "leather"], serving: "A natural partner for pizza, pasta, ragu, and grilled meats.", params_key: :sangiovese },
-#   { slug: "chardonnay", name: "Chardonnay", color: "White", grapes: ["Chardonnay"], regions: ["Burgundy", "California", "Margaret River"], notes: ["apple", "citrus", "butter", "vanilla"], serving: "Works with roast chicken, creamy sauces, seafood, and corn.", params_key: :chardonnay },
-#   { slug: "sauvignon-blanc", name: "Sauvignon Blanc", color: "White", grapes: ["Sauvignon Blanc"], regions: ["Marlborough", "Loire Valley", "Adelaide Hills"], notes: ["lime", "passionfruit", "grass", "gooseberry"], serving: "Bright with goat cheese, salads, prawns, herbs, and citrus.", params_key: :sauvBlanc },
-#   { slug: "riesling", name: "Riesling", color: "White", grapes: ["Riesling"], regions: ["Mosel", "Clare Valley", "Alsace"], notes: ["lime", "green apple", "jasmine", "petrol"], serving: "Excellent with spicy food, pork, seafood, and salty snacks.", params_key: :riesling },
-#   { slug: "prosecco", name: "Prosecco", color: "Sparkling", grapes: ["Glera"], regions: ["Veneto", "Friuli"], notes: ["pear", "apple blossom", "melon", "lemon"], serving: "Pour with brunch, fried snacks, fresh fruit, and aperitivo plates.", params_key: :prosecco },
-#   { slug: "rose", name: "Dry Rose", color: "Rose", grapes: ["Grenache", "Cinsault", "Syrah"], regions: ["Provence", "Bandol", "South Australia"], notes: ["strawberry", "watermelon", "citrus", "white flowers"], serving: "Flexible with seafood, picnic food, grilled chicken, and mezze.", params_key: :rose },
-#   { slug: "tempranillo", name: "Tempranillo", color: "Red", grapes: ["Tempranillo"], regions: ["Rioja", "Ribera del Duero", "Toro"], notes: ["red cherry", "dried fig", "tobacco", "leather"], serving: "Pairs with grilled lamb, chorizo, manchego, and beef stew.", params_key: :tempranillo },
-#   { slug: "malbec", name: "Malbec", color: "Red", grapes: ["Malbec"], regions: ["Mendoza", "Cahors", "Patagonia"], notes: ["plum", "blackberry", "violet", "cocoa"], serving: "Perfect with grilled steak, empanadas, barbecue, and blue cheese.", params_key: :malbec },
-#   { slug: "zinfandel", name: "Zinfandel", color: "Red", grapes: ["Zinfandel"], regions: ["Sonoma", "Napa Valley", "Paso Robles"], notes: ["brambleberry", "jammy fruit", "black pepper", "vanilla"], serving: "Great with pulled pork, ribs, smoky barbecue, and pizza.", params_key: :zinfandel },
-#   { slug: "nebbiolo", name: "Nebbiolo", color: "Red", grapes: ["Nebbiolo"], regions: ["Piedmont", "Barolo", "Barbaresco"], notes: ["tar", "rose", "dried cherry", "truffle"], serving: "Matches braised beef, risotto, aged hard cheese, and truffle dishes.", params_key: :nebbiolo },
-#   { slug: "gamay", name: "Gamay (Beaujolais)", color: "Red", grapes: ["Gamay"], regions: ["Beaujolais", "Loire Valley"], notes: ["red berry", "banana", "candy", "floral"], serving: "Lively with charcuterie, roasted chicken, soft cheeses, and salads.", params_key: :gamay },
-#   { slug: "pinot-grigio", name: "Pinot Grigio", color: "White", grapes: ["Pinot Grigio"], regions: ["Friuli", "Trentino", "Veneto"], notes: ["lemon zest", "green apple", "pear", "almond"], serving: "Clean with seafood pasta, oysters, light salads, and caprese.", params_key: :pinotGrigio },
-#   { slug: "pinot-gris", name: "Pinot Gris", color: "White", grapes: ["Pinot Gris"], regions: ["Alsace", "Oregon", "New Zealand"], notes: ["pear", "honey", "stone fruit", "spice"], serving: "Versatile with roast pork, asian cuisine, soft cheeses, and pumpkin.", params_key: :pinotGris },
-#   { slug: "viognier", name: "Viognier", color: "White", grapes: ["Viognier"], regions: ["Condrieu", "Margaret River", "Virginia"], notes: ["apricot", "peach", "honeysuckle", "ginger"], serving: "Lovely with lobster, scallops, spicy curries, and roast chicken.", params_key: :viognier },
-#   { slug: "gewurztraminer", name: "Gewurztraminer", color: "White", grapes: ["Gewurztraminer"], regions: ["Alsace", "Pfalz", "Marlborough"], notes: ["lychee", "rose petal", "turkish delight", "ginger"], serving: "Stunning with thai food, indian curries, smoked salmon, and strong cheese.", params_key: :gewurz },
-#   { slug: "chenin-blanc", name: "Chenin Blanc", color: "White", grapes: ["Chenin Blanc"], regions: ["Loire Valley", "Stellenbosch", "California"], notes: ["quince", "honeydew", "chamomile", "wet stone"], serving: "Bright with roast chicken, pork, goat cheese, and vegetable tarts.", params_key: :chenin },
-#   { slug: "semillon", name: "Semillon", color: "White", grapes: ["Semillon"], regions: ["Hunter Valley", "Bordeaux", "Margaret River"], notes: ["lemon curd", "beeswax", "lanolin", "toast"], serving: "Classic with roast chicken, seafood, and creamy pasta.", params_key: :semillon },
-#   { slug: "gruner-veltliner", name: "Gruner Veltliner", color: "White", grapes: ["Gruner Veltliner"], regions: ["Wachau", "Kamptal", "Kremstal"], notes: ["white pepper", "green pea", "lime", "lentil"], serving: "Beautifully matches schnitzel, asparagus, sushi, and fresh salads.", params_key: :gruner },
-#   { slug: "albarino", name: "Albarino", color: "White", grapes: ["Albarino"], regions: ["Rias Baixas", "Moncao", "Bairrada"], notes: ["saline", "citrus peel", "white peach", "jasmine"], serving: "Brilliant with grilled octopus, ceviche, sushi, and briny shellfish.", params_key: :albarino },
-#   { slug: "verdejo", name: "Verdejo", color: "White", grapes: ["Verdejo"], regions: ["Rueda", "La Mancha"], notes: ["fennel", "grapefruit", "broom flower", "cut grass"], serving: "Cuts through garlic prawns, paella, grilled vegetables, and tapas.", params_key: :verdejo },
-#   { slug: "champagne", name: "Champagne", color: "Sparkling", grapes: ["Chardonnay", "Pinot Noir", "Pinot Meunier"], regions: ["Champagne"], notes: ["brioche", "citrus", "green apple", "chalk"], serving: "Pour with oysters, caviar, fried chicken, and celebration toasts.", params_key: :champagne },
-#   { slug: "cava", name: "Cava", color: "Sparkling", grapes: ["Macabeo", "Parellada", "Xarel.lo"], regions: ["Penedes", "Catalonia"], notes: ["green apple", "almond", "toast", "lemon"], serving: "Lively with patatas bravas, jamon, seafood, and fried snacks.", params_key: :cava },
-#   { slug: "franciacorta", name: "Franciacorta", color: "Sparkling", grapes: ["Chardonnay", "Pinot Nero"], regions: ["Lombardy", "Franciacorta"], notes: ["almond paste", "white peach", "lemon curd", "biscuit"], serving: "Refined with cured meats, sushi, seafood risotto, and aperitivo.", params_key: :franciacorta },
-#   { slug: "moscato-d-asti", name: "Moscato d'Asti", color: "Dessert", grapes: ["Moscato Bianco"], regions: ["Asti", "Piedmont"], notes: ["orange blossom", "peach", "honey", "grape"], serving: "Luscious with panettone, fresh fruit, panna cotta, and pastries.", params_key: :moscato },
-#   { slug: "sauternes", name: "Sauternes", color: "Dessert", grapes: ["Semillon", "Sauvignon Blanc", "Muscadelle"], regions: ["Bordeaux", "Sauternes", "Barsac"], notes: ["apricot", "honey", "ginger", "beeswax"], serving: "Decadent with foie gras, blue cheese, tarte tatin, and creme brulee.", params_key: :sauternes },
-#   { slug: "port-tawny", name: "Tawny Port", color: "Dessert", grapes: ["Touriga Nacional", "Touriga Franca", "Tinta Roriz"], regions: ["Douro Valley"], notes: ["dried fig", "caramel", "walnut", "orange peel"], serving: "Wonderful with stilton, chocolate desserts, and toasted nuts.", params_key: :port },
-#   { slug: "sherry-oloroso", name: "Oloroso Sherry", color: "Dessert", grapes: ["Palomino"], regions: ["Jerez", "Andalusia"], notes: ["walnut", "toffee", "cinnamon", "dried orange"], serving: "Sip with aged manchego, olives, almonds, and rich stews.", params_key: :sherry },
-#   { slug: "pinotage", name: "Pinotage", color: "Red", grapes: ["Pinotage"], regions: ["Stellenbosch", "Franschhoek", "Swartland"], notes: ["smoked meat", "plum", "banana", "earthy spice"], serving: "Barbecue champion - pairs with boerewors, lamb chops, and grilled meats.", params_key: :pinotage },
-#   { slug: "torrontes", name: "Torrontes", color: "White", grapes: ["Torrontes"], regions: ["Salta", "Mendoza", "Cafayate"], notes: ["grapefruit", "rose", "lychee", "herbal lift"], serving: "Vivid with ceviche, grilled fish, empanadas, and spicy latin cuisine.", params_key: :torrontes },
-#   { slug: "sangiovese-blend-super-tuscan", name: "Super Tuscan Blend", color: "Red", grapes: ["Sangiovese", "Cabernet Sauvignon", "Merlot"], regions: ["Tuscany", "Bolgheri"], notes: ["dark cherry", "cedar", "leather", "tobacco"], serving: "Great with bistecca alla fiorentina, rich pasta, and aged pecorino.", params_key: :superTuscan },
-# ]
+wine_profiles_data = [
+  { slug: "pinot-noir", name: "Pinot Noir", color: "Red", grapes: ["Pinot Noir"], regions: ["Burgundy", "Oregon", "New Zealand"], notes: ["cherry", "raspberry", "earth", "violet"], serving: "Great with roast chicken, mushrooms, salmon, and charcuterie.", params_key: :pinotNoir },
+  { slug: "cabernet-sauvignon", name: "Cabernet Sauvignon", color: "Red", grapes: ["Cabernet Sauvignon"], regions: ["Bordeaux", "Napa Valley", "Coonawarra"], notes: ["blackcurrant", "cedar", "graphite", "mint"], serving: "Built for steak, lamb, hard cheeses, and richer sauces.", params_key: :cab },
+  { slug: "merlot", name: "Merlot", color: "Red", grapes: ["Merlot"], regions: ["Right Bank Bordeaux", "Washington State", "Chile"], notes: ["plum", "black cherry", "cocoa", "bay leaf"], serving: "Easy with burgers, roast pork, tomato pasta, and soft cheeses.", params_key: :merlot },
+  { slug: "syrah-shiraz", name: "Syrah / Shiraz", color: "Red", grapes: ["Syrah", "Shiraz"], regions: ["Northern Rhone", "Barossa Valley", "McLaren Vale"], notes: ["blackberry", "pepper", "smoke", "olive"], serving: "Strong match for barbecue, grilled vegetables, lamb, and spices.", params_key: :syrah },
+  { slug: "sangiovese", name: "Sangiovese", color: "Red", grapes: ["Sangiovese"], regions: ["Chianti", "Brunello di Montalcino", "Tuscany"], notes: ["red cherry", "tomato leaf", "dried herbs", "leather"], serving: "A natural partner for pizza, pasta, ragu, and grilled meats.", params_key: :sangiovese },
+  { slug: "chardonnay", name: "Chardonnay", color: "White", grapes: ["Chardonnay"], regions: ["Burgundy", "California", "Margaret River"], notes: ["apple", "citrus", "butter", "vanilla"], serving: "Works with roast chicken, creamy sauces, seafood, and corn.", params_key: :chardonnay },
+  { slug: "sauvignon-blanc", name: "Sauvignon Blanc", color: "White", grapes: ["Sauvignon Blanc"], regions: ["Marlborough", "Loire Valley", "Adelaide Hills"], notes: ["lime", "passionfruit", "grass", "gooseberry"], serving: "Bright with goat cheese, salads, prawns, herbs, and citrus.", params_key: :sauvBlanc },
+  { slug: "riesling", name: "Riesling", color: "White", grapes: ["Riesling"], regions: ["Mosel", "Clare Valley", "Alsace"], notes: ["lime", "green apple", "jasmine", "petrol"], serving: "Excellent with spicy food, pork, seafood, and salty snacks.", params_key: :riesling },
+  { slug: "prosecco", name: "Prosecco", color: "Sparkling", grapes: ["Glera"], regions: ["Veneto", "Friuli"], notes: ["pear", "apple blossom", "melon", "lemon"], serving: "Pour with brunch, fried snacks, fresh fruit, and aperitivo plates.", params_key: :prosecco },
+  { slug: "rose", name: "Dry Rose", color: "Rose", grapes: ["Grenache", "Cinsault", "Syrah"], regions: ["Provence", "Bandol", "South Australia"], notes: ["strawberry", "watermelon", "citrus", "white flowers"], serving: "Flexible with seafood, picnic food, grilled chicken, and mezze.", params_key: :rose },
+  { slug: "tempranillo", name: "Tempranillo", color: "Red", grapes: ["Tempranillo"], regions: ["Rioja", "Ribera del Duero", "Toro"], notes: ["red cherry", "dried fig", "tobacco", "leather"], serving: "Pairs with grilled lamb, chorizo, manchego, and beef stew.", params_key: :tempranillo },
+  { slug: "malbec", name: "Malbec", color: "Red", grapes: ["Malbec"], regions: ["Mendoza", "Cahors", "Patagonia"], notes: ["plum", "blackberry", "violet", "cocoa"], serving: "Perfect with grilled steak, empanadas, barbecue, and blue cheese.", params_key: :malbec },
+  { slug: "zinfandel", name: "Zinfandel", color: "Red", grapes: ["Zinfandel"], regions: ["Sonoma", "Napa Valley", "Paso Robles"], notes: ["brambleberry", "jammy fruit", "black pepper", "vanilla"], serving: "Great with pulled pork, ribs, smoky barbecue, and pizza.", params_key: :zinfandel },
+  { slug: "nebbiolo", name: "Nebbiolo", color: "Red", grapes: ["Nebbiolo"], regions: ["Piedmont", "Barolo", "Barbaresco"], notes: ["tar", "rose", "dried cherry", "truffle"], serving: "Matches braised beef, risotto, aged hard cheese, and truffle dishes.", params_key: :nebbiolo },
+  { slug: "gamay", name: "Gamay (Beaujolais)", color: "Red", grapes: ["Gamay"], regions: ["Beaujolais", "Loire Valley"], notes: ["red berry", "banana", "candy", "floral"], serving: "Lively with charcuterie, roasted chicken, soft cheeses, and salads.", params_key: :gamay },
+  { slug: "pinot-grigio", name: "Pinot Grigio", color: "White", grapes: ["Pinot Grigio"], regions: ["Friuli", "Trentino", "Veneto"], notes: ["lemon zest", "green apple", "pear", "almond"], serving: "Clean with seafood pasta, oysters, light salads, and caprese.", params_key: :pinotGrigio },
+  { slug: "pinot-gris", name: "Pinot Gris", color: "White", grapes: ["Pinot Gris"], regions: ["Alsace", "Oregon", "New Zealand"], notes: ["pear", "honey", "stone fruit", "spice"], serving: "Versatile with roast pork, asian cuisine, soft cheeses, and pumpkin.", params_key: :pinotGris },
+  { slug: "viognier", name: "Viognier", color: "White", grapes: ["Viognier"], regions: ["Condrieu", "Margaret River", "Virginia"], notes: ["apricot", "peach", "honeysuckle", "ginger"], serving: "Lovely with lobster, scallops, spicy curries, and roast chicken.", params_key: :viognier },
+  { slug: "gewurztraminer", name: "Gewurztraminer", color: "White", grapes: ["Gewurztraminer"], regions: ["Alsace", "Pfalz", "Marlborough"], notes: ["lychee", "rose petal", "turkish delight", "ginger"], serving: "Stunning with thai food, indian curries, smoked salmon, and strong cheese.", params_key: :gewurz },
+  { slug: "chenin-blanc", name: "Chenin Blanc", color: "White", grapes: ["Chenin Blanc"], regions: ["Loire Valley", "Stellenbosch", "California"], notes: ["quince", "honeydew", "chamomile", "wet stone"], serving: "Bright with roast chicken, pork, goat cheese, and vegetable tarts.", params_key: :chenin },
+  { slug: "semillon", name: "Semillon", color: "White", grapes: ["Semillon"], regions: ["Hunter Valley", "Bordeaux", "Margaret River"], notes: ["lemon curd", "beeswax", "lanolin", "toast"], serving: "Classic with roast chicken, seafood, and creamy pasta.", params_key: :semillon },
+  { slug: "gruner-veltliner", name: "Gruner Veltliner", color: "White", grapes: ["Gruner Veltliner"], regions: ["Wachau", "Kamptal", "Kremstal"], notes: ["white pepper", "green pea", "lime", "lentil"], serving: "Beautifully matches schnitzel, asparagus, sushi, and fresh salads.", params_key: :gruner },
+  { slug: "albarino", name: "Albarino", color: "White", grapes: ["Albarino"], regions: ["Rias Baixas", "Moncao", "Bairrada"], notes: ["saline", "citrus peel", "white peach", "jasmine"], serving: "Brilliant with grilled octopus, ceviche, sushi, and briny shellfish.", params_key: :albarino },
+  { slug: "verdejo", name: "Verdejo", color: "White", grapes: ["Verdejo"], regions: ["Rueda", "La Mancha"], notes: ["fennel", "grapefruit", "broom flower", "cut grass"], serving: "Cuts through garlic prawns, paella, grilled vegetables, and tapas.", params_key: :verdejo },
+  { slug: "champagne", name: "Champagne", color: "Sparkling", grapes: ["Chardonnay", "Pinot Noir", "Pinot Meunier"], regions: ["Champagne"], notes: ["brioche", "citrus", "green apple", "chalk"], serving: "Pour with oysters, caviar, fried chicken, and celebration toasts.", params_key: :champagne },
+  { slug: "cava", name: "Cava", color: "Sparkling", grapes: ["Macabeo", "Parellada", "Xarel.lo"], regions: ["Penedes", "Catalonia"], notes: ["green apple", "almond", "toast", "lemon"], serving: "Lively with patatas bravas, jamon, seafood, and fried snacks.", params_key: :cava },
+  { slug: "franciacorta", name: "Franciacorta", color: "Sparkling", grapes: ["Chardonnay", "Pinot Nero"], regions: ["Lombardy", "Franciacorta"], notes: ["almond paste", "white peach", "lemon curd", "biscuit"], serving: "Refined with cured meats, sushi, seafood risotto, and aperitivo.", params_key: :franciacorta },
+  { slug: "moscato-d-asti", name: "Moscato d'Asti", color: "Dessert", grapes: ["Moscato Bianco"], regions: ["Asti", "Piedmont"], notes: ["orange blossom", "peach", "honey", "grape"], serving: "Luscious with panettone, fresh fruit, panna cotta, and pastries.", params_key: :moscato },
+  { slug: "sauternes", name: "Sauternes", color: "Dessert", grapes: ["Semillon", "Sauvignon Blanc", "Muscadelle"], regions: ["Bordeaux", "Sauternes", "Barsac"], notes: ["apricot", "honey", "ginger", "beeswax"], serving: "Decadent with foie gras, blue cheese, tarte tatin, and creme brulee.", params_key: :sauternes },
+  { slug: "port-tawny", name: "Tawny Port", color: "Dessert", grapes: ["Touriga Nacional", "Touriga Franca", "Tinta Roriz"], regions: ["Douro Valley"], notes: ["dried fig", "caramel", "walnut", "orange peel"], serving: "Wonderful with stilton, chocolate desserts, and toasted nuts.", params_key: :port },
+  { slug: "sherry-oloroso", name: "Oloroso Sherry", color: "Dessert", grapes: ["Palomino"], regions: ["Jerez", "Andalusia"], notes: ["walnut", "toffee", "cinnamon", "dried orange"], serving: "Sip with aged manchego, olives, almonds, and rich stews.", params_key: :sherry },
+  { slug: "pinotage", name: "Pinotage", color: "Red", grapes: ["Pinotage"], regions: ["Stellenbosch", "Franschhoek", "Swartland"], notes: ["smoked meat", "plum", "banana", "earthy spice"], serving: "Barbecue champion - pairs with boerewors, lamb chops, and grilled meats.", params_key: :pinotage },
+  { slug: "torrontes", name: "Torrontes", color: "White", grapes: ["Torrontes"], regions: ["Salta", "Mendoza", "Cafayate"], notes: ["grapefruit", "rose", "lychee", "herbal lift"], serving: "Vivid with ceviche, grilled fish, empanadas, and spicy latin cuisine.", params_key: :torrontes },
+  { slug: "sangiovese-blend-super-tuscan", name: "Super Tuscan Blend", color: "Red", grapes: ["Sangiovese", "Cabernet Sauvignon", "Merlot"], regions: ["Tuscany", "Bolgheri"], notes: ["dark cherry", "cedar", "leather", "tobacco"], serving: "Great with bistecca alla fiorentina, rich pasta, and aged pecorino.", params_key: :superTuscan },
+]
 
-# wine_profiles = WineProfile.create(wine_profiles_data.map { |wp|
-#   # details = wine_details[wp[:slug]] || {}
-#   {
-#     slug: wp[:slug],
-#     name: wp[:name],
-#     color: wp[:color],
-#     grapes: wp[:grapes].to_json,
-#     regions: wp[:regions].to_json,
-#     notes: wp[:notes].to_json,
-#     serving: wp[:serving]
-#   }
-# })
+wine_profiles = WineProfile.create(wine_profiles_data.map { |wp|
+  # details = wine_details[wp[:slug]] || {}
+  {
+    slug: wp[:slug],
+    name: wp[:name],
+    color: wp[:color],
+    grapes: wp[:grapes].to_json,
+    regions: wp[:regions].to_json,
+    notes: wp[:notes].to_json,
+    serving: wp[:serving]
+  }
+})
 
 # # Create wine profile taste parameters
-# wine_profiles.each do |wine_profile|
-#   line = wine_profiles_data.find { |item| item[:slug] == wine_profile.slug }
-#   p[line[:params_key]].each do |slug, score|
-#     taste_parameter = TasteParameter.find_by(slug: slug.to_s)
-#     WineProfileTasteParameter.create(
-#       wine_profile: wine_profile,
-#       taste_parameter: taste_parameter,
-#       score: score
-#     )
-#   end
-# end
+wine_profiles.each do |wine_profile|
+  line = wine_profiles_data.find { |item| item[:slug] == wine_profile.slug }
+  p[line[:params_key]].each do |slug, score|
+    taste_parameter = TasteParameter.find_by(slug: slug.to_s)
+    WineProfileTasteParameter.create(
+      wine_profile: wine_profile,
+      taste_parameter: taste_parameter,
+      score: score
+    )
+  end
+end
 
 # # # Create wine test cases with closure, alcohol, volume, and vintages
 # # australian_wine_tests_data = [
@@ -435,10 +437,10 @@
 # #   end
 # # end
 
-# puts "Seeds created successfully!"
-# puts "  - #{TasteParameter.count} taste parameters"
-# puts "  - #{WineProfile.count} wine profiles"
-# puts "  - #{WineProfileTasteParameter.count} profile taste parameters"
-# puts "  - #{Wine.count} wines"
-# puts "  - #{WineTasteParameter.count} wine taste parameters"
-# puts "  - #{Vintage.count} vintages"
+puts "Seeds created successfully!"
+puts "  - #{TasteParameter.count} taste parameters"
+puts "  - #{WineProfile.count} wine profiles"
+puts "  - #{WineProfileTasteParameter.count} profile taste parameters"
+puts "  - #{Wine.count} wines"
+puts "  - #{WineTasteParameter.count} wine taste parameters"
+puts "  - #{Vintage.count} vintages"

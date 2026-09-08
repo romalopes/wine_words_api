@@ -19,7 +19,7 @@ class Api::V1::CountriesController < ApplicationController
       .count
 
     render json: countries.map { |country|
-      country.as_json(only: %i[id name code continent flag_emoji is_wine_country]).merge(
+      country.as_json(only: %i[id slug name code continent flag_emoji is_wine_country]).merge(
         producers_count: producer_counts[country.id] || 0,
         wines_count: wine_counts[country.id] || 0
       )
