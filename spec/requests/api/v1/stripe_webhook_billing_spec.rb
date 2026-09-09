@@ -12,7 +12,7 @@ RSpec.describe "Stripe billing lifecycle via webhooks", type: :request do
 
   let(:user) do
     load Rails.root.join("db/seeds/subscriptions.rb")
-    User.create!(name: "Roma", email: "stripe-lifecycle@example.com", password: "password123")
+    User.create!(user_name: "Roma", email: "stripe-lifecycle@example.com", password: "password123")
   end
 
   let(:consumer_price) do

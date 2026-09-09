@@ -30,7 +30,7 @@ class UserRolesController < ActionController::Base
     role_ids = Array(params[:user][:role_ids]).compact.map(&:to_i)
     user.user_roles.destroy_all
     role_ids.each { |rid| user.user_roles.create!(role_id: rid) }
-    redirect_to user_roles_path(q: params[:q]), notice: "Roles updated for #{user.name || user.email}."
+    redirect_to user_roles_path(q: params[:q]), notice: "Roles updated for #{user.user_name || user.email}."
   end
 
   private

@@ -15,7 +15,7 @@
   <p class="lede">
     <%= [
       (@article.categories.any? ? @article.categories.map { |c| link_to c.name, return_to_link(category_path(c)), class: "text-link" }.join(", ").html_safe : nil),
-      "by #{@article.user.name.presence || @article.user.email}",
+      "by #{@article.user.user_name.presence || @article.user.email}",
       @article.published_at&.strftime("%B %d, %Y")
     ].compact.join(" · ").html_safe %>
     <span class="tag"><%= @article.status %></span>
@@ -53,7 +53,7 @@
             <div class="wine-card__band"></div>
             <div class="wine-card__content">
               <h3><%= review.title.presence || review.vintage&.name %></h3>
-              <p class="meta">Score: <%= review.score %> · by <%= review.user.name.presence || review.user.email %></p>
+              <p class="meta">Score: <%= review.score %> · by <%= review.user.user_name.presence || review.user.email %></p>
               <% if review.comment.present? %>
                 <p class="details"><%= truncate(strip_tags(review.comment), length: 140) %></p>
               <% end %>

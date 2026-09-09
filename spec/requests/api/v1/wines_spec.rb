@@ -11,7 +11,7 @@ RSpec.describe "Api::V1::Wines", type: :request do
 
   let(:producer) { Producer.create!(name: "Penfolds", slug: "penfolds") }
   let(:wine_manager) do
-    User.create!(name: "Manager", email: "wine-manager@example.com", password: "password123")
+    User.create!(user_name: "Manager", email: "wine-manager@example.com", password: "password123")
   end
 
   before do
@@ -188,7 +188,7 @@ RSpec.describe "Api::V1::Wines", type: :request do
   end
 
   describe "GET /api/v1/wines/advanced_search" do
-    let!(:review_user) { User.create!(name: "Reviewer", email: "adv-search@example.com", password: "password123") }
+    let!(:review_user) { User.create!(user_name: "Reviewer", email: "adv-search@example.com", password: "password123") }
 
     before do
       wine_one.update!(producer: producer, sparkling: true, alcohol_percentage: 14.5)

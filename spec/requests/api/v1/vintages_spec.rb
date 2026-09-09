@@ -8,7 +8,7 @@ RSpec.describe "Vintage price (price_cents)", type: :request do
   include Devise::Test::IntegrationHelpers
 
   let(:manager) do
-    user = User.create!(name: "Manager", email: "manager@example.com", password: "password123")
+    user = User.create!(user_name: "Manager", email: "manager@example.com", password: "password123")
     user.roles << Role.find_or_create_by!(name: "Admin")
     user
   end

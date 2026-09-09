@@ -7,7 +7,7 @@ RSpec.describe "Api::V1::Health", type: :request do
   include Devise::Test::IntegrationHelpers
 
   let(:admin) do
-    User.create!(name: "Admin", email: "admin@example.com", password: "password123")
+    User.create!(user_name: "Admin", email: "admin@example.com", password: "password123")
   end
 
   before do
@@ -42,7 +42,7 @@ RSpec.describe "Api::V1::Health", type: :request do
     end
 
     it "rejects a non-admin authenticated user" do
-      user = User.create!(name: "Guest", email: "guest@example.com", password: "password123")
+      user = User.create!(user_name: "Guest", email: "guest@example.com", password: "password123")
       sign_in user
       get "/api/v1/health/detailed"
       expect(response).to have_http_status(:forbidden)

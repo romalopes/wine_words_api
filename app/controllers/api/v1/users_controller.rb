@@ -5,7 +5,7 @@ class Api::V1::UsersController < ApplicationController
       user: {
         id: current_user.id,
         email: current_user.email,
-        name: current_user.name,
+        user_name: current_user.user_name,
         roles: current_user.role_names,
         subscription: current_user.subscription ? { id: current_user.subscription.id, name: current_user.subscription.name } : nil,
         billing_provider: current_sub&.billing_provider,
@@ -69,7 +69,7 @@ class Api::V1::UsersController < ApplicationController
     {
       id: user.id,
       email: user.email,
-      name: user.name,
+      user_name: user.user_name,
       role_ids: user.role_ids,
       roles: user.role_names,
       subscription: user.subscription ? { id: user.subscription.id, name: user.subscription.name } : nil

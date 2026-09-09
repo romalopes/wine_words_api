@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe BillingCustomer, type: :model do
-  let(:user) { User.create!(name: "Roma", email: "billing-customer@example.com", password: "password123") }
+  let(:user) { User.create!(user_name: "Roma", email: "billing-customer@example.com", password: "password123") }
 
   # Ensure the Stripe provider is registered before validation runs (autoloading
   # is lazy in tests, and provider inclusion is validated against the registry).
@@ -19,7 +19,7 @@ RSpec.describe BillingCustomer, type: :model do
   it "enforces a unique provider customer id per provider" do
     BillingCustomer.create!(user: user, provider: "stripe", provider_customer_id: "cus_123")
     duplicate = BillingCustomer.new(
-      user: User.create!(name: "Other", email: "other@example.com", password: "password123"),
+      user: User.create!(user_name: "Other", email: "other@example.com", password: "password123"),
       provider: "stripe",
       provider_customer_id: "cus_123"
     )
@@ -118,7 +118,7 @@ end
 RSpec.describe User do
   describe "apply_subscription! with billing metadata" do
     let(:user) do
-      u = User.create!(name: "Bil", email: "bil@example.com", password: "password123")
+      u = User.create!(user_name: "Bil", email: "bil@example.com", password: "password123")
       u.roles << Role.find_or_create_by!(name: "Reviewer")
       u
     end

@@ -2,7 +2,7 @@ require "rails_helper"
 
 RSpec.describe User, type: :model do
   def create_user(attrs = {})
-    User.create!({ name: "Test User", email: "test-#{SecureRandom.hex(4)}@example.com",
+    User.create!({ user_name: "Test User #{SecureRandom.hex(2)}", email: "test-#{SecureRandom.hex(4)}@example.com",
                    password: "password123" }.merge(attrs))
   end
 

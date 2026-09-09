@@ -34,7 +34,7 @@ class Api::V1::PasswordsController < Devise::PasswordsController
       sign_in(resource_name, resource)
 
       render json: {
-        user: { id: resource.id, email: resource.email, name: resource.name, roles: resource.role_names }
+        user: { id: resource.id, email: resource.email, user_name: resource.user_name, roles: resource.role_names }
       }, status: :ok
     else
       render json: { errors: resource.errors.full_messages }, status: :unprocessable_entity

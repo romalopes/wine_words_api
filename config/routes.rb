@@ -31,6 +31,9 @@ Rails.application.routes.draw do
   get "about", to: "web/about#index"
   get "subscribe", to: "web/subscribe#index"
   post "subscribe", to: "web/subscribe#create"
+  get "account", to: "web/accounts#show", as: :account
+  patch "account", to: "web/accounts#update"
+  patch "account/password", to: "web/accounts#update_password"
 
   get "wines/:wine_id/vintages/:vintage_id/reviews", to: "wines#vintage_reviews",
       defaults: { format: :json }
@@ -193,6 +196,10 @@ Rails.application.routes.draw do
         member { patch :assign_roles; patch :assign_subscription }
       end
       get "roles", to: "users#roles"
+
+      get "account", to: "accounts#show"
+      patch "account", to: "accounts#update"
+      patch "account/password", to: "accounts#update_password"
 
       resources :subscriptions, only: [:index, :show, :create, :update, :destroy]
     end

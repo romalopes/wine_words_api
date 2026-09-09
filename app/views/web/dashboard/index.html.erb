@@ -53,7 +53,7 @@
           <div class="wine-card__band"></div>
           <div class="wine-card__content">
             <h3><%= article.title %></h3>
-            <p class="region"><%= [article.category&.name, article.user.name.presence || article.user.email].compact.join(" · ") %></p>
+            <p class="region"><%= [article.category&.name, article.user.user_name.presence || article.user.email].compact.join(" · ") %></p>
             <% if article.abstract.present? %>
               <p class="details"><%= truncate(strip_tags(article.abstract), length: 120) %></p>
             <% end %>
@@ -72,7 +72,7 @@
           <div class="wine-card__band wine-card--rose"></div>
           <div class="wine-card__content">
             <h3><%= review.title.presence || review.vintage&.name %></h3>
-            <p class="region">Score <%= review.score %> · by <%= review.user.name.presence || review.user.email %></p>
+            <p class="region">Score <%= review.score %> · by <%= review.user.user_name.presence || review.user.email %></p>
             <% if review.comment.present? %>
               <p class="details"><%= truncate(strip_tags(review.comment), length: 120) %></p>
             <% end %>

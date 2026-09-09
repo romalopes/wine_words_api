@@ -21,7 +21,7 @@ RSpec.describe "Api::V1::Producers", type: :request do
   let!(:grape_riesling) { Grape.create!(name: "Riesling", color: "white") }
 
   let(:admin) do
-    User.create!(name: "Admin", email: "admin@example.com", password: "password123")
+    User.create!(user_name: "Admin", email: "admin@example.com", password: "password123")
   end
 
   before do
@@ -152,7 +152,7 @@ RSpec.describe "Api::V1::Producers", type: :request do
 
     context "as a Guest" do
       let(:guest) do
-        User.create!(name: "Guest", email: "guest@example.com", password: "password123")
+        User.create!(user_name: "Guest", email: "guest@example.com", password: "password123")
       end
 
       before { sign_in guest }

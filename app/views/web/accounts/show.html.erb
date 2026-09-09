@@ -1,0 +1,113 @@
+<div class="account-page">
+  <p class="wine-kicker">Your profile</p>
+  <h1>Account settings</h1>
+  <p class="lede">Manage your username, personal information, address and password.</p>
+
+  <% if @errors.present? %>
+    <div class="account-errors" role="alert">
+      <ul>
+        <% @errors.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="account-grid">
+    <section class="account-card">
+      <h2 class="account-card__title">Profile</h2>
+
+      <%= form_with model: @account, url: account_path, method: :patch, local: true, class: "auth-form account-form" do |f| %>
+        <fieldset class="account-fieldset">
+          <legend>Username</legend>
+          <label class="auth-form__field">
+            <span>Username</span>
+            <input type="text" name="user_name" value="<%= current_user.user_name %>" required minlength="2" maxlength="40" autocomplete="username">
+            <small class="account-field-hint">2–40 characters. Letters, digits, spaces, dots, dashes and underscores.</small>
+          </label>
+        </fieldset>
+
+        <fieldset class="account-fieldset">
+          <legend>Personal information</legend>
+          <div class="account-fields">
+            <label class="auth-form__field">
+              <span>First name</span>
+              <input type="text" name="account[first_name]" value="<%= @account.first_name %>" maxlength="80">
+            </label>
+            <label class="auth-form__field">
+              <span>Last name</span>
+              <input type="text" name="account[last_name]" value="<%= @account.last_name %>" maxlength="80">
+            </label>
+            <label class="auth-form__field">
+              <span>Phone</span>
+              <input type="tel" name="account[phone]" value="<%= @account.phone %>" maxlength="40">
+            </label>
+            <label class="auth-form__field">
+              <span>Date of birth</span>
+              <input type="date" name="account[date_of_birth]" value="<%= @account.date_of_birth %>">
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class="account-fieldset">
+          <legend>Address</legend>
+          <% address = @account.account_address || AccountAddress.new %>
+          <div class="account-fields">
+            <label class="auth-form__field account-fields--wide">
+              <span>Street</span>
+              <input type="text" name="account[account_address_attributes][street_address]" value="<%= address.street_address %>" maxlength="200">
+            </label>
+            <label class="auth-form__field">
+              <span>City</span>
+              <input type="text" name="account[account_address_attributes][city]" value="<%= address.city %>">
+            </label>
+            <label class="auth-form__field">
+              <span>State</span>
+              <input type="text" name="account[account_address_attributes][state]" value="<%= address.state %>">
+            </label>
+            <label class="auth-form__field">
+              <span>Postal code</span>
+              <input type="text" name="account[account_address_attributes][postal_code]" value="<%= address.postal_code %>" maxlength="20">
+            </label>
+            <label class="auth-form__field">
+              <span>Country</span>
+              <select name="account[account_address_attributes][country_id]">
+                <option value="">— Select country —</option>
+                <% @countries.each do |country| %>
+                  <option value="<%= country.id %>" <%= "selected" if address.country_id == country.id %>>
+                    <%= country.name %>
+                  </option>
+                <% end %>
+              </select>
+            </label>
+          </div>
+        </fieldset>
+
+        <button class="auth-form__submit" type="submit">Save profile</button>
+      <% end %>
+    </section>
+
+    <section class="account-card account-card--security" id="security">
+      <h2 class="account-card__title">Security</h2>
+      <p class="account-card__lede">Choose a strong password you don't use anywhere else.</p>
+
+      <%= form_with url: account_password_path, method: :patch, local: true, class: "auth-form account-form" do %>
+        <label class="auth-form__field">
+          <span>Current password</span>
+          <input type="password" name="current_password" required autocomplete="current-password">
+        </label>
+        <label class="auth-form__field">
+          <span>New password</span>
+          <input type="password" name="password" required minlength="6" autocomplete="new-password">
+        </label>
+        <label class="auth-form__field">
+          <span>Confirm new password</span>
+          <input type="password" name="password_confirmation" required minlength="6" autocomplete="new-password">
+        </label>
+        <button class="auth-form__submit auth-form__submit--secondary" type="submit">Change password</button>
+      <% end %>
+    </section>
+  </div>
+
+  <%= link_to "Back to dashboard", root_path, class: "back-link" %>
+</div>

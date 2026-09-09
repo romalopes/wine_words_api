@@ -5,13 +5,13 @@ RSpec.describe "Api::V1::Subscriptions", type: :request do
   include Devise::Test::IntegrationHelpers
 
   let(:admin) do
-    user = User.create!(name: "Admin", email: "admin@example.com", password: "password123")
+    user = User.create!(user_name: "Admin", email: "admin@example.com", password: "password123")
     user.roles << Role.find_or_create_by!(name: "Admin")
     user
   end
 
   let(:regular_user) do
-    User.create!(name: "Regular", email: "regular@example.com", password: "password123")
+    User.create!(user_name: "Regular", email: "regular@example.com", password: "password123")
   end
 
   before do
@@ -89,7 +89,7 @@ RSpec.describe "Api::V1::Subscriptions", type: :request do
     it "refuses to destroy a plan with assigned users" do
       sign_in admin
       consumer = subscription("Consumer")
-      target = User.create!(name: "Target", email: "target@example.com", password: "password123")
+      target = User.create!(user_name: "Target", email: "target@example.com", password: "password123")
       target.apply_subscription!(consumer)
 
       delete "/api/v1/subscriptions/#{consumer.id}"

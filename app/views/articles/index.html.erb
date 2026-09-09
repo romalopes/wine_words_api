@@ -51,7 +51,7 @@
             <div class="wine-card__band"></div>
             <div class="wine-card__content">
               <h2><%= article.title %></h2>
-              <p class="region"><%= [article.category&.name, article.user.name.presence || article.user.email].compact.join(" · ") %></p>
+              <p class="region"><%= [article.category&.name, article.user.user_name.presence || article.user.email].compact.join(" · ") %></p>
               <% if article.abstract.present? %>
                 <p class="details"><%= truncate(strip_tags(article.abstract), length: 140) %></p>
               <% end %>

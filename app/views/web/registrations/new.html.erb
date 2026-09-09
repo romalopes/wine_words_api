@@ -5,8 +5,8 @@
     <p class="lede">Save tasting profiles, track the wines you have tried, and sync your results across devices.</p>
     <%= form_with model: @user, url: signup_path, method: :post, local: true, class: "auth-form" do |form| %>
       <label class="auth-form__field">
-        <span>Name</span>
-        <%= form.text_field :name, autocomplete: "name" %>
+        <span>User Name</span>
+        <%= form.text_field :user_name, autocomplete: "username", required: true, minlength: 2, maxlength: 40 %>
       </label>
       <label class="auth-form__field">
         <span>Email</span>

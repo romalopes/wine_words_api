@@ -12,7 +12,7 @@
           <div class="wine-card__band"></div>
           <div class="wine-card__content">
             <h2><%= article.title %></h2>
-            <p class="region">by <%= article.user.name.presence || article.user.email %></p>
+            <p class="region">by <%= article.user.user_name.presence || article.user.email %></p>
             <span class="tag"><%= article.status %></span>
           </div>
         <% end %>

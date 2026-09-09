@@ -52,7 +52,7 @@ RSpec.describe "Billing layer" do
   end
 
   describe "Billing::Customer.find_or_create" do
-    let(:user) { User.create!(name: "Roma", email: "billing@example.com", password: "password123") }
+    let(:user) { User.create!(user_name: "Roma", email: "billing@example.com", password: "password123") }
 
     it "creates a billing customer on first call" do
       customer = Billing::Customer.ensure!(user)
@@ -69,7 +69,7 @@ RSpec.describe "Billing layer" do
   end
 
   describe "Billing::Checkout.create" do
-    let(:user) { User.create!(name: "Roma", email: "checkout@example.com", password: "password123") }
+    let(:user) { User.create!(user_name: "Roma", email: "checkout@example.com", password: "password123") }
     let(:subscription) do
       load Rails.root.join("db/seeds/subscriptions.rb")
       Subscription.find_by!(slug: "consumer")
@@ -109,7 +109,7 @@ RSpec.describe "Billing layer" do
   end
 
   describe "Billing::Portal.create" do
-    let(:user) { User.create!(name: "Roma", email: "portal@example.com", password: "password123") }
+    let(:user) { User.create!(user_name: "Roma", email: "portal@example.com", password: "password123") }
 
     it "creates a portal session" do
       Billing::Customer.ensure!(user)
@@ -125,7 +125,7 @@ RSpec.describe "Billing layer" do
 
   describe "Billing::Subscription.activate_from_checkout" do
     let(:user) do
-      u = User.create!(name: "Roma", email: "sub@example.com", password: "password123")
+      u = User.create!(user_name: "Roma", email: "sub@example.com", password: "password123")
       u.roles << Role.find_or_create_by!(name: "Reviewer")
       u
     end

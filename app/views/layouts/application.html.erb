@@ -261,6 +261,24 @@
       .grapes-table tbody tr a { color: #6b2834; font-weight: 600; }
       .grapes-table .actions { display: flex; gap: .5rem; }
       .sort-form { display: flex; align-items: center; gap: .5rem; }
+      /* Account settings page */
+      .account-page { max-width: 60rem; }
+      .account-grid { display: grid; grid-template-columns: 3fr 2fr; gap: 1.5rem; align-items: start; margin-top: 1.25rem; }
+      @media (max-width: 52rem) { .account-grid { grid-template-columns: 1fr; } }
+      .account-card { background: #fff; border: 1px solid #eaded7; border-radius: .7rem; box-shadow: 0 2px 10px rgba(63, 24, 24, .06); padding: 1.4rem 1.5rem; }
+      .account-card__title { margin: 0 0 .25rem; font-size: 1.25rem; color: #6b2834; }
+      .account-card__lede { font: .9rem system-ui, sans-serif; color: #6b5855; margin: .25rem 0 1rem; }
+      .account-fieldset { border: 1px solid #f0e4dc; border-radius: .55rem; margin: 0 0 1.1rem; padding: .9rem 1rem 1rem; }
+      .account-fieldset legend { font: 600 .8rem system-ui, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: #8a273c; padding: 0 .45rem; }
+      .account-fields { display: grid; grid-template-columns: 1fr 1fr; gap: .85rem; }
+      @media (max-width: 40rem) { .account-fields { grid-template-columns: 1fr; } }
+      .account-fields--wide { grid-column: 1 / -1; }
+      .account-field-hint { font: .78rem system-ui, sans-serif; color: #9b8a85; }
+      .account-form .auth-form__field { margin: 0; }
+      .account-form .auth-form__submit { justify-self: start; }
+      .auth-form__submit--secondary { background: #27615e; }
+      .account-errors { background: #f9e3e3; color: #8a273c; border-radius: .5rem; padding: .8rem 1.1rem; margin-top: 1rem; font: .92rem system-ui, sans-serif; }
+      .account-errors ul { margin: .2rem 0; padding-left: 1.1rem; }
       .sort-label { font: .875rem system-ui, sans-serif; color: #495057; }
       .sort-select { padding: .375rem .75rem; border: 1px solid #dee2e6; border-radius: .25rem; font-size: .875rem; background: #fff; cursor: pointer; }
       .sort-select:focus { outline: none; border-color: #6b2834; }
@@ -295,24 +313,27 @@
         </details>
         <%= link_to "About", about_path, data: { turbo_frame: "main" } %>
         <%= link_to "Subscribe", subscribe_path, data: { turbo_frame: "main" } %>
-        <% if current_user&.super_admin? || current_user&.wine_manager? %>
+        <% if user_signed_in? %>
           <details class="site-nav__settings">
             <summary>Settings</summary>
             <div class="site-nav__settings-menu">
+              <%= link_to "Account settings", account_path %>
               <% if current_user&.super_admin? %>
-                <%= link_to "Users &amp; Roles".html_safe, user_roles_path, data: { turbo_frame: "main" } %>
+                <%= link_to "Users &amp; Roles".html_safe, user_roles_path %>
               <% end %>
-              <%= link_to "Producers", producers_path, data: { turbo_frame: "main" } %>
-              <%= link_to "Categories", categories_path, data: { turbo_frame: "main" } %>
-              <%= link_to "Grapes", grapes_path, data: { turbo_frame: "main" } %>
-              <%= link_to "Countries", countries_path, data: { turbo_frame: "main" } %>
-              <%= link_to "Regions", regions_path, data: { turbo_frame: "main" } %>
+              <% if current_user&.super_admin? || current_user&.wine_manager? %>
+                <%= link_to "Producers", producers_path %>
+                <%= link_to "Categories", categories_path %>
+                <%= link_to "Grapes", grapes_path %>
+                <%= link_to "Countries", countries_path %>
+                <%= link_to "Regions", regions_path %>
+              <% end %>
             </div>
           </details>
         <% end %>
         <% if user_signed_in? %>
           <span class="site-nav__user">
-            <span class="site-nav__user-name"><%= current_user.name.presence || current_user.email %></span>
+            <span class="site-nav__user-name"><%= current_user.user_name.presence || current_user.email %></span>
             <% if current_user.role_names.any? %>
               <span class="site-nav__user-roles">
                 <% current_user.role_names.each do |role| %>

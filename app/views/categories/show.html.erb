@@ -38,7 +38,7 @@
               <% end %>
             </td>
             <td><%= review.vintage&.no_vintage ? "NV" : review.vintage&.year || "—" %></td>
-            <td><%= review.user.name.presence || review.user.email %></td>
+            <td><%= review.user.user_name.presence || review.user.email %></td>
             <td><%= review.status %></td>
             <td><%= review.published_at&.strftime("%Y-%m-%d") || "—" %></td>
           </tr>
@@ -66,7 +66,7 @@
         <% @articles.each_with_index do |article, index| %>
           <tr class="<%= index.even? ? "grapes-row--even" : "grapes-row--odd" %>">
             <td><%= link_to article.title, return_to_link(article_path(article)), class: "grapes-table__link" %></td>
-            <td><%= article.user.name.presence || article.user.email %></td>
+            <td><%= article.user.user_name.presence || article.user.email %></td>
             <td><%= article.status %></td>
             <td><%= article.published_at&.strftime("%Y-%m-%d") || "—" %></td>
           </tr>

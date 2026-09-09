@@ -11,6 +11,15 @@ class User < ApplicationRecord
   has_many :billing_customers, dependent: :destroy
   belongs_to :subscription, optional: true
   has_many :user_subscriptions, dependent: :destroy
+  has_one :account, dependent: :destroy
+
+  # user_name is the application username/handle. It is independent of the
+  # real name stored on Account (first_name/last_name) and never synced from it.
+  validates :user_name,
+            presence: true,
+            length: { in: 2..40 },
+            uniqueness: { case_sensitive: false },
+            format: { with: /\A[A-Za-z0-9_.\- ]+\z/, message: "only letters, digits, spaces, dots, dashes and underscores" }
 
   # Every new user starts with the "Guest" role and the FREE subscription
   # unless roles were explicitly assigned (e.g. seeded admins).
@@ -56,7 +65,7 @@ class User < ApplicationRecord
   end
 
   def jwt_payload
-    { name: name, roles: role_names }
+    { user_name: user_name, roles: role_names }
   end
 
   # Apply a subscription to this user. Switches the base access role
