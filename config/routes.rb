@@ -98,6 +98,7 @@ Rails.application.routes.draw do
     namespace :v1 do
       get "health", to: "health#index"
       get "health/detailed", to: "health#detailed"
+      get "logs", to: "logs#index"
       post "images", to: "images#create"
       delete "images/:id", to: "images#destroy"
       resources :producers do

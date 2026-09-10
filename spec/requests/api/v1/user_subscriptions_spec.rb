@@ -33,7 +33,7 @@ RSpec.describe "Api::V1::Users#assign_subscription", type: :request do
     expect(body["roles"]).not_to include("Guest")
   end
 
-  it "preserves privileged roles when downgrading a user" do
+  it "rejects downgrading a user to a lower-priced plan" do
     sign_in admin
     user = User.create!(user_name: "Jane", email: "jane@example.com", password: "password123")
     user.roles << Role.find_or_create_by!(name: "Reviewer")
@@ -42,11 +42,38 @@ RSpec.describe "Api::V1::Users#assign_subscription", type: :request do
     patch "/api/v1/users/#{user.id}/assign_subscription",
           params: { subscription_id: sub("FREE").id }, as: :json
 
-    expect(response).to have_http_status(:ok)
+    expect(response).to have_http_status(:unprocessable_entity)
     body = JSON.parse(response.body)
-    expect(body["roles"]).to include("Guest")
-    expect(body["roles"]).to include("Reviewer")
-    expect(body["roles"]).not_to include("Reader")
+    expect(body["error"]).to match(/downgrade/i)
+    expect(user.reload.subscription).to eq(sub("Trade"))
+    expect(user.role_names).to include("Reader")
+    expect(user.role_names).to include("Reviewer")
+  end
+
+  it "rejects downgrading a user to a lower-priced paid plan" do
+    sign_in admin
+    user = User.create!(user_name: "Bob", email: "bob@example.com", password: "password123")
+    user.apply_subscription!(sub("Trade"))
+
+    patch "/api/v1/users/#{user.id}/assign_subscription",
+          params: { subscription_id: sub("Consumer").id }, as: :json
+
+    expect(response).to have_http_status(:unprocessable_entity)
+    body = JSON.parse(response.body)
+    expect(body["error"]).to match(/downgrade/i)
+    expect(user.reload.subscription).to eq(sub("Trade"))
+  end
+
+  it "allows upgrading a user to a higher-priced plan" do
+    sign_in admin
+    user = User.create!(user_name: "Alice", email: "alice@example.com", password: "password123")
+    user.apply_subscription!(sub("Consumer"))
+
+    patch "/api/v1/users/#{user.id}/assign_subscription",
+          params: { subscription_id: sub("Trade").id }, as: :json
+
+    expect(response).to have_http_status(:ok)
+    expect(user.reload.subscription).to eq(sub("Trade"))
   end
 
   it "forbids non-admins from assigning subscriptions" do
@@ -57,17 +84,17 @@ RSpec.describe "Api::V1::Users#assign_subscription", type: :request do
     expect(response).to have_http_status(:forbidden)
   end
 
-  it "records subscription history" do
+  it "records subscription history for upgrades" do
     sign_in admin
     user = User.create!(user_name: "Hist", email: "hist@example.com", password: "password123")
     consumer = sub("Consumer")
-    free = sub("FREE")
+    trade = sub("Trade")
 
     patch "/api/v1/users/#{user.id}/assign_subscription", params: { subscription_id: consumer.id }, as: :json
-    patch "/api/v1/users/#{user.id}/assign_subscription", params: { subscription_id: free.id }, as: :json
+    patch "/api/v1/users/#{user.id}/assign_subscription", params: { subscription_id: trade.id }, as: :json
 
     histories = user.user_subscriptions.reload.order(:id)
-    expect(histories.count).to eq(3) # default FREE + Consumer + FREE
-    expect(histories.where(status: :active, ended_at: nil).first.subscription).to eq(free)
+    expect(histories.count).to eq(3)
+    expect(histories.where(status: :active, ended_at: nil).first.subscription).to eq(trade)
   end
 end

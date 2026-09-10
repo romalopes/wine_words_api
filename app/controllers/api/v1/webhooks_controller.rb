@@ -181,7 +181,7 @@ class Api::V1::WebhooksController < ActionController::Base
 
     # Fall back to the default FREE plan.
     free_plan = Subscription.find_by(is_default: true) || Subscription.find_by!(slug: "free")
-    user.apply_subscription!(free_plan)
+    user.apply_subscription!(free_plan, allow_downgrade: true)
   end
 
   def handle_invoice_paid(invoice)

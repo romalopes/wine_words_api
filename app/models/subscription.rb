@@ -32,6 +32,15 @@ class Subscription < ApplicationRecord
       (yearly_price_cents.nil? || yearly_price_cents.zero?)
   end
 
+  # Returns true if this subscription has a lower yearly price than the other.
+  # Used to prevent downgrades - a lower-priced plan is a downgrade.
+  def lower_price_than?(other)
+    return false if other.nil?
+    yearly = yearly_price_cents.to_i
+    other_yearly = other.yearly_price_cents.to_i
+    yearly < other_yearly
+  end
+
   def self.default
     find_by(is_default: true)
   end

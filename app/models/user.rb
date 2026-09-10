@@ -54,7 +54,7 @@ class User < ApplicationRecord
     role?(:reviewer)
   end
 
-  # Admins, Reviewers and Editors may manage wines/producers —
+  # Admins, Reviewers and Editors may manage wines/producers -
   # anywhere a Reviewer is allowed, an Editor is allowed too.
   def wine_manager?
     admin? || role?(:editor)
@@ -77,10 +77,19 @@ class User < ApplicationRecord
   # Accepts optional billing metadata so a subscription can be applied from a
   # billing provider (e.g. Stripe) as well as manually by a Admin. The
   # role logic stays provider-independent.
-  def apply_subscription!(new_subscription, billing_provider: "manual", provider_subscription_id: nil)
+  #
+  # When allow_downgrade is false (default), raises Billing::Error if the
+  # new subscription has a lower price than the current one. Pass
+  # allow_downgrade: true to bypass this check (e.g. for cancellation
+  # fallback to the FREE plan).
+  def apply_subscription!(new_subscription, billing_provider: "manual", provider_subscription_id: nil, allow_downgrade: false)
     return if new_subscription.nil?
 
-    Rails.logger.info "[User] apply_subscription! called: user_id=#{id} subscription_id=#{new_subscription.id} billing_provider=#{billing_provider} provider_subscription_id=#{provider_subscription_id}"
+    if !allow_downgrade && subscription.present? && new_subscription.lower_price_than?(subscription)
+      raise Billing::Error, "Downgrade to a lower-priced plan is not allowed."
+    end
+
+    Rails.logger.info "[User] apply_subscription! called: user_id=#{id} subscription_id=#{new_subscription.id} billing_provider=#{billing_provider} provider_subscription_id=#{provider_subscription_id} allow_downgrade=#{allow_downgrade}"
 
     new_base = new_subscription.free? ? "Guest" : "Reader"
     current_base = roles.where(name: BASE_ROLES).pick(:name)

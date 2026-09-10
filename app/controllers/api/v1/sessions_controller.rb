@@ -26,6 +26,7 @@ class Api::V1::SessionsController < Devise::SessionsController
 
   def respond_with(current_user, _opts = {})
     if current_user.persisted?
+      current_sub = current_user.user_subscriptions.current.first
       render json: {
         user: {
           id: current_user.id,
@@ -36,7 +37,9 @@ class Api::V1::SessionsController < Devise::SessionsController
           # enablement (Choose plan / Manage subscription) from these fields.
           # Without them the cards render disabled until a hard refresh.
           subscription: current_user.subscription ? { id: current_user.subscription.id, name: current_user.subscription.name } : nil,
-          can_manage_billing: Billing.configured?
+          billing_provider: current_sub&.billing_provider,
+          can_manage_billing: Billing.configured?,
+          subscription_status: current_sub&.status
         }
       }, status: :ok
     else

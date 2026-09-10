@@ -3,11 +3,9 @@ class Api::V1::UsersController < ApplicationController
 
   def log_description
     if action_name == "assign_roles"
-      "Changed roles for user \"#{@target_user&.user_name}\"" \
-        "#{audit_roles_diff}"
+      "Changed roles for user "#{@target_user&.user_name}""         "#{audit_roles_diff}"
     else
-      "Changed subscription for user \"#{@target_user&.user_name}\"" \
-        "#{@assigned_subscription ? " to \"#{@assigned_subscription.name}\"" : ''}"
+      "Changed subscription for user "#{@target_user&.user_name}""         "#{@assigned_subscription ? " to "#{@assigned_subscription.name}"" : ''}"
     end
   end
 
@@ -47,7 +45,7 @@ class Api::V1::UsersController < ApplicationController
     render json: users.map { |u| user_json(u) }
   end
 
-  # GET /api/v1/roles — the full role list (id + human name), for role pickers.
+  # GET /api/v1/roles - the full role list (id + human name), for role pickers.
   def roles
     render json: Role.order(:id).map { |r| { id: r.id, name: Role.names[r.name.to_s] || r.name.to_s } }
   end
@@ -70,6 +68,7 @@ class Api::V1::UsersController < ApplicationController
   # PATCH /api/v1/users/:id/assign_subscription  body: { subscription_id: 2 }
   # Admin only. Applies the subscription and swaps the base access role
   # (Guest <-> Reader) while preserving privileged roles and history.
+  # Rejects downgrades (assigning a lower-priced plan) with a 422 error.
   def assign_subscription
     return head(:forbidden) unless current_user.admin?
 
@@ -78,11 +77,10 @@ class Api::V1::UsersController < ApplicationController
     subscription = Subscription.find(params[:subscription_id])
     @assigned_subscription = subscription
 
-    if user.apply_subscription!(subscription)
-      render json: user_json(user.reload)
-    else
-      render json: { errors: user.errors.full_messages }, status: :unprocessable_entity
-    end
+    user.apply_subscription!(subscription)
+    render json: user_json(user.reload)
+  rescue Billing::Error => e
+    render json: { error: e.message }, status: :unprocessable_entity
   end
 
   private

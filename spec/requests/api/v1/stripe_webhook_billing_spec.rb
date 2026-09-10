@@ -330,12 +330,12 @@ RSpec.describe "Stripe billing lifecycle via webhooks", type: :request do
       expect(user.role_names).to include("Reader")
     end
 
-    it "downgrades back to the original plan" do
+    it "rejects downgrade attempts and keeps the higher-priced plan" do
       post_webhook(build_event("customer.subscription.updated", subscription_object(billing_price: trade_price)))
       post_webhook(build_event("customer.subscription.updated", subscription_object(billing_price: consumer_price)))
 
       expect(user.user_subscriptions.current.count).to eq(1)
-      expect(current_subscription.subscription).to eq(consumer_price.subscription)
+      expect(current_subscription.subscription).to eq(trade_price.subscription)
     end
   end
 

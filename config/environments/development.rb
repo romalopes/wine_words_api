@@ -54,6 +54,11 @@ Rails.application.configure do
     config.action_mailer.file_settings = { location: Rails.root.join("tmp/mails") }
   end
 
+
+  config.logger = ActiveSupport::Logger.new("log/development.log")
+# OR
+  # config.logger = ActiveSupport::Logger.new(STDOUT)
+
   # Make template changes take effect immediately.
   config.action_mailer.perform_caching = false
 
