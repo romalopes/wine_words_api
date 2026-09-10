@@ -1,4 +1,14 @@
 class Api::V1::ProducersController < ApplicationController
+  audit_actions :create, :update, :destroy
+
+  def log_description
+    "#{audit_verb} producer \"#{@producer.name}\""
+  end
+
+  def log_objects
+    [@producer, @producer&.address].compact
+  end
+
   skip_before_action :authenticate_user!, only: [:index, :show, :search]
   # Only Admins and Editors may add, edit or delete producers.
   before_action :ensure_wine_manager!, only: [:create, :update, :destroy, :attach_logo, :remove_logo]

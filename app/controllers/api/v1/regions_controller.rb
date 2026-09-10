@@ -1,4 +1,14 @@
 class Api::V1::RegionsController < ApplicationController
+  audit_actions :create, :update, :destroy
+
+  def log_description
+    "#{audit_verb} region \"#{@region.name}\""
+  end
+
+  def log_objects
+    [@region, @region&.country].compact
+  end
+
   # Regions are read publicly (used by the wine-form picker).
   # Create/update/destroy is restricted to wine managers.
   before_action :authenticate_user!, except: [:index, :show, :tree]

@@ -1,4 +1,14 @@
 class Api::V1::VintagesController < ApplicationController
+  audit_actions :create
+
+  def log_description
+    "Created vintage #{@vintage_record&.year || 'NV'} for wine \"#{@wine.name}\""
+  end
+
+  def log_objects
+    [@vintage_record, @wine].compact
+  end
+
   before_action :authenticate_user!
   before_action :set_wine, only: [:create]
   # Only Admins, Editors and Reviewers may add vintages.
@@ -7,6 +17,7 @@ class Api::V1::VintagesController < ApplicationController
   # POST /api/v1/wines/:wine_id/vintages
   def create
     vintage = @wine.vintages.new(vintage_params)
+    @vintage_record = vintage
 
     if vintage.save
       render json: { id: vintage.id, year: vintage.year, prompt: vintage.prompt,

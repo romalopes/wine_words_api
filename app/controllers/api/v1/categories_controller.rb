@@ -1,4 +1,14 @@
 class Api::V1::CategoriesController < ApplicationController
+  audit_actions :create, :update, :destroy
+
+  def log_description
+    "#{audit_verb} category \"#{@category.name}\""
+  end
+
+  def log_objects
+    [@category].compact
+  end
+
     skip_before_action :authenticate_user!, only: [:index, :show, :counts]
   before_action :ensure_wine_manager!, only: [:create, :update, :destroy, :reorder, :link_wine, :link_producer, :link_review, :link_article]
 
@@ -181,6 +191,7 @@ class Api::V1::CategoriesController < ApplicationController
 
   def create
     category = Category.new(category_params)
+    @category = category
     if category.save
       render json: category_payload(category), status: :created
     else
@@ -190,6 +201,7 @@ class Api::V1::CategoriesController < ApplicationController
 
   def update
     category = find_category
+    @category = category
     if category.update(category_params)
       render json: category_payload(category)
     else
@@ -201,6 +213,7 @@ class Api::V1::CategoriesController < ApplicationController
 
   def destroy
     category = find_category
+    @category = category
     category.destroy!
     render json: { ok: true }
   rescue ActiveRecord::RecordNotFound

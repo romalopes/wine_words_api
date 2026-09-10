@@ -1,4 +1,14 @@
 class Api::V1::WinesController < ApplicationController
+  audit_actions :create, :update, :destroy
+
+  def log_description
+    "#{audit_verb} wine \"#{@wine.name}\""
+  end
+
+  def log_objects
+    [@wine, @wine&.producer].compact
+  end
+
 
   # Wine management (create/update/destroy) is restricted to signed-in
   # Admins and Reviewers; reading stays public.

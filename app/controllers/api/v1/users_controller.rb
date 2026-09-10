@@ -1,4 +1,30 @@
 class Api::V1::UsersController < ApplicationController
+  audit_actions assign_roles: "role_change", assign_subscription: "subscription_change"
+
+  def log_description
+    if action_name == "assign_roles"
+      "Changed roles for user \"#{@target_user&.user_name}\"" \
+        "#{audit_roles_diff}"
+    else
+      "Changed subscription for user \"#{@target_user&.user_name}\"" \
+        "#{@assigned_subscription ? " to \"#{@assigned_subscription.name}\"" : ''}"
+    end
+  end
+
+  def log_objects
+    [current_user, @target_user, @assigned_subscription].compact
+  end
+
+  private
+
+  def audit_roles_diff
+    from = Array(@role_change_from).join(", ")
+    to = Array(@role_change_to).join(", ")
+    return "" if from.blank? || from == to
+
+    " (from #{from} to #{to})"
+  end
+
   def me
     current_sub = current_user.user_subscriptions.current.first
     render json: {
@@ -41,9 +67,13 @@ class Api::V1::UsersController < ApplicationController
     return head(:forbidden) unless current_user.admin?
 
     user = User.find(params[:id])
+    @target_user = user
+    old_role_names = user.role_names
     role_ids = Array(params[:role_ids]).compact.map(&:to_i)
     user.user_roles.destroy_all
     role_ids.each { |rid| user.user_roles.create!(role_id: rid) }
+    @role_change_from = old_role_names
+    @role_change_to = user.reload.role_names
     render json: user_json(user.reload)
   end
 
@@ -54,7 +84,9 @@ class Api::V1::UsersController < ApplicationController
     return head(:forbidden) unless current_user.admin?
 
     user = User.find(params[:id])
+    @target_user = user
     subscription = Subscription.find(params[:subscription_id])
+    @assigned_subscription = subscription
 
     if user.apply_subscription!(subscription)
       render json: user_json(user.reload)

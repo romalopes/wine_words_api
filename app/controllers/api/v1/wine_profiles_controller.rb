@@ -1,4 +1,14 @@
 class Api::V1::WineProfilesController < ApplicationController
+  audit_actions :create, :update, :destroy
+
+  def log_description
+    "#{audit_verb} wine profile \"#{@wine_profile.name}\""
+  end
+
+  def log_objects
+    [@wine_profile].compact
+  end
+
   skip_before_action :authenticate_user!, only: [:index, :show, :search]
   def index
     wine_profiles = WineProfile.includes(wine_profile_taste_parameters: :taste_parameter)

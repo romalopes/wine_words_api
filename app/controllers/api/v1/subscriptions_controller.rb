@@ -1,4 +1,14 @@
 class Api::V1::SubscriptionsController < ApplicationController
+  audit_actions :create, :update, :destroy
+
+  def log_description
+    "#{audit_verb} subscription \"#{@subscription.name}\""
+  end
+
+  def log_objects
+    [@subscription].compact
+  end
+
   # Public read of visible+active plans; Admins also see hidden/inactive ones.
   skip_before_action :authenticate_user!, only: :index
 
@@ -19,6 +29,7 @@ class Api::V1::SubscriptionsController < ApplicationController
   # POST /api/v1/subscriptions
   def create
     sub = Subscription.new(subscription_params)
+    @subscription = sub
     if sub.save
       render json: subscription_json(sub), status: :created
     else
@@ -29,6 +40,7 @@ class Api::V1::SubscriptionsController < ApplicationController
   # PATCH /api/v1/subscriptions/:id
   def update
     sub = Subscription.find(params[:id])
+    @subscription = sub
     if sub.update(subscription_params)
       render json: subscription_json(sub)
     else
@@ -40,6 +52,7 @@ class Api::V1::SubscriptionsController < ApplicationController
   # Refuses to destroy plans that have users or history; use active:false / visible:false instead.
   def destroy
     sub = Subscription.find(params[:id])
+    @subscription = sub
     if sub.destroy
       head :no_content
     else

@@ -1,6 +1,27 @@
 class Api::V1::SessionsController < Devise::SessionsController
   respond_to :json
 
+  include Auditable
+  audit_actions login: "login", logout: "logout"
+
+  before_action :remember_user_for_audit
+
+  def log_description
+    if action_name == "create"
+      @audit_user ? "User logged in" : "Login attempt"
+    else
+      @audit_user ? "User logged out" : "Logout"
+    end
+  end
+
+  def log_objects
+    [@audit_user].compact
+  end
+
+  def remember_user_for_audit
+    @audit_user = current_user
+  end
+
   private
 
   def respond_with(current_user, _opts = {})

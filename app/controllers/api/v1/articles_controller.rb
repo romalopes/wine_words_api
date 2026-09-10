@@ -1,4 +1,14 @@
 class Api::V1::ArticlesController < ApplicationController
+  audit_actions :create, :update, :destroy
+
+  def log_description
+    "#{audit_verb} article \"#{@article.title}\""
+  end
+
+  def log_objects
+    [@article].compact
+  end
+
   before_action :authenticate_user!, except: [:index, :show]
   before_action :set_article, only: [:show, :update, :destroy]
   # Only Admins, Editors and Reviewers may create articles.

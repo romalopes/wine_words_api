@@ -1,4 +1,14 @@
 class Api::V1::GrapesController < ApplicationController
+  audit_actions :create, :update, :destroy
+
+  def log_description
+    "#{audit_verb} grape \"#{@grape.name}\""
+  end
+
+  def log_objects
+    [@grape].compact
+  end
+
   before_action :authenticate_user!, except: [:index, :show, :search]
   before_action :ensure_wine_manager!, only: [:create, :update, :destroy, :link_wine]
   before_action :set_grape, only: [:show, :update, :destroy, :link_wine]

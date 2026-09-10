@@ -1,4 +1,14 @@
 class Api::V1::CountriesController < ApplicationController
+  audit_actions :create, :update, :destroy
+
+  def log_description
+    "#{audit_verb} country \"#{@country.name}\""
+  end
+
+  def log_objects
+    [@country].compact
+  end
+
   before_action :authenticate_user!, except: [:index, :show]
   before_action :ensure_manager!, only: [:create, :update, :destroy]
   before_action :set_country, only: [:show, :update, :destroy]

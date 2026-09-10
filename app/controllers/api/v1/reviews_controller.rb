@@ -1,4 +1,15 @@
 class Api::V1::ReviewsController < ApplicationController
+  audit_actions :create, :update, :destroy
+
+  def log_description
+    "#{audit_verb} review for \"#{@review&.vintage&.wine&.name}\""
+  end
+
+  def log_objects
+    [@review, @review&.vintage&.wine, @review&.vintage&.wine&.producer,
+     @review&.user].compact
+  end
+
   # Only Admins, Editors and Reviewers may create reviews.
   before_action :authenticate_user!, except: [:index, :show]
   before_action :ensure_wine_manager!, only: [:create]
@@ -112,6 +123,7 @@ class Api::V1::ReviewsController < ApplicationController
 
   def create
     review = @vintage.reviews.new(review_params)
+    @review = review
     review.user = current_user
 
     if review.title.blank?

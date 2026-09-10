@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_09_000002) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_10_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -223,6 +223,37 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_09_000002) do
     t.string "jti", null: false
     t.datetime "updated_at", null: false
     t.index ["jti"], name: "index_jwt_denylists_on_jti"
+  end
+
+  create_table "log_objects", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "log_id", null: false
+    t.bigint "object_id", null: false
+    t.string "object_label"
+    t.string "object_type", null: false
+    t.datetime "updated_at", null: false
+    t.index ["log_id"], name: "index_log_objects_on_log_id"
+    t.index ["object_type", "object_id"], name: "index_log_objects_on_object_type_and_object_id"
+  end
+
+  create_table "logs", force: :cascade do |t|
+    t.string "action", null: false
+    t.datetime "created_at", null: false
+    t.string "description", null: false
+    t.string "ip_address"
+    t.string "method"
+    t.string "path"
+    t.string "request_id"
+    t.integer "status"
+    t.datetime "updated_at", null: false
+    t.text "user_agent"
+    t.bigint "user_id"
+    t.index ["action"], name: "index_logs_on_action"
+    t.index ["created_at"], name: "index_logs_on_created_at"
+    t.index ["method"], name: "index_logs_on_method"
+    t.index ["request_id"], name: "index_logs_on_request_id"
+    t.index ["status"], name: "index_logs_on_status"
+    t.index ["user_id"], name: "index_logs_on_user_id"
   end
 
   create_table "producer_grapes", force: :cascade do |t|
@@ -727,6 +758,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_09_000002) do
   add_foreign_key "articles", "users"
   add_foreign_key "billing_customers", "users"
   add_foreign_key "grapes", "countries"
+  add_foreign_key "log_objects", "logs"
+  add_foreign_key "logs", "users"
   add_foreign_key "producer_grapes", "grapes"
   add_foreign_key "producer_grapes", "producers"
   add_foreign_key "producer_regions", "producers"

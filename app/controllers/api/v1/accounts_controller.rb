@@ -1,4 +1,18 @@
 class Api::V1::AccountsController < ApplicationController
+  audit_actions update: "account_update", update_password: "password_change"
+
+  def log_description
+    if action_name == "update_password"
+      "Changed password for user \"#{current_user.user_name}\""
+    else
+      "Updated account settings for user \"#{current_user.user_name}\""
+    end
+  end
+
+  def log_objects
+    [current_user, current_user.account].compact
+  end
+
   before_action :authenticate_user!
 
   # GET /api/v1/account — current user's account with nested address.
