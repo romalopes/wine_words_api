@@ -57,6 +57,11 @@ Rails.application.configure do
   # ever add a separate `queue:` sub-connection to config/database.yml,
   # change this to: config.solid_queue.connects_to = { database: { writing: :queue } }
 
+config.logger = ActiveSupport::Logger.new("log/production.log")
+# OR
+  # config.logger = ActiveSupport::Logger.new(STDOUT)
+
+
   # Ignore bad email addresses and do not raise email delivery errors.
   # Set this to true and configure the email server for immediate delivery to raise delivery errors.
   # config.action_mailer.raise_delivery_errors = false
