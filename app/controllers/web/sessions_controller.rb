@@ -1,6 +1,6 @@
 module Web
   class SessionsController < BaseController
-    audit_actions login: "login", logout: "logout"
+        audit_actions :create, :destroy
 
     before_action :remember_user_for_audit
 

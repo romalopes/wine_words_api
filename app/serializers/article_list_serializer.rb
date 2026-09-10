@@ -14,7 +14,7 @@ class ArticleListSerializer
       title: @article.title,
       abstract: @article.abstract,
       status: @article.status,
-      author_name: @article.user&.name || @article.user&.email || "Unknown",
+      author_name: @article.user&.user_name || @article.user&.email || "Unknown",
       user_id: @article.user_id,
       category: @article.categories.map(&:name).join(", ").presence,
       categories: @article.categories.map { |c| { id: c.id, name: c.name, slug: c.slug } },

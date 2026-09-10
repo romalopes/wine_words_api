@@ -7,6 +7,15 @@ class Api::V1::WebhooksController < ActionController::Base
   before_action :verify_stripe_webhook
 
   def stripe
+    Rails.logger.info "[Stripe Webhook] === INCOMING WEBHOOK ==="
+    Rails.logger.info "[Stripe Webhook] Req UUID: #{request.uuid}"
+    Rails.logger.info "[Stripe Webhook] Content-Type: #{request.content_type}"
+    sig = request.headers["HTTP_STRIPE_SIGNATURE"] || request.headers["Stripe-Signature"] || "(missing)"
+    Rails.logger.info "[Stripe Webhook] Sig header present: #{sig != "(missing)"}"
+    body_size = request.body.read.length
+    Rails.logger.info "[Stripe Webhook] Body size: #{body_size} bytes"
+    request.body.rewind
+
     # Parse the verified event.
     event = @stripe_event
 
@@ -17,12 +26,16 @@ class Api::V1::WebhooksController < ActionController::Base
       event_type: event.type,
       payload: event.to_hash
     )
+    Rails.logger.info "[Stripe Webhook] Event parsed - type: #{event.type}, id: #{event.id}"
 
     # If the event was already processed, acknowledge it silently (Stripe expects 200).
     if claimed.nil?
+      Rails.logger.info "[Stripe Webhook] Event #{event.id} already processed - skipping (idempotent)"
       head :ok
       return
     end
+
+    Rails.logger.info "[Stripe Webhook] Dispatch event #{event.id} (#{event.type}) to handler"
 
     # Dispatch to the appropriate handler based on event type.
     # Supported events are expanded incrementally as needed (Stage E).
@@ -45,6 +58,7 @@ class Api::V1::WebhooksController < ActionController::Base
       Rails.logger.info "[Stripe Webhook] Unhandled event type: #{event.type} (#{event.id})"
     end
 
+    Rails.logger.info "[Stripe Webhook] Event #{event.id} processed successfully"
     head :ok
   rescue Billing::Error => e
     Rails.logger.error "[Stripe Webhook] Processing error: #{e.message}"
@@ -69,40 +83,49 @@ class Api::V1::WebhooksController < ActionController::Base
   # ── Event handlers (filled out in Stage E) ──────────────────────────────
 
   def handle_checkout_completed(checkout_session)
-    # A checkout completed successfully. The subscription was created by
-    # Stripe; we record it against the user and activate the plan directly
-    # from the session metadata (robust even if the customer mapping is
-    # out of sync).
+    session_id = checkout_session["id"]
     provider_sub_id = checkout_session["subscription"]
-    return if provider_sub_id.nil?
+    if provider_sub_id.blank?
+      Rails.logger.warn "[Stripe Webhook] checkout.session.completed: no subscription id in session #{session_id}"
+      return
+    end
 
     customer_id = checkout_session["customer"]
     metadata = checkout_session["metadata"] || {}
     billing_price_id = metadata["billing_price_id"]
-    billing_price = billing_price_id.present? ? SubscriptionBillingPrice.find_by(id: billing_price_id) : nil
-    return if billing_price.nil?
 
-    # Map the Stripe customer used at checkout back to the user, creating or
-    # correcting the mapping if needed (e.g. checkouts made before the
-    # session passed `customer:`).
+    if billing_price_id.blank?
+      Rails.logger.warn "[Stripe Webhook] checkout.session.completed: no billing_price_id in metadata for session #{session_id}"
+      return
+    end
+
+    billing_price = SubscriptionBillingPrice.find_by(id: billing_price_id)
+    if billing_price.nil?
+      Rails.logger.warn "[Stripe Webhook] checkout.session.completed: SubscriptionBillingPrice #{billing_price_id} not found (session #{session_id})"
+      return
+    end
+
     billing_customer = BillingCustomer.find_by(provider: "stripe", provider_customer_id: customer_id)
     if billing_customer.nil?
       email = checkout_session.dig("customer_details", "email")
       user = email && User.find_by(email: email)
       user ||= billing_price.subscription.user_subscriptions.current.first&.user
-      return if user.nil?
+      if user.nil?
+        Rails.logger.warn "[Stripe Webhook] checkout.session.completed: no BillingCustomer for stripe customer #{customer_id}, no user for email #{email.inspect}, and no existing subscriber for subscription #{billing_price.subscription_id} (session #{session_id})"
+        return
+      end
 
       billing_customer = BillingCustomer.find_or_create_by!(
         user: user,
         provider: "stripe"
       ) { |bc| bc.provider_customer_id = customer_id }
-      billing_customer.update!(provider_customer_id: customer_id) if billing_customer.provider_customer_id != customer_id
+      if billing_customer.provider_customer_id != customer_id
+        billing_customer.update!(provider_customer_id: customer_id)
+      end
+      Rails.logger.info "[Stripe Webhook] Created BillingCustomer #{billing_customer.id} for user #{user.id} from checkout session #{session_id}"
     end
 
-    Rails.logger.info(
-      "[Stripe Webhook] Checkout completed: customer=#{customer_id} subscription=#{provider_sub_id} " \
-      "user=#{billing_customer.user_id} price=#{billing_price.id}"
-    )
+    Rails.logger.info "[Stripe Webhook] Checkout completed: session=#{session_id} customer=#{customer_id} subscription=#{provider_sub_id} user=#{billing_customer.user_id} price=#{billing_price.id}"
 
     Billing::Subscription.apply(
       user: billing_customer.user,
@@ -110,6 +133,11 @@ class Api::V1::WebhooksController < ActionController::Base
       billing_provider: "stripe",
       provider_subscription_id: provider_sub_id
     )
+
+    Rails.logger.info "[Stripe Webhook] Subscription applied: user #{billing_customer.user_id} -> #{billing_price.subscription_id} (provider sub #{provider_sub_id})"
+  rescue => e
+    Rails.logger.error "[Stripe Webhook] handle_checkout_completed FAILED: #{e.class}: #{e.message}\n#{e.backtrace&.first(5)&.join("\n")}"
+    raise
   end
 
   def handle_subscription_change(subscription_data)

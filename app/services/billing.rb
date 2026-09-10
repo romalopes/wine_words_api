@@ -37,6 +37,7 @@ module Billing
 
   # Named generic operations, delegating to the resolved provider.
   def self.checkout; Billing::Checkout; end
+  def self.confirm_checkout; Billing::ConfirmCheckout; end
   def self.customer; Billing::Customer; end
   def self.subscription; Billing::Subscription; end
   def self.portal; Billing::Portal; end

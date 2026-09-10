@@ -15,16 +15,6 @@ class Api::V1::UsersController < ApplicationController
     [current_user, @target_user, @assigned_subscription].compact
   end
 
-  private
-
-  def audit_roles_diff
-    from = Array(@role_change_from).join(", ")
-    to = Array(@role_change_to).join(", ")
-    return "" if from.blank? || from == to
-
-    " (from #{from} to #{to})"
-  end
-
   def me
     current_sub = current_user.user_subscriptions.current.first
     render json: {
@@ -50,8 +40,8 @@ class Api::V1::UsersController < ApplicationController
       if query.blank?
         User.order(:name).limit(20)
       else
-        User.where("name ILIKE ? OR email ILIKE ?", "%#{query}%", "%#{query}%")
-            .order(:name).limit(20)
+        User.where("user_name ILIKE ? OR email ILIKE ?", "%#{query}%", "%#{query}%")
+            .order(:user_name).limit(20)
       end
 
     render json: users.map { |u| user_json(u) }
@@ -96,6 +86,14 @@ class Api::V1::UsersController < ApplicationController
   end
 
   private
+
+  def audit_roles_diff
+    from = Array(@role_change_from).join(", ")
+    to = Array(@role_change_to).join(", ")
+    return "" if from.blank? || from == to
+
+    " (from #{from} to #{to})"
+  end
 
   def user_json(user)
     {

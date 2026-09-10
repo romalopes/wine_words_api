@@ -97,11 +97,13 @@ module Billing
       end
 
       def self.verify_webhook(payload, signature)
+        Rails.logger.info "[Stripe Webhook] verify_webhook: payload size #{payload.bytesize} bytes, signature present: #{signature.present?}"
         api_event = ::Stripe::Webhook.construct_event(
           payload,
           signature,
           ENV.fetch("STRIPE_WEBHOOK_SECRET")
         )
+        Rails.logger.info "[Stripe Webhook] verify_webhook: event=#{api_event.id} type=#{api_event.type}"
         api_event
       end
     end

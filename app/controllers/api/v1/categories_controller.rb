@@ -132,7 +132,7 @@ class Api::V1::CategoriesController < ApplicationController
           id: article.id,
           title: article.title,
           status: article.status,
-          author: article.user&.name.presence || article.user&.email,
+          author: article.user&.user_name.presence || article.user&.email,
           published_at: article.published_at&.iso8601
         }
       end

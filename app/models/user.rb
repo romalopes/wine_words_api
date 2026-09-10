@@ -80,27 +80,36 @@ class User < ApplicationRecord
   def apply_subscription!(new_subscription, billing_provider: "manual", provider_subscription_id: nil)
     return if new_subscription.nil?
 
+    Rails.logger.info "[User] apply_subscription! called: user_id=#{id} subscription_id=#{new_subscription.id} billing_provider=#{billing_provider} provider_subscription_id=#{provider_subscription_id}"
+
     new_base = new_subscription.free? ? "Guest" : "Reader"
     current_base = roles.where(name: BASE_ROLES).pick(:name)
     changing_base = (current_base != new_base)
+    Rails.logger.info "[User] apply_subscription!: current_base=#{current_base} new_base=#{new_base} changing_base=#{changing_base}"
 
     transaction do
       user_subscriptions.current.update_all(ended_at: Time.current)
-      user_subscriptions.create!(
+      Rails.logger.info "[User] apply_subscription!: ended previous subscriptions for user #{id}"
+
+      new_us = user_subscriptions.create!(
         subscription: new_subscription,
         started_at: Time.current,
         status: :active,
         billing_provider: billing_provider,
         provider_subscription_id: provider_subscription_id
       )
+      Rails.logger.info "[User] apply_subscription!: created user_subscription id=#{new_us.id} for user #{id}"
 
       if changing_base
         roles.delete(Role.where(name: BASE_ROLES))
         roles << Role.find_or_create_by!(name: new_base)
+        Rails.logger.info "[User] apply_subscription!: changed base role from #{current_base} to #{new_base}"
       end
 
       update!(subscription: new_subscription)
     end
+
+    Rails.logger.info "[User] apply_subscription! completed: user #{id} now on subscription #{new_subscription.id}"
   end
 
   private

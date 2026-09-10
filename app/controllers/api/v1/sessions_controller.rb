@@ -2,7 +2,7 @@ class Api::V1::SessionsController < Devise::SessionsController
   respond_to :json
 
   include Auditable
-  audit_actions login: "login", logout: "logout"
+      audit_actions :create, :destroy
 
   before_action :remember_user_for_audit
 

@@ -19,7 +19,7 @@ class ReviewSerializer
       drink_to: @review.drink_to,
       drink_plus: @review.drink_plus,
       user_id: @review.user_id,
-      reviewer_name: @review.user&.name || @review.user&.email || "Unknown",
+      reviewer_name: @review.user&.user_name || @review.user&.email || "Unknown",
       vintage_id: @review.vintage_id,
       vintage_year: @review.vintage&.year,
       vintage_no_vintage: @review.vintage&.no_vintage,

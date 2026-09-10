@@ -17,12 +17,13 @@ class Api::V1::SubscriptionsController < ApplicationController
   # GET /api/v1/subscriptions
   def index
     subs = current_user&.admin? ? Subscription.all : Subscription.active.visible
+    subs = subs.includes(subscription_subscription_features: :subscription_feature)
     render json: subs.by_position.map { |s| subscription_json(s) }
   end
 
   # GET /api/v1/subscriptions/:id
   def show
-    sub = Subscription.find(params[:id])
+    sub = Subscription.includes(subscription_subscription_features: :subscription_feature).find(params[:id])
     render json: subscription_json(sub)
   end
 

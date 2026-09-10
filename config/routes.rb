@@ -184,6 +184,8 @@ Rails.application.routes.draw do
       # Billing — checkout session and customer portal (authenticated).
       post "billing/checkout", to: "billing#checkout"
       post "billing/portal", to: "billing#portal"
+      # Reconcile a Checkout Session after Stripe redirects back (no webhook needed).
+      post "billing/confirm", to: "billing#confirm"
 
       # Stripe webhook (no authentication — verified via webhook signature).
       post "webhooks/stripe", to: "webhooks#stripe"

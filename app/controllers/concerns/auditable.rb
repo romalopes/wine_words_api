@@ -22,7 +22,7 @@ module Auditable
 
   included do
     class_attribute :audited_actions, instance_writer: false
-    self.audited_actions = [].freeze
+    self.audited_actions = {}.freeze
 
     after_action :write_audit_log, if: :audit_this_action?
   end
@@ -31,7 +31,13 @@ module Auditable
     # audit_actions :create, :update
     # audit_actions login: "authentication"   # custom action name
     def audit_actions(*actions)
-      mapped = actions.map { |a| a.is_a?(Hash) ? a : [a.to_s, a.to_s] }.to_h
+      mapped = actions.each_with_object({}) do |a, hash|
+        if a.is_a?(Hash)
+          hash.merge!(a.transform_keys(&:to_s))
+        else
+          hash[a.to_s] = a.to_s
+        end
+      end
       self.audited_actions = (audited_actions || {}).merge(
         mapped.transform_keys(&:to_s)
       ).freeze
@@ -59,7 +65,7 @@ module Auditable
   def write_audit_log
     LogService.log(
       description: (log_description if respond_to?(:log_description, true)) ||
-                   "#{audited_actions[action_name]} #{action_name}",
+                   "#{audit_action_name} #{action_name}",
       user: respond_to?(:current_user, true) ? current_user : nil,
       action: audit_action_name,
       method: request.request_method,

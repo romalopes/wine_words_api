@@ -17,7 +17,7 @@ class ArticleSerializer
       body: @article.body,
       status: @article.status,
       user_id: @article.user_id,
-      author_name: @article.user&.name || @article.user&.email || "Unknown",
+      author_name: @article.user&.user_name || @article.user&.email || "Unknown",
       published_at: @article.published_at&.iso8601,
       created_at: @article.created_at&.iso8601,
       updated_at: @article.updated_at&.iso8601,
@@ -73,7 +73,7 @@ class ArticleSerializer
         score: review.score&.to_f,
         status: review.status,
         comment: review.comment,
-        reviewer_name: review.user&.name || review.user&.email || "Unknown",
+        reviewer_name: review.user&.user_name || review.user&.email || "Unknown",
         link_status: link&.status
       }
     end
