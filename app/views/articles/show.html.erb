@@ -3,10 +3,10 @@
   <%= back_to_source_link %>
   <%= link_to "← All articles", articles_path, class: "back-link" %>
 
-  <% if @article.images.attached? %>
+  <% if @article.images.any? %>
     <div class="image-gallery">
-      <% @article.images.each do |image| %>
-        <%= image_tag url_for(image), class: "gallery-img", alt: @article.title %>
+      <% @article.images.ordered.each do |image| %>
+        <%= image_tag url_for(image.file), class: "gallery-img", alt: @article.title %>
       <% end %>
     </div>
   <% end %>
@@ -70,8 +70,8 @@
       <% @article.vintages.includes(:wine).order("wines.name", year: :desc).each do |vintage| %>
         <div class="card-wrapper">
           <%= link_to return_to_link(wine_path(vintage.wine.slug)), class: "wine-card #{wine_color_class(vintage.wine)}" do %>
-            <% if vintage.wine.images.attached? %>
-              <%= image_tag url_for(vintage.wine.images.first), class: "card-thumb", alt: vintage.wine.name %>
+            <% if vintage.wine.images.any? %>
+              <%= image_tag primary_image_url(vintage.wine), class: "card-thumb", alt: vintage.wine.name %>
             <% end %>
             <div class="wine-card__band"></div>
             <div class="wine-card__content">

@@ -1,11 +1,12 @@
 class Producer < ApplicationRecord
+  include Imageable
+
   MAX_LOGO_SIZE = 10.megabytes
   MAX_LOGO_DIMENSION = 5000
   ALLOWED_LOGO_TYPES = %w[image/png image/jpeg image/gif image/webp image/svg+xml].freeze
   DEFAULT_COUNTRY_CODE = "AU"
 
   has_many :wines
-  has_many_attached :images
   has_one_attached :logo
 
   belongs_to :country

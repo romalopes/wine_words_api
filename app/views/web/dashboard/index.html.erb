@@ -47,8 +47,8 @@
     <% @recent_articles.each do |article| %>
       <div class="card-wrapper">
         <%= link_to article_path(article), class: "wine-card" do %>
-          <% if article.images.attached? %>
-            <%= image_tag url_for(article.images.first), class: "card-thumb", alt: article.title %>
+          <% if article.images.any? %>
+            <%= image_tag primary_image_url(article), class: "card-thumb", alt: article.title %>
           <% end %>
           <div class="wine-card__band"></div>
           <div class="wine-card__content">

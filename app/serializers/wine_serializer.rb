@@ -1,4 +1,6 @@
 class WineSerializer
+  include ImageAttributes
+
   def initialize(wine, base_url = nil)
     @wine = wine
     @base_url = base_url
@@ -20,6 +22,8 @@ class WineSerializer
       designation_name: @wine.designation_name,
             images: image_urls(@wine),
       image_ids: image_ids(@wine),
+      image_details: image_details(@wine),
+      primary_image: primary_image(@wine),
       producer: producer,
       category: @wine.categories.map(&:name).join(", ").presence,
       category_id: @wine.category_id,
@@ -41,20 +45,6 @@ class WineSerializer
   end
 
   private
-
-  def image_urls(record)
-    return [] unless record.images.attached?
-
-    record.images.map do |image|
-      Rails.application.routes.url_helpers.rails_blob_url(image, host: @base_url || "localhost:3000")
-    end
-  end
-
-  def image_ids(record)
-    return [] unless record.images.attached?
-
-    record.images.map(&:id)
-  end
 
   def producer
     return nil unless @wine.producer

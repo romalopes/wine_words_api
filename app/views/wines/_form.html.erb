@@ -286,12 +286,12 @@
   </div>
   <div><%= f.submit class: "btn" %></div>
 <% end %>
-<% if @wine.images.attached? %>
+<% if @wine.images.any? %>
   <div class="image-gallery">
     <p class="lede">Existing images (click Remove to delete)</p>
-    <% @wine.images.each do |image| %>
+    <% @wine.images.ordered.each do |image| %>
       <div class="image-gallery__item">
-        <%= image_tag url_for(image), class: "gallery-img", alt: @wine.name %>
+        <%= image_tag url_for(image.file), class: "gallery-img", alt: @wine.name %>
         <%= button_to "Remove", purge_image_wine_path(@wine.slug), method: :patch, params: { image_id: image.id }, class: "image-gallery__remove" %>
       </div>
     <% end %>

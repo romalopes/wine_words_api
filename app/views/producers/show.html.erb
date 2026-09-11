@@ -17,10 +17,10 @@
       <%= image_tag url_for(@producer.logo), style: "max-width:180px;", alt: "#{@producer.name} logo" %>
     </div>
   <% end %>
-  <% if @producer.images.attached? %>
+  <% if @producer.images.any? %>
     <div class="image-gallery">
-      <% @producer.images.each do |image| %>
-        <%= image_tag url_for(image), class: "gallery-img", alt: @producer.name %>
+      <% @producer.images.ordered.each do |image| %>
+        <%= image_tag url_for(image.file), class: "gallery-img", alt: @producer.name %>
       <% end %>
     </div>
   <% end %>

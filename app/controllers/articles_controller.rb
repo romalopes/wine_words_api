@@ -83,8 +83,7 @@ class ArticlesController < ActionController::Base
   def purge_image
     return redirect_to articles_path, alert: "Not allowed." unless @article.user_id == current_user&.id
 
-    attachment = @article.images.find_by(id: params[:image_id])
-    attachment&.purge
+    ImageService.remove(@article, params[:image_id])
     redirect_to edit_article_path(@article), notice: "Image removed."
   end
 
@@ -184,7 +183,7 @@ class ArticlesController < ActionController::Base
 
   def attach_images
     images = params[:article][:images]
-    @article.images.attach(images) if images.is_a?(Array)
+    ImageService.attach(@article, images)
   end
 
   # Links the picked reviews (from the new-article picker) after save.

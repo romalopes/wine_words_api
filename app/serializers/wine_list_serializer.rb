@@ -4,6 +4,8 @@
 # taste parameters, region countries, image blobs) that dominates response
 # size and slows the "All Wines" page as the wine library grows.
 class WineListSerializer
+  include ImageAttributes
+
   def initialize(wine, base_url = nil, vintage_counts = {})
     @wine = wine
     @base_url = base_url
@@ -27,14 +29,6 @@ class WineListSerializer
   end
 
   private
-
-  def image_urls(record)
-    return [] unless record.images.attached?
-
-    record.images.map do |image|
-      Rails.application.routes.url_helpers.rails_blob_url(image, host: @base_url || "localhost:3000")
-    end
-  end
 
   def producer
     return nil unless @wine.producer

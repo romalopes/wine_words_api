@@ -2,6 +2,8 @@
 # Ships only the fields the list/table UIs render, avoiding the full detail
 # payload (images, comment, drink window, etc.) that dominates response size.
 class ReviewListSerializer
+  include ImageAttributes
+
   def initialize(review, base_url = nil)
     @review = review
     @base_url = base_url
@@ -22,7 +24,19 @@ class ReviewListSerializer
       category: @review.categories.map(&:name).join(", ").presence,
       categories: @review.categories.map { |c| { id: c.id, name: c.name, slug: c.slug } },
       published_at: @review.published_at&.iso8601,
-      created_at: @review.created_at&.iso8601
+      created_at: @review.created_at&.iso8601,
+      images: image_urls(@review),
+      wine_image: wine_image_url
     }
+  end
+
+  private
+
+  def wine_image_url
+    wine = @review.vintage&.wine
+    return nil unless wine&.images&.any?
+
+    primary = wine&.images&.ordered&.find(&:primary?) || wine&.images&.ordered&.first
+    primary&.file&.attached? ? blob_url(primary.file.blob) : nil
   end
 end

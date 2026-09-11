@@ -1,4 +1,17 @@
 module ApplicationHelper
+  # The primary (or first) image's file attachment, or nil. Used by views that
+  # render a single thumbnail via `image_tag url_for(primary_image_file(record))`.
+  def primary_image_file(record)
+    img = record.images.ordered.find(&:primary?) || record.images.ordered.first
+    img&.file&.attached? ? img.file : nil
+  end
+
+  # URL of the primary (or first) image, or nil.
+  def primary_image_url(record)
+    file = primary_image_file(record)
+    file && url_for(file)
+  end
+
   # Version constants shown in the site footer (kept in sync with the React app).
   # The backend version comes from the VERSION file via config/initializers/app_version.rb,
   # so it stays in sync with what Api::V1::HealthController reports.

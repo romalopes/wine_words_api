@@ -24,7 +24,7 @@ class ProducersController < ActionController::Base
   def create
     @producer = Producer.new(producer_params)
     if @producer.save
-      @producer.images.attach(params[:producer][:images]) if params[:producer][:images].present?
+      ImageService.attach(@producer, params[:producer][:images]) if params[:producer][:images].present?
       attach_logo
       redirect_to @producer, notice: "Producer was successfully created."
     else
@@ -38,7 +38,7 @@ class ProducersController < ActionController::Base
 
   def update
     if @producer.update(producer_params)
-      @producer.images.attach(params[:producer][:images]) if params[:producer][:images].present?
+      ImageService.attach(@producer, params[:producer][:images]) if params[:producer][:images].present?
       attach_logo
       redirect_to @producer, notice: "Producer was successfully updated."
     else

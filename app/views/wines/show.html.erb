@@ -12,10 +12,10 @@
       <%= button_to "Delete Wine", wine_path(@wine.slug), method: :delete, class: "btn", onclick: %(return confirm('Delete this item? This action cannot be undone.')) %>
     </div>
   <% end %>
-  <% if @wine.images.attached? %>
+  <% if @wine.images.any? %>
     <div class="image-gallery">
-      <% @wine.images.each do |image| %>
-        <%= image_tag url_for(image), class: "gallery-img", alt: @wine.name %>
+      <% @wine.images.ordered.each do |image| %>
+        <%= image_tag url_for(image.file), class: "gallery-img", alt: @wine.name %>
       <% end %>
     </div>
   <% end %>

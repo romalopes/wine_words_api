@@ -22,10 +22,10 @@
       <%= button_to "Delete Review", review_path(@review), method: :delete, class: "btn", onclick: %(return confirm('Delete this review? This action cannot be undone.')) %>
     </div>
   <% end %>
-  <% if @review.images.attached? %>
+  <% if @review.images.any? %>
     <div class="image-gallery">
-      <% @review.images.each do |image| %>
-        <%= image_tag url_for(image), class: "gallery-img", alt: @review.title %>
+      <% @review.images.ordered.each do |image| %>
+        <%= image_tag url_for(image.file), class: "gallery-img", alt: @review.title %>
       <% end %>
     </div>
   <% end %>

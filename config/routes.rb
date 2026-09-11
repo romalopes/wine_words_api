@@ -103,6 +103,8 @@ Rails.application.routes.draw do
       get "logs/:id", to: "logs#show"
       post "images", to: "images#create"
       delete "images/:id", to: "images#destroy"
+      patch "images/reorder", to: "images#reorder"
+      patch "images/:id/primary", to: "images#set_primary"
       resources :producers do
         collection do
           get :search

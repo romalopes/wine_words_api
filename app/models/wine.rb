@@ -1,7 +1,8 @@
 class Wine < ApplicationRecord
+  include Imageable
+
   belongs_to :producer
   belongs_to :category, optional: true
-  has_many_attached :images
 
   has_many :wine_taste_parameters, dependent: :destroy
   has_many :taste_parameters, through: :wine_taste_parameters

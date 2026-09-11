@@ -49,7 +49,7 @@
             </div>
           <% end %>
           <%= link_to review_path(review), class: "review-card #{review_status_class(review)}" do %>
-            <% thumb = review.images.attached? ? review.images.first : review.vintage&.wine&.images&.first %>
+            <% thumb = primary_image_file(review) || primary_image_file(review.vintage&.wine) %>
             <% if thumb %>
               <%= image_tag url_for(thumb), class: "card-thumb", alt: review.title.presence || review.vintage&.name %>
             <% end %>

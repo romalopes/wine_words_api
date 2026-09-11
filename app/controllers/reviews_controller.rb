@@ -86,8 +86,7 @@ class ReviewsController < ActionController::Base
     @review = Review.find_by(slug: params[:id]) || Review.find(params[:id])
     return redirect_to reviews_url, alert: "Not allowed." unless @review.user_id == current_user&.id
 
-    attachment = @review.images.find_by(id: params[:image_id])
-    attachment&.purge
+    ImageService.remove(@review, params[:image_id])
     redirect_to edit_review_path(@review), notice: "Image removed."
   end
 
@@ -122,7 +121,7 @@ class ReviewsController < ActionController::Base
 
   def attach_images
     images = params[:review][:images]
-    @review.images.attach(images) if images.is_a?(Array)
+    ImageService.attach(@review, images)
   end
 
     # :comment, :score, :vintage_id, :status, :published_at

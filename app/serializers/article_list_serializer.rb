@@ -1,7 +1,10 @@
 # Lean serializer used by Api::V1::ArticlesController#index (list views) only.
 # Ships only the fields the list/table UIs render, avoiding the full detail
-# payload (body, tags, wines, producers, reviews, images, etc.).
+# payload (body, tags, wines, producers, reviews, etc.). Images are included
+# so the card grid can show a thumbnail per article.
 class ArticleListSerializer
+  include ImageAttributes
+
   def initialize(article, base_url = nil)
     @article = article
     @base_url = base_url
@@ -19,7 +22,8 @@ class ArticleListSerializer
       category: @article.categories.map(&:name).join(", ").presence,
       categories: @article.categories.map { |c| { id: c.id, name: c.name, slug: c.slug } },
       published_at: @article.published_at&.iso8601,
-      created_at: @article.created_at&.iso8601
+      created_at: @article.created_at&.iso8601,
+      images: image_urls(@article)
     }
   end
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_10_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_11_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -215,6 +215,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_10_000001) do
     t.index ["country_id"], name: "index_grapes_on_country_id"
     t.index ["name"], name: "index_grapes_on_name", unique: true
     t.index ["slug"], name: "index_grapes_on_slug", unique: true
+  end
+
+  create_table "images", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "imageable_id", null: false
+    t.string "imageable_type", null: false
+    t.integer "position", default: 0, null: false
+    t.boolean "primary", default: false, null: false
+    t.datetime "updated_at", null: false
+    t.index ["imageable_type", "imageable_id", "position"], name: "index_images_on_imageable_and_position"
+    t.index ["imageable_type", "imageable_id"], name: "index_images_on_imageable_type_and_imageable_id"
   end
 
   create_table "jwt_denylists", force: :cascade do |t|

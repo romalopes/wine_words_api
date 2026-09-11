@@ -3,6 +3,8 @@
 # render: body, tags, categories, linked producers/vintages/reviews (with the
 # per-link status), and image URLs.
 class ArticleSerializer
+  include ImageAttributes
+
   def initialize(article, base_url = nil)
     @article = article
     @base_url = base_url
@@ -25,7 +27,10 @@ class ArticleSerializer
       tag_names: @article.tags.map(&:name).join(", "),
       categories: categories,
       category_ids: @article.categories.map(&:id),
-      images: image_urls,
+      images: image_urls(@article),
+      image_ids: image_ids(@article),
+      image_details: image_details(@article),
+      primary_image: primary_image(@article),
       producers: producers,
       producer_ids: @article.producers.map(&:id),
       vintages: vintages,
@@ -76,14 +81,6 @@ class ArticleSerializer
         reviewer_name: review.user&.user_name || review.user&.email || "Unknown",
         link_status: link&.status
       }
-    end
-  end
-
-  def image_urls
-    return [] unless @article.images.attached?
-
-    @article.images.map do |image|
-      Rails.application.routes.url_helpers.rails_blob_url(image, host: @base_url || "localhost:3000")
     end
   end
 end

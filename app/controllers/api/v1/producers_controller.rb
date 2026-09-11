@@ -205,10 +205,11 @@ class Api::V1::ProducersController < ApplicationController
   end
 
   def image_urls(record)
-    return [] unless record.images.attached?
-
-    record.images.map do |image|
-      Rails.application.routes.url_helpers.rails_blob_url(image, host: request.base_url)
+    record.images.ordered.filter_map do |image|
+      Rails.application.routes.url_helpers.rails_blob_url(
+        image.file.blob,
+        host: request.base_url
+      ) if image.file.attached?
     end
   end
 end

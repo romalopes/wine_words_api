@@ -79,8 +79,7 @@ class WinesController < ActionController::Base
 
   def purge_image
     @wine = Wine.find_by!(slug: params[:id])
-    attachment = @wine.images.find_by(id: params[:image_id])
-    attachment&.purge
+    ImageService.remove(@wine, params[:image_id])
     redirect_to edit_wine_path(@wine.slug), notice: "Image removed."
   end
 
@@ -148,7 +147,7 @@ class WinesController < ActionController::Base
 
   def attach_images
     images = params[:wine][:images]
-    @wine.images.attach(images) if images.is_a?(Array)
+    ImageService.attach(@wine, images)
   end
 
   # Removes any taste-parameter rows whose taste_parameter_id was not part of

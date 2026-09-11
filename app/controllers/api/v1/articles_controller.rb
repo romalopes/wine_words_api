@@ -19,7 +19,7 @@ class Api::V1::ArticlesController < ApplicationController
     # Content managers see everything (including drafts); everyone else sees
     # only what's visible to them (published + their own drafts).
     articles = articles.visible_to(current_user) unless current_user&.wine_manager?
-    articles = articles.joins(:article_categories).where(article_categories: { category_id: params[:category_id] }) if params[:category_id].present?
+    articles = articles.joins(:article_categories).where(article_categories: { category_id: params[:category_id] }).distinct if params[:category_id].present?
     articles = articles.left_outer_joins(:article_categories).where(article_categories: { id: nil }) if params[:uncategorised] == "true"
     articles = articles.where("articles.title ILIKE ?", "%#{params[:query].strip}%") if params[:query].present?
     return if render_paginated(articles) { |items| items.map { |a| ArticleListSerializer.new(a, request.base_url).as_json } }
@@ -36,7 +36,9 @@ class Api::V1::ArticlesController < ApplicationController
 
     rows = Article.find_by_sql([<<~SQL, per_group])
       SELECT sub.* FROM (
-        SELECT articles.*, COALESCE(ac.category_id, 0) AS grouped_cat_id,
+        SELECT DISTINCT articles.id, articles.title, articles.abstract, articles.status,
+               articles.user_id, articles.created_at, articles.updated_at,
+               COALESCE(ac.category_id, 0) AS grouped_cat_id,
                ROW_NUMBER() OVER (
                  PARTITION BY COALESCE(ac.category_id, 0)
                  ORDER BY articles.created_at DESC
@@ -103,7 +105,11 @@ class Api::V1::ArticlesController < ApplicationController
     article = Article.new(article_params)
     article.user = current_user
     if article.save
-      attach_images(article)
+      image_errors = attach_images(article)
+      if image_errors.any?
+        return render json: { errors: image_errors }, status: :unprocessable_entity
+      end
+
       render json: ArticleSerializer.new(article, request.base_url).as_json, status: :created
     else
       render json: { errors: article.errors.full_messages }, status: :unprocessable_entity
@@ -116,7 +122,11 @@ class Api::V1::ArticlesController < ApplicationController
     end
 
     if @article.update(article_params)
-      attach_images(@article)
+      image_errors = attach_images(@article)
+      if image_errors.any?
+        return render json: { errors: image_errors }, status: :unprocessable_entity
+      end
+
       render json: ArticleSerializer.new(@article, request.base_url).as_json
     else
       render json: { errors: @article.errors.full_messages }, status: :unprocessable_entity
@@ -151,9 +161,15 @@ class Api::V1::ArticlesController < ApplicationController
   end
 
   def attach_images(article)
-    return unless params[:article][:images].present?
+    files = params[:article]&.delete(:images)
+    return [] unless files.present?
 
-    article.images.attach(params[:article][:images])
+    Array(files).compact_blank.flat_map do |file|
+      img = Image.new(imageable: article)
+      img.file.attach(file)
+      img.save
+      img.errors.full_messages
+    end
   end
 
   def article_params

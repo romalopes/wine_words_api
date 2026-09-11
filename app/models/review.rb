@@ -1,5 +1,6 @@
 class Review < ApplicationRecord
-  has_many_attached :images
+  include Imageable
+
   belongs_to :vintage
   belongs_to :user
   belongs_to :category, optional: true

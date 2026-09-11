@@ -32,8 +32,8 @@
             </div>
           <% end %>
           <%= link_to wine_path(wine.slug), class: "wine-card #{wine_color_class(wine)}" do %>
-            <% if wine.images.attached? %>
-              <%= image_tag url_for(wine.images.first), class: "card-thumb", alt: wine.name %>
+            <% if wine.images.any? %>
+              <%= image_tag primary_image_url(wine), class: "card-thumb", alt: wine.name %>
             <% end %>
             <div class="wine-card__band"></div>
             <div class="wine-card__content">
