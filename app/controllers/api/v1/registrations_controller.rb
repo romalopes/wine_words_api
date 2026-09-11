@@ -1,7 +1,27 @@
 class Api::V1::RegistrationsController < Devise::RegistrationsController
   respond_to :json
 
+  include Auditable
+  # Sign-up is a meaningful auditable event (it creates a new user).
+  audit_actions :create
+
   private
+
+  # The user this sign-up attempt is about: the freshly signed-in user after
+  # a successful sign-up, the (unpersisted) resource on failure, and nil when
+  # the request never produced a resource (e.g. malformed params).
+  def audit_user
+    current_user || (resource if resource&.persisted?)
+  end
+
+  def log_description
+    user = audit_user
+    user ? "New user signed up: #{user.user_name} (#{user.email})" : "Failed sign-up attempt"
+  end
+
+  def log_objects
+    [audit_user].compact
+  end
 
   def sign_up_params
     params.require(:user).permit(:user_name, :email, :password, :password_confirmation)

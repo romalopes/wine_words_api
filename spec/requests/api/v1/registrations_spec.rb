@@ -55,4 +55,41 @@ RSpec.describe "Api::V1::Registrations", type: :request do
       expect(user_hash).to have_key("subscription_status")
     end
   end
+
+  describe "audit logging" do
+    let(:valid_params) do
+      {
+        user: {
+          user_name: "newuser",
+          email: "newuser@example.com",
+          password: "password123",
+          password_confirmation: "password123"
+        }
+      }
+    end
+
+    it "writes an audit log entry for a successful sign-up" do
+      post "/api/v1/auth/sign_up", params: valid_params, as: :json
+      expect(response).to have_http_status(:created)
+
+      log = Log.find_by(action: "create")
+      expect(log).to be_present
+      expect(log.description).to include("newuser")
+      expect(log.user.email).to eq("newuser@example.com")
+      expect(log.log_objects.map(&:object_type)).to eq(["User"])
+      expect(log.log_objects.first.object_id).to eq(User.find_by(email: "newuser@example.com").id)
+    end
+
+    it "writes an anonymous audit log entry for a failed sign-up attempt" do
+      post "/api/v1/auth/sign_up",
+           params: valid_params.merge(user: valid_params[:user].merge(user_name: "")),
+           as: :json
+      expect(response).to have_http_status(:unprocessable_entity)
+
+      log = Log.find_by(action: "create")
+      expect(log).to be_present
+      expect(log.user).to be_nil
+      expect(log.description).to eq("Failed sign-up attempt")
+    end
+  end
 end

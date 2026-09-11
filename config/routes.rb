@@ -99,6 +99,8 @@ Rails.application.routes.draw do
       get "health", to: "health#index"
       get "health/detailed", to: "health#detailed"
       get "logs", to: "logs#index"
+      get "logs/audit", to: "logs#audit_logs"
+      get "logs/:id", to: "logs#show"
       post "images", to: "images#create"
       delete "images/:id", to: "images#destroy"
       resources :producers do
