@@ -2,6 +2,7 @@ class ReviewsController < ActionController::Base
   layout "application"
   helper :reviews
   include RequireLogin
+  include Impersonable
 
   helper_method :can_manage_review?
   # Only Admins, Editors and Reviewers may create reviews.

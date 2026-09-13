@@ -1,6 +1,7 @@
 class CountriesController < ActionController::Base
   layout "application"
   include RequireLogin
+  include Impersonable
 
   before_action :set_country, only: [:show, :edit, :update, :destroy]
   before_action :ensure_manager!, only: [:new, :edit, :create, :update, :destroy]

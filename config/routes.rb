@@ -93,6 +93,8 @@ Rails.application.routes.draw do
 
   get "user_roles", to: "user_roles#index"
   patch "user_roles/:user_id", to: "user_roles#update", as: :user_role
+  post "user_roles/impersonate/:user_id", to: "user_roles#start_impersonation", as: :start_impersonation
+  delete "user_roles/impersonate", to: "user_roles#stop_impersonation", as: :stop_impersonation
 
   namespace :api do
     namespace :v1 do
@@ -203,6 +205,13 @@ Rails.application.routes.draw do
         member { patch :assign_roles; patch :assign_subscription }
       end
       get "roles", to: "users#roles"
+
+      # User impersonation (admin only): start, stop, and status check.
+      # A single resource gives us create (POST /impersonations),
+      # destroy (DELETE /impersonations), and a custom status endpoint.
+      resource :impersonation, controller: "impersonations", only: [:create, :destroy, :show] do
+        get :status, on: :collection, action: :show
+      end
 
       get "account", to: "accounts#show"
       patch "account", to: "accounts#update"

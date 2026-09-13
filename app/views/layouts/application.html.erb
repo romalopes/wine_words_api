@@ -286,6 +286,33 @@
       .producers-table__image-col { width: 72px; }
       .producers-table__thumb { display: block; width: 44px; height: 44px; object-fit: cover; border-radius: 6px; border: 1px solid #dee2e6; background: #fff; }
       .producers-table__thumb--empty { background: #eef2f7; border-style: dashed; }
+
+      /* --- Impersonation banner --- */
+      .impersonation-banner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.75rem 1.5rem;
+        background: #fef3c7;
+        border-bottom: 2px solid #f59e0b;
+        color: #92400e;
+        font: 0.9rem system-ui, sans-serif;
+      }
+      .impersonation-banner__text { display: flex; flex-direction: column; gap: 0.15rem; }
+      .impersonation-banner__text strong { font-size: 1rem; }
+      .impersonation-banner__sub { font-size: 0.8rem; color: #a16207; }
+      .impersonation-banner__stop {
+        background: #b91c1c;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 0.4rem 0.9rem;
+        font: 600 0.85rem system-ui, sans-serif;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .impersonation-banner__stop:hover { background: #991b1b; }
     </style>
     <%= javascript_importmap_tags %>
   </head>
@@ -348,6 +375,9 @@
         <% end %>
       </nav>
     </header>
+    <% if session[:impersonated_user_id].present? %>
+      <%= render "user_roles/impersonation_banner" %>
+    <% end %>
     <%= turbo_frame_tag "main" do %>
       <% if notice %>
         <div class="flash flash--notice"><%= notice %></div>

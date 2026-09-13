@@ -1,6 +1,7 @@
 class ArticlesController < ActionController::Base
   layout "application"
   include RequireLogin
+  include Impersonable
 
   before_action :set_article, only: [:show, :edit, :update, :destroy,
                                      :purge_image, :add_review, :remove_review, :toggle_review_status]

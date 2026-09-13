@@ -1,9 +1,10 @@
 class Log < ApplicationRecord
   # Append-only audit record: no updates or deletions through the app.
   attr_readonly :description, :user_id, :action, :method, :path, :status,
-                :request_id, :ip_address, :user_agent
+                :request_id, :ip_address, :user_agent, :impersonated_user_id
 
   belongs_to :user, optional: true
+  belongs_to :impersonated_user, class_name: "User", optional: true
   has_many :log_objects, dependent: :destroy
   has_many :objects, through: :log_objects
 

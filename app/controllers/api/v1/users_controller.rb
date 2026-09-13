@@ -31,7 +31,7 @@ class Api::V1::UsersController < ApplicationController
 
   # GET /api/v1/users/search?q=name-or-email
   def search
-    return head(:forbidden) unless current_user.admin?
+    return head(:forbidden) unless real_current_user&.admin?
 
     query = params[:q].to_s.strip
     users =
@@ -52,7 +52,7 @@ class Api::V1::UsersController < ApplicationController
 
   # PATCH /api/v1/users/:id/roles   body: { role_ids: [1,3] }
   def assign_roles
-    return head(:forbidden) unless current_user.admin?
+    return head(:forbidden) unless real_current_user&.admin?
 
     user = User.find(params[:id])
     @target_user = user
@@ -70,7 +70,7 @@ class Api::V1::UsersController < ApplicationController
   # (Guest <-> Reader) while preserving privileged roles and history.
   # Rejects downgrades (assigning a lower-priced plan) with a 422 error.
   def assign_subscription
-    return head(:forbidden) unless current_user.admin?
+    return head(:forbidden) unless real_current_user&.admin?
 
     user = User.find(params[:id])
     @target_user = user

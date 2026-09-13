@@ -63,10 +63,16 @@ module Auditable
   end
 
   def write_audit_log
+    # During impersonation, the actor recorded in the audit log is always the
+    # real authenticated user (the admin), not the effective/impersonated user.
+    # This keeps the audit trail honest about who actually performed the action.
+    actor = respond_to?(:real_current_user, true) ? real_current_user : current_user
+    impersonated = respond_to?(:impersonating?, true) && impersonating? ? current_user : nil
+
     LogService.log(
       description: (log_description if respond_to?(:log_description, true)) ||
                    "#{audit_action_name} #{action_name}",
-      user: respond_to?(:current_user, true) ? current_user : nil,
+      user: actor,
       action: audit_action_name,
       method: request.request_method,
       path: request.path,
@@ -74,7 +80,8 @@ module Auditable
       request_id: request.request_id,
       ip_address: request.remote_ip,
       user_agent: request.user_agent,
-      objects: (respond_to?(:log_objects, true) ? log_objects : [])
+      objects: (respond_to?(:log_objects, true) ? log_objects : []),
+      impersonated_user: impersonated,
     )
   end
 end

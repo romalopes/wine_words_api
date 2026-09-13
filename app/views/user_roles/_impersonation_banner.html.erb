@@ -1,0 +1,18 @@
+<%# Persistent banner shown when an admin is impersonating another user.
+    Rendered from the application layout when impersonating. %>
+<%
+  impersonated = User.find_by(id: session[:impersonated_user_id])
+  real = (defined?(:real_current_user) && real_current_user) || current_user
+%>
+<% if impersonated %>
+  <div class="impersonation-banner" role="status">
+    <span class="impersonation-banner__text">
+      <strong>Acting as <%= impersonated.user_name.presence || impersonated.email %></strong>
+      <span class="impersonation-banner__sub">You are currently operating as this user. Actions will be attributed to them.</span>
+    </span>
+    <%= button_to "Return to Admin", stop_impersonation_path,
+          method: :delete,
+          class: "impersonation-banner__stop",
+          data: { confirm: "Stop impersonating #{impersonated.user_name || impersonated.email}?" } %>
+  </div>
+<% end %>

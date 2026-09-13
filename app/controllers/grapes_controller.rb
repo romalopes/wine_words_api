@@ -1,6 +1,7 @@
 class GrapesController < ActionController::Base
   layout "application"
   include RequireLogin
+  include Impersonable
 
   before_action :set_grape, only: [:show, :edit, :update, :destroy, :link_wine, :producers]
   before_action :ensure_grape_manager!, only: [:new, :edit, :create, :update, :destroy]

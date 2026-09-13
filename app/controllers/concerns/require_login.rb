@@ -11,7 +11,11 @@ module RequireLogin
   private
 
   def set_current_user
-    @current_user = warden.user(:user) if respond_to?(:warden) && warden
+    # Use the impersonation-aware current_user so @current_user reflects the
+    # effective user (impersonated user when impersonating, otherwise the real
+    # authenticated user). This makes resource ownership (e.g. review.user)
+    # attribute to the impersonated user during impersonation.
+    @current_user = respond_to?(:current_user, true) ? current_user : (warden.user(:user) if respond_to?(:warden) && warden)
   end
 
   def require_login

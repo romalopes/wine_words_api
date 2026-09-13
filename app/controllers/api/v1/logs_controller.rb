@@ -36,7 +36,7 @@ class Api::V1::LogsController < ApplicationController
 
   def authenticate_admin!
     return render json: { error: "Authentication required" }, status: :unauthorized unless current_user
-    return if current_user.admin?
+    return if real_current_user&.admin?
 
     render json: { error: "Forbidden" }, status: :forbidden
   end

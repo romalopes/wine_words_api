@@ -22,7 +22,7 @@ class LogService
   class << self
     def log(description:, action:, user: nil, method: nil, path: nil,
             status: nil, request_id: nil, ip_address: nil, user_agent: nil,
-            objects: [])
+            objects: [], impersonated_user: nil)
       log_record = Log.create!(
         description: sanitize(description),
         user: user,
@@ -32,7 +32,8 @@ class LogService
         status: status.is_a?(Integer) ? status : nil,
         request_id: sanitize(request_id, limit: 64),
         ip_address: sanitize(ip_address, limit: 64),
-        user_agent: sanitize(user_agent)
+        user_agent: sanitize(user_agent),
+        impersonated_user: impersonated_user,
       )
 
       attach_objects(log_record, objects)

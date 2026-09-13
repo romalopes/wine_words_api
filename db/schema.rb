@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_11_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_12_172739) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -251,6 +251,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_11_000001) do
     t.string "action", null: false
     t.datetime "created_at", null: false
     t.string "description", null: false
+    t.bigint "impersonated_user_id"
     t.string "ip_address"
     t.string "method"
     t.string "path"
@@ -261,6 +262,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_11_000001) do
     t.bigint "user_id"
     t.index ["action"], name: "index_logs_on_action"
     t.index ["created_at"], name: "index_logs_on_created_at"
+    t.index ["impersonated_user_id"], name: "index_logs_on_impersonated_user_id"
     t.index ["method"], name: "index_logs_on_method"
     t.index ["request_id"], name: "index_logs_on_request_id"
     t.index ["status"], name: "index_logs_on_status"
@@ -771,6 +773,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_11_000001) do
   add_foreign_key "grapes", "countries"
   add_foreign_key "log_objects", "logs"
   add_foreign_key "logs", "users"
+  add_foreign_key "logs", "users", column: "impersonated_user_id"
   add_foreign_key "producer_grapes", "grapes"
   add_foreign_key "producer_grapes", "producers"
   add_foreign_key "producer_regions", "producers"
