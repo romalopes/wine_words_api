@@ -12,7 +12,8 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
     # browser sends the Rails session cookie (used by the Web/SSR impersonation
     # flow) cross-origin. The explicit origin (not "*") is required by the CORS
     # spec when credentials are allowed.
-    origins "http://localhost:5173"
+    # origins "http://localhost:5173"
+    origins "http://localhost:5173", "https://wine-prediction-app.vercel.app", "https://wine-prediction-app-git-main-romalopes.vercel.app"
 
     resource "*",
       headers: :any,
