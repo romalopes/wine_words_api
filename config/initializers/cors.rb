@@ -13,7 +13,7 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
     # flow) cross-origin. The explicit origin (not "*") is required by the CORS
     # spec when credentials are allowed.
     # origins "http://localhost:5173"
-    origins "http://localhost:5173", "https://wine-prediction-app.vercel.app", "https://wine-prediction-mu.vercel.app"
+    origins "http://localhost:5173", "https://wine-prediction-app.vercel.app", "http://wine-prediction-mu.vercel.app", "https://wine-prediction-mu.vercel.app"
 
     resource "*",
       headers: :any,
