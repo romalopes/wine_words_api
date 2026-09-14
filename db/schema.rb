@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_12_172739) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_14_000003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -549,6 +549,28 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_12_172739) do
     t.index ["subscription_id"], name: "index_subscription_billing_prices_on_subscription_id"
   end
 
+  create_table "subscription_changes", force: :cascade do |t|
+    t.integer "amount_cents"
+    t.string "billing_provider"
+    t.string "change_type", null: false
+    t.datetime "created_at", null: false
+    t.string "currency"
+    t.datetime "effective_at"
+    t.bigint "from_subscription_id"
+    t.string "idempotency_key"
+    t.string "provider_invoice_id"
+    t.string "provider_subscription_id"
+    t.string "status", default: "pending", null: false
+    t.bigint "to_subscription_id"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.bigint "user_subscription_id"
+    t.index ["provider_invoice_id"], name: "index_subscription_changes_on_invoice_id", unique: true, where: "(provider_invoice_id IS NOT NULL)"
+    t.index ["user_id", "idempotency_key"], name: "index_subscription_changes_on_user_idempotency", unique: true, where: "(idempotency_key IS NOT NULL)"
+    t.index ["user_id"], name: "index_subscription_changes_on_user_id"
+    t.index ["user_subscription_id"], name: "index_subscription_changes_on_user_subscription_id"
+  end
+
   create_table "subscription_features", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "description"
@@ -579,12 +601,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_12_172739) do
     t.string "name", null: false
     t.boolean "popular", default: false, null: false
     t.integer "position", default: 0, null: false
+    t.integer "rank", default: 0, null: false
     t.string "slug", null: false
     t.datetime "updated_at", null: false
     t.boolean "visible", default: true, null: false
     t.integer "yearly_price_cents"
     t.index ["is_default"], name: "index_subscriptions_on_is_default", unique: true, where: "(is_default = true)"
     t.index ["name"], name: "index_subscriptions_on_name", unique: true
+    t.index ["rank"], name: "index_subscriptions_on_rank"
     t.index ["slug"], name: "index_subscriptions_on_slug", unique: true
   end
 
@@ -622,6 +646,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_12_172739) do
     t.string "billing_provider", default: "manual", null: false
     t.datetime "cancelled_at"
     t.datetime "created_at", null: false
+    t.datetime "current_period_end"
+    t.datetime "current_period_start"
     t.datetime "ended_at"
     t.string "provider_subscription_id"
     t.datetime "started_at", null: false
@@ -794,6 +820,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_12_172739) do
   add_foreign_key "solid_queue_recurring_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_scheduled_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "subscription_billing_prices", "subscriptions"
+  add_foreign_key "subscription_changes", "user_subscriptions"
+  add_foreign_key "subscription_changes", "users"
   add_foreign_key "subscription_subscription_features", "subscription_features"
   add_foreign_key "subscription_subscription_features", "subscriptions"
   add_foreign_key "user_roles", "roles"

@@ -40,6 +40,7 @@ module Billing
   def self.confirm_checkout; Billing::ConfirmCheckout; end
   def self.customer; Billing::Customer; end
   def self.subscription; Billing::Subscription; end
+  def self.change_subscription; Billing::ChangeSubscription; end
   def self.portal; Billing::Portal; end
 
   # The provider object that implements the Billing::Providers::Base contract.

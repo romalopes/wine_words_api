@@ -9,6 +9,7 @@ class User < ApplicationRecord
   has_many :user_roles, dependent: :destroy
   has_many :roles, through: :user_roles
   has_many :billing_customers, dependent: :destroy
+  has_many :subscription_changes, dependent: :restrict_with_error
   belongs_to :subscription, optional: true
   has_many :user_subscriptions, dependent: :destroy
   has_one :account, dependent: :destroy
@@ -81,8 +82,22 @@ class User < ApplicationRecord
   # When allow_downgrade is false (default), raises Billing::Error if the
   # new subscription has a lower price than the current one. Pass
   # allow_downgrade: true to bypass this check (e.g. for cancellation
-  # fallback to the FREE plan).
-  def apply_subscription!(new_subscription, billing_provider: "manual", provider_subscription_id: nil, allow_downgrade: false)
+  # fallback to the FREE plan or Stripe-confirmed downgrades).
+  #
+  # Period boundaries: when current_period_start / current_period_end are
+  # given (from Stripe subscription data) they are persisted so local history
+  # stays aligned with the provider's billing anchors instead of Time.current.
+  # The previous row's ended_at uses the captured previous period end, falling
+  # back to Time.current for non-provider (manual) changes.
+  def apply_subscription!(
+    new_subscription,
+    billing_provider: "manual",
+    provider_subscription_id: nil,
+    current_period_start: nil,
+    current_period_end: nil,
+    previous_period_end: nil,
+    allow_downgrade: false
+  )
     return if new_subscription.nil?
 
     if !allow_downgrade && subscription.present? && new_subscription.lower_price_than?(subscription)
@@ -97,15 +112,19 @@ class User < ApplicationRecord
     Rails.logger.info "[User] apply_subscription!: current_base=#{current_base} new_base=#{new_base} changing_base=#{changing_base}"
 
     transaction do
-      user_subscriptions.current.update_all(ended_at: Time.current)
-      Rails.logger.info "[User] apply_subscription!: ended previous subscriptions for user #{id}"
+      previous_end = previous_period_end
+      previous_end ||= user_subscriptions.current.order(:started_at).first&.current_period_end
+      user_subscriptions.current.update_all(ended_at: previous_end || Time.current)
+      Rails.logger.info "[User] apply_subscription!: ended previous subscriptions for user #{id} (ended_at=#{previous_end || Time.current})"
 
       new_us = user_subscriptions.create!(
         subscription: new_subscription,
-        started_at: Time.current,
+        started_at: current_period_start || Time.current,
         status: :active,
         billing_provider: billing_provider,
-        provider_subscription_id: provider_subscription_id
+        provider_subscription_id: provider_subscription_id,
+        current_period_start: current_period_start,
+        current_period_end: current_period_end
       )
       Rails.logger.info "[User] apply_subscription!: created user_subscription id=#{new_us.id} for user #{id}"
 

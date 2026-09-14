@@ -37,31 +37,31 @@ end
 plans = [
   {
     slug: "free", name: "FREE", popular: false, visible: true, active: true,
-    is_default: true, position: 0, monthly_price_cents: nil, yearly_price_cents: 0,
+    is_default: true, position: 0, rank: 0, monthly_price_cents: nil, yearly_price_cents: 0,
     description: "Start exploring with free access.",
     features: []
   },
   {
     slug: "consumer", name: "Consumer", popular: true, visible: true, active: true,
-    is_default: false, position: 1, monthly_price_cents: nil, yearly_price_cents: 7_00,
+    is_default: false, position: 1, rank: 1, monthly_price_cents: nil, yearly_price_cents: 7_00,
     description: "For the everyday wine lover.",
     features: ["full-archive-access"]
   },
   {
     slug: "trade", name: "Trade", popular: false, visible: true, active: true,
-    is_default: false, position: 2, monthly_price_cents: nil, yearly_price_cents: 24_000,
+    is_default: false, position: 2, rank: 2, monthly_price_cents: nil, yearly_price_cents: 24_000,
     description: "For hospitality and trade professionals.",
     features: ["consumer-flexibility", "trade-benefits", "priority-support"]
   },
   {
     slug: "distributor", name: "Distributor", popular: false, visible: true, active: true,
-    is_default: false, position: 3, monthly_price_cents: nil, yearly_price_cents: 40_000,
+    is_default: false, position: 3, rank: 3, monthly_price_cents: nil, yearly_price_cents: 40_000,
     description: "For distributors and national trade.",
     features: ["distributor-benefits", "republishing-rights-sme", "api-access"]
   },
   {
     slug: "retail", name: "Retail", popular: false, visible: true, active: true,
-    is_default: false, position: 4, monthly_price_cents: nil, yearly_price_cents: 60_000,
+    is_default: false, position: 4, rank: 4, monthly_price_cents: nil, yearly_price_cents: 60_000,
     description: "For retailers and large-scale operators.",
     features: ["retail-benefits", "republishing-rights-large", "priority-support", "api-access"]
   }
@@ -72,6 +72,7 @@ plans.each do |plan|
   sub.assign_attributes(
     name: plan[:name], popular: plan[:popular], visible: plan[:visible],
     active: plan[:active], is_default: plan[:is_default], position: plan[:position],
+    rank: plan[:rank],
     monthly_price_cents: plan[:monthly_price_cents],
     yearly_price_cents: plan[:yearly_price_cents],
     description: plan[:description]

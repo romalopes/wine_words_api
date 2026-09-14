@@ -148,19 +148,93 @@ class Api::V1::WebhooksController < ActionController::Base
     status = result[:status]
     user = result[:user]
     plan = result[:subscription]
+    provider_sub_id = result[:provider_subscription_id]
 
     case status
     when "active"
-      Billing::Subscription.apply(
-        user: user,
-        subscription: plan,
-        billing_provider: "stripe",
-        provider_subscription_id: result[:provider_subscription_id]
-      )
+      if plan.nil?
+        Rails.logger.warn "[Stripe Webhook] subscription.updated #{provider_sub_id} could not map to a local plan — skipping."
+        return
+      end
+
+      apply_or_dedupe(user, plan, result)
+      complete_scheduled_downgrades(user, plan, provider_sub_id)
     when "past_due"
       # Mark the user's subscription as past_due if needed.
       current = user.user_subscriptions.current.first
       current&.update!(status: :past_due)
+    end
+  end
+
+  # Record a subscription period from a Stripe event, avoiding duplicate rows
+  # for unchanged plans / the same billing period (payment-method changes,
+  # status flips, retries). Real plan changes apply normally with
+  # allow_downgrade so Stripe-confirmed downgrades sync locally.
+  def apply_or_dedupe(user, plan, result)
+    provider_sub_id = result[:provider_subscription_id]
+    period_end = result[:current_period_end]
+    previous_plan = user.subscription
+
+    existing = user.user_subscriptions.current
+                   .where(billing_provider: "stripe")
+                   .where.not(provider_subscription_id: nil)
+                   .find_by(provider_subscription_id: provider_sub_id)
+
+    same_plan_same_period = existing && existing.subscription_id == plan.id &&
+      (period_end.nil? || existing.current_period_end == period_end)
+
+    if same_plan_same_period
+      # Renewal or mid-period event without a plan change — backfill period
+      # info if needed but do NOT split the period into a new row.
+      if existing.current_period_start.blank? || existing.current_period_end.blank?
+        existing.update_columns(
+          current_period_start: result[:current_period_start],
+          current_period_end: period_end
+        )
+      end
+      log_billing(
+        user, previous_plan, plan, provider_sub_id,
+        action: "subscription.renewal",
+        description: "Subscription renewal (no plan change): #{plan.name} for #{user.user_name || user.email}"
+      )
+      return
+    end
+
+    Billing::Subscription.apply(
+      user: user,
+      subscription: plan,
+      billing_provider: "stripe",
+      provider_subscription_id: provider_sub_id,
+      current_period_start: result[:current_period_start],
+      current_period_end: period_end,
+      allow_downgrade: true
+    )
+
+    direction =
+      if plan.higher_rank_than?(previous_plan) then "upgrade"
+      elsif plan.lower_rank_than?(previous_plan) then "downgrade"
+      else "change"
+      end
+
+    log_billing(
+      user, previous_plan, plan, provider_sub_id,
+      action: "subscription.change_applied",
+      description: "Subscription changed (#{direction}): #{previous_plan&.name} -> #{plan.name} for #{user.user_name || user.email}"
+    )
+  end
+
+  # When a scheduled downgrade reaches its effective date (the renewal event
+  # carries the lower plan), mark it succeeded for the audit/UI trail.
+  def complete_scheduled_downgrades(user, plan, provider_sub_id)
+    user.subscription_changes.due
+        .where(change_type: "downgrade", to_subscription_id: plan.id)
+        .find_each do |change|
+      change.update!(status: :succeeded)
+      log_billing(
+        user, change.from_subscription, change.to_subscription, provider_sub_id,
+        action: "subscription.downgrade_completed",
+        description: "Scheduled downgrade took effect: #{change.from_subscription&.name} -> #{change.to_subscription&.name} for #{user.user_name || user.email}"
+      )
     end
   end
 
@@ -182,25 +256,88 @@ class Api::V1::WebhooksController < ActionController::Base
     # Fall back to the default FREE plan.
     free_plan = Subscription.find_by(is_default: true) || Subscription.find_by!(slug: "free")
     user.apply_subscription!(free_plan, allow_downgrade: true)
+
+    log_billing(
+      user, current.subscription, free_plan, current.provider_subscription_id,
+      action: "subscription.cancelled",
+      description: "Subscription cancelled, fell back to #{free_plan.name} for #{user.user_name || user.email}"
+    )
   end
 
   def handle_invoice_paid(invoice)
-    # The subscription is still active — nothing extra needed beyond the
-    # subscription.updated event that Stripe also sends.
+    # Completes a pending upgrade once Stripe confirms the charge, and retains
+    # the audit/amount. The subscription.updated event handles the plan row.
+    subscription_id = invoice["subscription"]
+    complete_pending_change(
+      subscription_id,
+      invoice["id"],
+      invoice["amount_paid"] || invoice["amount_due"] || invoice["amount_total"],
+      invoice["currency"]
+    )
     Rails.logger.info "[Stripe Webhook] Invoice paid: #{invoice['id']}"
   end
 
   def handle_payment_failed(invoice)
     subscription_id = invoice["subscription"]
-    return if subscription_id.nil?
+    if subscription_id.nil?
+      Rails.logger.warn "[Stripe Webhook] Payment failed invoice with no subscription: #{invoice['id']}"
+      return
+    end
 
     user_sub = UserSubscription.find_by(
       billing_provider: "stripe",
       provider_subscription_id: subscription_id
     )
-    return if user_sub.nil?
+    user_sub&.update!(status: :past_due)
 
-    user_sub.update!(status: :past_due)
+    change = SubscriptionChange.pending.find_by(provider_subscription_id: subscription_id)
+    if change
+      change.update!(status: :failed, provider_invoice_id: invoice["id"])
+      log_billing(
+        change.user, change.from_subscription, change.to_subscription, subscription_id,
+        action: "subscription.payment_failed",
+        description: "Payment failed for change #{change.from_subscription&.name} -> #{change.to_subscription&.name} (subscription #{subscription_id})"
+      )
+    else
+      log_billing(
+        user_sub&.user, nil, nil, subscription_id,
+        action: "subscription.payment_failed",
+        description: "Payment failed for subscription #{subscription_id}"
+      )
+    end
     Rails.logger.warn "[Stripe Webhook] Payment failed for subscription #{subscription_id}"
+  end
+
+  # Mark the matching pending change succeeded once the invoice is paid.
+  def complete_pending_change(subscription_id, invoice_id, amount_cents, currency)
+    return if subscription_id.blank?
+
+    change = SubscriptionChange.pending.find_by(provider_subscription_id: subscription_id)
+    return if change.nil?
+
+    change.update!(
+      status: :succeeded,
+      amount_cents: amount_cents.present? ? amount_cents.to_i : change.amount_cents,
+      currency: currency.presence || change.currency,
+      provider_invoice_id: invoice_id
+    )
+    log_billing(
+      change.user, change.from_subscription, change.to_subscription, subscription_id,
+      action: "subscription.change_paid",
+      description: "Subscription change paid: #{change.from_subscription&.name} -> #{change.to_subscription&.name} (invoice #{invoice_id})"
+    )
+  end
+
+  # Append a subscription lifecycle entry to the audit Log (never raises).
+  def log_billing(user, from_plan, to_plan, provider_sub_id, action:, description:)
+    LogService.log(
+      description: description,
+      action: action,
+      user: user,
+      method: request&.request_method || "POST",
+      path: request&.path || "webhook/stripe",
+      request_id: @stripe_event&.id,
+      objects: [user, from_plan, to_plan, provider_sub_id].compact
+    )
   end
 end

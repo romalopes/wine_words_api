@@ -26,6 +26,21 @@ module Billing
         raise NotImplementedError
       end
 
+      # Preview a subscription plan change (upgrade or downgrade). Stripe
+      # calculates the proration; returns a hash with :direction, :due_today_cents,
+      # :currency, :next_renewal_cents, :next_renewal_at, :provider_subscription_id.
+      def preview_change(user:, target_subscription:)
+        raise NotImplementedError
+      end
+
+      # Apply a subscription plan change. mode is :upgrade (prorated charge now,
+      # effect immediately) or :downgrade (effective at the next renewal, no
+      # charge/refund now). Returns a hash with :mode, :provider_subscription_id,
+      # and :effective_at for downgrades.
+      def change_subscription(user:, target_subscription:, mode:)
+        raise NotImplementedError
+      end
+
       # Build a provider subscription from a webhook event payload.
       def build_subscription_from_event(payload)
         raise NotImplementedError

@@ -58,6 +58,109 @@ module Billing
         { url: session.url }
       end
 
+      # Preview a subscription plan change. Delegates the proration arithmetic to
+      # Stripe (Stripe::Invoice.upcoming) — never reproduced in Rails.
+      #
+      # @return [Hash] direction (upgrade|downgrade|same), due_today_cents,
+      #   currency, next_renewal_cents, next_renewal_at,
+      #   provider_subscription_id, current_period_end.
+      def preview_change(user:, target_subscription:)
+        provider_sub = current_subscription(user)
+        raise Billing::Error, "No active Stripe subscription to change." if provider_sub.nil?
+
+        item = provider_sub.items.data[0]
+        target_price = target_subscription.billing_price_for("stripe")
+        if target_price.nil? || target_price.provider_price_id.blank?
+          raise Billing::Error, "This subscription has no Stripe price to change to."
+        end
+
+        direction =
+          if target_subscription.higher_rank_than?(user.subscription)
+            "upgrade"
+          elsif target_subscription.lower_rank_than?(user.subscription)
+            "downgrade"
+          else
+            "same"
+          end
+
+        upcoming = ::Stripe::Invoice.upcoming(
+          customer: provider_sub.customer,
+          subscription: provider_sub.id,
+          subscription_items: [
+            { id: item.id, price: target_price.provider_price_id, quantity: item.quantity || 1 }
+          ]
+        )
+
+        amount_due = upcoming.amount_due.to_i
+        # Downgrades produce a credit (negative amount) that is applied to the
+        # next invoice; nothing is collected today per product rules.
+        due_today = direction == "downgrade" ? 0 : amount_due.abs
+
+        {
+          direction: direction,
+          currency: upcoming.currency,
+          due_today_cents: due_today,
+          next_renewal_cents: target_price.amount_cents.to_i,
+          next_renewal_at: epoch_time(provider_sub.current_period_end),
+          current_period_end: epoch_time(provider_sub.current_period_end),
+          provider_subscription_id: provider_sub.id
+        }
+      end
+
+      # Apply a subscription plan change.
+      #
+      # upgrade  -> Stripe::Subscription.update with prorations; Stripe charges
+      #             the difference now via the resulting invoice. Same billing
+      #             anchor is kept (only the price/item changes).
+      # downgrade-> Keep the current plan until the next renewal using a
+      #             Stripe SubscriptionSchedule (no refund, no charge now).
+      #
+      # @return [Hash] mode, provider_subscription_id, effective_at (downgrade).
+      def change_subscription(user:, target_subscription:, mode:)
+        provider_sub = current_subscription(user)
+        raise Billing::Error, "No active Stripe subscription to change." if provider_sub.nil?
+
+        item = provider_sub.items.data[0]
+        target_price = target_subscription.billing_price_for("stripe")
+        if target_price.nil? || target_price.provider_price_id.blank?
+          raise Billing::Error, "This subscription has no Stripe price to change to."
+        end
+
+        current_price_id = item.price.id
+        quantity = item.quantity || 1
+
+        if mode == :upgrade
+          ::Stripe::Subscription.update(
+            provider_sub.id,
+            items: [{ id: item.id, price: target_price.provider_price_id }],
+            proration_behavior: "create_prorations",
+            payment_behavior: "default_incomplete",
+            metadata: {
+              from_subscription_id: user.subscription_id,
+              to_subscription_id: target_subscription.id,
+              change_type: "upgrade"
+            }
+          )
+          { mode: "upgrade", provider_subscription_id: provider_sub.id }
+        else
+          # Phase 1 = current price for one billing cycle (finish the period),
+          # phase 2 = the lower price indefinitely from the next renewal.
+          schedule = ::Stripe::SubscriptionSchedule.create(from_subscription: provider_sub.id)
+          ::Stripe::SubscriptionSchedule.update(
+            schedule.id,
+            phases: [
+              { items: [{ price: current_price_id, quantity: quantity }], iterations: 1 },
+              { items: [{ price: target_price.provider_price_id, quantity: 1 }] }
+            ]
+          )
+          {
+            mode: "downgrade",
+            provider_subscription_id: provider_sub.id,
+            effective_at: epoch_time(provider_sub.current_period_end)
+          }
+        end
+      end
+
       # Build { user:, subscription:, plan:, status:, provider_subscription_id:,
       #       billing_price: } from a Stripe subscription object payload.
       def build_subscription_from_event(payload)
@@ -81,6 +184,8 @@ module Billing
           plan: plan,
           status: map_status(payload.dig("status")),
           provider_subscription_id: sub_id,
+          current_period_start: period_ts(payload.dig("current_period_start"), item&.dig("current_period_start")),
+          current_period_end: period_ts(payload.dig("current_period_end"), item&.dig("current_period_end")),
           billing_price: billing_price
         }
       end
@@ -105,6 +210,33 @@ module Billing
         )
         Rails.logger.info "[Stripe Webhook] verify_webhook: event=#{api_event.id} type=#{api_event.type}"
         api_event
+      end
+
+      private
+
+      # The user's current Stripe subscription object (or nil when there is no
+      # active provider subscription to change).
+      def current_subscription(user)
+        user_sub = user.user_subscriptions.current
+                          .where(billing_provider: "stripe")
+                          .where.not(provider_subscription_id: nil)
+                          .first
+        return nil if user_sub.nil?
+
+        ::Stripe::Subscription.retrieve(user_sub.provider_subscription_id)
+      end
+
+      # Convert a Stripe epoch-seconds value to a Time, tolerating nil/0.
+      def epoch_time(epoch)
+        value = epoch.to_i
+        return nil if value.zero?
+
+        Time.at(value)
+      end
+
+      # Convert an epoch to a Time, falling back to the secondary value.
+      def period_ts(primary, secondary)
+        epoch_time(primary) || epoch_time(secondary)
       end
     end
   end

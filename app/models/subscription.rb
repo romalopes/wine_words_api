@@ -19,17 +19,30 @@ class Subscription < ApplicationRecord
   validates :currency, presence: true
   validates :monthly_price_cents, :yearly_price_cents,
             numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
+  validates :rank, presence: true,
+            numericality: { only_integer: true, greater_than_or_equal_to: 0 }
 
   scope :visible,  -> { where(visible: true) }
   scope :active,   -> { where(active: true) }
   scope :paid,     -> { where.not(yearly_price_cents: [nil, 0]).or(where.not(monthly_price_cents: [nil, 0])) }
-  scope :by_position, -> { order(:position, :name) }
+  scope :by_position, -> { order(:rank, :name) }
 
   before_destroy :prevent_destroy_if_in_use, prepend: true
 
   def free?
     (monthly_price_cents.nil? || monthly_price_cents.zero?) &&
       (yearly_price_cents.nil? || yearly_price_cents.zero?)
+  end
+
+  # Plan hierarchy used to determine whether a change is an upgrade or a
+  # downgrade. Rank is an explicit integer (FREE=0 … Retail=4), independent of
+  # price so the source of truth is the plan ordering, not amounts.
+  def higher_rank_than?(other)
+    other.present? && rank.to_i > other.rank.to_i
+  end
+
+  def lower_rank_than?(other)
+    other.present? && rank.to_i < other.rank.to_i
   end
 
   # Returns true if this subscription has a lower yearly price than the other.

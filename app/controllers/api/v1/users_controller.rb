@@ -15,6 +15,7 @@ class Api::V1::UsersController < ApplicationController
 
   def me
     current_sub = current_user.user_subscriptions.current.first
+    pending_change = current_user.subscription_changes.most_recent_for(current_user)
     render json: {
       user: {
         id: current_user.id,
@@ -25,6 +26,18 @@ class Api::V1::UsersController < ApplicationController
         billing_provider: current_sub&.billing_provider,
         can_manage_billing: Billing.configured?,
         subscription_status: current_sub&.status,
+        # Scheduled/pending plan change so the UI can show the downgrade banner.
+        subscription_change: pending_change && {
+          id: pending_change.id,
+          change_type: pending_change.change_type,
+          status: pending_change.status,
+          effective_at: pending_change.effective_at,
+          to_subscription: pending_change.to_subscription && {
+            id: pending_change.to_subscription.id,
+            name: pending_change.to_subscription.name,
+            slug: pending_change.to_subscription.slug
+          }
+        }
       }
     }
   end

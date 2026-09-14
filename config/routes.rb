@@ -193,6 +193,10 @@ Rails.application.routes.draw do
       post "billing/portal", to: "billing#portal"
       # Reconcile a Checkout Session after Stripe redirects back (no webhook needed).
       post "billing/confirm", to: "billing#confirm"
+      # Unified plan change (upgrade pays the prorated difference; downgrade is
+      # scheduled effective at the next renewal).
+      post "billing/change/preview", to: "billing#change_preview"
+      post "billing/change/confirm", to: "billing#change_confirm"
 
       # Stripe webhook (no authentication — verified via webhook signature).
       post "webhooks/stripe", to: "webhooks#stripe"
