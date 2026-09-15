@@ -59,7 +59,7 @@ RSpec.describe "Api::V1::Health", type: :request do
         expect(body["service"]).to eq("wine-api")
         expect(body["database"]).to eq("ok")
         expect(body["environment"]).to eq(Rails.env)
-        expect(body["version"]).to eq("0.0.21")
+        expect(body["version"]).to eq("0.0.22")
         expect(body["timestamp"]).to be_present
       end
 
