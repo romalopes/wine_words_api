@@ -217,6 +217,10 @@ Rails.application.routes.draw do
         get :status, on: :collection, action: :show
       end
 
+      # Global configuration (admin only): singleton settings for the
+      # Configuration page — currently the audit-log persistence toggle.
+      resource :configuration, controller: "configurations", only: [:show, :update]
+
       get "account", to: "accounts#show"
       patch "account", to: "accounts#update"
       patch "account/password", to: "accounts#update_password"
