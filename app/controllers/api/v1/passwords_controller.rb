@@ -34,7 +34,7 @@ class Api::V1::PasswordsController < Devise::PasswordsController
       sign_in(resource_name, resource)
 
       render json: {
-        user: { id: resource.id, email: resource.email, user_name: resource.user_name, roles: resource.role_names }
+        user: full_user_payload(resource)
       }, status: :ok
     else
       render json: { errors: resource.errors.full_messages }, status: :unprocessable_entity
@@ -42,6 +42,23 @@ class Api::V1::PasswordsController < Devise::PasswordsController
   end
 
   private
+
+  # Payload parity with GET /users/me (and sign-in/sign-up). The Subscribe page
+  # derives its CTA enablement (Choose plan / Manage subscription) from these
+  # fields; without them the cards render disabled until a hard refresh.
+  def full_user_payload(user)
+    current_sub = user.user_subscriptions.current.first
+    {
+      id: user.id,
+      email: user.email,
+      user_name: user.user_name,
+      roles: user.role_names,
+      subscription: user.subscription ? { id: user.subscription.id, name: user.subscription.name } : nil,
+      billing_provider: current_sub&.billing_provider,
+      can_manage_billing: Billing.configured?,
+      subscription_status: current_sub&.status
+    }
+  end
 
   def create_response_payload(raw_token)
     payload = {

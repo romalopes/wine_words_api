@@ -7,11 +7,12 @@ class Api::V1::HealthController < ApplicationController
 
   # GET /api/v1/health
   def index
-    if database_connected?
-      render json: { status: "ok" }
-    else
-      render json: { status: "error" }, status: :service_unavailable
-    end
+    db_ok = database_connected?
+    payload = {
+      status: db_ok ? "ok" : "error",
+      database: db_ok ? "ok" : "error"
+    }
+    render json: payload, status: db_ok ? :ok : :service_unavailable
   end
 
   # GET /api/v1/health/detailed — admin-only diagnostic endpoint.

@@ -107,11 +107,19 @@ module Api
       def user_json(user)
         return nil unless user
 
+        current_sub = user.user_subscriptions.current.first
+        # Payload parity with GET /users/me: the Subscribe page derives its CTA
+        # enablement (Choose plan / Manage subscription) from these fields.
+        # Without them the cards render disabled until a hard refresh.
         {
           id: user.id,
           email: user.email,
           user_name: user.user_name,
           roles: user.role_names,
+          subscription: user.subscription ? { id: user.subscription.id, name: user.subscription.name } : nil,
+          billing_provider: current_sub&.billing_provider,
+          can_manage_billing: Billing.configured?,
+          subscription_status: current_sub&.status
         }
       end
     end

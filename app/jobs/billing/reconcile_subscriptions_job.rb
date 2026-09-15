@@ -28,7 +28,11 @@ class Billing::ReconcileSubscriptionsJob < ApplicationJob
 
   def reconcile(user_sub)
     provider_sub = ::Stripe::Subscription.retrieve(user_sub.provider_subscription_id)
-    stripe_end = Time.at(provider_sub.current_period_end) if provider_sub.current_period_end
+
+    # stripe >= 15 moved current_period_start/end from the Subscription to its
+    # subscription item.
+    period_item = provider_sub.items.data[0]
+    stripe_end = Time.at(period_item.current_period_end) if period_item&.current_period_end
 
     # Already in sync? Stripe still shows the same period we recorded locally.
     if provider_sub.status == "active" && stripe_end.present? &&
@@ -45,7 +49,7 @@ class Billing::ReconcileSubscriptionsJob < ApplicationJob
       subscription: plan,
       billing_provider: "stripe",
       provider_subscription_id: provider_sub.id,
-      current_period_start: (Time.at(provider_sub.current_period_start) if provider_sub.current_period_start),
+      current_period_start: (Time.at(period_item.current_period_start) if period_item&.current_period_start),
       current_period_end: stripe_end,
       allow_downgrade: true
     )

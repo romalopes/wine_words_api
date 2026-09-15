@@ -18,20 +18,20 @@ RSpec.describe "Api::V1::Health", type: :request do
     it "is public (no auth required) and returns ok" do
       get "/api/v1/health"
       expect(response).to have_http_status(:ok)
-      expect(JSON.parse(response.body)).to eq({ "status" => "ok" })
+      expect(JSON.parse(response.body)).to eq({ "status" => "ok", "database" => "ok" })
     end
 
     it "does not leak version, environment or stack details" do
       get "/api/v1/health"
       body = JSON.parse(response.body)
-      expect(body.keys).to contain_exactly("status")
+      expect(body.keys).to contain_exactly("status", "database")
     end
 
     it "returns 503 when the database connection fails" do
       allow(ActiveRecord::Base.connection).to receive(:active?).and_return(false)
       get "/api/v1/health"
       expect(response).to have_http_status(:service_unavailable)
-      expect(JSON.parse(response.body)).to eq({ "status" => "error" })
+      expect(JSON.parse(response.body)).to eq({ "status" => "error", "database" => "error" })
     end
   end
 

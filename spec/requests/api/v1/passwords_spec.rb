@@ -57,6 +57,35 @@ RSpec.describe "Api::V1::Passwords", type: :request do
       expect(user.reload.valid_password?("newpassword123")).to be(true)
     end
 
+    # The reset flow signs the user in, so the React app stores this payload as
+    # the session user. It must carry the same fields as GET /users/me,
+    # otherwise the Subscribe page renders every paid-plan CTA disabled until a
+    # manual refresh.
+    it "returns payload parity with GET /users/me (can_manage_billing etc.)" do
+      patch "/api/v1/auth/password",
+            params: {
+              user: {
+                reset_password_token: raw_token,
+                password: "newpassword123",
+                password_confirmation: "newpassword123"
+              }
+            },
+            as: :json
+
+      expect(response).to have_http_status(:ok)
+      payload = JSON.parse(response.body)["user"]
+      expect(payload).to include(
+        "id" => user.id,
+        "email" => user.email,
+        "user_name" => user.user_name,
+        "roles" => user.role_names,
+        "can_manage_billing" => Billing.configured?
+      )
+      expect(payload).to have_key("subscription")
+      expect(payload).to have_key("billing_provider")
+      expect(payload).to have_key("subscription_status")
+    end
+
     it "issues a JWT (Authorization header) on success" do
       patch "/api/v1/auth/password",
             params: {

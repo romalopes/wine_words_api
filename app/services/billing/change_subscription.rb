@@ -13,8 +13,10 @@ module Billing
     end
 
     # Execute a plan change. An upgrade charges the prorated difference now
-    # (Stripe invoices) and is applied locally via webhook; a downgrade only
-    # schedules the lower plan effective at the next renewal (no charge/refund).
+    # (Stripe is asked to invoice immediately, `always_invoice`) and is applied
+    # locally via webhook; when the charge needs authentication the invoice stays
+    # open and we hand back its hosted URL. A downgrade only schedules the lower
+    # plan effective at the next renewal (no charge/refund).
     #
     # Idempotent per (user, idempotency_key): replaying a key returns the
     # already-created change instead of charging twice.
@@ -37,6 +39,21 @@ module Billing
 
       if change.upgrade?
         change.update!(status: :pending)
+
+        # Proactively sync the local subscription when Stripe has already
+        # processed the charge (no hosted invoice URL means no 3DS/SCA pending).
+        # Otherwise we rely on the invoice.paid webhook. This avoids the brief
+        # window where Stripe has the upgrade but the local DB still shows the
+        # old plan — which caused the UI to show the old plan right after confirm.
+        if result[:hosted_invoice_url].blank?
+          user.apply_subscription!(
+            target_subscription,
+            billing_provider: "stripe",
+            provider_subscription_id: result[:provider_subscription_id],
+            allow_downgrade: true
+          )
+          change.update!(status: :succeeded)
+        end
       else
         change.update!(status: :scheduled, effective_at: result[:effective_at])
       end
@@ -47,7 +64,12 @@ module Billing
         status: change.status,
         subscription_change_id: change.id,
         effective_at: change.effective_at,
-        mode: result[:mode]
+        mode: result[:mode],
+        # Upgrades are invoiced immediately. When the card needs authentication
+        # (3DS/SCA) Stripe leaves the invoice open and we return its hosted URL so
+        # the customer can complete the payment and activate the new plan.
+        provider_invoice_id: result[:provider_invoice_id],
+        hosted_invoice_url: result[:hosted_invoice_url]
       }
     rescue ActiveRecord::RecordNotUnique
       # Two concurrent requests with the same idempotency key: only one won.

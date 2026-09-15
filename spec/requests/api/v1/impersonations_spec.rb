@@ -54,6 +54,22 @@ RSpec.describe "Impersonation", type: :request do
       expect(body["real_user"]["id"]).to eq(admin.id)
     end
 
+    # The React app stores effective_user/real_user as the session user, so they
+    # must carry the same fields as GET /users/me — otherwise the Subscribe page
+    # renders every paid-plan CTA disabled until a manual refresh.
+    it "returns effective/real user payload parity with GET /users/me" do
+      post "/api/v1/impersonation", params: { user_id: normal_user.id }
+
+      expect(response).to have_http_status(:ok)
+      body = JSON.parse(response.body)
+      [body["effective_user"], body["real_user"]].each do |payload|
+        expect(payload).to have_key("subscription")
+        expect(payload).to have_key("billing_provider")
+        expect(payload).to have_key("subscription_status")
+        expect(payload["can_manage_billing"]).to eq(Billing.configured?)
+      end
+    end
+
     it "returns a JWT carrying the impersonated_user_id claim" do
       post "/api/v1/impersonation", params: { user_id: normal_user.id }
 

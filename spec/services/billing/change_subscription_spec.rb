@@ -32,7 +32,11 @@ class ChangeProvider
   def change_subscription(user:, target_subscription:, mode:)
     @last_op = { mode: mode, to: target_subscription }
     if mode == :upgrade
-      { mode: "upgrade", provider_subscription_id: "sub_123" }
+      {
+        mode: "upgrade", provider_subscription_id: "sub_123",
+        provider_invoice_id: "in_1",
+        hosted_invoice_url: "https://invoice.stripe.com/i/1"
+      }
     else
       { mode: "downgrade", provider_subscription_id: "sub_123", effective_at: 1.year.from_now }
     end
@@ -106,9 +110,36 @@ RSpec.describe "Billing::ChangeSubscription" do
       )
       expect(result[:status]).to eq("pending")
       expect(provider.last_op[:mode]).to eq(:upgrade)
+      # The Stripe invoice raised for the proration is surfaced so the UI can
+      # send the customer to it when the card needs authentication (3DS/SCA).
+      expect(result[:provider_invoice_id]).to eq("in_1")
+      expect(result[:hosted_invoice_url]).to eq("https://invoice.stripe.com/i/1")
       change = user.subscription_changes.first
       expect(change.change_type).to eq("upgrade")
       expect(change.status).to eq("pending")
+    end
+
+    it "syncs the local subscription immediately when no hosted invoice URL is returned" do
+      # Simulate a provider that processes the charge immediately (no 3DS/SCA).
+      class ImmediateChangeProvider < ChangeProvider
+        def change_subscription(user:, target_subscription:, mode:)
+          super.merge(hosted_invoice_url: nil)
+        end
+      end
+
+      immediate_provider = ImmediateChangeProvider.new
+      allow(Billing).to receive(:adapter).and_return(immediate_provider)
+
+      result = Billing::ChangeSubscription.confirm(
+        user: user, target_subscription: trade, idempotency_key: "key-immediate"
+      )
+      expect(result[:status]).to eq("succeeded")
+      expect(result[:hosted_invoice_url]).to be_nil
+      change = user.subscription_changes.first
+      expect(change.change_type).to eq("upgrade")
+      expect(change.status).to eq("succeeded")
+      # Local subscription is synced proactively.
+      expect(user.reload.subscription).to eq(trade)
     end
 
     it "schedules a downgrade effective at the next renewal (no charge)" do
