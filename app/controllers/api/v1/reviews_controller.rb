@@ -11,7 +11,7 @@ class Api::V1::ReviewsController < ApplicationController
   end
 
   # Only Admins, Editors and Reviewers may create reviews.
-  before_action :authenticate_user!, except: [:index, :show]
+  before_action :authenticate_user!, except: [:index, :show, :grouped]
   before_action :ensure_wine_manager!, only: [:create]
   # Resolve @vintage for nested routes. Required for #create; optional for
   # #index (top-level feed runs without vintage params).
@@ -79,9 +79,10 @@ class Api::V1::ReviewsController < ApplicationController
     end
 
     category_counts = ReviewCategory.where(category_id: groups.keys.compact).group(:category_id).count
+    visible_scope = current_user&.wine_manager? ? Review.all : Review.published
     uncategorised_count =
       if groups.key?(nil)
-        Review.left_outer_joins(:review_categories).where(review_categories: { id: nil }).count
+        visible_scope.left_outer_joins(:review_categories).where(review_categories: { id: nil }).count
       else
         0
       end

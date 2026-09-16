@@ -9,7 +9,7 @@ class Api::V1::ArticlesController < ApplicationController
     [@article].compact
   end
 
-  before_action :authenticate_user!, except: [:index, :show]
+  before_action :authenticate_user!, except: [:index, :show, :grouped]
   before_action :set_article, only: [:show, :update, :destroy]
   # Only Admins, Editors and Reviewers may create articles.
   before_action :ensure_wine_manager!, only: [:create]
@@ -62,9 +62,10 @@ class Api::V1::ArticlesController < ApplicationController
     end
 
     category_counts = ArticleCategory.where(category_id: groups.keys.compact).group(:category_id).count
+    visible_scope = current_user&.wine_manager? ? Article.all : Article.published
     uncategorised_count =
       if groups.key?(nil)
-        Article.left_outer_joins(:article_categories).where(article_categories: { id: nil }).count
+        visible_scope.left_outer_joins(:article_categories).where(article_categories: { id: nil }).count
       else
         0
       end
