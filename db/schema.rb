@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_15_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_16_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -640,6 +640,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_15_000001) do
     t.index ["slug"], name: "index_taste_parameters_on_slug", unique: true
   end
 
+  create_table "user_identities", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "email", limit: 255
+    t.string "provider", limit: 32, null: false
+    t.string "provider_uid", limit: 255, null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["provider", "provider_uid"], name: "index_user_identities_on_provider_and_provider_uid", unique: true
+    t.index ["user_id", "provider"], name: "index_user_identities_on_user_id_and_provider", unique: true
+    t.index ["user_id"], name: "index_user_identities_on_user_id"
+  end
+
   create_table "user_roles", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.bigint "role_id", null: false
@@ -832,6 +844,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_15_000001) do
   add_foreign_key "subscription_changes", "users"
   add_foreign_key "subscription_subscription_features", "subscription_features"
   add_foreign_key "subscription_subscription_features", "subscriptions"
+  add_foreign_key "user_identities", "users"
   add_foreign_key "user_roles", "roles"
   add_foreign_key "user_roles", "users"
   add_foreign_key "user_subscriptions", "subscriptions"

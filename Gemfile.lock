@@ -451,6 +451,7 @@ DEPENDENCIES
   image_processing (~> 1.2)
   importmap-rails
   jbuilder
+  jwt
   kamal
   pg (~> 1.1)
   propshaft

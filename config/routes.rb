@@ -201,6 +201,23 @@ Rails.application.routes.draw do
       # Stripe webhook (no authentication — verified via webhook signature).
       post "webhooks/stripe", to: "webhooks#stripe"
 
+      # --- Social authentication -------------------------------------------
+      # Provider sign-in. The credential (provider ID/access token) is posted
+      # here and verified server-side; the endpoint signs the resolved User in
+      # with the ordinary Devise scope, so the JWT and response payload are
+      # identical to email/password sign-in (see SocialAuthController).
+      %w[google apple microsoft facebook].each do |provider|
+        post "auth/#{provider}",
+             to: "social_auth#create",
+             defaults: { provider: provider }
+      end
+
+      # Connected sign-in methods for the authenticated User. Linking adds an
+      # authentication identity only — never a User, Account or subscription.
+      get "auth/identities", to: "user_identities#index"
+      post "auth/identities/:provider", to: "user_identities#create"
+      delete "auth/identities/:id", to: "user_identities#destroy"
+
       get "me", to: "users#me"
       get "stats", to: "stats#index"
 

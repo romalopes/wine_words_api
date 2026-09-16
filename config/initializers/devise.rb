@@ -323,7 +323,16 @@ Devise.setup do |config|
     jwt.dispatch_requests = [
       ['POST', %r{^/api/v1/auth/sign_in$}],
       ['POST', %r{^/api/v1/auth/sign_up$}],
-      ['PATCH', %r{^/api/v1/auth/password$}]
+      ['PATCH', %r{^/api/v1/auth/password$}],
+      # Social sign-in. Each provider endpoint signs the resolved User in with
+      # the *same* Devise/Warden scope, so devise-jwt issues the same JWT and
+      # the React app sees one identical authentication response regardless of
+      # how the person signed in. Identity-linking endpoints are deliberately
+      # absent: connecting a provider must not mint a new session.
+      ['POST', %r{^/api/v1/auth/google$}],
+      ['POST', %r{^/api/v1/auth/apple$}],
+      ['POST', %r{^/api/v1/auth/microsoft$}],
+      ['POST', %r{^/api/v1/auth/facebook$}]
     ]
     jwt.revocation_requests = [
       ['DELETE', %r{^/api/v1/auth/sign_out$}]

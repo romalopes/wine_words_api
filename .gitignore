@@ -7,8 +7,11 @@
 # Ignore bundler config.
 /.bundle
 
-# Ignore all environment files.
+# Ignore all environment files, but keep the committed template so the required
+# variables (including the social-authentication providers) are documented
+# without ever committing a secret.
 /.env*
+!/.env.example
 
 # Ignore all logfiles and tempfiles.
 /log/*

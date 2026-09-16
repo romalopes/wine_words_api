@@ -39,7 +39,7 @@ RSpec.describe "Api::V1::Registrations", type: :request do
 
     it "returns subscription and billing metadata in the sign-up response" do
       Subscription.create!(name: "FREE", slug: "free", yearly_price_cents: 0,
-                           monthly_price_cents: 0, currency: "USD", is_default: true,
+                           monthly_price_cents: 0, currency: "AUD", is_default: true,
                            visible: true, active: true)
 
       post "/api/v1/auth/sign_up", params: valid_params, as: :json

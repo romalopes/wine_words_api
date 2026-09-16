@@ -14,6 +14,17 @@ class User < ApplicationRecord
   has_many :user_subscriptions, dependent: :destroy
   has_one :account, dependent: :destroy
 
+  # External authentication identities (Google / Apple / Microsoft / Facebook).
+  # The User stays the canonical identity and keeps exactly one Account, one
+  # role set and one subscription no matter how many providers are connected.
+  has_many :user_identities, dependent: :destroy
+
+  # Transient flag set when a User is created exclusively through a social
+  # provider. Such a user has no password at all (rather than an unknowable
+  # random one), so :validatable must not demand one on create. It is never
+  # persisted and defaults to false, leaving email/password sign-up untouched.
+  attr_accessor :social_signup
+
   # user_name is the application username/handle. It is independent of the
   # real name stored on Account (first_name/last_name) and never synced from it.
   validates :user_name,
@@ -67,6 +78,40 @@ class User < ApplicationRecord
 
   def jwt_payload
     { user_name: user_name, roles: role_names }
+  end
+
+  # ---- Authentication methods -------------------------------------------
+  # A User may authenticate with email/password and/or any number of social
+  # providers. These helpers keep that knowledge on the User so the linking
+  # rules ("always keep at least one way to sign in") stay provider-agnostic.
+
+  # True when the account can sign in with an email/password pair. Users
+  # created purely through a social provider have no encrypted password.
+  def password_authentication?
+    encrypted_password.present?
+  end
+
+  def social_authentication?
+    user_identities.exists?
+  end
+
+  def authentication_method_count
+    (password_authentication? ? 1 : 0) + user_identities.count
+  end
+
+  # A user who can only sign in through social providers and holds no password.
+  def social_only?
+    !password_authentication? && social_authentication?
+  end
+
+  # Devise :validatable requires a password whenever the record is new. Social
+  # sign-up has no password to give, so it opts out — but only for that one
+  # creation via the transient social_signup flag. Existing email/password
+  # users (and password changes) keep full password validation.
+  def password_required?
+    return false if social_signup
+
+    super
   end
 
   # Apply a subscription to this user. Switches the base access role

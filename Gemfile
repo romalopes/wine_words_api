@@ -41,6 +41,9 @@ gem "rack-cors"
 
 gem "devise"
 gem "devise-jwt"
+# Social sign-in providers (Google / Apple / Microsoft) publish their signing
+# keys as a JWKS; used directly to verify provider ID tokens server-side.
+gem "jwt"
 gem "stripe"
 
 # Hotwire: Turbo + Stimulus for an SPA-like experience without a Node build
