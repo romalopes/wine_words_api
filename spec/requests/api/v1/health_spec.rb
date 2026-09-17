@@ -1,5 +1,6 @@
 require "rails_helper"
 require "devise"
+require "jwt"
 
 # Request specs for Api::V1::HealthController — the public liveness check and
 # the admin-gated detailed diagnostic endpoint.
@@ -18,20 +19,35 @@ RSpec.describe "Api::V1::Health", type: :request do
     it "is public (no auth required) and returns ok" do
       get "/api/v1/health"
       expect(response).to have_http_status(:ok)
-      expect(JSON.parse(response.body)).to eq({ "status" => "ok", "database" => "ok" })
+      expect(JSON.parse(response.body)).to eq({
+        "status" => "ok",
+        "database" => "ok",
+        "version" => AppVersion::VERSION
+      })
     end
 
-    it "does not leak version, environment or stack details" do
+    it "includes the application version" do
       get "/api/v1/health"
       body = JSON.parse(response.body)
-      expect(body.keys).to contain_exactly("status", "database")
+      expect(body["version"]).to eq(AppVersion::VERSION)
+      expect(body["version"]).to be_a(String)
+    end
+
+    it "does not leak environment or stack details" do
+      get "/api/v1/health"
+      body = JSON.parse(response.body)
+      expect(body.keys).to contain_exactly("status", "database", "version")
     end
 
     it "returns 503 when the database connection fails" do
-      allow(ActiveRecord::Base.connection).to receive(:active?).and_return(false)
+      allow_any_instance_of(Api::V1::HealthController).to receive(:database_connected?).and_return(false)
       get "/api/v1/health"
       expect(response).to have_http_status(:service_unavailable)
-      expect(JSON.parse(response.body)).to eq({ "status" => "error", "database" => "error" })
+      expect(JSON.parse(response.body)).to eq({
+        "status" => "error",
+        "database" => "error",
+        "version" => AppVersion::VERSION
+      })
     end
   end
 
@@ -48,6 +64,53 @@ RSpec.describe "Api::V1::Health", type: :request do
       expect(response).to have_http_status(:forbidden)
     end
 
+    # Regression coverage for the path the React SPA actually uses. The specs
+    # above authenticate through the cookie/session flow (which Warden can
+    # resolve directly), so they never exercised the Bearer-JWT strategy.
+    # When `authenticate_user!` was skipped for `detailed`, the JWT was never
+    # validated, `warden.user(:user)` stayed nil and the endpoint 401'd even
+    # for a valid admin token.
+    describe "Bearer-JWT authentication (the path the React SPA uses)" do
+      def bearer_for(user, impersonated_user_id: nil)
+        now = Time.current.to_i
+        payload = user.jwt_payload.merge(
+          "sub" => user.id,
+          "scp" => "user",
+          "iat" => now,
+          "exp" => now + 1.hour.to_i,
+          "jti" => SecureRandom.uuid
+        )
+        payload["impersonated_user_id"] = impersonated_user_id if impersonated_user_id
+        secret = Devise::JWT.config.secret.presence || Rails.application.secret_key_base
+        algorithm = Devise::JWT.config.algorithm || "HS256"
+        "Bearer #{JWT.encode(payload, secret, algorithm)}"
+      end
+
+      it "returns 200 for an admin token (not 401)" do
+        get "/api/v1/health/detailed", headers: { "Authorization" => bearer_for(admin) }
+        expect(response).to have_http_status(:ok)
+        expect(JSON.parse(response.body)["version"]).to eq(AppVersion::VERSION)
+      end
+
+      it "returns 401 without a token" do
+        get "/api/v1/health/detailed"
+        expect(response).to have_http_status(:unauthorized)
+      end
+
+      it "returns 403 for a non-admin token" do
+        guest = User.create!(user_name: "Guest2", email: "guest2@example.com", password: "password123")
+        get "/api/v1/health/detailed", headers: { "Authorization" => bearer_for(guest) }
+        expect(response).to have_http_status(:forbidden)
+      end
+
+      it "keeps access for an admin who is impersonating a normal user" do
+        guest = User.create!(user_name: "Guest3", email: "guest3@example.com", password: "password123")
+        get "/api/v1/health/detailed",
+            headers: { "Authorization" => bearer_for(admin, impersonated_user_id: guest.id) }
+        expect(response).to have_http_status(:ok)
+      end
+    end
+
     context "as an admin" do
       before { sign_in admin }
 
@@ -59,7 +122,7 @@ RSpec.describe "Api::V1::Health", type: :request do
         expect(body["service"]).to eq("wine-api")
         expect(body["database"]).to eq("ok")
         expect(body["environment"]).to eq(Rails.env)
-        expect(body["version"]).to eq("0.0.22")
+        expect(body["version"]).to eq(AppVersion::VERSION)
         expect(body["timestamp"]).to be_present
       end
 
@@ -137,7 +200,7 @@ RSpec.describe "Api::V1::Health", type: :request do
       end
 
       it "reports an error status when the database is down" do
-        allow(ActiveRecord::Base.connection).to receive(:active?).and_return(false)
+        allow_any_instance_of(Api::V1::HealthController).to receive(:database_connected?).and_return(false)
         get "/api/v1/health/detailed"
         expect(response).to have_http_status(:service_unavailable)
         body = JSON.parse(response.body)
@@ -150,7 +213,7 @@ RSpec.describe "Api::V1::Health", type: :request do
         # admins can still see server/endpoint info even when the DB is gone.
         # The headline status flips to 503 (DB is the headline check), but the
         # body should still serialize the new sections without 500ing.
-        allow(ActiveRecord::Base.connection).to receive(:active?).and_return(false)
+        allow_any_instance_of(Api::V1::HealthController).to receive(:database_connected?).and_return(false)
         allow(ActiveRecord::Base).to receive(:connection_db_config).and_raise(StandardError, "boom")
         get "/api/v1/health/detailed"
         expect(response).to have_http_status(:service_unavailable)

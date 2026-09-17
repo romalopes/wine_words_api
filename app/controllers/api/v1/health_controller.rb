@@ -1,6 +1,14 @@
 class Api::V1::HealthController < ApplicationController
   # Public liveness check — no auth, no version/env/stack details exposed.
-  skip_before_action :authenticate_user!
+  #
+  # Only `index` is auth-free. `detailed` MUST keep running
+  # `authenticate_user!` so the devise-jwt strategy actually validates the
+  # Bearer token and populates Warden. If it were skipped, `warden.user(:user)`
+  # would return nil (Warden's `user` accessor only *reads* an already
+  # authenticated user, it does not run strategies) and the admin gate would
+  # 401 even for a valid admin token — which is exactly what the React SPA
+  # sends.
+  skip_before_action :authenticate_user!, only: :index
 
   # Detailed diagnostics are admin-only.
   before_action :authenticate_admin!, only: :detailed
@@ -10,7 +18,8 @@ class Api::V1::HealthController < ApplicationController
     db_ok = database_connected?
     payload = {
       status: db_ok ? "ok" : "error",
-      database: db_ok ? "ok" : "error"
+      database: db_ok ? "ok" : "error",
+      version: AppVersion::VERSION
     }
     render json: payload, status: db_ok ? :ok : :service_unavailable
   end
@@ -24,7 +33,7 @@ class Api::V1::HealthController < ApplicationController
       database: db_ok ? "ok" : "error",
       storage: storage_healthy? ? "ok" : "error",
       environment: Rails.env,
-      version: BACK_END_VERSION, # single source: config/initializers/app_version.rb
+      version: AppVersion::VERSION, # single source: config/initializers/app_version.rb
       timestamp: Time.current.utc.iso8601,
       database_details: db_connection_info,
       storage_details: storage_info,
@@ -37,16 +46,26 @@ class Api::V1::HealthController < ApplicationController
   private
 
   def authenticate_admin!
-    unless current_user
+    # Use the REAL authenticated user so an admin who is impersonating a
+    # normal user keeps access to admin diagnostics (mirrors the gate in
+    # Api::V1::UsersController).
+    unless real_current_user
       return render json: { error: "Authentication required" }, status: :unauthorized
     end
-    return if current_user.admin?
+    return if real_current_user.admin?
 
     render json: { error: "Forbidden" }, status: :forbidden
   end
 
+  # A real round trip instead of `connection.active?`: in a freshly booted
+  # process the pooled connection is created lazily, so `active?` reports
+  # false until some other query has warmed it — which made a healthy
+  # database report "error" (503) on the very first request.
   def database_connected?
-    ActiveRecord::Base.connection.active?
+    ActiveRecord::Base.connection_pool.with_connection do |connection|
+      connection.select_value("SELECT 1")
+    end
+    true
   rescue StandardError
     false
   end

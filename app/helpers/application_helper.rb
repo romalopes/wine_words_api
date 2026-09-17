@@ -16,13 +16,14 @@ module ApplicationHelper
   # The backend version comes from the VERSION file via config/initializers/app_version.rb,
   # so it stays in sync with what Api::V1::HealthController reports.
 
-  # Helper methods so the footer can access the versions in a view.
+  # Helper methods so the footer and health diagnostics can access the application
+  # version. Both view helpers return AppVersion::VERSION (a single source of truth).
   def front_end_version
-    FRONT_END_VERSION
+    AppVersion::VERSION
   end
 
   def back_end_version
-    BACK_END_VERSION
+    AppVersion::VERSION
   end
 
   # Renders a nav dropdown ("details/summary") with the "All ..." link first
