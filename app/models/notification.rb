@@ -52,24 +52,31 @@ class Notification < ApplicationRecord
     update!(sent_at: at)
   end
 
-  # Idempotent factory. Returns the existing event when the same
-  # (package, type, scheduled_date) notification has already been created.
+  # Idempotent factory. The dedup key is
+  # (wine_package, notification_type, scheduled_date): a package can only have
+  # one reminder of a given type for a given day, no matter how often the
+  # scheduler runs. The recipient is recorded when the reminder is created
+  # (packages have one responsible reviewer), so a later call with a different
+  # recipient reuses — rather than duplicates — the existing reminder.
   def self.notify!(recipient:, type:, notifiable: nil, wine_package: nil,
                    scheduled_date: Date.current, message: nil)
-    attributes = {
-      recipient: recipient,
+    identity = {
       notification_type: type.to_s,
       wine_package: wine_package,
       scheduled_date: scheduled_date
     }
 
-    find_or_create_by!(attributes) do |notification|
-      notification.notifiable = notifiable
-      notification.message = message
-    end
+    # Deliberately not find_or_create_by!: on a unique-index conflict Rails
+    # retries the lookup with the FULL attribute set (including recipient), which
+    # cannot match a reminder created for somebody else. Looking the row up by
+    # its dedup key keeps the call idempotent no matter who asks.
+    existing = find_by(identity)
+    return existing if existing
+
+    create!(identity.merge(recipient: recipient, notifiable: notifiable, message: message))
   rescue ActiveRecord::RecordNotUnique
-    # Lost a race against a concurrent scheduler run — reuse the winner.
-    find_by!(attributes)
+    # Lost a race with a concurrent scheduler run: return the row that won.
+    find_by(identity) || raise
   end
 
   private

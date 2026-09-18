@@ -1,0 +1,15 @@
+Hi <%= @recipient&.user_name || @recipient&.email %>,
+
+Wine package #<%= @package&.id %> from <%= @producer&.name || "Unknown producer" %> still has <%= @pending_count %> review(s) pending.
+
+The review deadline is <%= @deadline %><% if @days_until_deadline %> — <%= @days_until_deadline.zero? ? "today" : "in #{@days_until_deadline} #{'day'.pluralize(@days_until_deadline)}" %><% end %>.
+
+<% if @pending_items.any? -%>
+Still waiting on:
+<% @pending_items.each do |item| -%>
+* <%= item.label %><% if item.quantity.to_i > 1 %> (x<%= item.quantity %>)<% end %>
+<% end -%>
+<% end -%>
+Open the wine package: <%= @package_url %>
+
+<%= @notification.message %>

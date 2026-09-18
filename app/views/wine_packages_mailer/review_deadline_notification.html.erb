@@ -1,0 +1,33 @@
+<h1>Wine package review deadline<%= " is today" if @days_until_deadline&.zero? %></h1>
+
+<p>
+  Hi <%= @recipient&.user_name || @recipient&.email %>,
+</p>
+
+<p>
+  Wine package <strong>#<%= @package&.id %></strong> from
+  <strong><%= @producer&.name || "Unknown producer" %></strong> still has
+  <strong><%= @pending_count %> review(s) pending</strong>.
+</p>
+
+<p>
+  The review deadline is <strong><%= @deadline %></strong><% if @days_until_deadline %> —
+  <%= @days_until_deadline.zero? ? "today" : "in #{@days_until_deadline} #{'day'.pluralize(@days_until_deadline)}" %><% end %>.
+</p>
+
+<% if @pending_items.any? %>
+  <p>Still waiting on:</p>
+  <ul>
+    <% @pending_items.each do |item| %>
+      <li><%= item.label %><% if item.quantity.to_i > 1 %> (x<%= item.quantity %>)<% end %></li>
+    <% end %>
+  </ul>
+<% end %>
+
+<p>
+  <a href="<%= @package_url %>">Open the wine package</a>
+</p>
+
+<p>
+  <%= @notification.message %>
+</p>

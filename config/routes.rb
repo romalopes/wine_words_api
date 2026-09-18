@@ -188,6 +188,42 @@ Rails.application.routes.draw do
         end
       end
 
+      # --- Wine packages: the reviewing workflow ---------------------------
+      # CRUD plus explicit workflow actions — never a free-form status write.
+      resources :wine_packages do
+        member do
+          post :mark_arrived
+          post :mark_in_transit
+          post :mark_completed
+          post :reopen
+          post :cancel
+          post :accept
+          post :reject
+        end
+
+        # The wine lines of a package (nested CRUD; create_review starts the
+        # ordinary review flow from a line).
+        resources :items,
+                  controller: "wine_package_items",
+                  only: [:create, :update, :destroy] do
+          member { post :create_review }
+        end
+
+        # Tracking is a singleton per package: read it, upsert it, refresh it
+        # from the resolved carrier provider.
+        resource :shipment_tracking,
+                 controller: "shipment_trackings",
+                 only: [:show, :update] do
+          post :refresh
+        end
+      end
+
+      # The signed-in user's own notifications (deadline reminders).
+      resources :notifications, only: [:index] do
+        collection { patch :mark_all_read }
+        member { patch :mark_read }
+      end
+
       # Billing — checkout session and customer portal (authenticated).
       post "billing/checkout", to: "billing#checkout"
       post "billing/portal", to: "billing#portal"

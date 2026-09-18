@@ -53,15 +53,23 @@ class WinePackageItem < ApplicationRecord
     vintage&.name.presence || "Unmatched wine"
   end
 
-  # Automatic completion must be re-evaluated whenever it can change:
+  # Automatic completion must be re-evaluated whenever the set of *blocking*
+  # lines can change:
   #   * the review link is attached/detached (a review now fulfils this line);
-  #   * the item itself is removed from the package.
-  # Adding a review_requested item can only add pending work, never complete a
-  # package, so a plain create needs no re-check.
-  after_save :recheck_package_completion, if: :saved_change_to_review_id?
+  #   * review_requested is switched off (the last blocker disappears);
+  #   * a review_requested line is added — it cannot complete anything, but it
+  #     must reopen a package that had already auto-completed;
+  #   * the line itself is removed from the package.
+  after_save :recheck_package_completion, if: :completion_recheck_needed?
   after_destroy :recheck_package_completion
 
   private
+
+  def completion_recheck_needed?
+    saved_change_to_review_id? ||
+      saved_change_to_review_requested? ||
+      (previously_new_record? && review_requested?)
+  end
 
   def recheck_package_completion
     package = wine_package

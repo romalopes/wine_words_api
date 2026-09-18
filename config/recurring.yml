@@ -17,3 +17,12 @@ production:
     class: Billing::ReconcileSubscriptionsJob
     queue: background
     schedule: every hour at minute 23
+  # Wine-package review-deadline reminders (15/5/0 days before the deadline).
+  # Idempotent: the 15/5/0-day notifications are keyed by
+  # (package, type, due date), so a repeated run never duplicates a reminder and
+  # completed/cancelled packages are skipped. Runs every morning so the
+  # "deadline is today" reminder goes out on the day.
+  wine_package_review_deadline_reminders:
+    class: WinePackages::SendReviewDeadlineNotificationsJob
+    queue: background
+    schedule: at 7am every day
