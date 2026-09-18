@@ -108,6 +108,18 @@ RSpec.describe "Api::V1::ShipmentTrackings", type: :request do
       patch tracking_url, as: :json, params: { shipment_tracking: { carrier: "Aramex" } }
       expect(response).to have_http_status(:forbidden)
     end
+
+    it "audits a creation and a subsequent update under distinct action names" do
+      patch tracking_url, as: :json, params: {
+        shipment_tracking: { carrier: "Aramex", number: "AR1" }
+      }
+      expect(Log.where(action: "shipment_tracking.created").count).to eq(1)
+
+      patch tracking_url, as: :json, params: { shipment_tracking: { status: "In transit" } }
+
+      expect(Log.where(action: "shipment_tracking.created").count).to eq(1)
+      expect(Log.where(action: "shipment_tracking.updated").count).to eq(1)
+    end
   end
 
   describe "POST /api/v1/wine_packages/:wine_package_id/shipment_tracking/refresh" do

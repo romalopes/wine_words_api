@@ -9,7 +9,8 @@
 class Api::V1::ShipmentTrackingsController < ApplicationController
   include WinePackageAuthorizable
 
-  audit_actions :update, refresh: "shipment_tracking.refreshed"
+  audit_actions update: "shipment_tracking.updated",
+                refresh: "shipment_tracking.refreshed"
 
   before_action :set_package
   before_action :ensure_package_manageable!
