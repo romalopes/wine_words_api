@@ -14,6 +14,15 @@ class User < ApplicationRecord
   has_many :user_subscriptions, dependent: :destroy
   has_one :account, dependent: :destroy
 
+  # Wine packages owned by this user as the responsible reviewer, and packages
+  # this user recorded. Both are nullable on the package, so destroying a user
+  # detaches the history instead of deleting it.
+  has_many :wine_packages, foreign_key: :reviewer_id, dependent: :nullify
+  has_many :created_wine_packages, class_name: "WinePackage",
+                                   foreign_key: :created_by_id,
+                                   dependent: :nullify
+  has_many :notifications, foreign_key: :recipient_id, dependent: :destroy
+
   # External authentication identities (Google / Apple / Microsoft / Facebook).
   # The User stays the canonical identity and keeps exactly one Account, one
   # role set and one subscription no matter how many providers are connected.

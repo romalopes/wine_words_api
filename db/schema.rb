@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_18_000006) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_18_000005) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -376,12 +376,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_18_000006) do
     t.datetime "updated_at", null: false
     t.bigint "user_id"
     t.bigint "vintage_id", null: false
-    t.bigint "wine_package_item_id"
     t.index ["category_id"], name: "index_reviews_on_category_id"
     t.index ["slug"], name: "index_reviews_on_slug", unique: true
     t.index ["user_id"], name: "index_reviews_on_user_id"
     t.index ["vintage_id"], name: "index_reviews_on_vintage_id"
-    t.index ["wine_package_item_id"], name: "index_reviews_on_wine_package_item_id"
   end
 
   create_table "roles", force: :cascade do |t|
@@ -938,7 +936,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_18_000006) do
   add_foreign_key "reviews", "categories"
   add_foreign_key "reviews", "users"
   add_foreign_key "reviews", "vintages"
-  add_foreign_key "reviews", "wine_package_items"
   add_foreign_key "shipment_tracking_events", "wine_packages"
   add_foreign_key "shipment_trackings", "wine_packages"
   add_foreign_key "solid_queue_batch_executions", "solid_queue_batches", column: "batch_id", on_delete: :cascade
