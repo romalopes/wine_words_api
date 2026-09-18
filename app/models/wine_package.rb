@@ -255,8 +255,10 @@ class WinePackage < ApplicationRecord
     }
   end
 
+  # Finished business is never overdue — this mirrors the `overdue` scope, which
+  # only considers active packages, so the predicate and the scope always agree.
   def overdue?
-    return false if completed? || cancelled?
+    return false if completed? || cancelled? || rejected?
 
     review_deadline.present? && review_deadline < Date.current
   end
