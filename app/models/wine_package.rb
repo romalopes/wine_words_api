@@ -31,7 +31,9 @@ class WinePackage < ApplicationRecord
   # `draft` (cancelled) or `reviewing` (completed) so a mistake is reversible.
   VALID_TRANSITIONS = {
     "draft" => %w[requested announced arrived cancelled],
-    "requested" => %w[accepted rejected announced cancelled],
+    # A requested package may be accepted/rejected, but wines can also simply
+    # turn up (or be shipped) before the paperwork is settled.
+    "requested" => %w[accepted rejected announced in_transit arrived cancelled],
     "accepted" => %w[announced in_transit arrived cancelled],
     "rejected" => %w[],
     "announced" => %w[in_transit arrived cancelled],
@@ -195,8 +197,10 @@ class WinePackage < ApplicationRecord
     transition_to!("completed")
   end
 
-  # Undo an accidental completion.
+  # Undo an accidental completion. Reopening clears the automatic-completion
+  # provenance: whatever happens next is a fresh workflow decision.
   def reopen!
+    self.auto_completed = false
     transition_to!("reviewing")
   end
 

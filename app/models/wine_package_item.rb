@@ -52,4 +52,21 @@ class WinePackageItem < ApplicationRecord
   def label
     vintage&.name.presence || "Unmatched wine"
   end
+
+  # Automatic completion must be re-evaluated whenever it can change:
+  #   * the review link is attached/detached (a review now fulfils this line);
+  #   * the item itself is removed from the package.
+  # Adding a review_requested item can only add pending work, never complete a
+  # package, so a plain create needs no re-check.
+  after_save :recheck_package_completion, if: :saved_change_to_review_id?
+  after_destroy :recheck_package_completion
+
+  private
+
+  def recheck_package_completion
+    package = wine_package
+    return if package.nil? || !package.persisted?
+
+    WinePackages::CheckCompletion.call(package)
+  end
 end

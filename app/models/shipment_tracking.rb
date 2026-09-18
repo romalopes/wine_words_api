@@ -25,6 +25,12 @@ class ShipmentTracking < ApplicationRecord
   # workflow change, so package validations/callbacks must not run.
   after_save :sync_wine_package_tracking_columns
 
+  # Carrier "Australia Post" implies the Australia Post provider unless a
+  # different non-manual provider was configured explicitly, so a caller only
+  # has to set the carrier. `provider` is NOT NULL with a "manual" default, so
+  # this can only ever *upgrade* the default.
+  before_validation :infer_provider_from_carrier
+
   # The provider implementation responsible for this row.
   def provider_impl
     TrackingProvider.for(provider)
@@ -42,16 +48,22 @@ class ShipmentTracking < ApplicationRecord
   end
 
   # Applies a normalised provider result:
-  #   { status:, events:, estimated_delivery_at:, delivered_at: }
+  #   { status:, url:, status_updated_at:, estimated_delivery_at:, delivered_at:,
+  #     events: [...] }
+  #
+  # Only the keys the provider actually returned are applied, so a provider
+  # that yields nothing (manual entry, an unreachable carrier API) never wipes
+  # data a reviewer already recorded.
   def apply_result!(result, at: Time.current)
     result = (result || {}).with_indifferent_access
 
-    update!(
-      status: result[:status].presence || status,
-      status_updated_at: result[:status_updated_at] || at,
-      estimated_delivery_at: result[:estimated_delivery_at],
-      delivered_at: result[:delivered_at]
-    )
+    attributes = { status_updated_at: result[:status_updated_at] || at }
+    attributes[:status] = result[:status] if result[:status].present?
+    attributes[:url] = result[:url] if result[:url].present?
+    attributes[:estimated_delivery_at] = result[:estimated_delivery_at] if result.key?(:estimated_delivery_at)
+    attributes[:delivered_at] = result[:delivered_at] if result.key?(:delivered_at)
+
+    update!(attributes)
 
     Array(result[:events]).each do |event|
       ShipmentTrackingEvent.record_from_provider!(wine_package, event)
@@ -61,6 +73,15 @@ class ShipmentTracking < ApplicationRecord
   end
 
   private
+
+  def infer_provider_from_carrier
+    return if carrier.blank?
+
+    inferred = TrackingProvider.key_for(carrier)
+    return if inferred == TrackingProvider::MANUAL
+
+    self.provider = inferred if provider.blank? || provider == TrackingProvider::MANUAL
+  end
 
   def sync_wine_package_tracking_columns
     return if wine_package.nil?
