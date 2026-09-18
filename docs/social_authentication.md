@@ -375,6 +375,76 @@ Production needs no workaround: the Vercel URL is already HTTPS.
    under "Connect another".
 ---
 
+## 4b. Troubleshooting: "The given origin is not allowed for the given client ID"
+
+This 403 is emitted by Google's own SDK (`accounts.google.com/gsi/client`)
+**before** any of our code runs: it rejects the page's `window.location.origin`
+against the *Authorized JavaScript origins* list of the OAuth client being
+used. Nothing in the React code can cause or fix it.
+
+Checklist, in order:
+
+1. **Confirm the origin Google actually saw** — DevTools → Network → filter
+   `gsi` → the failing 403 request → Headers → `Referer`/`Origin`. It must be
+   exactly one of the registered origins.
+2. **Origins must match literally**: scheme + host + port only. No trailing
+   slash, no path, and **no wildcards** — each Vercel preview URL
+   (`wine-prediction-<hash>-….vercel.app`) must be added individually (or test
+   on the production domain instead).
+3. `http://localhost:5173` and `http://127.0.0.1:5173` are **different
+   origins**; register both if you use both.
+4. **Port drift**: the Vite config pins `server.port: 5173` with
+   `strictPort: true`, so a busy port fails loudly instead of silently moving
+   to 5174+ (which would not be registered).
+5. **Propagation**: Google warns that origin edits "may take 5 minutes to a few
+   hours" to take effect. If the origin and client ID are correct, wait and
+   retest in an incognito window (the GSI status response is cached per
+   browser profile; a hard reload also helps).
+6. **The client ID must match everywhere**: the frontend
+   (`VITE_GOOGLE_CLIENT_ID`) and the backend (`GOOGLE_CLIENT_ID`) must use the
+   same OAuth **Web application** client as the one whose origins you edited.
+7. The **OAuth consent screen** must be configured; while in *Testing* mode,
+   your Google account must be listed under **Test users**.
+
+When this happens the One Tap prompt never displays; the frontend surfaces the
+GSI `getNotDisplayedReason()` values `unregistered_origin`, `invalid_client`
+and `missing_client_id` as a `ProviderConfigurationError` with an actionable
+message in the Login card (other reasons, like `suppressed_by_user`, remain
+silent, because they are the person's choice, not a setup problem).
+
+### Brave-specific: `sec-gpc` and `sec-fetch-storage-access` rejection
+
+Symptom: every item above checks out (origin registered, client ID matches,
+waited through propagation, incognito retest), **yet the 403 persists
+in Brave while passing in Chrome/Safari.**
+
+Cause: Brave sends `sec-gpc: 1` (Global Privacy Control) and, when Shields
+are active, `sec-fetch-storage-access: none`. GSI's `gsi/status` check is a
+cross-site call to `accounts.google.com`; it relies on third-party storage
+access to resolve the client config. When Brave reports `none`, Google rejects
+the lookup with code 5 ("origin not allowed") even though the origin *is*
+registered.
+
+Workaround (local dev only):
+
+1. **Shields down**: `☰ ⋮ → Shields down for localhost` (or visit the page
+   and click the Brave lion icon → toggle *Shields are UP* off).
+2. **Privacy settings**: `brave://settings/privacy` → disable, temporarily:
+   - *Block third-party cookies*
+   - *Prevent sites from using your privacy settings to determine whether
+     they can reduce the effectiveness of security features* (sets
+     `sec-gpc`) — or keep it on but relax the specific entries below.
+3. **Fingerprinting**: `brave://settings/privacy → Fingerprinting protection`
+   → set to **Standard** (Brave's *Strict* mode adds `sec-fetch-storage-access:
+   none`).
+4. Restart Brave, open a **fresh** window, and retest `http://localhost:5173`.
+
+> **Verified:** Chrome passes; Brave 133 with default Shields fails with the
+> identical client ID + registered origin. This is a browser-level privacy
+> signal, not a code or Google Cloud Console configuration issue.
+
+---
+
 ## 5. Microsoft account types
 
 Wine Prediction supports **both personal and organisational Microsoft
