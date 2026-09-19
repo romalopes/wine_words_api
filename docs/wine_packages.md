@@ -473,7 +473,10 @@ gates the navigation and create buttons, while management controls require
 | `/notifications` | `Notifications.jsx` | the reviewer's reminders |
 
 Supporting components: `WinePackageItemForm.jsx` (add/edit a line, with the wine
-picker), `PackageReviewForm.jsx` (start a review), `ShipmentTrackingPanel.jsx`,
+picker), `ReviewForm.jsx` in package mode (`packageId` + `packageItemId`: the
+same full review form used on `/wines/:slug`, submitted through the package
+`create_review` endpoint so the review is created and linked in one request),
+`ShipmentTrackingPanel.jsx`,
 `PackageStatusBadge.jsx`, `NotificationBell.jsx` (header unread count). Shared
 vocabulary and helpers live in `constants/winePackages.js` (statuses, sources,
 labels, badge tones) and `utils/dates.js` (`deadlineLabel`,
@@ -495,8 +498,7 @@ Two current limitations worth knowing:
   admin-gated. A proper user picker needs a non-admin-safe lookup endpoint.
 * A wine with **no vintages** cannot be linked from a line yet; record it as
   "Not in the catalogue yet" (or as an unmatched line) and match it once the
-  vintage exists. Images for a package-created review are added from the review
-  page, which already has the image manager.
+  vintage exists.
 
 ---
 

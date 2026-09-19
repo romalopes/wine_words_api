@@ -75,10 +75,19 @@ class User < ApplicationRecord
     role?(:reviewer)
   end
 
-  # Admins, Reviewers and Editors may manage wines/producers -
-  # anywhere a Reviewer is allowed, an Editor is allowed too.
-  def wine_manager?
+  # Admins and Editors: the tier that also sees and manages everything
+  # (including every wine package, see WinePackageAuthorizable).
+  def catalogue_manager?
     admin? || role?(:editor)
+  end
+
+  # Admins, Editors and Reviewers may manage the catalogue — wines, vintages,
+  # producers, categories and the rest. Anywhere a Reviewer is allowed, an
+  # Editor is allowed too: a Reviewer authenticates the wines we review, so they
+  # are content managers. Note this is deliberately WIDER than
+  # catalogue_manager? (it includes Reviewers).
+  def wine_manager?
+    catalogue_manager? || reviewer?
   end
 
   def role_names

@@ -13,6 +13,15 @@ RSpec.describe "Vintage price (price_cents)", type: :request do
     user
   end
 
+  # Reviewers are wine managers too, so the reviewer who receives a wine package
+  # may add the vintage of the wine straight from the item form.
+  let(:reviewer) do
+    user = User.create!(user_name: "Vintage Reviewer", email: "vintage-reviewer@example.com",
+                        password: "password123")
+    user.roles << Role.find_or_create_by!(name: "Reviewer")
+    user
+  end
+
   let(:producer) { Producer.create!(name: "Vintage Spec Producer") }
   let(:wine) do
     Wine.create!(name: "Vintage Spec Wine", color: "red", producer: producer)
@@ -69,6 +78,40 @@ RSpec.describe "Vintage price (price_cents)", type: :request do
 
       vintage_json = JSON.parse(response.body)["vintages"].find { |v| v["year"] == 2017 }
       expect(vintage_json["price"]).to eq(12.34)
+    end
+  end
+
+  describe "authorization" do
+    it "lets a Reviewer add a vintage" do
+      sign_in reviewer
+
+      post "/api/v1/wines/#{wine.slug}/vintages",
+           params: { vintage: { year: 2023, no_vintage: false } }, as: :json
+
+      expect(response).to have_http_status(:created)
+      expect(wine.vintages.map(&:year)).to include(2023)
+    end
+
+    it "lets a Reviewer add an NV vintage (the year still validates)" do
+      sign_in reviewer
+
+      post "/api/v1/wines/#{wine.slug}/vintages",
+           params: { vintage: { year: 2023, no_vintage: true } }, as: :json
+
+      expect(response).to have_http_status(:created)
+      expect(wine.vintages.find_by(year: 2023).no_vintage).to be true
+    end
+
+    it "still blocks users without a wine-manager role" do
+      guest = User.create!(user_name: "Vintage Guest", email: "vintage-guest@example.com",
+                           password: "password123")
+      sign_in guest
+
+      post "/api/v1/wines/#{wine.slug}/vintages",
+           params: { vintage: { year: 2023 } }, as: :json
+
+      expect(response).to have_http_status(:forbidden)
+      expect(wine.vintages.count).to eq(0)
     end
   end
 end

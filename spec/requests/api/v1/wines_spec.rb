@@ -315,4 +315,138 @@ RSpec.describe "Api::V1::Wines", type: :request do
       expect(body.length).to eq(2)
     end
   end
+
+  # The wine-package item form lists a producer's wines so a reviewer can pick
+  # a wine — and then a VINTAGE — without guessing a name. Blank `q` with
+  # `producer_id` therefore has to return that producer's wines.
+  describe "GET /api/v1/wines/search" do
+    let(:reviewer) do
+      user = User.create!(user_name: "Search Reviewer", email: "search-reviewer@example.com",
+                          password: "password123")
+      user.roles << Role.find_or_create_by!(name: "Reviewer")
+      user
+    end
+    let(:other_producer) { Producer.create!(name: "Tyrrell's", slug: "tyrrells") }
+    let!(:other_producer_wine) do
+      Wine.create!(slug: "vat-1", name: "Vat 1", color: "White", producer: other_producer)
+    end
+    let!(:named_vintage) { Vintage.create!(wine: wine_one, year: 2020, no_vintage: false) }
+
+    def call_search(params = {})
+      get "/api/v1/wines/search", params: params, as: :json
+      JSON.parse(response.body)
+    end
+
+    it "returns nothing without a query or a producer" do
+      body = call_search
+      expect(body).to eq([])
+    end
+
+    it "lists ALL of the producer's wines when only producer_id is given" do
+      body = call_search({ producer_id: producer.id })
+
+      names = body.map { |wine| wine["name"] }
+      expect(names).to include("Penfolds Bin 389", "Tyrrell's Vat 1 Semillon")
+      expect(names).not_to include("Vat 1") # belongs to the other producer
+    end
+
+    it "keeps working for a blank query on an unknown producer" do
+      body = call_search({ producer_id: 999_999 })
+
+      expect(body).to eq([])
+    end
+
+    it "scopes a name query to the given producer" do
+      # Fixture note: wine_two is named "Tyrrell's Vat 1 Semillon" but belongs
+      # to Penfolds; the other producer's wine is the one named "Vat 1".
+      body = call_search({ q: "vat", producer_id: producer.id })
+
+      expect(body.map { |wine| wine["id"] }).to eq([wine_two.id])
+      expect(body.map { |wine| wine["id"] }).not_to include(other_producer_wine.id)
+    end
+
+    it "still searches the whole catalogue when only the query is given" do
+      body = call_search({ q: "vat" })
+
+      expect(body.map { |wine| wine["name"] }).to include("Tyrrell's Vat 1 Semillon")
+    end
+
+    it "ships each wine's vintages (including the NV flag) so a vintage can be picked" do
+      body = call_search({ producer_id: producer.id })
+
+      wine = body.find { |entry| entry["name"] == "Penfolds Bin 389" }
+      expect(wine["vintages"]).to include(
+        hash_including("id" => named_vintage.id, "year" => 2020, "no_vintage" => false)
+      )
+    end
+
+    it "is available without authentication (the pickers are read-only)" do
+      get "/api/v1/wines/search", params: { producer_id: producer.id }, as: :json
+
+      expect(response).to have_http_status(:ok)
+    end
+  end
+
+  describe "catalogue creation by role" do
+    # Reviewers are wine managers now: they authenticate the wines we review, so
+    # they may catalogue them. Admins/Editors keep everything; readers/guests
+    # gain nothing.
+    let(:role_user) do
+      user = User.create!(user_name: "Catalogue Reviewer", email: "catalogue-reviewer@example.com",
+                          password: "password123")
+      user.roles << Role.find_or_create_by!(name: "Reviewer")
+      user
+    end
+    let(:reader) do
+      user = User.create!(user_name: "Catalogue Reader", email: "catalogue-reader@example.com",
+                          password: "password123")
+      user
+    end
+
+    def wine_payload
+      {
+        name: "Reviewer Catalogued Wine",
+        color: "Red",
+        producer_id: producer.id,
+        vintages_attributes: [{ year: 2022, no_vintage: false }]
+      }
+    end
+
+    it "lets a Reviewer create a wine (and its first vintage in one request)" do
+      sign_in role_user
+      post "/api/v1/wines", params: { wine: wine_payload }, as: :json
+
+      expect(response).to have_http_status(:created)
+      created = Wine.find_by(name: "Reviewer Catalogued Wine")
+      expect(created.producer_id).to eq(producer.id)
+      expect(created.vintages.map(&:year)).to eq([2022])
+    end
+
+    it "lets a Reviewer update and delete a wine" do
+      sign_in role_user
+
+      patch "/api/v1/wines/#{wine_one.slug}", params: { wine: { designation_name: "Bin 389" } },
+                                              as: :json
+      expect(response).to have_http_status(:ok)
+      expect(wine_one.reload.designation_name).to eq("Bin 389")
+
+      delete "/api/v1/wines/#{wine_one.slug}"
+      expect(response).to have_http_status(:no_content)
+      expect(Wine.exists?(wine_one.id)).to be false
+    end
+
+    it "keeps readers and guests out" do
+      sign_in reader
+      post "/api/v1/wines", params: { wine: wine_payload }, as: :json
+
+      expect(response).to have_http_status(:forbidden)
+      expect(Wine.where(name: "Reviewer Catalogued Wine").count).to eq(0)
+    end
+
+    it "still requires authentication" do
+      post "/api/v1/wines", params: { wine: wine_payload }, as: :json
+
+      expect(response).to have_http_status(:unauthorized)
+    end
+  end
 end

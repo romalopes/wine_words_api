@@ -81,10 +81,33 @@ RSpec.describe User, type: :model do
       expect(editor.wine_manager?).to be true
     end
 
-    it "is false for Reviewers, Readers, and Guests" do
-      expect(reviewer.wine_manager?).to be false
+    # Reviewers are content managers: they authenticate the wines we review, so
+    # they may create/update/delete wines, vintages and reviews, and they are
+    # trusted with the rest of the catalogue.
+    it "is true for Reviewers" do
+      expect(reviewer.wine_manager?).to be true
+      expect(admin_also_reviewer.wine_manager?).to be true
+    end
+
+    it "is false for Readers and Guests" do
       expect(reader.wine_manager?).to be false
       expect(guest.wine_manager?).to be false
+    end
+  end
+
+  describe "#catalogue_manager?" do
+    # The narrow tier that "sees everything" — deliberately NOT widened to
+    # Reviewers, so a Reviewer still manages only their own wine packages (see
+    # WinePackageAuthorizable) even though they are wine managers.
+    it "is true for Admins and Editors" do
+      expect(admin.catalogue_manager?).to be true
+      expect(editor.catalogue_manager?).to be true
+    end
+
+    it "is false for Reviewers, Readers and Guests" do
+      expect(reviewer.catalogue_manager?).to be false
+      expect(reader.catalogue_manager?).to be false
+      expect(guest.catalogue_manager?).to be false
     end
   end
 end

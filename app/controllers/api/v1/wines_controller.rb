@@ -10,8 +10,8 @@ class Api::V1::WinesController < ApplicationController
   end
 
 
-  # Wine management (create/update/destroy) is restricted to signed-in
-  # Admins and Reviewers; reading stays public.
+  # Wine management (create/update/destroy) is restricted to signed-in Admins,
+  # Editors and Reviewers (= User#wine_manager?); reading stays public.
   before_action :authenticate_user!, only: [:create, :update, :destroy]
   before_action :ensure_wine_manager!, only: [:create, :update, :destroy]
   skip_before_action :authenticate_user!, only: [:index, :show, :search, :advanced_search]
@@ -148,14 +148,29 @@ class Api::V1::WinesController < ApplicationController
     head :no_content
   end
 
-  # JSON endpoint used by the article form's "search wines" picker.
+  # JSON endpoint used by the wine pickers (articles, reviews, grapes, regions
+  # and the wine-package item form).
+  #
+  # Three shapes, all additive to the original name search:
+  #   * ?q=barolo                 -> catalogue-wide name match
+  #   * ?q=barolo&producer_id=7   -> name match, limited to that producer
+  #   * ?producer_id=7            -> ALL of that producer's wines, so a picker
+  #                                  can list them instead of making the user
+  #                                  guess a wine name
+  # With neither parameter the behaviour is unchanged (nothing is returned).
   def search
     query = params[:q].to_s.strip
+    producer_id = params[:producer_id].presence
+
     wines =
-      if query.blank?
-        Wine.none
+      if query.present?
+        scope = Wine.where("name ILIKE ?", "%#{query}%")
+        scope = scope.where(producer_id: producer_id) if producer_id
+        scope.includes(:vintages).order(:name).limit(20)
+      elsif producer_id
+        Wine.where(producer_id: producer_id).includes(:vintages).order(:name).limit(50)
       else
-        Wine.where("name ILIKE ?", "%#{query}%").includes(:vintages).order(:name).limit(20)
+        Wine.none
       end
 
     render json: wines.map { |wine| wine_search_json(wine) }
@@ -261,7 +276,7 @@ class Api::V1::WinesController < ApplicationController
       producer: wine.producer ? { id: wine.producer.id, slug: wine.producer.slug, name: wine.producer.name } : nil,
       category: wine.category&.name,
       vintages: wine.vintages.order(year: :desc).map do |vintage|
-        { id: vintage.id, year: vintage.year }
+        { id: vintage.id, year: vintage.year, no_vintage: vintage.no_vintage }
       end
     }
   end
@@ -292,4 +307,3 @@ class Api::V1::WinesController < ApplicationController
     permitted
   end
 end
-
