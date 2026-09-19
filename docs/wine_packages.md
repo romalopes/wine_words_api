@@ -472,8 +472,10 @@ gates the navigation and create buttons, while management controls require
 | `/wine-packages/:id/edit` | `WinePackageForm.jsx` | edit |
 | `/notifications` | `Notifications.jsx` | the reviewer's reminders |
 
-Supporting components: `WinePackageItemForm.jsx` (add/edit a line, with the wine
-picker), `ReviewForm.jsx` in package mode (`packageId` + `packageItemId`: the
+Supporting components: `WinePackageItemForm.jsx` (add/edit one wine line — see
+*Picking the wine line* below), `InlineWineCreateForm.jsx` and
+`InlineVintageCreateForm.jsx` (create a missing catalogue entry without leaving
+the line), `ReviewForm.jsx` in package mode (`packageId` + `packageItemId`: the
 same full review form used on `/wines/:slug`, submitted through the package
 `create_review` endpoint so the review is created and linked in one request),
 `ShipmentTrackingPanel.jsx`,
@@ -492,13 +494,39 @@ Deliberate UI behaviours: every action button comes from the API's `can` map;
 shown as *confirm arrival* rather than changing the package; the tracking panel
 says so when no carrier credentials exist.
 
-Two current limitations worth knowing:
+### Picking the wine line
+
+A line is a **vintage of a wine**, never a wine, so the line form is scoped to
+the package's own producer: `WinePackageDetail.jsx` passes `producer_id` and
+`producer_name` down, and the form has no global wine search at all.
+
+1. `WinePackageItemForm` loads that producer's catalogue once, on mount, via
+   `winesApi.search({ producerId })` → `GET /wines/search?producer_id=…`.
+   Nothing has to be typed; a local filter narrows the list of wines.
+2. Choosing a wine preselects its newest vintage. The reviewer changes it when
+   the bottle that arrived is a different year.
+3. A wine we have never recorded: **Add a new wine** opens
+   `InlineWineCreateForm` — name, colour, optional designation and the first
+   vintage, posted in one `winesApi.create` through `vintages_attributes`. The
+   producer is pre-filled **and locked**, because the line belongs to this
+   package's producer.
+4. A vintage we have never recorded: **Add a vintage** opens
+   `InlineVintageCreateForm`, which posts `vintagesApi.create(wine.slug, { year,
+   no_vintage })`. The Vintage model requires a year, so a non-vintage wine
+   stores the current year alongside `no_vintage: true`.
+5. Both panels replace the line form — each posts its own request, so neither may
+   be nested in the line's `<form>` — and both hand the created record back so
+   the line can select it immediately.
+6. **Not in the catalogue yet** stays as the last resort: it clears the vintage
+   and saves the line unmatched (`vintage_id: null`).
+
+The submit guard is unchanged: a line with no vintage is refused, with the
+reason shown in the form, unless it is marked as not in the catalogue yet.
+
+One limitation left in this area:
 
 * **Reviewer reassignment is admin-only in the UI**, because `users#search` is
   admin-gated. A proper user picker needs a non-admin-safe lookup endpoint.
-* A wine with **no vintages** cannot be linked from a line yet; record it as
-  "Not in the catalogue yet" (or as an unmatched line) and match it once the
-  vintage exists.
 
 ---
 
