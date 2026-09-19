@@ -273,6 +273,23 @@ and an HTML part, listing the wines still waiting and linking to
 skipped — one failure must never stop the batch (the same contract as
 `Billing::ReconcileSubscriptionsJob`).
 
+### Visibility (in-app)
+
+A reminder that has not been delivered yet is **invisible** to its recipient:
+the scheduler pre-creates the 15/5/0-day rows ahead of time, and the user has
+not received anything for them. `Api::V1::NotificationsController` therefore
+scopes every read to `Notification.delivered` (`sent_at` present):
+
+* `GET /notifications` lists delivered notifications only, so the in-app feed
+  and the header bell's unread count never expose queued reminders;
+* `PATCH /notifications/:id/mark_read` and
+  `PATCH /notifications/mark_all_read` only touch delivered ones — a queued
+  reminder stays unread and surfaces on its due date, after the job has sent
+  it.
+
+Read state is orthogonal to delivery: marking read never changes `sent_at`, and
+delivery never changes `read_at`.
+
 Idempotency notes: `Notification.notify!` looks the row up by its **dedup key**
 (not by the full attribute set), because Rails' `find_or_create_by!` retries the
 lookup with *all* attributes and would raise `RecordNotFound` for a reminder
