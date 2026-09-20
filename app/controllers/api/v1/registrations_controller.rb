@@ -2,6 +2,9 @@ class Api::V1::RegistrationsController < Devise::RegistrationsController
   respond_to :json
 
   include Auditable
+  # Private test-access gate (this controller inherits Devise, not
+  # ApplicationController, so the concern is included directly).
+  include TestAccess
   # Sign-up is a meaningful auditable event (it creates a new user).
   audit_actions :create
 

@@ -24,6 +24,10 @@ class Api::V1::SocialAuthController < ApplicationController
   # into the action itself.
   skip_before_action :authenticate_user!, only: :create
 
+  # Private test-access gate (inherited from ApplicationController; restated
+  # here to document that social sign-in is gated too).
+  include TestAccess
+
   include Auditable
   include UserSessionPayload
 

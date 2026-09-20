@@ -12,6 +12,13 @@ class ApplicationController < ActionController::Base
 
   before_action :authenticate_user!
 
+  # Private test-access gate: while TEST_ACCESS_PASSWORD is configured, every
+  # Api::V1 request must carry a valid signed test-access token (see
+  # TestAccess / TestAccessToken). Independent of Devise authentication.
+  # (Server-rendered controllers inherit ActionController::Base directly and
+  # keep their existing RequireLogin / Devise protection.)
+  include TestAccess
+
   def render_resource(resource)
     if resource.errors.empty?
       render json: resource

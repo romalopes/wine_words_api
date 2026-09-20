@@ -100,6 +100,11 @@ Rails.application.routes.draw do
     namespace :v1 do
       get "health", to: "health#index"
       get "health/detailed", to: "health#detailed"
+
+      # Private test-access gate (see TestAccessToken): password -> signed
+      # token; token verification for the SPA on boot.
+      post "test_access", to: "test_access#create"
+      get "test_access", to: "test_access#show"
       get "logs", to: "logs#index"
       get "logs/audit", to: "logs#audit_logs"
       get "logs/:id", to: "logs#show"

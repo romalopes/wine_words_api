@@ -10,6 +10,10 @@ class Api::V1::HealthController < ApplicationController
   # sends.
   skip_before_action :authenticate_user!, only: :index
 
+  # Public liveness probe stays reachable without the private test-access
+  # token (`detailed` remains gated by both layers).
+  skip_before_action :require_test_access, only: :index
+
   # Detailed diagnostics are admin-only.
   before_action :authenticate_admin!, only: :detailed
 

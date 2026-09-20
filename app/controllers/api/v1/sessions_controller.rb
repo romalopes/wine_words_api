@@ -3,6 +3,9 @@ class Api::V1::SessionsController < Devise::SessionsController
 
   include Auditable
   include UserSessionPayload
+  # Private test-access gate (this controller inherits Devise, not
+  # ApplicationController, so the concern is included directly).
+  include TestAccess
   audit_actions :create, :destroy
 
   before_action :remember_user_for_audit

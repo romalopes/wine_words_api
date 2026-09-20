@@ -1,6 +1,10 @@
 class Api::V1::PasswordsController < Devise::PasswordsController
   respond_to :json
 
+  # Private test-access gate (this controller inherits Devise, not
+  # ApplicationController, so the concern is included directly).
+  include TestAccess
+
   # POST /api/v1/auth/password
   # Always respond 200 (never reveal whether the email exists). In
   # development/test, expose the reset token/link so the flow can be

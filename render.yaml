@@ -53,6 +53,10 @@ services:
         value: "5"
       - key: APP_HOST
         sync: false            # set in the dashboard
+      - key: TEST_ACCESS_PASSWORD
+        sync: false            # set in the dashboard — private test-access gate
+      - key: TEST_ACCESS_TOKEN_EXPIRATION
+        value: "7.days"
       - key: SOLID_QUEUE_IN_PUMA
         value: "false"         # jobs run in the dedicated worker service, not in Puma
     # The release command runs once per deploy, after the build but
