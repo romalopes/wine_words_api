@@ -116,6 +116,17 @@ RSpec.describe "Api::V1::TestAccess", type: :request do
 
       expect(response).to have_http_status(:ok)
     end
+
+    it "reports success on verification so a deployed SPA stays unlocked" do
+      ENV.delete("TEST_ACCESS_PASSWORD")
+
+      get "/api/v1/test_access", as: :json
+
+      expect(response).to have_http_status(:ok)
+      body = JSON.parse(response.body)
+      expect(body["authenticated"]).to be(true)
+      expect(body["disabled"]).to be(true)
+    end
   end
 
   describe "health endpoints" do
