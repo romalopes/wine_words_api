@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_18_000007) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_20_122659) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -733,6 +733,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_18_000007) do
   create_table "users", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "email", default: "", null: false
+    t.datetime "email_verification_sent_at"
+    t.string "email_verification_token_digest"
+    t.datetime "email_verified_at"
     t.string "encrypted_password", default: "", null: false
     t.datetime "remember_created_at"
     t.datetime "reset_password_sent_at"
@@ -741,6 +744,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_18_000007) do
     t.datetime "updated_at", null: false
     t.string "user_name", default: ""
     t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["email_verification_token_digest"], name: "index_users_on_email_verification_token_digest"
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
     t.index ["subscription_id"], name: "index_users_on_subscription_id"
     t.index ["user_name"], name: "index_users_on_user_name", unique: true
