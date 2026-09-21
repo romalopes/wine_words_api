@@ -40,12 +40,18 @@ class WinePackageSerializer
       overdue: @package.overdue?,
       days_until_deadline: @package.days_until_deadline,
       can: capabilities,
+      images: image_urls(@package),
+      image_ids: image_ids(@package),
+      image_details: image_details(@package),
+      primary_image: primary_image(@package),
       created_at: iso(@package.created_at),
       updated_at: iso(@package.updated_at)
     }
   end
 
   private
+
+  include ImageAttributes
 
   def reviewer_name
     @package.reviewer&.user_name || @package.reviewer&.email

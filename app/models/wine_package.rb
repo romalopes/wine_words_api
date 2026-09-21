@@ -12,6 +12,8 @@
 #   * Arrival starts the clock: `review_deadline` defaults to one calendar
 #     month after `arrived_at` and is NEVER overwritten once set.
 class WinePackage < ApplicationRecord
+  include Imageable
+
   # Raised when a caller attempts a transition the workflow does not allow.
   class InvalidTransition < StandardError; end
 

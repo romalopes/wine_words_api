@@ -1,7 +1,7 @@
 class Api::V1::ImagesController < ApplicationController
   include ImageAttributes
 
-  ALLOWED_TYPES = { "wine" => Wine, "producer" => Producer, "review" => Review, "article" => Article }.freeze
+  ALLOWED_TYPES = { "wine" => Wine, "producer" => Producer, "review" => Review, "article" => Article, "wine_package" => WinePackage }.freeze
 
   before_action :set_base_url
   before_action :find_record
@@ -86,6 +86,13 @@ class Api::V1::ImagesController < ApplicationController
 
   def authorized_to_modify?(record)
     return false unless record
+
+    # WinePackage follows its own authorization rules (WinePackageAuthorizable):
+    # catalogue managers (Admin/Editor) manage every package; a Reviewer only
+    # the packages they are responsible for.
+    if record.is_a?(WinePackage)
+      return current_user&.catalogue_manager? || record.reviewer_id == current_user&.id
+    end
 
     if record.respond_to?(:user_id)
       current_user&.wine_manager? || record.user_id == current_user&.id
