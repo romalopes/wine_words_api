@@ -63,6 +63,64 @@ class User < ApplicationRecord
     role?(:admin)
   end
 
+  # ---------------------------------------------------------------------------
+  # Email verification (see EmailVerificationService / EmailVerification).
+  # A user is "pending" while they have an unconsumed verification token.
+  # Pending users cannot sign in (feature on) and are locked out entirely once
+  # the verification window (EmailVerification.expiration) has passed.
+  # ---------------------------------------------------------------------------
+
+  def email_verified?
+    email_verified_at.present?
+  end
+
+  def email_verification_pending?
+    !email_verified? && email_verification_token_digest.present?
+  end
+
+  # When the current verification link stops working. nil if nothing pending.
+  def email_verification_expires_at
+    return nil if email_verification_sent_at.blank?
+
+    email_verification_sent_at + EmailVerification.expiration
+  end
+
+  def email_verification_expired?
+    return false unless email_verification_pending?
+
+    expires_at = email_verification_expires_at
+    expires_at.present? && expires_at < Time.current
+  end
+
+  # Generates a fresh one-time token (the raw value is returned once, for the
+  # mailer — only its digest is stored), invalidating any previous token and
+  # resetting the verification window.
+  def generate_email_verification_token!
+    raw_token = SecureRandom.urlsafe_base64(32)
+    update!(
+      email_verification_token_digest: EmailVerificationService.digest_token(raw_token),
+      email_verification_sent_at: Time.current,
+      email_verified_at: nil
+    )
+    raw_token
+  end
+
+  # Consumes the raw token clicked from the email: marks the address verified
+  # and clears the token state. Returns the user on success, nil when the token
+  # does not match or the window has expired (caller renders a generic error).
+  def consume_email_verification_token(raw_token)
+    return nil if raw_token.blank?
+    return nil if email_verification_expired?
+    return nil if email_verification_token_digest != EmailVerificationService.digest_token(raw_token)
+
+    update!(
+      email_verified_at: Time.current,
+      email_verification_token_digest: nil,
+      email_verification_sent_at: nil
+    )
+    self
+  end
+
   # "super_admin" is the platform-wide administrator role used to gate
   # sensitive views (e.g. Users & Roles). The system currently has a single
   # "Admin" tier, so super_admin? is an alias for admin?. If a separate

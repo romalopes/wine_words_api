@@ -42,7 +42,7 @@ class EmailVerificationService
   def self.resend(email_address)
     return unless EmailVerification.require?
 
-    user = User.find_by(email_address: email_address)
+    user = User.find_by(email: email_address)
     return unless user&.email_verification_pending?
 
     send_verification(user) unless within_cooldown?(user)
@@ -60,5 +60,18 @@ class EmailVerificationService
     sent_at = user.email_verification_sent_at
     sent_at.present? && sent_at > RESEND_COOLDOWN.ago
   end
-  private_class_method :digest_token, :within_cooldown?
+
+  # The uniform verification-state payload embedded in signup/login/403
+  # responses so the frontend can show "check your inbox" messaging with the
+  # deadline (how long the user has to verify) without extra round-trips.
+  def self.pending_payload(user)
+    expires_at = user.email_verification_expires_at
+    {
+      email_verification_pending: true,
+      email_verification_expired: user.email_verification_expired?,
+      email_verification_deadline: expires_at&.iso8601,
+      email_verification_expires_in_seconds: expires_at ? ((expires_at - Time.current).to_i.clamp(0, nil)) : nil
+    }
+  end
+  private_class_method :within_cooldown?
 end

@@ -13,6 +13,10 @@ Rails.application.routes.draw do
     },
     defaults: { format: :json }
 
+  # Email verification (token from the link in the verification email).
+  get "api/v1/email-verifications/:token", to: "api/v1/email_verifications#show"
+  post "api/v1/email-verifications/resend", to: "api/v1/email_verifications_resend#create"
+
   root "web/dashboard#index"
 
   get "login", to: "web/sessions#new"
@@ -276,8 +280,12 @@ Rails.application.routes.draw do
       end
 
       # Global configuration (admin only): singleton settings for the
-      # Configuration page — currently the audit-log persistence toggle.
-      resource :configuration, controller: "configurations", only: [:show, :update]
+      # Configuration page — audit-log persistence toggle plus the email-test
+      # settings. Custom (user-added) settings are managed through the nested
+      # settings resource.
+      resource :configuration, controller: "configurations", only: [:show, :update] do
+        resources :settings, only: [:index, :create, :update, :destroy], module: "configuration"
+      end
 
       get "account", to: "accounts#show"
       patch "account", to: "accounts#update"

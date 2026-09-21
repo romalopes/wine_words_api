@@ -5,6 +5,11 @@
 # back to the login page with a success message. On failure returns 422 with a
 # generic error — no user existence is disclosed.
 class Api::V1::EmailVerificationsController < ApplicationController
+  # The verify link is clicked straight from the email — the visitor is usually
+  # not signed in, so Devise's global authenticate_user! must not apply here.
+  skip_before_action :authenticate_user!, only: :show
+  skip_before_action :enforce_email_verification!, only: :show
+
   def show
     result = EmailVerificationService.verify(params.fetch(:token, ""))
     if result

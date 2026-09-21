@@ -67,4 +67,44 @@ RSpec.describe WinePackagesMailer, type: :mailer do
     expect(mail.html_part).to be_present
     expect(mail.from).to eq([ "romalopes@gmail.com" ])
   end
+
+  describe "email test mode (use_test_email)" do
+    around do |example|
+      old = { "use_test_email" => AppSetting.use_test_email?,
+              "test_email" => AppSetting.test_email }
+      example.run
+      AppSetting.set!(:use_test_email, old["use_test_email"]) if old["use_test_email"] != AppSetting.use_test_email?
+      AppSetting.set!(:test_email, old["test_email"]) if old["test_email"] != AppSetting.test_email
+      AppSetting.where(key: %w[use_test_email test_email]).destroy_all
+    end
+
+    it "redirects every email to the configured test address with a [TEST] subject" do
+      AppSetting.set!(:use_test_email, true)
+      AppSetting.set!(:test_email, "romalopes@yahoo.com.br")
+
+      mail = described_class.review_deadline_notification(notify(package.review_deadline - 5))
+
+      expect(mail.to).to eq([ "romalopes@yahoo.com.br" ])
+      expect(mail.subject).to eq("[TEST] Penfolds: wine package review deadline in 5 days")
+    end
+
+    it "uses the runtime-configurable test address" do
+      AppSetting.set!(:use_test_email, true)
+      AppSetting.set!(:test_email, "other-tester@example.com")
+
+      mail = described_class.review_deadline_notification(notify(package.review_deadline - 5))
+
+      expect(mail.to).to eq([ "other-tester@example.com" ])
+    end
+
+    it "delivers normally when use_test_email is off" do
+      AppSetting.set!(:use_test_email, false)
+      AppSetting.set!(:test_email, "romalopes@yahoo.com.br")
+
+      mail = described_class.review_deadline_notification(notify(package.review_deadline - 5))
+
+      expect(mail.to).to eq([ recipient.email ])
+      expect(mail.subject).not_to start_with("[TEST]")
+    end
+  end
 end

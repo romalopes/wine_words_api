@@ -188,7 +188,11 @@ module Authentication
           # Social-only users have no password; the flag suppresses only the
           # on-create password requirement. Role/subscription/Account creation
           # all still run through the existing hooks.
-          social_signup: true
+          social_signup: true,
+          # When the provider vouches for the address (Google/Microsoft do),
+          # treat it as already verified — no email-verification lockout for
+          # social sign-ups the provider has itself verified.
+          email_verified_at: (Time.current if claims.email_verified?)
         )
         new_user.user_name = unique_user_name_for(claims)
         new_user.save!

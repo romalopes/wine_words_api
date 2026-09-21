@@ -1,7 +1,10 @@
 module Api
   module V1
     class EmailVerificationsResendController < ApplicationController
-      allow_unauthenticated_access only: :create
+      # Same as the verify link itself: reachable while signed out. Devise's
+      # authenticate_user! (not Rails' require_authentication) is the gate here.
+      skip_before_action :authenticate_user!, only: :create
+      skip_before_action :enforce_email_verification!, only: :create
 
       # POST /api/v1/email-verifications/resend
       #

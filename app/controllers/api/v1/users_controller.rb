@@ -42,20 +42,26 @@ class Api::V1::UsersController < ApplicationController
     }
   end
 
-  # GET /api/v1/users/search?q=name-or-email
+  # GET /api/v1/users/search?q=name-or-email&page=N
+  #
+  # Search by user_name OR email. With ?page=N the response is the standard
+  # pagination envelope (20 per page by default, see Api::Paginatable); without
+  # a page param the legacy plain-array response (limit 20) is kept for
+  # compatibility.
   def search
     return head(:forbidden) unless real_current_user&.admin?
 
     query = params[:q].to_s.strip
     users =
       if query.blank?
-        User.order(:name).limit(20)
+        User.order(:user_name)
       else
         User.where("user_name ILIKE ? OR email ILIKE ?", "%#{query}%", "%#{query}%")
-            .order(:user_name).limit(20)
+            .order(:user_name)
       end
 
-    render json: users.map { |u| user_json(u) }
+    rendered = render_paginated(users) { |page_items| page_items.map { |u| user_json(u) } }
+    render json: users.limit(20).map { |u| user_json(u) } unless rendered
   end
 
   # GET /api/v1/roles - the full role list (id + human name), for role pickers.
@@ -71,6 +77,15 @@ class Api::V1::UsersController < ApplicationController
     @target_user = user
     old_role_names = user.role_names
     role_ids = Array(params[:role_ids]).compact.map(&:to_i)
+
+    # Guardrail: an admin cannot revoke their own Admin role (no self-lockout —
+    # an admin dropping Admin could leave the system without any admin).
+    admin_role_id = Role.find_by(name: Role.names[:admin])&.id
+    if user.id == real_current_user.id && !role_ids.include?(admin_role_id)
+      return render json: { error: "You cannot revoke your own Admin role." },
+                    status: :unprocessable_entity
+    end
+
     user.user_roles.destroy_all
     role_ids.each { |rid| user.user_roles.create!(role_id: rid) }
     @role_change_from = old_role_names
