@@ -1487,7 +1487,7 @@ load Rails.root.join("db/seeds/subscriptions.rb")
 load Rails.root.join("db/seeds/producers.rb")
 load Rails.root.join("db/seeds/wines.rb")
 
-load Rails.root.join("db/seeds/article_and_reviews.rb")
+load Rails.root.join("db/seeds/articles_and_reviews.rb")
 
 lsof -i :3000
 
