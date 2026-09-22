@@ -152,6 +152,21 @@ class User < ApplicationRecord
     roles.map { |r| Role.names[r.name.to_s] || r.name.to_s }.sort
   end
 
+  def add_role(role_name)
+    role = Role.find_by(name: role_name.to_s)
+    return false unless role
+
+    user_roles.find_or_create_by!(role: role)
+  end
+
+  def remove_role(role_name)
+    role = Role.find_by(name: role_name.to_s)
+    return false unless role
+
+    user_roles.where(role: role).destroy_all
+    true
+  end
+
   def jwt_payload
     { user_name: user_name, roles: role_names }
   end

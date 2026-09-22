@@ -43,7 +43,7 @@ plans = [
   },
   {
     slug: "consumer", name: "Consumer", popular: true, visible: true, active: true,
-    is_default: false, position: 1, rank: 1, monthly_price_cents: nil, yearly_price_cents: 7_00,
+    is_default: false, position: 1, rank: 1, monthly_price_cents: nil, yearly_price_cents: 7_000,
     description: "For the everyday wine lover.",
     features: ["full-archive-access"]
   },

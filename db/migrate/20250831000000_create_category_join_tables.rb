@@ -24,15 +24,15 @@ class CreateCategoryJoinTables < ActiveRecord::Migration[7.0]
     # Migrate existing single-category data to the join tables
     reversible do |dir|
       dir.up do
-        Wine.where.not(category_id: nil).find_each do |wine|
-          WineCategory.create(wine_id: wine.id, category_id: wine.category_id)
-        end
-        Review.where.not(category_id: nil).find_each do |review|
-          ReviewCategory.create(review_id: review.id, category_id: review.category_id)
-        end
-        Article.where.not(category_id: nil).find_each do |article|
-          ArticleCategory.create(article_id: article.id, category_id: article.category_id)
-        end
+        # Wine.where.not(category_id: nil).find_each do |wine|
+        #   WineCategory.create(wine_id: wine.id, category_id: wine.category_id)
+        # end
+        # Review.where.not(category_id: nil).find_each do |review|
+        #   ReviewCategory.create(review_id: review.id, category_id: review.category_id)
+        # end
+        # Article.where.not(category_id: nil).find_each do |article|
+        #   ArticleCategory.create(article_id: article.id, category_id: article.category_id)
+        # end
       end
     end
   end

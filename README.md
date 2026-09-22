@@ -1487,38 +1487,71 @@ load Rails.root.join("db/seeds/article_and_reviews.rb")
 lsof -i :3000
 
 # ============================================================================
-# Private test-access gate
-#
-# The application is in a private testing phase. While the gate is enabled,
-# the browser must first exchange a password for a signed, expiring token and
-# send that token on every API request (header `X-Test-Access-Token`).
-#
-# * **Password**: server-side only, from the `TEST_ACCESS_PASSWORD` environment
-#   variable (Render env var in production). It is **never** in the React
-#   source and **never** committed. Leave it blank locally to disable the gate.
-# * **Token**: signed with Rails' `message_verifier` (`TestAccessToken`),
-#   expires after `TEST_ACCESS_TOKEN_EXPIRATION` (default 7 days). It is not a
-#   User credential and does not touch Devise/devise-jwt authentication.
-# * **Endpoints** (open even when the gate is on):
-#   * `POST /api/v1/test_access` `{ "password": "…" }` →
-#     `{ authenticated: true, token, expires_at }` or 401
-#     `{ authenticated: false, error: "Invalid password" }` (rate-limited).
-#   * `GET  /api/v1/test_access` — verifies the header token.
-#   * `GET  /api/v1/health` — stays public for uptime probes. The Stripe
-#     webhook stays public too (verified via webhook signature).
-# * **Server-rendered pages** keep their existing Devise (RequireLogin)
-#   protection — the gate is on the JSON API the React app consumes.
-# * **Rotating the password**: change `TEST_ACCESS_PASSWORD` on Render and
-#   restart. Old tokens keep working until they expire; to invalidate
-#   everything sooner, change the `PURPOSE` constant in `TestAccessToken`
-#   once — every previously issued token stops verifying immediately.
-# * **Removing the feature later**: delete `app/services/test_access_token.rb`,
-#   `app/controllers/concerns/test_access.rb`,
-#   `app/controllers/api/v1/test_access_controller.rb`, the two `test_access`
-#   routes, the `include TestAccess` lines, and the matching React gate
-#   (`src/contexts/TestAccessContext.jsx`, `src/components/TestAccess.jsx`).
-#
-# Local setup: copy the `TEST_ACCESS_PASSWORD=` block from `.env.example` into
-# `.env.development` and set a secret. Use a **different** password than the
-# Beach Volleyball API in production.
 
+# Private test-access gate
+
+#
+
+# The application is in a private testing phase. While the gate is enabled,
+
+# the browser must first exchange a password for a signed, expiring token and
+
+# send that token on every API request (header `X-Test-Access-Token`).
+
+#
+
+# \* **Password**: server-side only, from the `TEST_ACCESS_PASSWORD` environment
+
+# variable (Render env var in production). It is **never** in the React
+
+# source and **never** committed. Leave it blank locally to disable the gate.
+
+# \* **Token**: signed with Rails' `message_verifier` (`TestAccessToken`),
+
+# expires after `TEST_ACCESS_TOKEN_EXPIRATION` (default 7 days). It is not a
+
+# User credential and does not touch Devise/devise-jwt authentication.
+
+# \* **Endpoints** (open even when the gate is on):
+
+# \* `POST /api/v1/test_access` `{ "password": "…" }` →
+
+# `{ authenticated: true, token, expires_at }` or 401
+
+# `{ authenticated: false, error: "Invalid password" }` (rate-limited).
+
+# \* `GET  /api/v1/test_access` — verifies the header token.
+
+# \* `GET  /api/v1/health` — stays public for uptime probes. The Stripe
+
+# webhook stays public too (verified via webhook signature).
+
+# \* **Server-rendered pages** keep their existing Devise (RequireLogin)
+
+# protection — the gate is on the JSON API the React app consumes.
+
+# \* **Rotating the password**: change `TEST_ACCESS_PASSWORD` on Render and
+
+# restart. Old tokens keep working until they expire; to invalidate
+
+# everything sooner, change the `PURPOSE` constant in `TestAccessToken`
+
+# once — every previously issued token stops verifying immediately.
+
+# \* **Removing the feature later**: delete `app/services/test_access_token.rb`,
+
+# `app/controllers/concerns/test_access.rb`,
+
+# `app/controllers/api/v1/test_access_controller.rb`, the two `test_access`
+
+# routes, the `include TestAccess` lines, and the matching React gate
+
+# (`src/contexts/TestAccessContext.jsx`, `src/components/TestAccess.jsx`).
+
+#
+
+# Local setup: copy the `TEST_ACCESS_PASSWORD=` block from `.env.example` into
+
+# `.env.development` and set a secret. Use a **different** password than the
+
+# Beach Volleyball API in production.
