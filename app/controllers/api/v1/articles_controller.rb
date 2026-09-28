@@ -22,6 +22,12 @@ class Api::V1::ArticlesController < ApplicationController
     articles = articles.joins(:article_categories).where(article_categories: { category_id: params[:category_id] }).distinct if params[:category_id].present?
     articles = articles.left_outer_joins(:article_categories).where(article_categories: { id: nil }) if params[:uncategorised] == "true"
     articles = articles.where("articles.title ILIKE ?", "%#{params[:query].strip}%") if params[:query].present?
+    if params[:search].present?
+      search = params[:search].strip
+      articles = articles.select("articles.*, ts_rank_cd(articles.searchable, to_tsquery('english', ?)) AS rank")
+                         .where("articles.searchable @@ to_tsquery('english', ?)", search, search)
+                         .order("rank DESC")
+    end
     return if render_paginated(articles) { |items| items.map { |a| ArticleListSerializer.new(a, request.base_url).as_json } }
 
     render json: articles.map { |a| ArticleListSerializer.new(a, request.base_url).as_json }

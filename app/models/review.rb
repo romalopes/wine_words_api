@@ -20,6 +20,7 @@ class Review < ApplicationRecord
   validate :drink_window_is_consistent
 
   before_validation :generate_slug
+before_save :update_search_vector
 
   # Use slug instead of numeric id in URLs so lookups resolve via find_by!(slug:)
   def to_param
@@ -80,5 +81,29 @@ class Review < ApplicationRecord
     return if status == "published"
 
     ArticleReview.where(review: self, status: "published").update_all(status: "draft")
+  end
+private
+
+  def update_search_vector
+    # A = title, wine_name
+    # B = producer, content
+    # C = region, grape
+    # D = country, author
+    wine_name = vintage&.wine&.name
+    producer_name = vintage&.wine&.producer&.name
+    region_name = vintage&.wine&.regions&.first&.name
+    grape_name = vintage&.wine&.grapes&.first&.name
+    country_name = vintage&.wine&.regions&.first&.country&.name
+    author_name = user&.name
+
+    self.searchable = \
+      setweight(to_tsvector('english', coalesce(title, '')), 'A') || \
+      setweight(to_tsvector('english', coalesce(wine_name, '')), 'A') || \
+      setweight(to_tsvector('english', coalesce(producer_name, '')), 'B') || \
+      setweight(to_tsvector('english', coalesce(content, '')), 'B') || \
+      setweight(to_tsvector('english', coalesce(region_name, '')), 'C') || \
+      setweight(to_tsvector('english', coalesce(grape_name, '')), 'C') || \
+      setweight(to_tsvector('english', coalesce(country_name, '')), 'D') || \
+      setweight(to_tsvector('english', coalesce(author_name, '')), 'D')
   end
 end

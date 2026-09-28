@@ -40,12 +40,15 @@ class Api::V1::ReviewsController < ApplicationController
       q = "%#{params[:query].strip}%"
       reviews = reviews.joins(vintage: :wine).where("reviews.title ILIKE :q OR wines.name ILIKE :q", q: q)
     end
-    if params[:search].present?
+if params[:search].present?
       search = params[:search].strip
-      reviews = reviews.select("reviews.*, ts_rank_cd(reviews.searchable, to_tsquery('english', ?)) AS rank")
-                       .where("reviews.searchable @@ to_tsquery('english', ?)", search, search)
-                       .order("rank DESC")
+      reviews = reviews.select(\"reviews.*, ts_rank_cd(reviews.searchable, to_tsquery('english', ?)) AS rank\")
+                      .where(\"reviews.searchable @@ to_tsquery('english', ?)\", search, search)
+                      .order(\"rank DESC\")
     end
+
+    return if render_paginated(reviews) { |items| serialize_reviews(items) }
+
     render json: serialize_reviews(reviews)
   end
 

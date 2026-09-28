@@ -26,6 +26,7 @@ class Article < ApplicationRecord
   validates :status, presence: true, inclusion: { in: %w[draft published] }
 
   before_validation :generate_slug
+before_save :update_search_vector
 
   # Use slug instead of numeric id in URLs so lookups resolve via find_by!(slug:)
   def to_param
@@ -56,5 +57,20 @@ class Article < ApplicationRecord
       i += 1
     end
     self.slug = candidate
+  end
+private
+
+  def update_search_vector
+    tag_names = tags.pluck(:name).join(' ')
+    category_name = category&.name
+    author_name = user&.name
+
+    self.searchable = \
+      setweight(to_tsvector('english', coalesce(title, '')), 'A') || \
+      setweight(to_tsvector('english', coalesce(abstract, '')), 'B') || \
+      setweight(to_tsvector('english', coalesce(body, '')), 'C') || \
+      setweight(to_tsvector('english', coalesce(tag_names, '')), 'D') || \
+      setweight(to_tsvector('english', coalesce(category_name, '')), 'D') || \
+      setweight(to_tsvector('english', coalesce(author_name, '')), 'D')
   end
 end
