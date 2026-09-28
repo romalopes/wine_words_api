@@ -94,16 +94,25 @@ private
     region_name = vintage&.wine&.regions&.first&.name
     grape_name = vintage&.wine&.grapes&.first&.name
     country_name = vintage&.wine&.regions&.first&.country&.name
-    author_name = user&.name
+    author_name = user&.user_name || user&.email
 
-    self.searchable = \
-      setweight(to_tsvector('english', coalesce(title, '')), 'A') || \
-      setweight(to_tsvector('english', coalesce(wine_name, '')), 'A') || \
-      setweight(to_tsvector('english', coalesce(producer_name, '')), 'B') || \
-      setweight(to_tsvector('english', coalesce(content, '')), 'B') || \
-      setweight(to_tsvector('english', coalesce(region_name, '')), 'C') || \
-      setweight(to_tsvector('english', coalesce(grape_name, '')), 'C') || \
-      setweight(to_tsvector('english', coalesce(country_name, '')), 'D') || \
-      setweight(to_tsvector('english', coalesce(author_name, '')), 'D')
+    # `searchable` is a Postgres tsvector. `to_tsvector`/`setweight`/`coalesce`
+    # only exist in the database, so the expression is evaluated server-side and
+    # the resulting tsvector is stored on the record.
+    self.searchable = self.class.connection.select_value(<<~SQL)
+      SELECT
+        setweight(to_tsvector('english', coalesce(#{sql_quote(title)}, '')), 'A') ||
+        setweight(to_tsvector('english', coalesce(#{sql_quote(wine_name)}, '')), 'A') ||
+        setweight(to_tsvector('english', coalesce(#{sql_quote(producer_name)}, '')), 'B') ||
+        setweight(to_tsvector('english', coalesce(#{sql_quote(comment)}, '')), 'B') ||
+        setweight(to_tsvector('english', coalesce(#{sql_quote(region_name)}, '')), 'C') ||
+        setweight(to_tsvector('english', coalesce(#{sql_quote(grape_name)}, '')), 'C') ||
+        setweight(to_tsvector('english', coalesce(#{sql_quote(country_name)}, '')), 'D') ||
+        setweight(to_tsvector('english', coalesce(#{sql_quote(author_name)}, '')), 'D')
+    SQL
+  end
+
+  def sql_quote(value)
+    self.class.connection.quote(value)
   end
 end

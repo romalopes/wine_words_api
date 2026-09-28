@@ -33,25 +33,38 @@ class Api::V1::ArticlesController < ApplicationController
     render json: articles.map { |a| ArticleListSerializer.new(a, request.base_url).as_json }
   end
 
-  # GET /api/v1/articles/grouped?per_group=12
+  # GET /api/v1/articles/grouped?per_group=12&query=barolo&search=barolo
   # Server-side "12 articles per category" view for the All Articles page.
+  # Applies the same visibility/query/search scoping as #index so the grouped
+  # view and the paginated feed agree on what matches when no category is
+  # selected.
   def grouped
     per_group = params[:per_group].to_i
     per_group = 12 if per_group <= 0
     per_group = per_group.clamp(1, 50)
 
+    scope = Article.all
+    scope = scope.visible_to(current_user) unless current_user&.wine_manager?
+    if params[:query].present?
+      scope = scope.where("articles.title ILIKE ?", "%#{params[:query].strip}%")
+    end
+    if params[:search].present?
+      search = params[:search].strip
+      scope = scope.where("articles.searchable @@ to_tsquery('english', ?)", search)
+    end
+
+    # Cap each category at `per_group` rows with a window function.
     rows = Article.find_by_sql([<<~SQL, per_group])
       SELECT sub.* FROM (
-        SELECT DISTINCT articles.id, articles.title, articles.abstract, articles.status,
-               articles.user_id, articles.created_at, articles.updated_at,
+        SELECT DISTINCT a.id, a.title, a.abstract, a.status,
+               a.user_id, a.created_at, a.updated_at,
                COALESCE(ac.category_id, 0) AS grouped_cat_id,
                ROW_NUMBER() OVER (
                  PARTITION BY COALESCE(ac.category_id, 0)
-                 ORDER BY articles.created_at DESC
+                 ORDER BY a.created_at DESC
                ) AS rn
-        FROM articles
-        LEFT JOIN article_categories ac ON ac.article_id = articles.id
-        WHERE articles.status = 'published'
+        FROM (#{scope.to_sql}) a
+        LEFT JOIN article_categories ac ON ac.article_id = a.id
       ) sub
       WHERE sub.rn <= ?
     SQL
@@ -67,11 +80,12 @@ class Api::V1::ArticlesController < ApplicationController
       groups[cat_id] << ArticleListSerializer.new(articles_by_id[row.id], request.base_url).as_json
     end
 
-    category_counts = ArticleCategory.where(category_id: groups.keys.compact).group(:category_id).count
-    visible_scope = current_user&.wine_manager? ? Article.all : Article.published
+    # Counts come from the filtered scope too, so "Show all (N)" matches the
+    # cards that are actually rendered.
+    category_counts = scope.joins(:article_categories).group("article_categories.category_id").count
     uncategorised_count =
       if groups.key?(nil)
-        visible_scope.left_outer_joins(:article_categories).where(article_categories: { id: nil }).count
+        scope.left_outer_joins(:article_categories).where(article_categories: { id: nil }).count
       else
         0
       end

@@ -53,23 +53,38 @@ class Api::V1::ReviewsController < ApplicationController
     render json: serialize_reviews(reviews)
   end
 
-  # GET /api/v1/reviews/grouped?per_group=12
+  # GET /api/v1/reviews/grouped?per_group=12&query=malbec&search=malbec
   # Server-side "12 reviews per category" view for the All Reviews page.
+  # Applies the same visibility/query/search scoping as #index so the grouped
+  # view and the paginated feed agree on what matches when no category is
+  # selected.
   def grouped
     per_group = params[:per_group].to_i
     per_group = 12 if per_group <= 0
     per_group = per_group.clamp(1, 50)
 
+    scope = Review.all
+    scope = scope.visible_to(current_user) unless current_user&.wine_manager?
+    if params[:query].present?
+      q = "%#{params[:query].strip}%"
+      scope = scope.joins(vintage: :wine).where("reviews.title ILIKE :q OR wines.name ILIKE :q", q: q)
+    end
+    if params[:search].present?
+      search = params[:search].strip
+      scope = scope.where("reviews.searchable @@ to_tsquery('english', ?)", search)
+    end
+
+    # Cap each category at `per_group` rows with a window function.
     rows = Review.find_by_sql([<<~SQL, per_group])
       SELECT sub.* FROM (
-        SELECT reviews.*, COALESCE(rc.category_id, 0) AS grouped_cat_id,
+        SELECT r.id, r.created_at,
+               COALESCE(rc.category_id, 0) AS grouped_cat_id,
                ROW_NUMBER() OVER (
                  PARTITION BY COALESCE(rc.category_id, 0)
-                 ORDER BY reviews.created_at DESC
+                 ORDER BY r.created_at DESC
                ) AS rn
-        FROM reviews
-        LEFT JOIN review_categories rc ON rc.review_id = reviews.id
-        WHERE reviews.status = 'published'
+        FROM (#{scope.to_sql}) r
+        LEFT JOIN review_categories rc ON rc.review_id = r.id
       ) sub
       WHERE sub.rn <= ?
     SQL
@@ -85,11 +100,12 @@ class Api::V1::ReviewsController < ApplicationController
       groups[cat_id] << ReviewListSerializer.new(reviews_by_id[row.id], request.base_url).as_json
     end
 
-    category_counts = ReviewCategory.where(category_id: groups.keys.compact).group(:category_id).count
-    visible_scope = current_user&.wine_manager? ? Review.all : Review.published
+    # Counts come from the filtered scope too, so "Show all (N)" matches the
+    # cards that are actually rendered.
+    category_counts = scope.joins(:review_categories).group("review_categories.category_id").count
     uncategorised_count =
       if groups.key?(nil)
-        visible_scope.left_outer_joins(:review_categories).where(review_categories: { id: nil }).count
+        scope.left_outer_joins(:review_categories).where(review_categories: { id: nil }).count
       else
         0
       end
