@@ -46,6 +46,10 @@ class Api::V1::ReviewsController < ApplicationController
                        .where("reviews.searchable @@ to_tsquery('english', ?)", search, search)
                        .order("rank DESC")
     end
+    # Paginate when the client asks for a page; otherwise return the full
+    # legacy array (form pickers etc.).
+    return if render_paginated(reviews) { |items| serialize_reviews(items) }
+
     render json: serialize_reviews(reviews)
   end
 
