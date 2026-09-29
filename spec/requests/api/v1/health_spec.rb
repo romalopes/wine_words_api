@@ -225,4 +225,65 @@ RSpec.describe "Api::V1::Health", type: :request do
       end
     end
   end
+  # The check that would have caught the empty search index: every other
+  # endpoint answered 200 while `?query=` returned nothing, because a NULL
+  # tsvector matches nothing and nothing counted how many rows had one.
+  describe "GET /api/v1/health/search_index" do
+    let(:writer) do
+      User.create!(user_name: "Writer", email: "writer@example.com", password: "password123")
+    end
+
+    def create_article(title)
+      Article.create!(title: title, body: "A wet January.", status: "published", user: writer)
+    end
+
+    def search_index_as_admin
+      sign_in admin
+      get "/api/v1/health/search_index"
+      JSON.parse(response.body)
+    end
+
+    it "is admin-only, like the other diagnostics" do
+      get "/api/v1/health/search_index"
+      expect(response).to have_http_status(:unauthorized)
+    end
+
+    it "reports ok while every row has a vector" do
+      create_article("Harvest notes")
+
+      body = search_index_as_admin
+
+      expect(response).to have_http_status(:ok)
+      expect(body["status"]).to eq("ok")
+      expect(body["articles"]).to eq("total" => 1, "indexed" => 1, "missing" => 0)
+      expect(body["reviews"]).to eq("total" => 0, "indexed" => 0, "missing" => 0)
+    end
+
+    it "reports degraded with the repair command when rows were never indexed" do
+      # The state the shipped migration left the database in: the column arrived
+      # after the rows, so it was empty for all of them.
+      create_article("Harvest notes")
+      Article.update_all(searchable: nil)
+
+      body = search_index_as_admin
+
+      expect(body["status"]).to eq("degraded")
+      expect(body["articles"]).to eq("total" => 1, "indexed" => 0, "missing" => 1)
+      expect(body["reindex_command"]).to eq("bin/rails search:reindex")
+      expect(body["generated_at"]).to be_present
+    end
+
+    # 200 even when degraded, on purpose: the health runner marks a check failed
+    # from its validator, and a 5xx here would read as an outage rather than as
+    # an index that needs rebuilding.
+    it "still answers 200 when the index is degraded" do
+      create_article("Harvest notes")
+      Article.update_all(searchable: nil)
+
+      search_index_as_admin
+
+      expect(response).to have_http_status(:ok)
+    end
+  end
+
 end

@@ -33,19 +33,16 @@ class Api::V1::ReviewsController < ApplicationController
         Review.all
       end
     reviews = reviews.visible_to(current_user) unless current_user&.wine_manager?
-    reviews = reviews.by_recency.includes(:user, vintage: :wine, review_categories: :category)
+    reviews = reviews.includes(:user, :categories, images: { file_attachment: :blob },
+                               vintage: { wine: { images: { file_attachment: :blob } } })
     reviews = reviews.joins(:review_categories).where(review_categories: { category_id: params[:category_id] }).distinct if params[:category_id].present?
     reviews = reviews.left_outer_joins(:review_categories).where(review_categories: { id: nil }) if params[:uncategorised] == "true"
-    if params[:query].present?
-      q = "%#{params[:query].strip}%"
-      reviews = reviews.joins(vintage: :wine).where("reviews.title ILIKE :q OR wines.name ILIKE :q", q: q)
-    end
-    if params[:search].present?
-      search = params[:search].strip
-      reviews = reviews.select("reviews.*, ts_rank_cd(reviews.searchable, to_tsquery('english', ?)) AS rank")
-                       .where("reviews.searchable @@ to_tsquery('english', ?)", search, search)
-                       .order("rank DESC")
-    end
+    # Full-text search + the requested ordering. `ordered_for_search` replaces
+    # the scope's default ordering rather than appending to it, otherwise the
+    # recency scope wins and relevance is silently ignored.
+    term = search_term
+    reviews = reviews.text_search(term)
+                     .ordered_for_search(params[:sort], ranked: ranked_search?(term))
     # Paginate when the client asks for a page; otherwise return the full
     # legacy array (form pickers etc.).
     return if render_paginated(reviews) { |items| serialize_reviews(items) }
@@ -65,33 +62,37 @@ class Api::V1::ReviewsController < ApplicationController
 
     scope = Review.all
     scope = scope.visible_to(current_user) unless current_user&.wine_manager?
-    if params[:query].present?
-      q = "%#{params[:query].strip}%"
-      scope = scope.joins(vintage: :wine).where("reviews.title ILIKE :q OR wines.name ILIKE :q", q: q)
-    end
-    if params[:search].present?
-      search = params[:search].strip
-      scope = scope.where("reviews.searchable @@ to_tsquery('english', ?)", search)
-    end
+    # Same search scoping as #index, including the `rank` column when the term
+    # is searchable — the window function below orders each category's rows by
+    # it, so "N most relevant per category" agrees with the paginated feed.
+    term = search_term
+    ranked = ranked_search?(term)
+    scope = scope.text_search(term)
+    # Whitelisted fragment qualified with the subquery alias (Review::SORT_ORDERS).
+    order_sql = Review.search_order_sql(params[:sort], ranked: ranked, columns: "r.")
 
-    # Cap each category at `per_group` rows with a window function.
+    # Cap each category at `per_group` rows with a window function. The outer
+    # ORDER BY matters: the window's own ORDER BY only decides *which* rows are
+    # numbered 1..N, Postgres does not guarantee any output order without it.
     rows = Review.find_by_sql([<<~SQL, per_group])
       SELECT sub.* FROM (
         SELECT r.id, r.created_at,
                COALESCE(rc.category_id, 0) AS grouped_cat_id,
                ROW_NUMBER() OVER (
                  PARTITION BY COALESCE(rc.category_id, 0)
-                 ORDER BY r.created_at DESC
+                 ORDER BY #{order_sql}
                ) AS rn
         FROM (#{scope.to_sql}) r
         LEFT JOIN review_categories rc ON rc.review_id = r.id
       ) sub
       WHERE sub.rn <= ?
+      ORDER BY sub.grouped_cat_id, sub.rn
     SQL
 
     review_ids = rows.map(&:id).uniq
     reviews_by_id = Review.where(id: review_ids)
-                      .includes(:user, vintage: :wine, review_categories: :category)
+                      .includes(:user, :categories, images: { file_attachment: :blob },
+                                vintage: { wine: { images: { file_attachment: :blob } } })
                       .index_by(&:id)
 
     groups = Hash.new { |h, k| h[k] = [] }
@@ -101,11 +102,14 @@ class Api::V1::ReviewsController < ApplicationController
     end
 
     # Counts come from the filtered scope too, so "Show all (N)" matches the
-    # cards that are actually rendered.
-    category_counts = scope.joins(:review_categories).group("review_categories.category_id").count
+    # cards that are actually rendered. `except(:select)` drops the `rank`
+    # column search added: it is not aggregated or grouped, so keeping it would
+    # make these GROUP BY / COUNT statements invalid.
+    count_scope = scope.except(:select)
+    category_counts = count_scope.joins(:review_categories).group("review_categories.category_id").count
     uncategorised_count =
       if groups.key?(nil)
-        scope.left_outer_joins(:review_categories).where(review_categories: { id: nil }).count
+        count_scope.left_outer_joins(:review_categories).where(review_categories: { id: nil }).count
       else
         0
       end
@@ -184,6 +188,22 @@ class Api::V1::ReviewsController < ApplicationController
   end
 
   private
+
+  # The listing's single search term. `search` is the deprecated spelling of
+  # `query`: the two parameters used to run different code — `query` did a
+  # title/wine ILIKE while `search` hit the weighted tsvector — so the UI never
+  # reached full-text search at all. One term now filters *and* ranks.
+  def search_term
+    params[:query].presence || params[:search].presence
+  end
+
+  # Whether the request's term is searchable, i.e. whether `text_search`
+  # filtered and selected a `rank` column worth ordering by. Terms shorter than
+  # TextSearchable::MIN_TERM_LENGTH are not searchable, which leaves the
+  # listing unfiltered instead of returning an empty page.
+  def ranked_search?(term)
+    Review.searchable_term(term).present?
+  end
 
   def ensure_wine_manager!
     return if current_user&.wine_manager?

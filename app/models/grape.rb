@@ -1,4 +1,8 @@
 class Grape < ApplicationRecord
+  # Search vectors that index this record's values (see SearchVectorDependent).
+  include SearchVectorDependent
+  SEARCH_VECTOR_ATTRIBUTES = %w[name].freeze
+
   has_many :wine_grapes, dependent: :destroy
   has_many :wines, through: :wine_grapes
   has_many :producer_grapes, dependent: :destroy
@@ -37,5 +41,12 @@ class Grape < ApplicationRecord
       i += 1
     end
     self.slug = candidate
+  end
+
+  private
+
+  # Reviews of wines carrying this grape index its name.
+  def search_reindex_targets
+    { "Review" => self.class.review_ids_for_wines(wines) }
   end
 end

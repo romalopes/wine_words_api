@@ -1,4 +1,8 @@
 class Vintage < ApplicationRecord
+  # Search vectors that index this record's values (see SearchVectorDependent).
+  include SearchVectorDependent
+  SEARCH_VECTOR_ATTRIBUTES = %w[year].freeze
+
   belongs_to :wine
   has_many :reviews, dependent: :destroy
 
@@ -26,5 +30,12 @@ class Vintage < ApplicationRecord
 
   def slug
     "#{wine&.slug}-#{year}"
+  end
+
+  private
+
+  # Reviews index their vintage's year, so `2021` finds them.
+  def search_reindex_targets
+    { "Review" => Review.where(vintage_id: id).pluck(:id) }
   end
 end

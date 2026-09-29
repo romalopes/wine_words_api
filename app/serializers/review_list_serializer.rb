@@ -36,7 +36,8 @@ class ReviewListSerializer
     wine = @review.vintage&.wine
     return nil unless wine&.images&.any?
 
-    primary = wine&.images&.ordered&.find(&:primary?) || wine&.images&.ordered&.first
+    images = ordered_images(wine)
+    primary = images.find(&:primary?) || images.first
     primary&.file&.attached? ? blob_url(primary.file.blob) : nil
   end
 end

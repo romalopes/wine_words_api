@@ -1,4 +1,8 @@
 class Category < ApplicationRecord
+  # Search vectors that index this record's values (see SearchVectorDependent).
+  include SearchVectorDependent
+  SEARCH_VECTOR_ATTRIBUTES = %w[name].freeze
+
   has_many :articles, dependent: :nullify
   has_many :wines, dependent: :nullify
   has_many :reviews, dependent: :nullify
@@ -43,5 +47,12 @@ class Category < ApplicationRecord
     return if slug.present? && !name_changed?
 
     self.slug = name.to_s.parameterize.presence || "category"
+  end
+
+  private
+
+  # Articles index their category's name.
+  def search_reindex_targets
+    { "Article" => Article.where(category_id: id).pluck(:id) }
   end
 end

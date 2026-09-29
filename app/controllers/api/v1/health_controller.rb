@@ -14,8 +14,14 @@ class Api::V1::HealthController < ApplicationController
   # token (`detailed` remains gated by both layers).
   skip_before_action :require_test_access, only: :index
 
-  # Detailed diagnostics are admin-only.
-  before_action :authenticate_admin!, only: :detailed
+  # Detailed diagnostics and the search-index report are admin-only.
+  #
+  # One declaration for both actions: `before_action` is deduplicated by filter
+  # name, so a second `before_action :authenticate_admin!, only: ...` would
+  # replace this one's action list rather than add to it, and would quietly
+  # un-gate whatever it stopped naming.
+  before_action :authenticate_admin!, only: %i[detailed search_index]
+
 
   # GET /api/v1/health
   def index
@@ -45,6 +51,32 @@ class Api::V1::HealthController < ApplicationController
       endpoint: endpoint_info
     }
     render json: payload, status: db_ok ? :ok : :service_unavailable
+  end
+
+  # GET /api/v1/health/search_index — admin-only diagnostic.
+  #
+  # Reports how much of the full-text index is actually built. Search runs on
+  # the `searchable` tsvector columns, and a NULL tsvector satisfies no match,
+  # so a table whose vectors were never built answers every `?query=` with an
+  # empty list while every other endpoint looks healthy. That is exactly how
+  # this went unnoticed until users reported "search returns nothing"; this
+  # check turns it into a red row on the ApiHealth page instead.
+  #
+  # Counts are exact rather than sampled: this is an on-demand admin
+  # diagnostic, and the repair (`bin/rails search:reindex`) needs to know the
+  # size of the job.
+  def search_index
+    reviews = Review.search_vector_status
+    articles = Article.search_vector_status
+    missing = reviews[:missing] + articles[:missing]
+
+    render json: {
+      status: missing.zero? ? "ok" : "degraded",
+      reviews: reviews,
+      articles: articles,
+      reindex_command: "bin/rails search:reindex",
+      generated_at: Time.current.utc.iso8601
+    }
   end
 
   private

@@ -1,4 +1,8 @@
 class Wine < ApplicationRecord
+  # Search vectors that index this record's values (see SearchVectorDependent).
+  include SearchVectorDependent
+  SEARCH_VECTOR_ATTRIBUTES = %w[name].freeze
+
   include Imageable
 
   belongs_to :producer
@@ -289,5 +293,12 @@ class Wine < ApplicationRecord
       candidate = "#{base}-#{suffix}"
     end
     self.slug = candidate
+  end
+
+  private
+
+  # Reviews index this wine's name and its regions/grapes.
+  def search_reindex_targets
+    { "Review" => self.class.review_ids_for_wines(Wine.where(id: id)) }
   end
 end

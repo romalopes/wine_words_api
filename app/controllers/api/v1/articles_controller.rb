@@ -15,19 +15,23 @@ class Api::V1::ArticlesController < ApplicationController
   before_action :ensure_wine_manager!, only: [:create]
 
   def index
-    articles = Article.recent.includes(:user, :tags, :wines, :producers, article_categories: :category)
+    # `:categories` (through) and `:images` rather than the join rows alone:
+    # the list serializer reads `article.categories`, and a through-association
+    # is not satisfied by preloading `article_categories`, so each card used to
+    # issue its own queries.
+    articles = Article.recent.includes(:user, :categories, :tags, :wines, :producers,
+                                      images: { file_attachment: :blob })
     # Content managers see everything (including drafts); everyone else sees
     # only what's visible to them (published + their own drafts).
     articles = articles.visible_to(current_user) unless current_user&.wine_manager?
     articles = articles.joins(:article_categories).where(article_categories: { category_id: params[:category_id] }).distinct if params[:category_id].present?
     articles = articles.left_outer_joins(:article_categories).where(article_categories: { id: nil }) if params[:uncategorised] == "true"
-    articles = articles.where("articles.title ILIKE ?", "%#{params[:query].strip}%") if params[:query].present?
-    if params[:search].present?
-      search = params[:search].strip
-      articles = articles.select("articles.*, ts_rank_cd(articles.searchable, to_tsquery('english', ?)) AS rank")
-                         .where("articles.searchable @@ to_tsquery('english', ?)", search, search)
-                         .order("rank DESC")
-    end
+    # Full-text search (title, abstract, body, tags, category, author) plus the
+    # requested ordering. `ordered_for_search` replaces `recent` instead of
+    # appending to it, otherwise recency wins and relevance is silently ignored.
+    term = search_term
+    articles = articles.text_search(term)
+                       .ordered_for_search(params[:sort], ranked: ranked_search?(term))
     return if render_paginated(articles) { |items| items.map { |a| ArticleListSerializer.new(a, request.base_url).as_json } }
 
     render json: articles.map { |a| ArticleListSerializer.new(a, request.base_url).as_json }
@@ -45,15 +49,18 @@ class Api::V1::ArticlesController < ApplicationController
 
     scope = Article.all
     scope = scope.visible_to(current_user) unless current_user&.wine_manager?
-    if params[:query].present?
-      scope = scope.where("articles.title ILIKE ?", "%#{params[:query].strip}%")
-    end
-    if params[:search].present?
-      search = params[:search].strip
-      scope = scope.where("articles.searchable @@ to_tsquery('english', ?)", search)
-    end
+    # Same search scoping as #index, including the `rank` column when the term
+    # is searchable — the window function below orders each category's rows by
+    # it, so "N most relevant per category" agrees with the paginated feed.
+    term = search_term
+    ranked = ranked_search?(term)
+    scope = scope.text_search(term)
+    # Whitelisted fragment qualified with the subquery alias (Article::SORT_ORDERS).
+    order_sql = Article.search_order_sql(params[:sort], ranked: ranked, columns: "a.")
 
-    # Cap each category at `per_group` rows with a window function.
+    # Cap each category at `per_group` rows with a window function. The outer
+    # ORDER BY matters: the window's own ORDER BY only decides *which* rows are
+    # numbered 1..N, Postgres does not guarantee any output order without it.
     rows = Article.find_by_sql([<<~SQL, per_group])
       SELECT sub.* FROM (
         SELECT DISTINCT a.id, a.title, a.abstract, a.status,
@@ -61,17 +68,18 @@ class Api::V1::ArticlesController < ApplicationController
                COALESCE(ac.category_id, 0) AS grouped_cat_id,
                ROW_NUMBER() OVER (
                  PARTITION BY COALESCE(ac.category_id, 0)
-                 ORDER BY a.created_at DESC
+                 ORDER BY #{order_sql}
                ) AS rn
         FROM (#{scope.to_sql}) a
         LEFT JOIN article_categories ac ON ac.article_id = a.id
       ) sub
       WHERE sub.rn <= ?
+      ORDER BY sub.grouped_cat_id, sub.rn
     SQL
 
     article_ids = rows.map(&:id).uniq
     articles_by_id = Article.where(id: article_ids)
-                        .includes(:user, article_categories: :category)
+                        .includes(:user, :categories, images: { file_attachment: :blob })
                         .index_by(&:id)
 
     groups = Hash.new { |h, k| h[k] = [] }
@@ -81,11 +89,14 @@ class Api::V1::ArticlesController < ApplicationController
     end
 
     # Counts come from the filtered scope too, so "Show all (N)" matches the
-    # cards that are actually rendered.
-    category_counts = scope.joins(:article_categories).group("article_categories.category_id").count
+    # cards that are actually rendered. `except(:select)` drops the `rank`
+    # column search added: it is not aggregated or grouped, so keeping it would
+    # make these GROUP BY / COUNT statements invalid.
+    count_scope = scope.except(:select)
+    category_counts = count_scope.joins(:article_categories).group("article_categories.category_id").count
     uncategorised_count =
       if groups.key?(nil)
-        scope.left_outer_joins(:article_categories).where(article_categories: { id: nil }).count
+        count_scope.left_outer_joins(:article_categories).where(article_categories: { id: nil }).count
       else
         0
       end
@@ -164,6 +175,22 @@ class Api::V1::ArticlesController < ApplicationController
   end
 
   private
+
+  # The listing's single search term. `search` is the deprecated spelling of
+  # `query`: the two parameters used to run different code — `query` did a
+  # title-only ILIKE while `search` hit the weighted tsvector — so the UI never
+  # reached full-text search at all. One term now filters *and* ranks.
+  def search_term
+    params[:query].presence || params[:search].presence
+  end
+
+  # Whether the request's term is searchable, i.e. whether `text_search`
+  # filtered and selected a `rank` column worth ordering by. Terms shorter than
+  # TextSearchable::MIN_TERM_LENGTH are not searchable, which leaves the
+  # listing unfiltered instead of returning an empty page.
+  def ranked_search?(term)
+    Article.searchable_term(term).present?
+  end
 
   def ensure_wine_manager!
     return if current_user&.wine_manager?

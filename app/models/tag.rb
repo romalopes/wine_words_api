@@ -1,4 +1,8 @@
 class Tag < ApplicationRecord
+  # Search vectors that index this record's values (see SearchVectorDependent).
+  include SearchVectorDependent
+  SEARCH_VECTOR_ATTRIBUTES = %w[name].freeze
+
   has_many :article_tags, dependent: :destroy
   has_many :articles, through: :article_tags
 
@@ -20,5 +24,12 @@ class Tag < ApplicationRecord
 
   def generate_slug
     self.slug ||= name.to_s.parameterize
+  end
+
+  private
+
+  # Articles index the names of their tags.
+  def search_reindex_targets
+    { "Article" => Article.joins(:article_tags).where(article_tags: { tag_id: id }).pluck(:id) }
   end
 end
