@@ -183,6 +183,9 @@ class Api::V1::WinesController < ApplicationController
   def advanced_search_filters
     p = params
     filters = {
+      # Free-text term matched (OR) against wine, producer, region, and grape
+      # names — see Wine.advanced_search.
+      q: p[:q].presence,
       name: p[:name].presence,
       producer_name: p[:producer_name].presence,
       color: p[:color].presence,

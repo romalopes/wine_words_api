@@ -118,13 +118,28 @@ class Wine < ApplicationRecord
     scope = all
     f = filters || {}
 
+    if f[:q].present?
+      # One user-supplied phrase, matched against four indexed names. OR — not
+      # AND — so "barolo" can match a wine, producer, region, or grape. EXISTS
+      # predicates keep one row per wine (no DISTINCT needed) and reuse the
+      # same wine_regions / wine_grapes indexes as the id filters below.
+      pattern = "%#{sanitize_sql_like(f[:q].to_s.strip)}%"
+      scope = scope.where(
+        "wines.name ILIKE :pattern OR " \
+        "EXISTS (SELECT 1 FROM producers WHERE producers.id = wines.producer_id AND producers.name ILIKE :pattern) OR " \
+        "EXISTS (SELECT 1 FROM wine_regions wr JOIN regions ON regions.id = wr.region_id WHERE wr.wine_id = wines.id AND regions.name ILIKE :pattern) OR " \
+        "EXISTS (SELECT 1 FROM wine_grapes wg JOIN grapes ON grapes.id = wg.grape_id WHERE wg.wine_id = wines.id AND grapes.name ILIKE :pattern)",
+        pattern: pattern
+      )
+    end
+
     if f[:name].present?
-      scope = scope.where("wines.name ILIKE ?", "%#{f[:name]}%")
+      scope = scope.where("wines.name ILIKE ?", "%#{sanitize_sql_like(f[:name])}%")
     end
 
     if f[:producer_name].present?
       scope = scope.joins(:producer)
-                   .where("producers.name ILIKE ?", "%#{f[:producer_name]}%")
+                   .where("producers.name ILIKE ?", "%#{sanitize_sql_like(f[:producer_name])}%")
     end
 
     scope = scope.where(color: f[:color]) if f[:color].present?
