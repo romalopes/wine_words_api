@@ -12,7 +12,7 @@ module ImageAttributes
   private
 
   def image_details(record)
-    record.images.ordered.filter_map do |image|
+    ordered_images(record).filter_map do |image|
       file = image.file
       next unless file.attached?
 
@@ -28,13 +28,24 @@ module ImageAttributes
   end
 
   def image_urls(record)
-    record.images.ordered.filter_map do |image|
+    ordered_images(record).filter_map do |image|
       blob_url(image.file.blob) if image.file.attached?
     end
   end
 
   def image_ids(record)
-    record.images.ordered.map(&:id)
+    ordered_images(record).map(&:id)
+  end
+
+  # `record.images.ordered` is not free on a listing: chaining a scope onto a
+  # `CollectionProxy` runs a fresh statement even when `images` was preloaded,
+  # which is one query per record. When the association *is* loaded, sorting
+  # the rows in Ruby gives the same `position, id` order without the round trip.
+  def ordered_images(record)
+    images = record.images
+    return images.ordered unless images.loaded?
+
+    images.sort_by { |image| [image.position.to_i, image.id.to_i] }
   end
 
   def primary_image(record)

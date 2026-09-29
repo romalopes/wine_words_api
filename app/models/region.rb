@@ -1,4 +1,8 @@
 class Region < ApplicationRecord
+  # Search vectors that index this record's values (see SearchVectorDependent).
+  include SearchVectorDependent
+  SEARCH_VECTOR_ATTRIBUTES = %w[name].freeze
+
   belongs_to :country
   belongs_to :parent, class_name: "Region", optional: true
   has_many :sub_regions, class_name: "Region", foreign_key: "parent_id", dependent: :destroy
@@ -153,5 +157,12 @@ class Region < ApplicationRecord
     if parent.present? && parent.country_id != country_id
       errors.add(:parent, "must belong to the same country")
     end
+  end
+
+  private
+
+  # Reviews of wines in this region index its name.
+  def search_reindex_targets
+    { "Review" => self.class.review_ids_for_wines(wines) }
   end
 end

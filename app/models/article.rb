@@ -1,5 +1,6 @@
 class Article < ApplicationRecord
   include Imageable
+  include TextSearchable
 
   belongs_to :user
   belongs_to :category, optional: true
@@ -26,6 +27,7 @@ class Article < ApplicationRecord
   validates :status, presence: true, inclusion: { in: %w[draft published] }
 
   before_validation :generate_slug
+before_save :update_search_vector
 
   # Use slug instead of numeric id in URLs so lookups resolve via find_by!(slug:)
   def to_param
@@ -36,6 +38,18 @@ class Article < ApplicationRecord
   scope :drafts, -> { where(status: "draft") }
   scope :visible_to, ->(user) { published.or(where(user: user)) }
   scope :recent, -> { order(created_at: :desc) }
+
+  # Whitelisted `sort` values for the articles listing (see TextSearchable).
+  # Articles have no score, so the relevance recency pair is the whole menu —
+  # an unknown value (including a review-only sort) falls back to relevance.
+  # Each lambda receives the column qualifier to prefix its columns with and the
+  # relevance expression, so the same whitelist orders the flat feed
+  # (`articles.`) and the grouped window function (`a.` subquery alias).
+  SORT_ORDERS = {
+    "relevance" => ->(columns, rank) { "#{rank} DESC NULLS LAST, #{columns}id DESC" },
+    "recent" => ->(columns, _rank) { "#{columns}created_at DESC, #{columns}id DESC" },
+    "oldest" => ->(columns, _rank) { "#{columns}created_at ASC, #{columns}id ASC" }
+  }.freeze
 
   # Reviews shown at the bottom of the article page.
   def published_reviews
@@ -56,5 +70,36 @@ class Article < ApplicationRecord
       i += 1
     end
     self.slug = candidate
+  end
+
+  private
+
+  def update_search_vector
+    self.searchable = self.class.connection.select_value(search_vector_sql)
+  end
+
+  # A = title
+  # B = abstract
+  # C = body
+  # D = tags, category, author
+  #
+  # `searchable` is a Postgres tsvector. `to_tsvector`/`setweight`/`coalesce`
+  # only exist in the database, so the expression is evaluated server-side —
+  # which also means an unsaved record (no row to select from) works, because
+  # every value is interpolated rather than read from the table.
+  def search_vector_sql
+    tag_names = tags.pluck(:name).join(' ')
+    category_name = category&.name
+    author_name = user&.user_name || user&.email
+
+    <<~SQL
+      SELECT
+        setweight(to_tsvector('english', coalesce(#{sql_quote(title)}, '')), 'A') ||
+        setweight(to_tsvector('english', coalesce(#{sql_quote(abstract)}, '')), 'B') ||
+        setweight(to_tsvector('english', coalesce(#{sql_quote(body)}, '')), 'C') ||
+        setweight(to_tsvector('english', coalesce(#{sql_quote(tag_names)}, '')), 'D') ||
+        setweight(to_tsvector('english', coalesce(#{sql_quote(category_name)}, '')), 'D') ||
+        setweight(to_tsvector('english', coalesce(#{sql_quote(author_name)}, '')), 'D')
+    SQL
   end
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_20_122659) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_29_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -144,12 +144,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_20_122659) do
     t.bigint "category_id"
     t.datetime "created_at", null: false
     t.datetime "published_at"
+    t.tsvector "searchable"
     t.string "slug", null: false
     t.string "status", default: "draft", null: false
     t.string "title", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["category_id"], name: "index_articles_on_category_id"
+    t.index ["searchable"], name: "index_articles_on_searchable", using: :gin
     t.index ["slug"], name: "index_articles_on_slug", unique: true
     t.index ["user_id"], name: "index_articles_on_user_id"
   end
@@ -370,6 +372,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_20_122659) do
     t.integer "drink_to"
     t.datetime "published_at"
     t.decimal "score", precision: 5, scale: 2
+    t.tsvector "searchable"
     t.string "slug", null: false
     t.string "status", default: "draft", null: false
     t.string "title"
@@ -377,6 +380,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_20_122659) do
     t.bigint "user_id"
     t.bigint "vintage_id", null: false
     t.index ["category_id"], name: "index_reviews_on_category_id"
+    t.index ["searchable"], name: "index_reviews_on_searchable", using: :gin
     t.index ["slug"], name: "index_reviews_on_slug", unique: true
     t.index ["user_id"], name: "index_reviews_on_user_id"
     t.index ["vintage_id"], name: "index_reviews_on_vintage_id"

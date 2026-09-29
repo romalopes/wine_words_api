@@ -1,4 +1,8 @@
 class Country < ApplicationRecord
+  # Search vectors that index this record's values (see SearchVectorDependent).
+  include SearchVectorDependent
+  SEARCH_VECTOR_ATTRIBUTES = %w[name].freeze
+
   has_many :grapes, dependent: :nullify
   has_many :regions, dependent: :destroy
 
@@ -29,5 +33,12 @@ class Country < ApplicationRecord
       i += 1
     end
     self.slug = candidate
+  end
+
+  private
+
+  # Reviews of wines from this country's regions index its name.
+  def search_reindex_targets
+    { "Review" => self.class.review_ids_for_wines(Wine.joins(regions: :country).where(countries: { id: id })) }
   end
 end

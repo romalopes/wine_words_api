@@ -38,7 +38,11 @@ module Api
       pagination = page_params
       return false unless pagination
 
-      total_count = scope.count
+      # `except(:select, :order)` because search adds a `ts_rank_cd(…) AS rank`
+      # column that the ORDER BY refers to: counting must drop both, or the
+      # statement orders by a column it no longer selects. Neither affects the
+      # number of matching rows.
+      total_count = scope.except(:select, :order).count
       items = scope
         .limit(pagination[:per_page])
         .offset((pagination[:page] - 1) * pagination[:per_page])

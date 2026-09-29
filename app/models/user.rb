@@ -1,4 +1,8 @@
 class User < ApplicationRecord
+  # Search vectors that index this record's values (see SearchVectorDependent).
+  include SearchVectorDependent
+  SEARCH_VECTOR_ATTRIBUTES = %w[user_name email].freeze
+
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
   devise :database_authenticatable, :registerable,
@@ -289,5 +293,12 @@ class User < ApplicationRecord
 
     update_column(:subscription_id, default_sub.id)
     user_subscriptions.create!(subscription: default_sub, started_at: Time.current, status: :active)
+  end
+
+  private
+
+  # Both vectors index their author's display name.
+  def search_reindex_targets
+    { "Review" => Review.where(user_id: id).pluck(:id), "Article" => Article.where(user_id: id).pluck(:id) }
   end
 end

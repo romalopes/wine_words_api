@@ -314,6 +314,70 @@ RSpec.describe "Api::V1::Wines", type: :request do
       body = search({ alcohol_min: "abc", published_from: "not-a-date" })
       expect(body.length).to eq(2)
     end
+
+    describe "free-text q (the simple wine search)" do
+      # The bare producer records auto-create the default "Australia"/"AU"
+      # country on save, so find it rather than inserting a duplicate.
+      let!(:country) do
+        Country.find_or_create_by!(code: Producer::DEFAULT_COUNTRY_CODE) { |c| c.name = "Australia" }
+      end
+      let!(:region) { Region.create!(name: "Hunter Valley", country: country) }
+      let!(:grape) { Grape.create!(name: "Chardonnay") }
+
+      before do
+        WineRegion.create!(wine: wine_two, region: region)
+        WineGrape.create!(wine: wine_one, grape: grape)
+      end
+
+      it "matches a wine by name" do
+        body = search({ q: "vat 1" })
+        expect(body.map { |w| w["slug"] }).to eq([wine_two.slug])
+      end
+
+      it "matches a wine by its producer" do
+        # wine_two's own name has no "penfolds" — it is only there through its
+        # producer, which is exactly what the simple search must find.
+        body = search({ q: "penfolds" })
+        expect(body.map { |w| w["slug"] }).to contain_exactly(wine_one.slug, wine_two.slug)
+      end
+
+      it "matches a wine by its region" do
+        body = search({ q: "hunter" })
+        expect(body.map { |w| w["slug"] }).to eq([wine_two.slug])
+      end
+
+      it "matches a wine by its grape" do
+        body = search({ q: "chardonnay" })
+        expect(body.map { |w| w["slug"] }).to eq([wine_one.slug])
+      end
+
+      it "is case-insensitive" do
+        body = search({ q: "HUNTER" })
+        expect(body.map { |w| w["slug"] }).to eq([wine_two.slug])
+      end
+
+      it "ignores a blank q" do
+        body = search({ q: "   " })
+        expect(body.map { |w| w["slug"] }).to contain_exactly(wine_one.slug, wine_two.slug)
+      end
+
+      it "treats % as a literal character, not a wildcard" do
+        expect(search({ q: "%" })).to be_empty
+      end
+
+      it "returns one row per wine when several links match" do
+        WineRegion.create!(wine: wine_two, region: Region.create!(name: "Hunter Hills", country: country))
+
+        body = search({ q: "hunter" })
+        expect(body.length).to eq(1)
+        expect(body.first["slug"]).to eq(wine_two.slug)
+      end
+
+      it "combines q with the other filters (AND)" do
+        body = search({ q: "penfolds", color: "White" })
+        expect(body.map { |w| w["slug"] }).to eq([wine_two.slug])
+      end
+    end
   end
 
   # The wine-package item form lists a producer's wines so a reviewer can pick

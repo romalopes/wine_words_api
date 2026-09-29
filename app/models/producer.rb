@@ -1,4 +1,8 @@
 class Producer < ApplicationRecord
+  # Search vectors that index this record's values (see SearchVectorDependent).
+  include SearchVectorDependent
+  SEARCH_VECTOR_ATTRIBUTES = %w[name].freeze
+
   include Imageable
 
   MAX_LOGO_SIZE = 10.megabytes
@@ -141,5 +145,11 @@ class Producer < ApplicationRecord
 
     Wine.where(producer_id: id).update_all(producer_id: unknown.id)
   end
-end
 
+  private
+
+  # Reviews of this producer's wines index its name.
+  def search_reindex_targets
+    { "Review" => self.class.review_ids_for_wines(wines) }
+  end
+end

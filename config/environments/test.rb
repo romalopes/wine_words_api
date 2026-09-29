@@ -50,4 +50,10 @@ Rails.application.configure do
 
   # Raise error when a before_action's only/except options reference missing actions.
   config.action_controller.raise_on_missing_callback_actions = true
+
+  # Jobs are recorded rather than run on a background thread, so specs can
+  # assert on what was enqueued and run it deliberately. The default async
+  # adapter would run SearchReindexJob on another connection, which cannot see
+  # the rows an example has written inside its own transaction.
+  config.active_job.queue_adapter = :test
 end
