@@ -99,7 +99,6 @@ RSpec.describe TextSearchable do
   # term across fields of different weight (A title, C body, D tag), which is
   # what makes relevance observable.
   describe "searching a weighted vector" do
-
     it "matches fields the ILIKE implementation never looked at" do
       in_body = create_article("Regional overview", body: "Shiraz dominates the plantings here.")
       create_article("Harvest diary", tag_names: ["vineyard"])

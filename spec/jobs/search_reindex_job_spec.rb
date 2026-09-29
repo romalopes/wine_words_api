@@ -192,4 +192,3 @@ RSpec.describe SearchReindexJob do
     end
   end
 end
-

@@ -100,4 +100,3 @@ RSpec.describe "Api::V1::Logs", type: :request do
     end
   end
 end
-
