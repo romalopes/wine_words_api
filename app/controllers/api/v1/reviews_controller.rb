@@ -96,9 +96,10 @@ class Api::V1::ReviewsController < ApplicationController
                       .index_by(&:id)
 
     groups = Hash.new { |h, k| h[k] = [] }
+    liked_ids = Likes.liked_ids_for(reviews_by_id.values, current_user)
     rows.each do |row|
       cat_id = row.grouped_cat_id == 0 ? nil : row.grouped_cat_id
-      groups[cat_id] << ReviewListSerializer.new(reviews_by_id[row.id], request.base_url).as_json
+      groups[cat_id] << ReviewListSerializer.new(reviews_by_id[row.id], request.base_url, liked_ids: liked_ids).as_json
     end
 
     # Counts come from the filtered scope too, so "Show all (N)" matches the
@@ -130,14 +131,16 @@ class Api::V1::ReviewsController < ApplicationController
   end
 
   def serialize_reviews(reviews)
-    reviews.map { |r| ReviewListSerializer.new(r, request.base_url).as_json }
+    liked_ids = Likes.liked_ids_for(reviews, current_user)
+    reviews.map { |r| ReviewListSerializer.new(r, request.base_url, liked_ids: liked_ids).as_json }
   end
 
   def my_reviews
     reviews = Review.where(user: current_user)
                     .by_recency
                     .includes(:user, vintage: :wine)
-    render json: reviews.map { |r| ReviewSerializer.new(r, request.base_url).as_json.merge(wine_name: r.vintage.wine.name, wine_slug: r.vintage.wine.slug, vintage_year: r.vintage.year) }
+    liked_ids = Likes.liked_ids_for(reviews, current_user)
+    render json: reviews.map { |r| ReviewSerializer.new(r, request.base_url, liked_ids: liked_ids).as_json.merge(wine_name: r.vintage.wine.name, wine_slug: r.vintage.wine.slug, vintage_year: r.vintage.year) }
   end
 
   def show
@@ -146,7 +149,7 @@ class Api::V1::ReviewsController < ApplicationController
        !current_user&.wine_manager?
       return render json: { error: "Not found" }, status: :not_found
     end
-    render json: ReviewSerializer.new(@review, request.base_url).as_json
+    render json: ReviewSerializer.new(@review, request.base_url, liked_ids: Likes.liked_ids_for([@review], current_user)).as_json
   end
 
   def create
@@ -160,7 +163,7 @@ class Api::V1::ReviewsController < ApplicationController
     end
 
     if review.save
-      render json: ReviewSerializer.new(review, request.base_url).as_json, status: :created
+      render json: ReviewSerializer.new(review, request.base_url, liked_ids: Likes.liked_ids_for([review], current_user)).as_json, status: :created
     else
       render json: { errors: review.errors.full_messages }, status: :unprocessable_entity
     end
@@ -172,7 +175,7 @@ class Api::V1::ReviewsController < ApplicationController
     end
 
     if @review.update(review_params)
-      render json: ReviewSerializer.new(@review, request.base_url).as_json
+      render json: ReviewSerializer.new(@review, request.base_url, liked_ids: Likes.liked_ids_for([@review], current_user)).as_json
     else
       render json: { errors: @review.errors.full_messages }, status: :unprocessable_entity
     end

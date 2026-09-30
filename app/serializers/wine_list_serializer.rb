@@ -5,11 +5,13 @@
 # size and slows the "All Wines" page as the wine library grows.
 class WineListSerializer
   include ImageAttributes
+  include LikeAttributes
 
-  def initialize(wine, base_url = nil, vintage_counts = {})
+  def initialize(wine, base_url = nil, vintage_counts = {}, liked_ids: nil)
     @wine = wine
     @base_url = base_url
     @vintage_counts = vintage_counts
+    @liked_ids = liked_ids
   end
 
   def as_json
@@ -24,6 +26,7 @@ class WineListSerializer
       grapes: grapes,
       regions: regions,
       vintages_count: @vintage_counts[@wine.id] || 0,
+      **like_fields(@wine, @liked_ids),
       images: image_urls(@wine)
     }
   end

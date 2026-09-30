@@ -3,10 +3,12 @@
 # payload (images, comment, drink window, etc.) that dominates response size.
 class ReviewListSerializer
   include ImageAttributes
+  include LikeAttributes
 
-  def initialize(review, base_url = nil)
+  def initialize(review, base_url = nil, liked_ids: nil)
     @review = review
     @base_url = base_url
+    @liked_ids = liked_ids
   end
 
   def as_json
@@ -25,6 +27,7 @@ class ReviewListSerializer
       categories: @review.categories.map { |c| { id: c.id, name: c.name, slug: c.slug } },
       published_at: @review.published_at&.iso8601,
       created_at: @review.created_at&.iso8601,
+      **like_fields(@review, @liked_ids),
       images: image_urls(@review),
       wine_image: wine_image_url
     }

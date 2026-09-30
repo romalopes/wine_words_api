@@ -1,9 +1,11 @@
 class WineSerializer
   include ImageAttributes
+  include LikeAttributes
 
-  def initialize(wine, base_url = nil)
+  def initialize(wine, base_url = nil, liked_ids: nil)
     @wine = wine
     @base_url = base_url
+    @liked_ids = liked_ids
   end
 
   def as_json
@@ -31,6 +33,7 @@ class WineSerializer
       grapes: grapes,
       regions: regions,
       parameters: parameters,
+      **like_fields(@wine, @liked_ids),
       vintages: @wine.vintages.order(year: :desc).map do |v|
         {
           id: v.id,

@@ -135,6 +135,7 @@ Rails.application.routes.draw do
           get :grouped
           get :advanced_search
         end
+        resource :like, only: [:create, :destroy], controller: "wine_likes"
         resources :vintages, only: [:create] do
           resources :reviews, only: [:index, :create]
         end
@@ -144,12 +145,14 @@ Rails.application.routes.draw do
           get :my_reviews
           get :grouped
         end
+        resource :like, only: [:create, :destroy], controller: "review_likes"
       end
       resources :articles, only: [:index, :show, :create, :update, :destroy] do
         collection do
           get :my_articles
           get :grouped
         end
+        resource :like, only: [:create, :destroy], controller: "article_likes"
       end
       resources :categories, only: [:index] do
         collection do

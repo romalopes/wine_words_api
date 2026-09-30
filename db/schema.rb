@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_29_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_30_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -143,6 +143,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_29_000001) do
     t.text "body"
     t.bigint "category_id"
     t.datetime "created_at", null: false
+    t.integer "likes_count", default: 0, null: false
     t.datetime "published_at"
     t.tsvector "searchable"
     t.string "slug", null: false
@@ -244,6 +245,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_29_000001) do
     t.string "jti", null: false
     t.datetime "updated_at", null: false
     t.index ["jti"], name: "index_jwt_denylists_on_jti"
+  end
+
+  create_table "likes", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "likeable_id", null: false
+    t.string "likeable_type", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["likeable_type", "likeable_id"], name: "index_likes_on_likeable"
+    t.index ["user_id", "likeable_type", "likeable_id"], name: "index_likes_on_user_and_likeable", unique: true
+    t.index ["user_id"], name: "index_likes_on_user_id"
   end
 
   create_table "log_objects", force: :cascade do |t|
@@ -370,6 +382,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_29_000001) do
     t.integer "drink_from"
     t.boolean "drink_plus", default: false, null: false
     t.integer "drink_to"
+    t.integer "likes_count", default: 0, null: false
     t.datetime "published_at"
     t.decimal "score", precision: 5, scale: 2
     t.tsvector "searchable"
@@ -895,6 +908,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_29_000001) do
     t.datetime "created_at", null: false
     t.string "designation_name"
     t.boolean "fortified", default: false, null: false
+    t.integer "likes_count", default: 0, null: false
     t.string "name"
     t.bigint "producer_id", null: false
     t.text "prompt"
@@ -929,6 +943,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_29_000001) do
   add_foreign_key "articles", "users"
   add_foreign_key "billing_customers", "users"
   add_foreign_key "grapes", "countries"
+  add_foreign_key "likes", "users"
   add_foreign_key "log_objects", "logs"
   add_foreign_key "logs", "users"
   add_foreign_key "logs", "users", column: "impersonated_user_id"
