@@ -119,7 +119,7 @@ class Api::V1::CountriesController < ApplicationController
   end
 
   def country_wines_json(country)
-    Wine
+    wines = Wine
       .joins(:producer)
       .where(producers: { country_id: country.id })
       .includes(
@@ -130,7 +130,8 @@ class Api::V1::CountriesController < ApplicationController
         regions: [:country],
       )
       .order(:name)
-      .map { |wine| WineSerializer.new(wine, request.base_url).as_json }
+    liked_ids = Likes.liked_ids_for(wines, current_user)
+    wines.map { |wine| WineSerializer.new(wine, request.base_url, liked_ids: liked_ids).as_json }
   end
 
   def country_json(country)
