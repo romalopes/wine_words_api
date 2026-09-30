@@ -15,5 +15,6 @@ load Rails.root.join("db/seeds/wines.rb")
 load Rails.root.join("db/seeds/articles_and_reviews.rb")
 
 lsof -i :3000
+lsof -i :3001
 
 lsof -i :5173

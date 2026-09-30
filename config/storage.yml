@@ -27,14 +27,18 @@ supabase:
 
 cloudflare_r2:
   service: S3
-  access_key_id: <%= ENV["R2_ACCESS_KEY_ID"] %>
-  secret_access_key: <%= ENV["R2_SECRET_ACCESS_KEY"] %>
+  access_key_id: <%= ENV["CLOUD_FLARE_R2_ACCESS_KEY_ID"] %>
+  secret_access_key: <%= ENV["CLOUD_FLARE_R2_ACCESS_KEY"] %>
   region: auto
-  bucket: <%= ENV["R2_BUCKET_NAME"] %>
-  # Custom endpoint format for Cloudflare R2:
-  endpoint: "https://<%= ENV['R2_ACCOUNT_ID'] %>.r2.cloudflarestorage.com"
+  bucket: <%= ENV["CLOUD_FLARE_R2_BUCKET"] %>
+  # Custom endpoint format for Cloudflare R2. The explicit variable wins so that
+  # the value in .env (which is what a human edits) is the one actually used.
+  endpoint: <%= ENV["CLOUD_FLARE_R2_ENDPOINT"] || "https://#{ENV['CLOUD_FLARE_R2_REF']}.r2.cloudflarestorage.com" %>
   # Force path style is required for R2 & Backblaze compatibility
   force_path_style: true
+  # See the checksum note at the top of this file.
+  request_checksum_calculation: "when_required"
+  response_checksum_validation: "when_required"
 
 # Use bin/rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
 # amazon:
