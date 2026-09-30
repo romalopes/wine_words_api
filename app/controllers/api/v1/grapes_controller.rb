@@ -102,7 +102,8 @@ class Api::V1::GrapesController < ApplicationController
         wine_taste_parameters: :taste_parameter, vintages: [], producer: [],
         grapes: [], regions: [:country]
       )
-      data["wines"] = wines.map { |wine| WineSerializer.new(wine, request.base_url).as_json }
+      liked_ids = Likes.liked_ids_for(wines, current_user)
+      data["wines"] = wines.map { |wine| WineSerializer.new(wine, request.base_url, liked_ids: liked_ids).as_json }
     end
     data
   end

@@ -34,7 +34,8 @@ class Api::V1::WinesController < ApplicationController
   end
 
   def serialize_wines(wines, vintage_counts)
-    wines.map { |wine| WineListSerializer.new(wine, request.base_url, vintage_counts).as_json }
+    liked_ids = Likes.liked_ids_for(wines, current_user)
+    wines.map { |wine| WineListSerializer.new(wine, request.base_url, vintage_counts, liked_ids: liked_ids).as_json }
   end
 
   # GET /api/v1/wines/grouped?per_group=12
@@ -73,9 +74,10 @@ class Api::V1::WinesController < ApplicationController
 
     # Bucket each window row into its category group (0 == Uncategorised).
     groups = Hash.new { |h, k| h[k] = [] }
+    liked_ids = Likes.liked_ids_for(wines_by_id.values, current_user)
     rows.each do |row|
       cat_id = row.grouped_cat_id == 0 ? nil : row.grouped_cat_id
-      groups[cat_id] << WineListSerializer.new(wines_by_id[row.id], request.base_url, vintage_counts).as_json
+      groups[cat_id] << WineListSerializer.new(wines_by_id[row.id], request.base_url, vintage_counts, liked_ids: liked_ids).as_json
     end
 
     # Per-category totals and the uncategorised total, each in one grouped query.
@@ -120,14 +122,17 @@ class Api::V1::WinesController < ApplicationController
   end
 
   def show
-    wine = Wine.includes(vintages: [], wine_taste_parameters: :taste_parameter, producer: [], grapes: [], regions: [:country]).find_by!(slug: params[:id])
-    render json: WineSerializer.new(wine, request.base_url).as_json
+    wine = Wine.includes(vintages: [], wine_taste_parameters: :taste_parameter, producer: [], grapes: [], regions: [:country]).find_by(slug: params[:id]) || Wine.find(params[:id])
+    liked_ids = Likes.liked_ids_for([wine], current_user)
+    render json: WineSerializer.new(wine, request.base_url, liked_ids: liked_ids).as_json
+  rescue ActiveRecord::RecordNotFound
+    render json: { error: "Wine not found" }, status: :not_found
   end
 
   def create
     @wine = Wine.new(wine_params)
     if @wine.save
-      render json: WineSerializer.new(@wine).as_json, status: :created
+      render json: WineSerializer.new(@wine, request.base_url, liked_ids: Likes.liked_ids_for([@wine], current_user)).as_json, status: :created
     else
       render json: { errors: @wine.errors.full_messages }, status: :unprocessable_entity
     end
@@ -136,7 +141,7 @@ class Api::V1::WinesController < ApplicationController
   def update
     @wine = Wine.find_by!(slug: params[:id])
     if @wine.update(wine_params)
-      render json: WineSerializer.new(@wine).as_json
+      render json: WineSerializer.new(@wine, request.base_url, liked_ids: Likes.liked_ids_for([@wine], current_user)).as_json
     else
       render json: { errors: @wine.errors.full_messages }, status: :unprocessable_entity
     end

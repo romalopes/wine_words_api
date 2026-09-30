@@ -4,10 +4,12 @@
 # so the card grid can show a thumbnail per article.
 class ArticleListSerializer
   include ImageAttributes
+  include LikeAttributes
 
-  def initialize(article, base_url = nil)
+  def initialize(article, base_url = nil, liked_ids: nil)
     @article = article
     @base_url = base_url
+    @liked_ids = liked_ids
   end
 
   def as_json
@@ -23,6 +25,7 @@ class ArticleListSerializer
       categories: @article.categories.map { |c| { id: c.id, name: c.name, slug: c.slug } },
       published_at: @article.published_at&.iso8601,
       created_at: @article.created_at&.iso8601,
+      **like_fields(@article, @liked_ids),
       images: image_urls(@article)
     }
   end

@@ -112,7 +112,8 @@ class Api::V1::RegionsController < ApplicationController
       wine_taste_parameters: :taste_parameter, vintages: [], producer: [],
       grapes: [], regions: [:country]
     )
-    wines.map { |wine| WineSerializer.new(wine, request.base_url).as_json }
+    liked_ids = Likes.liked_ids_for(wines, current_user)
+    wines.map { |wine| WineSerializer.new(wine, request.base_url, liked_ids: liked_ids).as_json }
   end
 
   def set_region

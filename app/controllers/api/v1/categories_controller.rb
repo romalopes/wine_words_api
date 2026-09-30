@@ -118,6 +118,9 @@ class Api::V1::CategoriesController < ApplicationController
         category.category_articles.published
       end.recent
 
+    wine_liked = Likes.liked_ids_for(wines, current_user)
+    review_liked = Likes.liked_ids_for(reviews, current_user)
+
     render json: {
       id: category.id,
       name: category.name,
@@ -125,8 +128,8 @@ class Api::V1::CategoriesController < ApplicationController
       for_wine: category.for_wine,
       for_review: category.for_review,
       for_article: category.for_article,
-      wines: wines.map { |wine| WineSerializer.new(wine, request.base_url).as_json },
-      reviews: reviews.map { |review| ReviewSerializer.new(review, request.base_url).as_json },
+      wines: wines.map { |wine| WineSerializer.new(wine, request.base_url, liked_ids: wine_liked).as_json },
+      reviews: reviews.map { |review| ReviewSerializer.new(review, request.base_url, liked_ids: review_liked).as_json },
       articles: articles.map do |article|
         {
           id: article.id,

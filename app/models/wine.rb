@@ -4,6 +4,7 @@ class Wine < ApplicationRecord
   SEARCH_VECTOR_ATTRIBUTES = %w[name].freeze
 
   include Imageable
+  include Likeable
 
   belongs_to :producer
   belongs_to :category, optional: true

@@ -70,7 +70,7 @@ class Api::V1::WinePackageItemsController < ApplicationController
     )
     @review = review
 
-    render json: ReviewSerializer.new(review, request.base_url).as_json, status: :created
+    render json: ReviewSerializer.new(review, request.base_url, liked_ids: Likes.liked_ids_for([review], current_user)).as_json, status: :created
   end
 
   private

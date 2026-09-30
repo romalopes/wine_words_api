@@ -4,10 +4,12 @@
 # per-link status), and image URLs.
 class ArticleSerializer
   include ImageAttributes
+  include LikeAttributes
 
-  def initialize(article, base_url = nil)
+  def initialize(article, base_url = nil, liked_ids: nil)
     @article = article
     @base_url = base_url
+    @liked_ids = liked_ids
   end
 
   def as_json
@@ -36,7 +38,8 @@ class ArticleSerializer
       vintages: vintages,
       vintage_ids: @article.vintages.map(&:id),
       reviews: reviews,
-      review_ids: @article.reviews.map(&:id)
+      review_ids: @article.reviews.map(&:id),
+      **like_fields(@article, @liked_ids)
     }
   end
 

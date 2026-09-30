@@ -32,9 +32,14 @@ class Api::V1::ArticlesController < ApplicationController
     term = search_term
     articles = articles.text_search(term)
                        .ordered_for_search(params[:sort], ranked: ranked_search?(term))
-    return if render_paginated(articles) { |items| items.map { |a| ArticleListSerializer.new(a, request.base_url).as_json } }
+    return if render_paginated(articles) { |items| serialize_articles(items) }
 
-    render json: articles.map { |a| ArticleListSerializer.new(a, request.base_url).as_json }
+    render json: serialize_articles(articles)
+  end
+
+  def serialize_articles(articles)
+    liked_ids = Likes.liked_ids_for(articles, current_user)
+    articles.map { |a| ArticleListSerializer.new(a, request.base_url, liked_ids: liked_ids).as_json }
   end
 
   # GET /api/v1/articles/grouped?per_group=12&query=barolo&search=barolo
@@ -83,9 +88,10 @@ class Api::V1::ArticlesController < ApplicationController
                         .index_by(&:id)
 
     groups = Hash.new { |h, k| h[k] = [] }
+    liked_ids = Likes.liked_ids_for(articles_by_id.values, current_user)
     rows.each do |row|
       cat_id = row.grouped_cat_id == 0 ? nil : row.grouped_cat_id
-      groups[cat_id] << ArticleListSerializer.new(articles_by_id[row.id], request.base_url).as_json
+      groups[cat_id] << ArticleListSerializer.new(articles_by_id[row.id], request.base_url, liked_ids: liked_ids).as_json
     end
 
     # Counts come from the filtered scope too, so "Show all (N)" matches the
@@ -120,7 +126,8 @@ class Api::V1::ArticlesController < ApplicationController
   # "My Articles" toggle on the Articles page.
   def my_articles
     articles = Article.where(user: current_user).recent.includes(:user, :category, :tags, :wines, :producers)
-    render json: articles.map { |a| ArticleSerializer.new(a, request.base_url).as_json }
+    liked_ids = Likes.liked_ids_for(articles, current_user)
+    render json: articles.map { |a| ArticleSerializer.new(a, request.base_url, liked_ids: liked_ids).as_json }
   end
 
   def show
@@ -130,7 +137,7 @@ class Api::V1::ArticlesController < ApplicationController
       return render json: { error: "Not found" }, status: :not_found
     end
 
-    render json: ArticleSerializer.new(@article, request.base_url).as_json
+    render json: ArticleSerializer.new(@article, request.base_url, liked_ids: Likes.liked_ids_for([@article], current_user)).as_json
   end
 
   def create
@@ -142,7 +149,7 @@ class Api::V1::ArticlesController < ApplicationController
         return render json: { errors: image_errors }, status: :unprocessable_entity
       end
 
-      render json: ArticleSerializer.new(article, request.base_url).as_json, status: :created
+      render json: ArticleSerializer.new(article, request.base_url, liked_ids: Likes.liked_ids_for([article], current_user)).as_json, status: :created
     else
       render json: { errors: article.errors.full_messages }, status: :unprocessable_entity
     end
@@ -159,7 +166,7 @@ class Api::V1::ArticlesController < ApplicationController
         return render json: { errors: image_errors }, status: :unprocessable_entity
       end
 
-      render json: ArticleSerializer.new(@article, request.base_url).as_json
+      render json: ArticleSerializer.new(@article, request.base_url, liked_ids: Likes.liked_ids_for([@article], current_user)).as_json
     else
       render json: { errors: @article.errors.full_messages }, status: :unprocessable_entity
     end
