@@ -81,7 +81,7 @@ config.logger = ActiveSupport::Logger.new("log/production.log")
     password: ENV["SMTP_PASSWORD"],
     authentication: ENV.fetch("SMTP_AUTHENTICATION", "plain").to_sym,
     enable_starttls_auto: ENV.fetch("SMTP_ENABLE_STARTTLS", "true") == "true",
-    open_timeout: 10,
+    open_timeout: 15,
     read_timeout: 10
   }
 
