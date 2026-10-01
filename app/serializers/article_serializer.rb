@@ -6,10 +6,13 @@ class ArticleSerializer
   include ImageAttributes
   include LikeAttributes
 
-  def initialize(article, base_url = nil, liked_ids: nil)
+  def initialize(article, base_url = nil, liked_ids: nil, review_liked_ids: Set.new)
     @article = article
     @base_url = base_url
     @liked_ids = liked_ids
+    # `Likes.liked_ids_for` returns one type's ids, so the reviews' own set is
+    # passed separately from the article's rather than merged into one set.
+    @review_liked_ids = review_liked_ids
   end
 
   def as_json
@@ -69,6 +72,10 @@ class ArticleSerializer
 
   # Reviews linked to the article, including the per-link status from the
   # article_reviews join record (used to filter to "published" links).
+  #
+  # Each entry mirrors `ReviewSerializer` (wine/vintage context, drink window,
+  # images and like fields) so the article page can render the shared review
+  # card instead of a bespoke stub list.
   def reviews
     link_by_review = @article.article_reviews.index_by(&:review_id)
 
@@ -82,7 +89,18 @@ class ArticleSerializer
         status: review.status,
         comment: review.comment,
         reviewer_name: review.user&.user_name || review.user&.email || "Unknown",
-        link_status: link&.status
+        link_status: link&.status,
+        user_id: review.user_id,
+        drink_from: review.drink_from,
+        drink_to: review.drink_to,
+        drink_plus: review.drink_plus,
+        vintage_id: review.vintage_id,
+        vintage_year: review.vintage&.year,
+        wine_name: review.vintage&.wine&.name,
+        wine_slug: review.vintage&.wine&.slug,
+        images: image_urls(review),
+        primary_image: primary_image(review),
+        **like_fields(review, @review_liked_ids)
       }
     end
   end

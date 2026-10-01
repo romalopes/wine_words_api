@@ -137,7 +137,15 @@ class Api::V1::ArticlesController < ApplicationController
       return render json: { error: "Not found" }, status: :not_found
     end
 
-    render json: ArticleSerializer.new(@article, request.base_url, liked_ids: Likes.liked_ids_for([@article], current_user)).as_json
+    render json: ArticleSerializer.new(
+      @article,
+      request.base_url,
+      liked_ids: Likes.liked_ids_for([@article], current_user),
+      # Fetched separately from the article's: `liked_ids_for` returns one
+      # type's ids, and mixing articles with reviews in one collection would
+      # return whichever type came first.
+      review_liked_ids: Likes.liked_ids_for(@article.reviews, current_user)
+    ).as_json
   end
 
   def create
@@ -205,10 +213,12 @@ class Api::V1::ArticlesController < ApplicationController
     render json: { error: "Forbidden" }, status: :forbidden
   end
 
+  # Each linked review is serialized with its vintage -> wine and images, so both
+  # are preloaded here instead of being resolved per review while rendering.
   def set_article
     @article = Article.includes(:user, :tags, :producers,
                                  vintages: :wine,
-                                 article_reviews: :review,
+                                 article_reviews: { review: [ :vintage, { images: { file_attachment: :blob } } ] },
                                  article_categories: :category)
                        .find_by(slug: params[:id]) || Article.find(params[:id])
   rescue ActiveRecord::RecordNotFound
