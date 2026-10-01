@@ -81,8 +81,8 @@ config.logger = ActiveSupport::Logger.new("log/production.log")
     password: ENV["SMTP_PASSWORD"],
     authentication: ENV.fetch("SMTP_AUTHENTICATION", "plain").to_sym,
     enable_starttls_auto: ENV.fetch("SMTP_ENABLE_STARTTLS", "true") == "true",
-    open_timeout: 5,
-    read_timeout: 5
+    open_timeout: 10,
+    read_timeout: 10
   }
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
