@@ -50,8 +50,8 @@ Rails.application.configure do
       password: ENV["SMTP_PASSWORD"],
       authentication: ENV.fetch("SMTP_AUTHENTICATION", "plain").to_sym,
       enable_starttls_auto: ENV.fetch("SMTP_ENABLE_STARTTLS", "true") == "true",
-      open_timeout: 15,
-      read_timeout: 10
+      open_timeout: 5,
+      read_timeout: 5
     }
   else
     config.action_mailer.delivery_method = :file
