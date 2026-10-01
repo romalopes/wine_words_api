@@ -1,6 +1,7 @@
 class Review < ApplicationRecord
   include Imageable
   include Likeable
+  include Commentable
   include TextSearchable
 
   belongs_to :vintage

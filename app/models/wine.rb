@@ -5,6 +5,7 @@ class Wine < ApplicationRecord
 
   include Imageable
   include Likeable
+  include Commentable
 
   belongs_to :producer
   belongs_to :category, optional: true

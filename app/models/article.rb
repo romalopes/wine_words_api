@@ -1,6 +1,7 @@
 class Article < ApplicationRecord
   include Imageable
   include Likeable
+  include Commentable
   include TextSearchable
 
   belongs_to :user

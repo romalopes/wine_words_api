@@ -136,6 +136,7 @@ Rails.application.routes.draw do
           get :advanced_search
         end
         resource :like, only: [:create, :destroy], controller: "wine_likes"
+        resources :comments, only: [:index, :create], controller: "wine_comments"
         resources :vintages, only: [:create] do
           resources :reviews, only: [:index, :create]
         end
@@ -146,6 +147,7 @@ Rails.application.routes.draw do
           get :grouped
         end
         resource :like, only: [:create, :destroy], controller: "review_likes"
+        resources :comments, only: [:index, :create], controller: "review_comments"
       end
       resources :articles, only: [:index, :show, :create, :update, :destroy] do
         collection do
@@ -153,12 +155,19 @@ Rails.application.routes.draw do
           get :grouped
         end
         resource :like, only: [:create, :destroy], controller: "article_likes"
+        resources :comments, only: [:index, :create], controller: "article_comments"
       end
       resources :categories, only: [:index] do
         collection do
           patch :reorder
           get :counts
         end
+      end
+      # Comments that are not nested under a commentable: replying to a comment,
+      # and editing / soft-deleting one. A reply inherits its commentable from the
+      # parent comment, so the client never supplies a commentable_type/id.
+      resources :comments, only: [:update, :destroy] do
+        resources :replies, only: [:create], controller: "comments", action: :create_reply
       end
       get "categories/:id", to: "categories#show"
       post "categories", to: "categories#create"

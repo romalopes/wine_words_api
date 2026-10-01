@@ -16,6 +16,7 @@ class User < ApplicationRecord
 
   has_many :reviews, dependent: :destroy
   has_many :likes, dependent: :destroy
+  has_many :comments, dependent: :destroy
   has_many :user_roles, dependent: :destroy
   has_many :roles, through: :user_roles
   has_many :billing_customers, dependent: :destroy
@@ -156,6 +157,27 @@ class User < ApplicationRecord
   # catalogue_manager? (it includes Reviewers).
   def wine_manager?
     catalogue_manager? || reviewer?
+  end
+
+  # ---------------------------------------------------------------------------
+  # Comments (see Comments::Permission). Every signed-in account may join the
+  # discussion EXCEPT the base free "Guest" role: Reader, Reviewer, Editor and
+  # Admin can all comment.
+  #
+  # Deliberately expressed as "any role other than Guest" rather than an
+  # allow-list, so a role added to the enum later can never silently lose the
+  # ability to comment. The privileged roles (Reviewer/Editor/Admin) are
+  # independent of the subscription, so a Reviewer on the FREE plan still
+  # passes this check — only a user whose ONLY role is Guest is excluded.
+  # ---------------------------------------------------------------------------
+  def commenter?
+    roles.where.not(name: "Guest").exists?
+  end
+
+  # Moderation is a separate capability from participation: Editors and Admins
+  # may hide/delete anyone's comment (see Comments::Permission).
+  def comment_moderator?
+    catalogue_manager?
   end
 
   def role_names
