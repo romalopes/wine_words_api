@@ -9,6 +9,11 @@ class User < ApplicationRecord
          :recoverable, :rememberable, :validatable,
          :jwt_authenticatable, jwt_revocation_strategy: JwtDenylist
 
+  # Send Devise e‑mails asynchronously via Active Job
+  def send_devise_notification(notification, *args)
+    devise_mailer.send(notification, self, *args).deliver_later
+  end
+
   has_many :reviews, dependent: :destroy
   has_many :likes, dependent: :destroy
   has_many :user_roles, dependent: :destroy

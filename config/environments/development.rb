@@ -34,6 +34,9 @@ Rails.application.configure do
   # Don't care if the mailer can't send.
   config.action_mailer.raise_delivery_errors = false
 
+  # Use the in‑process async queue for Active Job (zero extra infrastructure)
+  config.active_job.queue_adapter = :async
+
   # Real delivery when SMTP credentials are provided (e.g. Gmail app password
   # in .env.development). Otherwise fall back to writing emails to tmp/mails
   # so the reset flow remains testable without a mail server.
