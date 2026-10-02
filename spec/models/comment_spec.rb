@@ -58,7 +58,7 @@ RSpec.describe Comment, type: :model do
       expect(parent.replies).to include(reply)
     end
 
-    it "refuses a reply to a reply (one level of nesting only)" do
+    it "refuses a parent that is itself a reply (threads stay one level deep)" do
       reply = Comment.create!(user: user_b, commentable: wine, parent: parent, body: "Agreed.")
       nested = Comment.new(user: user_a, commentable: wine, parent: reply, body: "Too deep.")
       expect(nested).not_to be_valid

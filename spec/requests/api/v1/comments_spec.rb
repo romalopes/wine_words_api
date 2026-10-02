@@ -160,12 +160,32 @@ RSpec.describe "Api::V1::Comments", type: :request do
       expect(parent.replies.count).to eq(1)
     end
 
-    it "refuses a reply to a reply" do
+    it "attaches a reply to a reply's parent instead of nesting a level deeper" do
       reply = Comment.create!(user: other, commentable: wine, parent: parent, body: "First reply.")
       sign_in owner
-      post "/api/v1/comments/#{reply.id}/replies", params: { comment: { body: "Too deep." } }
-      expect(response).to have_http_status(:unprocessable_entity)
-      expect(reply.replies.count).to eq(0)
+
+      post "/api/v1/comments/#{reply.id}/replies", params: { comment: { body: "Same thread." } }
+
+      expect(response).to have_http_status(:created)
+      body = JSON.parse(response.body)
+      # The clicked comment's parent, NOT the clicked comment itself.
+      expect(body["parent_id"]).to eq(parent.id)
+      expect(body["commentable_type"]).to eq("Wine")
+      expect(body["commentable_id"]).to eq(wine.id)
+      # It joined the thread as a sibling of the reply that was clicked.
+      expect(parent.replies.pluck(:id)).to match_array([ reply.id, body["id"] ])
+      expect(reply.replies).to be_empty
+      expect(reply.reload.parent_id).to eq(parent.id)
+    end
+
+    it "returns 404 when the reply's parent row is gone (nothing to attach to)" do
+      reply = Comment.create!(user: other, commentable: wine, parent: parent, body: "First reply.")
+      parent.destroy!
+      sign_in owner
+
+      post "/api/v1/comments/#{reply.id}/replies", params: { comment: { body: "Orphan." } }
+
+      expect(response).to have_http_status(:not_found)
     end
 
     it "returns 404 for an unknown parent comment" do

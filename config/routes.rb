@@ -154,6 +154,11 @@ Rails.application.routes.draw do
           get :my_articles
           get :grouped
         end
+        member do
+          # "More articles" footer on the article page: newest articles sharing
+          # this one's categories.
+          get :related
+        end
         resource :like, only: [:create, :destroy], controller: "article_likes"
         resources :comments, only: [:index, :create], controller: "article_comments"
       end

@@ -6,8 +6,12 @@
 #
 # The reply's commentable is DERIVED from the parent comment, never taken from
 # the request body, so a client cannot attach a reply to a different wine/review/
-# article than the one it is replying to. `Comment#parent_must_be_top_level`
-# enforces the remaining rule (no reply-to-a-reply, one level only).
+# article than the one it is replying to.
+#
+# Replying to a reply is allowed and does NOT nest: the new reply is attached to
+# the clicked comment's own parent, so it joins that thread as a sibling rather
+# than a grandchild. `Comment#parent_must_be_top_level` still rejects a depth-2
+# parent, so no other path can produce a deeper thread than this one.
 class Api::V1::CommentsController < ApplicationController
   include CommentAuthorizable
 
@@ -18,10 +22,12 @@ class Api::V1::CommentsController < ApplicationController
   def create_reply
     return unless authorize_commenter
 
-    parent = @comment
-    if parent.reply?
-      return render json: { error: "Cannot reply to a reply" },
-                    status: :unprocessable_entity
+    # A reply's parent is the top-level comment of the thread, so replying to a
+    # reply lands beside it in the same thread. `parent` is nil only for an
+    # orphaned reply (its parent row is gone), which has no thread to join.
+    parent = @comment.reply? ? @comment.parent : @comment
+    if parent.nil?
+      return render json: { error: "Comment not found" }, status: :not_found
     end
 
     reply = parent.commentable.comments.build(
