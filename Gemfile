@@ -50,6 +50,7 @@ gem "stripe"
 gem "importmap-rails"
 gem "turbo-rails"
 gem "stimulus-rails"
+gem "dotenv-rails"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
@@ -66,9 +67,5 @@ group :development, :test do
 
   # RSpec testing framework
   gem "rspec-rails", "~> 7.0"
-
-  gem "dotenv-rails"
-
-
 
 end

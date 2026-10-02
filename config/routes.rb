@@ -167,22 +167,24 @@ Rails.application.routes.draw do
         resource :like, only: [:create, :destroy], controller: "article_likes"
         resources :comments, only: [:index, :create], controller: "article_comments"
       end
-      resources :categories, only: [:index] do
-        collection do
-          patch :reorder
-          get :counts
-        end
-      end
       # Comments that are not nested under a commentable: replying to a comment,
       # and editing / soft-deleting one. A reply inherits its commentable from the
       # parent comment, so the client never supplies a commentable_type/id.
       resources :comments, only: [:update, :destroy] do
         resources :replies, only: [:create], controller: "comments", action: :create_reply
       end
-      get "categories/:id", to: "categories#show"
-      post "categories", to: "categories#create"
-      patch "categories/:id", to: "categories#update"
-      delete "categories/:id", to: "categories#destroy"
+      resources :categories, only: [:index, :show, :create, :update, :destroy] do
+        collection do
+          get :counts
+          patch :reorder
+        end
+        member do
+          post :link_wine
+          post :link_producer
+          post :link_review
+          post :link_article
+        end
+      end
       resources :wine_profiles do
         collection do
           get :search
@@ -206,18 +208,6 @@ Rails.application.routes.draw do
         member do
           post :link_wine
           post :link_producer
-        end
-      end
-      resources :categories, only: [:index] do
-        collection do
-          patch :reorder
-          get :counts
-        end
-        member do
-          post :link_wine
-          post :link_producer
-          post :link_review
-          post :link_article
         end
       end
 
