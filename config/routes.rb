@@ -146,6 +146,11 @@ Rails.application.routes.draw do
           get :my_reviews
           get :grouped
         end
+        member do
+          # "More reviews" footer on the review page: newest reviews sharing this
+          # one's categories.
+          get :related
+        end
         resource :like, only: [:create, :destroy], controller: "review_likes"
         resources :comments, only: [:index, :create], controller: "review_comments"
       end

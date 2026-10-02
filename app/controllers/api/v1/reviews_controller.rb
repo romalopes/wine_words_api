@@ -11,7 +11,7 @@ class Api::V1::ReviewsController < ApplicationController
   end
 
   # Only Admins, Editors and Reviewers may create reviews.
-  before_action :authenticate_user!, except: [:index, :show, :grouped]
+  before_action :authenticate_user!, except: [:index, :show, :grouped, :related]
   before_action :ensure_wine_manager!, only: [:create]
   # Resolve @vintage for nested routes. Required for #create; optional for
   # #index (top-level feed runs without vintage params).
@@ -20,7 +20,7 @@ class Api::V1::ReviewsController < ApplicationController
   before_action :set_vintage,
                 only: [:create, :index],
                 if: -> { action_name == "create" || params[:vintage_id].present? }
-  before_action :set_review, only: [:show, :update, :destroy]
+  before_action :set_review, only: [:show, :update, :destroy, :related]
 
   def index
     # When nested under a wine/vintage, only that vintage's reviews apply;
@@ -150,6 +150,39 @@ class Api::V1::ReviewsController < ApplicationController
       return render json: { error: "Not found" }, status: :not_found
     end
     render json: ReviewSerializer.new(@review, request.base_url, liked_ids: Likes.liked_ids_for([@review], current_user)).as_json
+  end
+
+  # GET /api/v1/reviews/:id/related?limit=5
+  # The "more reviews" footer on the review page: the newest reviews from the same
+  # categories as this one, the current review excluded. See Api::RelatedFeed for
+  # how the slots are dealt when the review sits in several categories, and for
+  # the uncategorised fallback (the newest reviews overall).
+  def related
+    limit = related_limit
+
+    # Fetch a few more than `limit` per category so that excluding the current
+    # review (and the dedup across categories) cannot leave the list short.
+    per_category = [ limit, 5 ].min + 1
+    base = Review.where.not(id: @review.id)
+    base = base.visible_to(current_user) unless current_user&.wine_manager?
+    # `ReviewSerializer` (unlike the list serializer) also renders the tasting
+    # note the footer previews, and reads the vintage/wine/categories.
+    base = base.includes(:user, :categories, :vintage, images: { file_attachment: :blob })
+
+    buckets = related_buckets(
+      @review, base,
+      join: ReviewCategory, foreign_key: :review_id,
+      per_category: per_category, limit: limit
+    )
+
+    reviews = round_robin(buckets, limit)
+    liked_ids = Likes.liked_ids_for(reviews, current_user)
+    # `{}` and not `do...end`: the block would bind to `render` (lower
+    # precedence) instead of to `map`, and the raw records would be serialized.
+    payload = reviews.map do |review|
+      ReviewSerializer.new(review, request.base_url, liked_ids: liked_ids).as_json
+    end
+    render json: payload
   end
 
   def create

@@ -1,5 +1,6 @@
 class ApplicationController < ActionController::Base
   include Api::Paginatable
+  include Api::RelatedFeed
   include Auditable
   include Impersonable
 

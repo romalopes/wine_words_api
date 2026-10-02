@@ -38,13 +38,38 @@ RSpec.describe "Api::V1::Articles related", type: :request do
   end
 
   describe "GET /api/v1/articles/:id/related" do
-    it "returns an empty list for an uncategorised article" do
-      article = create_article("Uncategorised", categories: [])
+    it "falls back to the newest articles overall when the article has no categories" do
+      article = create_article("Uncategorised", categories: [], days_ago: 1)
+      # One categorised and one uncategorised sibling: with no categories to
+      # intersect on, both are eligible and recency decides the order.
+      newest = create_article("Categorised sibling", days_ago: 2)
+      uncategorised = create_article("Uncategorised sibling", categories: [], days_ago: 3)
 
       get "/api/v1/articles/#{article.slug}/related"
 
       expect(response).to have_http_status(:ok)
-      expect(JSON.parse(response.body)).to eq([])
+      expect(related_ids).to eq([ newest.id, uncategorised.id ])
+      expect(related_ids).not_to include(article.id)
+    end
+
+    it "still hides other people's drafts from guests when falling back" do
+      article = create_article("Uncategorised", categories: [], days_ago: 1)
+      published = create_article("Published sibling", days_ago: 2)
+      draft = create_article("Someone else's draft", status: "draft", days_ago: 3)
+
+      get "/api/v1/articles/#{article.slug}/related"
+
+      expect(related_ids).to eq([ published.id ])
+      expect(related_ids).not_to include(draft.id)
+    end
+
+    it "caps the uncategorised fallback at the requested limit" do
+      article = create_article("Uncategorised", categories: [], days_ago: 1)
+      siblings = 4.times.map { |i| create_article("Sibling #{i}", days_ago: 2 + i) }
+
+      get "/api/v1/articles/#{article.slug}/related", params: { limit: 3 }
+
+      expect(related_ids).to eq(siblings.first(3).map(&:id))
     end
 
     it "returns the newest articles of the same category, excluding itself" do

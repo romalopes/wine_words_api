@@ -155,62 +155,25 @@ class Api::V1::ArticlesController < ApplicationController
   # When the article sits in several categories the slots are dealt round-robin
   # (A1, B1, A2, B2, A3) rather than taking the 5 newest of the first category.
   # The rows are still the newest ones overall — the interleave only stops a
-  # single category from taking every slot.
+  # single category from taking every slot. An UNCATEGORISED article has no
+  # categories to draw from, so it falls back to the newest articles overall.
   def related
-    limit = params[:limit].to_i
-    limit = 5 if limit <= 0
-    limit = limit.clamp(1, 10)
-
-    category_ids = @article.category_ids
-    return render json: [] if category_ids.empty?
+    limit = related_limit
 
     # Fetch a few more than `limit` per category so that excluding the current
     # article (and the dedup across categories) cannot leave the list short.
     per_category = [ limit, 5 ].min + 1
     base = Article.where.not(id: @article.id)
     base = base.visible_to(current_user) unless current_user&.wine_manager?
-    # Published articles first, newest first. `published_at` is NULL for drafts,
-    # and only a content manager ever sees those, so they sort last instead of
-    # jumping to the top of the footer. Raw SQL because `order` has no
-    # NULLS LAST direction.
-    newest_first = Arel.sql("published_at DESC NULLS LAST, created_at DESC, id DESC")
+    base = base.includes(:user, images: { file_attachment: :blob })
 
-    per_category_lists = category_ids.map do |category_id|
-      base.where(id: ArticleCategory.where(category_id: category_id).select(:article_id))
-          .includes(:user, images: { file_attachment: :blob })
-          .order(newest_first)
-          .limit(per_category)
-          .to_a
-    end
+    buckets = related_buckets(
+      @article, base,
+      join: ArticleCategory, foreign_key: :article_id,
+      per_category: per_category, limit: limit
+    )
 
-    render json: serialize_articles(round_robin(per_category_lists, limit))
-  end
-
-  # Deals `limit` items across the per-category lists, one from each list per
-  # pass, skipping ids already taken (an article in two of the categories must
-  # not appear twice) and skipping the nil holes left by short lists.
-  def round_robin(lists, limit)
-    taken = Set.new
-    result = []
-    loop do
-      added = false
-      lists.each do |list|
-        row = list.shift
-        next if row.nil? || taken.include?(row.id)
-
-        taken << row.id
-        result << row
-        added = true
-        # Return rather than break: `break` would only leave the inner loop and
-        # the outer one would start another pass and overshoot the limit.
-        return result if result.length >= limit
-      end
-      # A whole pass that gave nothing: every list is exhausted. A pass that
-      # only met duplicates still counts as progress-free, but the duplicates
-      # were shifted off, so the lists can only shrink from here.
-      break unless added
-    end
-    result
+    render json: serialize_articles(round_robin(buckets, limit))
   end
 
   def create
