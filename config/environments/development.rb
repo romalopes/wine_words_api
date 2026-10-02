@@ -32,7 +32,9 @@ Rails.application.configure do
   config.cache_store = :memory_store
 
   # Don't care if the mailer can't send.
-  config.action_mailer.raise_delivery_errors = false
+  # config.action_mailer.raise_delivery_errors = false
+  config.action_mailer.perform_deliveries = true
+  config.action_mailer.raise_delivery_errors = true
 
   # Use the in‑process async queue for Active Job (zero extra infrastructure)
   config.active_job.queue_adapter = :async
