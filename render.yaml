@@ -3,7 +3,7 @@
 # This file describes the infrastructure Render will provision when you
 # "Apply" this blueprint from the Render dashboard. It maps directly to:
 #   - one Render Postgres database (provides DATABASE_URL)
-#   - one Render Web Service (runs `bin/rails server`)
+#   - one Render Web Service (Dockerfile CMD: Thruster proxies to Puma)
 #   - one Render Background Worker (runs `bin/jobs` — Solid Queue supervisor)
 #
 # Solid Cache, Solid Queue, and Solid Cable all share the primary database,
@@ -22,14 +22,17 @@
 #   STRIPE_*           — only if you wire up the billing webhook
 
 services:
-  - type: pserv                # Render "Web Service"
+  - type: pserv # Render "Web Service"
     name: wine-prediction-api
     runtime: docker
-    plan: starter              # change to "free" for hobby, "standard" for production
+    plan: starter # change to "free" for hobby, "standard" for production
     region: oregon
     branch: main
     dockerfilePath: ./Dockerfile
     dockerContext: .
+    # /up is routed to Rails::HealthController (config/routes.rb), so Render
+    # only reports the deploy live once Puma accepts requests — not merely
+    # when Thruster's port opens (the source of the boot-window 502s).
     healthCheckPath: /up
     autoDeploy: true
     envVars:
@@ -38,36 +41,37 @@ services:
           name: wine-prediction-db
           property: connectionString
       - key: RAILS_MASTER_KEY
-        sync: false            # set this manually in the Render dashboard
+        sync: false # set this manually in the Render dashboard
       - key: RAILS_ENV
         value: production
       - key: RAILS_SERVE_STATIC_FILES
         value: "true"
       - key: RAILS_LOG_TO_STDOUT
         value: "true"
-      - key: PORT
-        value: "10000"         # Render expects $PORT in the web process
+      # No explicit PORT: Render injects it, and Thruster overrides PORT to
+      # TARGET_PORT (3000) for the child Puma process it spawns.
       - key: WEB_CONCURRENCY
-        value: "2"
+        value: "2" # keep at 2 — 10 workers OOM a starter instance
       - key: RAILS_MAX_THREADS
         value: "5"
       - key: APP_HOST
-        sync: false            # set in the dashboard
+        sync: false # set in the dashboard
       - key: TEST_ACCESS_PASSWORD
-        sync: false            # set in the dashboard — private test-access gate
+        sync: false # set in the dashboard — private test-access gate
       - key: TEST_ACCESS_TOKEN_EXPIRATION
         value: "7.days"
       - key: SOLID_QUEUE_IN_PUMA
-        value: "false"         # jobs run in the dedicated worker service, not in Puma
+        value: "false" # jobs run in the dedicated worker service, not in Puma
     # The release command runs once per deploy, after the build but
     # before the new code starts serving traffic. It creates the database
     # (idempotently) and applies all pending migrations including the
     # Solid Cache / Solid Queue / Solid Cable tables.
     releaseCommand: "bin/rails db:prepare"
-    # Start command runs the Rails server. Render injects $PORT.
-    startCommand: "bin/rails server -b 0.0.0.0 -p $PORT"
+    # No startCommand: the Dockerfile CMD (./bin/thrust ./bin/rails server)
+    # runs Thruster on :80, which spawns and proxies to Puma on localhost:3000.
+    # The service's dashboard port must therefore be 80.
 
-  - type: pserv                # Render "Background Worker"
+  - type: pserv # Render "Background Worker"
     name: wine-prediction-worker
     runtime: docker
     plan: starter
@@ -88,7 +92,7 @@ services:
       - key: RAILS_LOG_TO_STDOUT
         value: "true"
       - key: JOB_CONCURRENCY
-        value: "3"              # number of Solid Queue worker processes
+        value: "3" # number of Solid Queue worker processes
       - key: RAILS_MAX_THREADS
         value: "5"
     releaseCommand: "bin/rails db:prepare"
@@ -99,9 +103,9 @@ services:
 
 databases:
   - name: wine-prediction-db
-    plan: starter              # minimum paid Postgres; "free" is also fine for development
+    plan: starter # minimum paid Postgres; "free" is also fine for development
     region: oregon
-    databaseName: wine_prediction_api_production
-    user: wine_prediction_api
+    databaseName: wine_words_api_production
+    user: wine_words_api
     # Render provisions this database on first apply and exposes its
     # connection string as DATABASE_URL to the services above.

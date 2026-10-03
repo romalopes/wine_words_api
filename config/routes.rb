@@ -1,4 +1,10 @@
 Rails.application.routes.draw do
+  # Rails' default health check (Rails::HealthController). `render.yaml`
+  # points Render's healthCheckPath here, so a deploy is only reported live
+  # once Puma is actually serving requests — Thruster binds its port (:80)
+  # before Puma finishes booting, which otherwise produces boot-window 502s.
+  get "up" => "rails/health#show", as: :rails_health_check
+
   devise_for :users,
     path: "api/v1/auth",
     path_names: {

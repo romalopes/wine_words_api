@@ -33,7 +33,7 @@ Verified live:
 | What | URL | Verified status |
 |---|---|---|
 | Web app | `https://wine-prediction-mu.vercel.app` | Live, title "Wine Words"; bundle embeds Render API URL |
-| API | `https://wine-prediction-api-mq4a.onrender.com` | Live; `/api/v1/health` 200 `{"status":"ok","database":"ok","version":"0.0.20"}`; `/api/v1/stats` 200; `/api/v1/health/detailed` 401 unauthenticated |
+| API | `https://wine-words-api.onrender.com` | Live; `/api/v1/health` 200 `{"status":"ok","database":"ok","version":"0.0.20"}`; cold starts and boot windows return 502/503. Former `wine-prediction-api-mq4a` host: 503 |
 | Legacy frontend | `wine-prediction-app.vercel.app` | Retired (`DEPLOYMENT_NOT_FOUND`); still listed in CORS — cleanup pending |
 
 Version: API `0.0.20` (`config/initializers/app_version.rb`).
@@ -364,14 +364,19 @@ check (Slack). See `docs/DATABASE_BACKUP_AND_RESTORE.md`.
 Frontend → Vercel (`vercel --prod`; project `wine-prediction`;
 `vercel.json` SPA rewrite; set `VITE_API_BASE_URL` + public IDs at build).
 Backend → Render blueprint `render.yaml`: web `wine-prediction-api` (Docker
-runtime, `bundle exec puma -C config/puma.rb`, `releaseCommand: bin/rails
-db:prepare`, `autoDeploy`, branch `main`) + worker `wine-prediction-worker`
-(`bin/jobs`; `SOLID_QUEUE_IN_PUMA=false`, `JOB_CONCURRENCY=3`) + Postgres
-`wine-prediction-db`. Note: `render.yaml` declares `healthCheckPath: /up`
-but `/up` returned **404** when probed — live health is `GET /api/v1/health`
-(200). Env: `RAILS_MASTER_KEY` (sync false), `DATABASE_URL`, `FRONTEND_URL`,
-Stripe/SMTP/provider secrets. Caveat: Render free-tier cold starts produced
-502s/timeouts on some catalogue probes (health + stats stayed 200).
+runtime; Dockerfile CMD runs Thruster :80 → Puma :3000, `releaseCommand:
+bin/rails db:prepare`, `autoDeploy`, branch `main`, `healthCheckPath: /up` →
+Rails' `rails/health#show` route, so "live" waits for Puma rather than just
+Thruster's port) + worker `wine-prediction-worker` (`bin/jobs`;
+`SOLID_QUEUE_IN_PUMA=false`, `JOB_CONCURRENCY=3`) + Postgres
+`wine-prediction-db`. Live hostname is `wine-words-api.onrender.com`
+(`GET /api/v1/health` 200; the former `wine-prediction-api-mq4a` host now
+returns 503). Env: `RAILS_MASTER_KEY` (sync false), `DATABASE_URL`,
+`FRONTEND_URL`, Stripe/SMTP/provider secrets, plus `WEB_CONCURRENCY=2` /
+`RAILS_MAX_THREADS=5` — set these in the dashboard too: the live service
+currently runs dashboard-set values (10 workers / 3 threads), not the
+blueprint's. Caveat: during the ~30 s Thruster→Puma boot window requests
+return 502 with `public/502.html`.
 Monitoring links are private (`docs/general_info.md`). SSR legacy scaffolds
 ship with the deploy; do not delete without a routing plan.
 
