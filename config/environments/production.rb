@@ -53,12 +53,9 @@ Rails.application.configure do
   config.ssl_options = { redirect: { exclude: ->(req) { req.host =~ /\Alocalhost\z|127\.0\.0\.1|\[::1\]/ || req.path == "/up" } } }
 
   # Log to STDOUT with the current request id as a default log tag.
-
   # config.logger = ActiveSupport::Logger.new("log/production.log")
-# OR
-  config.logger = ActiveSupport::Logger.new(STDOUT)
   config.log_tags = [ :request_id ]
-  # config.logger   = ActiveSupport::TaggedLogging.logger(STDOUT)
+  config.logger   = ActiveSupport::TaggedLogging.logger(STDOUT)
 
   # Change to "debug" to log everything (including potentially personally-identifiable information!).
   config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "debug")
@@ -93,23 +90,19 @@ Rails.application.configure do
   config.active_job.queue_adapter = :async
 
   # Outgoing SMTP server (Gmail app password or any generic SMTP host).
-  if ENV["SMTP_ADDRESS"].present?
-    config.action_mailer.delivery_method = :smtp
-    config.action_mailer.smtp_settings = {
-      address: ENV["SMTP_ADDRESS"],
-      port: ENV.fetch("SMTP_PORT", 587).to_i,
-      domain: ENV.fetch("SMTP_DOMAIN", "localhost"),
-      user_name: ENV["SMTP_USERNAME"],
-      password: ENV["SMTP_PASSWORD"],
-      authentication: ENV.fetch("SMTP_AUTHENTICATION", "plain").to_sym,
-      enable_starttls_auto: ENV.fetch("SMTP_ENABLE_STARTTLS", "true") == "true",
-      open_timeout: 15,
-      read_timeout: 10
-    }
-  # else
-  #   config.action_mailer.delivery_method = :file
-  #   config.action_mailer.file_settings = { location: Rails.root.join("tmp/mails") }
-  end
+  config.action_mailer.delivery_method = :smtp
+
+config.action_mailer.smtp_settings = {
+  address: ENV.fetch("SMTP_ADDRESS"),
+  port: ENV.fetch("SMTP_PORT", "587").to_i,
+  domain: ENV.fetch("SMTP_DOMAIN", "gmail.com"),
+  user_name: ENV.fetch("SMTP_USERNAME"),
+  password: ENV.fetch("SMTP_PASSWORD"),
+  authentication: ENV.fetch("SMTP_AUTHENTICATION", "plain").to_sym,
+  enable_starttls_auto: ENV.fetch("SMTP_ENABLE_STARTTLS", "true") == "true",
+  open_timeout: 10,
+  read_timeout: 10
+}
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
   # the I18n.default_locale when a translation cannot be found).
