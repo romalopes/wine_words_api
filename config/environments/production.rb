@@ -56,9 +56,9 @@ Rails.application.configure do
 
   # config.logger = ActiveSupport::Logger.new("log/production.log")
 # OR
-  config.logger = ActiveSupport::Logger.new(STDOUT)
+  # config.logger = ActiveSupport::Logger.new(STDOUT)
   config.log_tags = [ :request_id ]
-  # config.logger   = ActiveSupport::TaggedLogging.logger(STDOUT)
+  config.logger   = ActiveSupport::TaggedLogging.logger(STDOUT)
 
   # Change to "debug" to log everything (including potentially personally-identifiable information!).
   config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "debug")
@@ -93,6 +93,11 @@ Rails.application.configure do
   config.active_job.queue_adapter = :async
 
   # Outgoing SMTP server (Gmail app password or any generic SMTP host).
+  # NOTE: when BREVO_API_KEY is set, the shared "email_delivery.brevo"
+  # initializer in config/application.rb overrides this selection with the
+  # Brevo HTTP API — required on Render's free plan, which blocks outbound
+  # SMTP ports 25/465/587. This SMTP block remains as the fallback for
+  # local development and for a future paid Render plan.
   if ENV["SMTP_ADDRESS"].present?
     config.action_mailer.delivery_method = :smtp
     config.action_mailer.smtp_settings = {
@@ -106,9 +111,12 @@ Rails.application.configure do
       open_timeout: 15,
       read_timeout: 10
     }
-  # else
-  #   config.action_mailer.delivery_method = :file
-  #   config.action_mailer.file_settings = { location: Rails.root.join("tmp/mails") }
+  else
+    # No BREVO key and no SMTP_* configured: keep deliveries in tmp/mails
+    # instead of silently falling back to Rails' default transport (plain
+    # SMTP to localhost:25, which no container provides).
+    config.action_mailer.delivery_method = :file
+    config.action_mailer.file_settings = { location: Rails.root.join("tmp/mails") }
   end
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to

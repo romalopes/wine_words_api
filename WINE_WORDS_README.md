@@ -201,7 +201,9 @@ Frontend (`.env.example`; `VITE_*` is public by design — no secrets):
 `VITE_FACEBOOK_APP_ID`, `VITE_FACEBOOK_GRAPH_VERSION` (`v21.0`).
 
 Backend (`.env.example`, required in production): `DATABASE_URL`,
-`FRONTEND_URL`, `RAILS_MASTER_KEY`, `GOOGLE_CLIENT_ID`,
+`FRONTEND_URL`, `BREVO_API_KEY` (mail transport — Brevo HTTP API, since
+Render free blocks outbound SMTP ports 25/465/587), `RAILS_MASTER_KEY`,
+`GOOGLE_CLIENT_ID`,
 `APPLE_CLIENT_ID/TEAM_ID/KEY_ID/PRIVATE_KEY`,
 `MICROSOFT_CLIENT_ID/TENANT_ID`, `FACEBOOK_APP_ID/APP_SECRET/GRAPH_VERSION`,
 `AUSTRALIA_POST_API_KEY/TRACKING_URL/API_URL`, `TEST_ACCESS_PASSWORD`,
@@ -372,7 +374,8 @@ Thruster's port) + worker `wine-prediction-worker` (`bin/jobs`;
 `wine-prediction-db`. Live hostname is `wine-words-api.onrender.com`
 (`GET /api/v1/health` 200; the former `wine-prediction-api-mq4a` host now
 returns 503). Env: `RAILS_MASTER_KEY` (sync false), `DATABASE_URL`,
-`FRONTEND_URL`, Stripe/SMTP/provider secrets, plus `WEB_CONCURRENCY=2` /
+`FRONTEND_URL`, `BREVO_API_KEY` (mail transport), Stripe/provider secrets,
+plus `WEB_CONCURRENCY=2` /
 `RAILS_MAX_THREADS=5` — set these in the dashboard too: the live service
 currently runs dashboard-set values (10 workers / 3 threads), not the
 blueprint's. Caveat: during the ~30 s Thruster→Puma boot window requests

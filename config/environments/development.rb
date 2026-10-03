@@ -42,6 +42,10 @@ Rails.application.configure do
   # Real delivery when SMTP credentials are provided (e.g. Gmail app password
   # in .env.development). Otherwise fall back to writing emails to tmp/mails
   # so the reset flow remains testable without a mail server.
+  # NOTE: when BREVO_API_KEY is set, the shared "email_delivery.brevo"
+  # initializer in config/application.rb overrides this selection with the
+  # Brevo HTTP API (identical behaviour in production) — see there for the
+  # full precedence rules.
   if ENV["SMTP_ADDRESS"].present?
     config.action_mailer.delivery_method = :smtp
     config.action_mailer.smtp_settings = {
