@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe BrevoDelivery do
+RSpec.describe ResendDelivery do
   subject(:delivery) do
     described_class.new(api_key: "test-api-key", open_timeout: 5, read_timeout: 5)
   end
@@ -19,17 +19,15 @@ RSpec.describe BrevoDelivery do
   end
 
   describe "#payload_for" do
-    it "maps sender, recipients, subject, reply-to and both body parts" do
+    it "maps the sender as a string, recipients as strings and both body parts" do
       payload = delivery.payload_for(mail)
 
-      expect(payload[:sender]).to eq(email: "romalopes@gmail.com", name: "Wine Words")
-      expect(payload[:to]).to eq(
-        [ { email: "alice@example.com" }, { email: "bob@example.com" } ]
-      )
+      expect(payload[:from]).to eq("Wine Words <romalopes@gmail.com>")
+      expect(payload[:to]).to eq([ "alice@example.com", "bob@example.com" ])
       expect(payload[:subject]).to eq("Reset password instructions")
-      expect(payload[:replyTo]).to eq(email: "support@example.com")
-      expect(payload[:htmlContent]).to eq("<p>HTML body</p>")
-      expect(payload[:textContent]).to eq("Plain body")
+      expect(payload[:reply_to]).to eq("support@example.com")
+      expect(payload[:html]).to eq("<p>HTML body</p>")
+      expect(payload[:text]).to eq("Plain body")
     end
 
     it "maps cc and bcc when present" do
@@ -38,8 +36,14 @@ RSpec.describe BrevoDelivery do
 
       payload = delivery.payload_for(mail)
 
-      expect(payload[:cc]).to eq([ { email: "cc@example.com" } ])
-      expect(payload[:bcc]).to eq([ { email: "bcc@example.com" } ])
+      expect(payload[:cc]).to eq([ "cc@example.com" ])
+      expect(payload[:bcc]).to eq([ "bcc@example.com" ])
+    end
+
+    it "omits the display name when the sender has none" do
+      mail.from = "romalopes@gmail.com"
+
+      expect(delivery.payload_for(mail)[:from]).to eq("romalopes@gmail.com")
     end
 
     it "omits optional fields that are not present" do
@@ -54,25 +58,25 @@ RSpec.describe BrevoDelivery do
 
       expect(payload).not_to have_key(:cc)
       expect(payload).not_to have_key(:bcc)
-      expect(payload).not_to have_key(:replyTo)
-      expect(payload).not_to have_key(:attachment)
-      expect(payload).not_to have_key(:htmlContent)
-      expect(payload[:textContent]).to eq("hi")
+      expect(payload).not_to have_key(:reply_to)
+      expect(payload).not_to have_key(:attachments)
+      expect(payload).not_to have_key(:html)
+      expect(payload[:text]).to eq("hi")
     end
 
-    it "base64-encodes attachments" do
+    it "base64-encodes attachments using Resend's filename field" do
       mail.attachments["notes.txt"] = "hello attachment"
 
       payload = delivery.payload_for(mail)
 
-      expect(payload[:attachment]).to eq(
-        [ { name: "notes.txt", content: Base64.strict_encode64("hello attachment") } ]
+      expect(payload[:attachments]).to eq(
+        [ { filename: "notes.txt", content: Base64.strict_encode64("hello attachment") } ]
       )
     end
   end
 
   describe "#deliver!" do
-    it "POSTs the payload to the Brevo endpoint with the api-key header" do
+    it "POSTs the payload to the Resend endpoint with Bearer auth" do
       ok = Net::HTTPOK.new("1.1", "200", "OK")
       captured_request = nil
 
@@ -87,67 +91,62 @@ RSpec.describe BrevoDelivery do
 
       expect(delivery.deliver!(mail)).to be(true)
 
-      expect(captured_request.path).to eq("/v3/smtp/email")
-      expect(captured_request["api-key"]).to eq("test-api-key")
+      expect(captured_request.path).to eq("/emails")
+      expect(captured_request["Authorization"]).to eq("Bearer test-api-key")
       expect(captured_request["Content-Type"]).to eq("application/json")
       body = JSON.parse(captured_request.body)
       expect(body["subject"]).to eq("Reset password instructions")
-      expect(body["sender"]).to eq("email" => "romalopes@gmail.com", "name" => "Wine Words")
+      expect(body["from"]).to eq("Wine Words <romalopes@gmail.com>")
+      expect(body["to"]).to eq([ "alice@example.com", "bob@example.com" ])
     end
 
     it "raises when the API responds with a non-2xx status" do
       bad = Net::HTTPBadRequest.new("1.1", "400", "Bad Request")
-      # Synthetic responses have no socket to read from; stub the body.
-      allow(bad).to receive(:body).and_return('{"code":"invalid_parameter"}')
+      allow(bad).to receive(:body).and_return('{"message":"Invalid `from` field","name":"validation_error"}')
       allow(Net::HTTP).to receive(:start) do |*_args, **_kwargs, &block|
         block.call(instance_double(Net::HTTP, request: bad))
       end
 
       expect { delivery.deliver!(mail) }
-        .to raise_error(BrevoDelivery::Error, /Brevo API responded 400/)
+        .to raise_error(ResendDelivery::Error, /Resend API responded 400/)
     end
 
-    it "adds an actionable hint when Brevo rejects the caller's IP (Authorized IPs)" do
+    it "adds an actionable hint when the API key is rejected" do
       unauthorized = Net::HTTPUnauthorized.new("1.1", "401", "Unauthorized")
-      allow(unauthorized).to receive(:body).and_return(
-        '{"message":"We have detected you are using an unrecognised IP address 2001:8003::1. ' \
-        'If you performed this action make sure to add the new IP address in this link: ' \
-        'https://app.brevo.com/security/authorised_ips","code":"unauthorized"}'
-      )
+      allow(unauthorized).to receive(:body).and_return('{"message":"API key is invalid","name":"validation_error"}')
       allow(Net::HTTP).to receive(:start) do |*_args, **_kwargs, &block|
         block.call(instance_double(Net::HTTP, request: unauthorized))
       end
 
       expect { delivery.deliver!(mail) }
-        .to raise_error(BrevoDelivery::Error, %r{authorised_ips.*Authorized IPs})
+        .to raise_error(ResendDelivery::Error, /RESEND_API_KEY/)
     end
 
-    it "adds an actionable hint when the sender address is not verified" do
-      unverified = Net::HTTPBadRequest.new("1.1", "400", "Bad Request")
-      allow(unverified).to receive(:body).and_return(
-        '{"message":"Sender email romalopes@gmail.com is not verified. Please verify it.",' \
-        '"code":"invalid_parameter"}'
+    it "adds an actionable hint when the sending domain is not verified" do
+      forbidden = Net::HTTPForbidden.new("1.1", "403", "Forbidden")
+      allow(forbidden).to receive(:body).and_return(
+        '{"message":"The domain example.com is not verified","name":"validation_error"}'
       )
       allow(Net::HTTP).to receive(:start) do |*_args, **_kwargs, &block|
-        block.call(instance_double(Net::HTTP, request: unverified))
+        block.call(instance_double(Net::HTTP, request: forbidden))
       end
 
       expect { delivery.deliver!(mail) }
-        .to raise_error(BrevoDelivery::Error, /Senders & Domains/)
+        .to raise_error(ResendDelivery::Error, %r{resend\.com/domains})
     end
 
-    it "wraps transport failures (e.g. timeouts) in BrevoDelivery::Error" do
+    it "wraps transport failures (e.g. timeouts) in ResendDelivery::Error" do
       allow(delivery).to receive(:post_json).and_raise(Net::OpenTimeout)
 
       expect { delivery.deliver!(mail) }
-        .to raise_error(BrevoDelivery::Error, /Net::OpenTimeout/)
+        .to raise_error(ResendDelivery::Error, /Net::OpenTimeout/)
     end
 
     it "raises a clear error when the API key is missing" do
       without_key = described_class.new(api_key: nil)
 
       expect { without_key.deliver!(mail) }
-        .to raise_error(BrevoDelivery::Error, /BREVO_API_KEY/)
+        .to raise_error(ResendDelivery::Error, /RESEND_API_KEY/)
     end
   end
 end

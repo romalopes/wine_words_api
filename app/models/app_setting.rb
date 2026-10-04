@@ -9,7 +9,7 @@ class AppSetting < ApplicationRecord
   DEFAULTS = {
     "logs_enabled" => true,
     "use_test_email" => false,
-    "test_email" => "romalopes@yahoo.com.br"
+    "test_email" => ENV["MAIL_REPLY_TO"]
   }.freeze
 
   validates :key, presence: true, uniqueness: true

@@ -65,7 +65,7 @@ RSpec.describe WinePackagesMailer, type: :mailer do
 
     expect(mail.text_part).to be_present
     expect(mail.html_part).to be_present
-    expect(mail.from).to eq([ "romalopes@gmail.com" ])
+    expect(mail.from).to eq([ "kasia@mywineadviser.com.au" ])
   end
 
   describe "email test mode (use_test_email)" do

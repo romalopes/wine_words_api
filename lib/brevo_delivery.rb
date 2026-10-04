@@ -1,9 +1,6 @@
 # frozen_string_literal: true
 
-require "base64"
-require "json"
-require "net/http"
-require "uri"
+require_relative "http_mail_delivery"
 
 # ActionMailer / Mail delivery adapter that sends through Brevo's transactional
 # HTTP API (POST https://api.brevo.com/v3/smtp/email) instead of an SMTP
@@ -16,10 +13,15 @@ require "uri"
 #   Devise -> CustomDeviseMailer -> ActionMailer -> [delivery method] -> user
 #
 # Controllers and mailers only build a Mail::Message and call deliver_later;
-# they never know whether the transport is Brevo, Gmail SMTP, SendGrid, Resend
-# or the :file test fallback. Swapping providers is a configuration change
-# (see config/application.rb and config/environments/*), not a code change.
+# they never know whether the transport is Brevo, Resend, Gmail SMTP or the
+# :file test fallback. Swapping providers is a configuration change (see
+# config/application.rb, lib/mail_transport.rb and config/environments/*).
+#
+# Brevo-specific parts live here (endpoint, auth header, field names, error
+# hints); the shared HTTP/Mail plumbing comes from HttpMailDelivery.
 class BrevoDelivery
+  include HttpMailDelivery
+
   # Raised for missing configuration, transport failures (e.g. timeouts) and
   # non-2xx API responses. With config.action_mailer.raise_delivery_errors = true
   # the message surfaces in the job log (Render's log stream) instead of being
@@ -27,18 +29,45 @@ class BrevoDelivery
   class Error < StandardError; end
 
   ENDPOINT = URI("https://api.brevo.com/v3/smtp/email")
-  DEFAULT_TIMEOUT = 10
+  PROVIDER = "Brevo"
+
+  # Brevo's error body says what went wrong but not what to do about it. In
+  # Render's log stream there is no shell and no browser, so these hints turn
+  # an opaque 401/400 into a concrete, one-click fix.
+  API_HINTS = [
+    {
+      match: ->(code, body) { code == "401" && body.match?(/unrecogni[sz]ed IP address/i) },
+      hint: "Brevo rejected the caller's IP address. Either add it at " \
+            "https://app.brevo.com/security/authorised_ips or turn OFF Brevo's " \
+            "\"Authorized IPs\" security feature — the latter is required when " \
+            "running on Render, whose outbound IPs are shared/dynamic."
+    },
+    {
+      match: ->(_code, body) { body.match?(/sender/i) && body.match?(/verif/i) },
+      hint: "Brevo requires a verified sender. Verify the From address under " \
+            "Brevo → Senders & Domains (https://app.brevo.com/senders/domains)."
+    }
+  ].freeze
 
   def initialize(settings)
     @api_key = settings[:api_key]
-    @open_timeout = settings[:open_timeout] || DEFAULT_TIMEOUT
-    @read_timeout = settings[:read_timeout] || DEFAULT_TIMEOUT
+    @open_timeout = settings[:open_timeout] || HttpMailDelivery::DEFAULT_TIMEOUT
+    @read_timeout = settings[:read_timeout] || HttpMailDelivery::DEFAULT_TIMEOUT
   end
 
   def deliver!(mail)
     raise Error, "BREVO_API_KEY is not configured" if @api_key.blank?
 
-    http_post(payload_for(mail))
+    post_json(
+      endpoint: ENDPOINT,
+      headers: { "api-key" => @api_key },
+      payload: payload_for(mail),
+      error_class: Error,
+      provider: PROVIDER,
+      hints: API_HINTS,
+      open_timeout: @open_timeout,
+      read_timeout: @read_timeout
+    )
     true
   rescue Error
     raise
@@ -52,7 +81,7 @@ class BrevoDelivery
   # assert the transformation without touching the network.
   def payload_for(mail)
     payload = {
-      sender: single_address(mail[:from]&.decoded),
+      sender: sender_address(mail[:from]&.decoded),
       to: recipient_list(mail.to),
       subject: mail.subject.to_s
     }
@@ -60,16 +89,14 @@ class BrevoDelivery
     payload[:cc] = recipient_list(mail.cc) if mail.cc.present?
     payload[:bcc] = recipient_list(mail.bcc) if mail.bcc.present?
 
-    reply_to = single_address(mail[:reply_to]&.decoded)
+    reply_to = sender_address(mail[:reply_to]&.decoded)
     payload[:replyTo] = reply_to if reply_to
 
     html, text = bodies(mail)
     payload[:htmlContent] = html if html.present?
     payload[:textContent] = text if text.present?
 
-    files = mail.attachments.map do |att|
-      { name: att.filename, content: Base64.strict_encode64(att.body.decoded) }
-    end
+    files = base64_attachments(mail).map { |file| { name: file[:filename], content: file[:content] } }
     payload[:attachment] = files if files.any?
 
     payload
@@ -78,11 +105,9 @@ class BrevoDelivery
   private
 
   # "Wine Words <romalopes@gmail.com>" => { email: ..., name: ... }
-  def single_address(raw)
-    return nil if raw.blank?
-
-    address = Mail::Address.new(raw)
-    return nil if address.address.blank?
+  def sender_address(raw)
+    address = parse_address(raw)
+    return nil if address.nil?
 
     result = { email: address.address }
     result[:name] = address.display_name if address.display_name.present?
@@ -90,39 +115,6 @@ class BrevoDelivery
   end
 
   def recipient_list(addresses)
-    Array(addresses).map { |email| { email: email } }
-  end
-
-  def bodies(mail)
-    if mail.multipart?
-      [ mail.html_part&.body&.decoded, mail.text_part&.body&.decoded ]
-    elsif mail.content_type.to_s.include?("text/html")
-      [ mail.body.decoded, nil ]
-    else
-      [ nil, mail.body.decoded ]
-    end
-  end
-
-  def build_request(payload)
-    request = Net::HTTP::Post.new(ENDPOINT)
-    request["Content-Type"] = "application/json"
-    request["api-key"] = @api_key
-    request.body = JSON.generate(payload)
-    request
-  end
-
-  def http_post(payload)
-    request = build_request(payload)
-    response = Net::HTTP.start(
-      ENDPOINT.host,
-      ENDPOINT.port,
-      use_ssl: true,
-      open_timeout: @open_timeout,
-      read_timeout: @read_timeout
-    ) { |http| http.request(request) }
-
-    return response if response.is_a?(Net::HTTPSuccess)
-
-    raise Error, "Brevo API responded #{response.code}: #{response.body}"
+    recipient_emails(addresses).map { |email| { email: email } }
   end
 end

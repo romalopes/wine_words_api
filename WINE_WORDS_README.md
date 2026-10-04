@@ -202,7 +202,15 @@ Frontend (`.env.example`; `VITE_*` is public by design — no secrets):
 
 Backend (`.env.example`, required in production): `DATABASE_URL`,
 `FRONTEND_URL`, `BREVO_API_KEY` (mail transport — Brevo HTTP API, since
-Render free blocks outbound SMTP ports 25/465/587), `RAILS_MASTER_KEY`,
+Render free blocks outbound SMTP ports 25/465/587), `RESEND_API_KEY`
+(alternative mail transport — Resend HTTP API; requires a verified sending
+domain), `MAIL_TRANSPORT`
+(optional override: `brevo` | `resend` | `smtp` | `file`; blank/`auto` keeps
+the automatic rule — Brevo when `BREVO_API_KEY` is set, then Resend when
+`RESEND_API_KEY` is set, else SMTP when `SMTP_ADDRESS` is set, else files in
+`tmp/mails`), `MAIL_FROM` / `MAIL_REPLY_TO` (optional From and Reply-To
+addresses for all outgoing mail; default `kasia@mywineadviser.com.au` /
+`romalopes@yahoo.com.br`), `RAILS_MASTER_KEY`,
 `GOOGLE_CLIENT_ID`,
 `APPLE_CLIENT_ID/TEAM_ID/KEY_ID/PRIVATE_KEY`,
 `MICROSOFT_CLIENT_ID/TENANT_ID`, `FACEBOOK_APP_ID/APP_SECRET/GRAPH_VERSION`,

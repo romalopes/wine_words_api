@@ -1,6 +1,8 @@
 class CustomDeviseMailer < Devise::Mailer
-  # Ensure the default from address matches the one configured in devise.rb
-  default from: 'romalopes@yahoo.com.br'
+  # From/Reply-To come from MAIL_FROM / MAIL_REPLY_TO (lib/mail_sender.rb) —
+  # the explicit defaults also stop Devise falling back to devise.rb's
+  # config.mailer_sender for these headers.
+  default from: MailSender.from, reply_to: MailSender.reply_to
 
   # Override the reset password instructions to respect the test‑email setting.
   def reset_password_instructions(record, token, opts = {})

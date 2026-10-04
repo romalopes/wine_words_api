@@ -1,4 +1,6 @@
 class ApplicationMailer < ActionMailer::Base
-  default from: "romalopes@gmail.com"
+  # Sender is configurable via MAIL_FROM (see lib/mail_sender.rb) and shared
+  # with the Devise mailer, so every transport sends the same From address.
+  default from: MailSender.from
   layout "mailer"
 end
