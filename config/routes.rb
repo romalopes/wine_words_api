@@ -173,6 +173,9 @@ Rails.application.routes.draw do
         resource :like, only: [:create, :destroy], controller: "article_likes"
         resources :comments, only: [:index, :create], controller: "article_comments"
       end
+      resources :article_projects, only: [:index, :show, :create, :update, :destroy] do
+        collection { get :lookup }
+      end
       # Comments that are not nested under a commentable: replying to a comment,
       # and editing / soft-deleting one. A reply inherits its commentable from the
       # parent comment, so the client never supplies a commentable_type/id.

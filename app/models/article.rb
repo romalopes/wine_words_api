@@ -5,6 +5,7 @@ class Article < ApplicationRecord
   include TextSearchable
 
   belongs_to :user
+  has_one :article_project, dependent: :nullify
   belongs_to :category, optional: true
   has_many :article_categories, dependent: :destroy
   has_many :categories, through: :article_categories

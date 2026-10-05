@@ -32,6 +32,8 @@ class User < ApplicationRecord
   has_many :created_wine_packages, class_name: "WinePackage",
                                    foreign_key: :created_by_id,
                                    dependent: :nullify
+  has_many :created_article_projects, class_name: "ArticleProject", foreign_key: :created_by_id,
+                                       dependent: :nullify
   has_many :notifications, foreign_key: :recipient_id, dependent: :destroy
 
   # External authentication identities (Google / Apple / Microsoft / Facebook).
