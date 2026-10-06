@@ -123,7 +123,7 @@ before_save :update_search_vector
     grape_name = vintage&.wine&.grapes&.first&.name
     country_name = vintage&.wine&.regions&.first&.country&.name
     vintage_year = vintage&.year.to_s
-    author_name = user&.user_name || user&.email
+    author_name = user&.display_name || user&.email
 
     <<~SQL
       SELECT

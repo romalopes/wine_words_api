@@ -13,7 +13,7 @@
     <div style="margin-top:1.25rem; padding:1rem; background:#fff; border:1px solid #eaded7; border-radius:.7rem; max-width:34rem">
       <p style="margin:0 0 .5rem; display:flex; align-items:center; justify-content:space-between; gap:.75rem">
         <span>
-          <strong><%= user.user_name.presence || "(no name)" %></strong>
+          <strong><%= user.display_name.presence || "(no name)" %></strong>
           <span class="lede" style="font-size:.9rem"><%= user.email %></span>
         </span>
         <% unless user.admin? %>
@@ -21,7 +21,7 @@
                 method: :post,
                 class: "btn btn--secondary",
                 style: "margin:0; font-size:.8rem; padding:.3rem .7rem",
-                data: { confirm: "Impersonate #{user.user_name || user.email}? You will act as this user until you stop." } %>
+                data: { confirm: "Impersonate #{user.display_name || user.email}? You will act as this user until you stop." } %>
         <% end %>
       </p>
       <div style="display:flex; flex-wrap:wrap; gap:.5rem">

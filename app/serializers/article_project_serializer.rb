@@ -34,7 +34,7 @@ class ArticleProjectSerializer
       target_word_count: @article_project.target_word_count,
       overdue: @article_project.overdue?,
       lock_version: @article_project.lock_version,
-      created_by: { id: @article_project.created_by_id, display_name: @article_project.created_by&.user_name || @article_project.created_by&.email },
+      created_by: { id: @article_project.created_by_id, display_name: @article_project.created_by&.display_name || @article_project.created_by&.email },
       counts: @article_project.vintage_counts,
       created_at: @article_project.created_at&.iso8601,
       updated_at: @article_project.updated_at&.iso8601

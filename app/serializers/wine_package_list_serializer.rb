@@ -15,7 +15,7 @@ class WinePackageListSerializer
       producer_name: @package.producer&.name,
       producer_slug: @package.producer&.slug,
       reviewer_id: @package.reviewer_id,
-      reviewer_name: @package.reviewer&.user_name || @package.reviewer&.email,
+      reviewer_name: @package.reviewer&.display_name || @package.reviewer&.email,
       status: @package.status,
       source: @package.source,
       expected_at: date(@package.expected_at),

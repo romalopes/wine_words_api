@@ -1,7 +1,7 @@
 class User < ApplicationRecord
   # Search vectors that index this record's values (see SearchVectorDependent).
   include SearchVectorDependent
-  SEARCH_VECTOR_ATTRIBUTES = %w[user_name email].freeze
+  SEARCH_VECTOR_ATTRIBUTES = %w[email].freeze
 
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
@@ -23,7 +23,37 @@ class User < ApplicationRecord
   has_many :subscription_changes, dependent: :restrict_with_error
   belongs_to :subscription, optional: true
   has_many :user_subscriptions, dependent: :destroy
-  has_one :account, dependent: :destroy
+  has_one :account, dependent: :destroy, inverse_of: :user, autosave: true
+  accepts_nested_attributes_for :account, update_only: true
+  before_validation :ensure_account
+  before_create :ensure_account
+  validates :account, presence: true
+  attr_accessor :require_account_names
+  validate :account_names_present, if: :require_account_names
+
+  # Names belong to Account; these accessors accept flat registration fields.
+  delegate :first_name, :last_name, to: :account, allow_nil: true
+
+  def first_name=(value)
+    ensure_account.first_name = value
+  end
+
+  def last_name=(value)
+    ensure_account.last_name = value
+  end
+
+  def display_name
+    [first_name, last_name].compact_blank.join(" ").presence || email
+  end
+
+  def self.search_by_name_or_email(query)
+    users = left_joins(:account).includes(:account)
+    if query.present?
+      pattern = "%#{sanitize_sql_like(query)}%"
+      users = users.where("users.email ILIKE :q OR CONCAT_WS(' ', accounts.first_name, accounts.last_name) ILIKE :q", q: pattern)
+    end
+    users.order(Arel.sql("LOWER(COALESCE(NULLIF(TRIM(CONCAT_WS(' ', accounts.first_name, accounts.last_name)), ''), users.email)) ASC"), :id)
+  end
 
   # Wine packages owned by this user as the responsible reviewer, and packages
   # this user recorded. Both are nullable on the package, so destroying a user
@@ -46,14 +76,6 @@ class User < ApplicationRecord
   # random one), so :validatable must not demand one on create. It is never
   # persisted and defaults to false, leaving email/password sign-up untouched.
   attr_accessor :social_signup
-
-  # user_name is the application username/handle. It is independent of the
-  # real name stored on Account (first_name/last_name) and never synced from it.
-  validates :user_name,
-            presence: true,
-            length: { in: 2..40 },
-            uniqueness: { case_sensitive: false },
-            format: { with: /\A[A-Za-z0-9_.\- ]+\z/, message: "only letters, digits, spaces, dots, dashes and underscores" }
 
   # Every new user starts with the "Guest" role and the FREE subscription
   # unless roles were explicitly assigned (e.g. seeded admins).
@@ -202,7 +224,7 @@ class User < ApplicationRecord
   end
 
   def jwt_payload
-    { user_name: user_name, roles: role_names }
+    { roles: role_names }
   end
 
   # ---- Authentication methods -------------------------------------------
@@ -311,6 +333,15 @@ class User < ApplicationRecord
   end
 
   private
+
+  def ensure_account
+    account || build_account
+  end
+
+  def account_names_present
+    errors.add(:first_name, "can't be blank") if first_name.blank?
+    errors.add(:last_name, "can't be blank") if last_name.blank?
+  end
 
   def assign_default_role
     roles << Role.find_or_create_by!(name: "Guest") if roles.empty?

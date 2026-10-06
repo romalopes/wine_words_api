@@ -360,7 +360,7 @@
         <% end %>
         <% if user_signed_in? %>
           <span class="site-nav__user">
-            <span class="site-nav__user-name"><%= current_user.user_name.presence || current_user.email %></span>
+            <span class="site-nav__user-name"><%= current_user.display_name.presence || current_user.email %></span>
             <% if current_user.role_names.any? %>
               <span class="site-nav__user-roles">
                 <% current_user.role_names.each do |role| %>

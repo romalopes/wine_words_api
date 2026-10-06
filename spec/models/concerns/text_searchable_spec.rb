@@ -78,7 +78,7 @@ RSpec.describe TextSearchable do
   # one, and a builder because a vector is only interesting once something is in
   # it.
   let(:author) do
-    User.create!(user_name: "Searcher", email: "searcher@example.com", password: "password123")
+    User.create!(first_name: "Searcher", email: "searcher@example.com", password: "password123")
   end
 
   def create_article(title, body: nil, tag_names: [])

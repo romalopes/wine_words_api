@@ -3,8 +3,8 @@ require "rails_helper"
 RSpec.describe "Api::V1::ArticleProjects", type: :request do
   include Devise::Test::IntegrationHelpers
 
-  def user_with_role(role_name, user_name, email)
-    user = User.create!(user_name: user_name, email: email, password: "password123")
+  def user_with_role(role_name, first_name, email)
+    user = User.create!(first_name: first_name, email: email, password: "password123")
     user.roles << Role.find_or_create_by!(name: role_name)
     user
   end

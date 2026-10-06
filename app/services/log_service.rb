@@ -77,7 +77,7 @@ class LogService
     end
 
     def label_for(record)
-      record.try(:name) || record.try(:user_name) || record.try(:email) ||
+      record.try(:name) || record.try(:display_name) || record.try(:email) ||
         "#{record.class.model_name.human} ##{record.id}"
     end
   end

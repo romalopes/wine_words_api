@@ -29,7 +29,7 @@ module Commentable
   def comment_thread
     comments
       .where(parent_id: nil)
-      .includes(replies: :user)
+      .includes(user: :account, replies: { user: :account })
       .order(:created_at, :id)
   end
 end

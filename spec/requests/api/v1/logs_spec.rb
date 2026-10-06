@@ -7,7 +7,7 @@ RSpec.describe "Api::V1::Logs", type: :request do
 
   let(:admin) do
     User.create!(
-      user_name: "Admin",
+      first_name: "Admin",
       email: "admin@example.com",
       password: "password123"
     )
@@ -48,7 +48,7 @@ RSpec.describe "Api::V1::Logs", type: :request do
     end
 
     it "rejects a non-admin authenticated user" do
-      user = User.create!(user_name: "Guest", email: "guest@example.com", password: "password123")
+      user = User.create!(first_name: "Guest", email: "guest@example.com", password: "password123")
       sign_in user
       get "/api/v1/logs"
       expect(response).to have_http_status(:forbidden)
@@ -93,7 +93,7 @@ RSpec.describe "Api::V1::Logs", type: :request do
     end
 
     it "rejects a non-admin authenticated user" do
-      user = User.create!(user_name: "Guest", email: "guest@example.com", password: "password123")
+      user = User.create!(first_name: "Guest", email: "guest@example.com", password: "password123")
       sign_in user
       get "/api/v1/logs/audit"
       expect(response).to have_http_status(:forbidden)

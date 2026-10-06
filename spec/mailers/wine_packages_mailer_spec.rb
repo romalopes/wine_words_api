@@ -4,7 +4,7 @@ require "rails_helper"
 # Notification (created by the scheduler) already decided.
 RSpec.describe WinePackagesMailer, type: :mailer do
   let(:recipient) do
-    User.create!(user_name: "Mail Recipient", email: "mail-recipient@example.com",
+    User.create!(first_name: "Mail Recipient", email: "mail-recipient@example.com",
                  password: "password123")
   end
   let(:producer) { Producer.create!(name: "Penfolds") }

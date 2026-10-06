@@ -4,7 +4,7 @@ RSpec.describe "Api::V1::Comments", type: :request do
   include Devise::Test::IntegrationHelpers
 
   def create_user(suffix)
-    User.create!(user_name: "API Comment #{suffix} #{SecureRandom.hex(2)}",
+    User.create!(first_name: "API Comment #{suffix} #{SecureRandom.hex(2)}",
                  email: "api-comment-#{suffix}-#{SecureRandom.hex(4)}@example.com",
                  password: "password123")
   end

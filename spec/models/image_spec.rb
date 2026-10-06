@@ -2,7 +2,7 @@ require "rails_helper"
 
 RSpec.describe Image, type: :model do
   let(:article) do
-    user = User.create!(user_name: "spec", email: "spec@example.com", password: "password123")
+    user = User.create!(first_name: "spec", email: "spec@example.com", password: "password123")
     Article.create!(title: "Spec Article", user: user, status: "draft")
   end
 

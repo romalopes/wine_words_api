@@ -1,7 +1,7 @@
 <div class="account-page">
   <p class="wine-kicker">Your profile</p>
   <h1>Account settings</h1>
-  <p class="lede">Manage your username, personal information, address and password.</p>
+  <p class="lede">Manage your personal information, address and password.</p>
 
   <% if @errors.present? %>
     <div class="account-errors" role="alert">
@@ -19,24 +19,15 @@
 
       <%= form_with model: @account, url: account_path, method: :patch, local: true, class: "auth-form account-form" do |f| %>
         <fieldset class="account-fieldset">
-          <legend>Username</legend>
-          <label class="auth-form__field">
-            <span>Username</span>
-            <input type="text" name="user_name" value="<%= current_user.user_name %>" required minlength="2" maxlength="40" autocomplete="username">
-            <small class="account-field-hint">2–40 characters. Letters, digits, spaces, dots, dashes and underscores.</small>
-          </label>
-        </fieldset>
-
-        <fieldset class="account-fieldset">
           <legend>Personal information</legend>
           <div class="account-fields">
             <label class="auth-form__field">
               <span>First name</span>
-              <input type="text" name="account[first_name]" value="<%= @account.first_name %>" maxlength="80">
+              <input type="text" required autocomplete="given-name" name="account[first_name]" value="<%= @account.first_name %>" maxlength="80">
             </label>
             <label class="auth-form__field">
               <span>Last name</span>
-              <input type="text" name="account[last_name]" value="<%= @account.last_name %>" maxlength="80">
+              <input type="text" required autocomplete="family-name" name="account[last_name]" value="<%= @account.last_name %>" maxlength="80">
             </label>
             <label class="auth-form__field">
               <span>Phone</span>

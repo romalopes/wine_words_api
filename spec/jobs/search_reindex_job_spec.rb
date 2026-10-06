@@ -14,7 +14,7 @@ RSpec.describe SearchReindexJob do
     Country.find_or_create_by!(code: Producer::DEFAULT_COUNTRY_CODE) { |c| c.name = "Australia" }
   end
   let(:author) do
-    User.create!(user_name: "Taster", email: "taster@example.com", password: "password123")
+    User.create!(first_name: "Taster", email: "taster@example.com", password: "password123")
   end
   let(:region) { Region.create!(name: "Barossa Valley", country: country) }
   let(:producer) { Producer.create!(name: "Blefing Peak") }
@@ -151,7 +151,7 @@ RSpec.describe SearchReindexJob do
       article = Article.create!(title: "Harvest notes", body: "A wet January.",
                                 status: "published", user: author)
 
-      author.update!(user_name: "Terence Taster")
+      author.update!(first_name: "Terence Taster")
 
       # The payloads read off the queue rather than a matcher chain, which would
       # otherwise demand one job carrying both argument lists.

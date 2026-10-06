@@ -93,7 +93,7 @@ before_save :update_search_vector
   def search_vector_sql
     tag_names = tags.pluck(:name).join(' ')
     category_name = category&.name
-    author_name = user&.user_name || user&.email
+    author_name = user&.display_name || user&.email
 
     <<~SQL
       SELECT

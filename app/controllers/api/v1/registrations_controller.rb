@@ -14,6 +14,7 @@ class Api::V1::RegistrationsController < Devise::RegistrationsController
   # can show "check your inbox" messaging.
   def create
     build_resource(sign_up_params)
+    resource.require_account_names = true
     resource.save
     yield resource if block_given?
 
@@ -45,7 +46,7 @@ class Api::V1::RegistrationsController < Devise::RegistrationsController
 
   def log_description
     user = audit_user
-    user ? "New user signed up: #{user.user_name} (#{user.email})" : "Failed sign-up attempt"
+    user ? "New user signed up: #{user.display_name} (#{user.email})" : "Failed sign-up attempt"
   end
 
   def log_objects
@@ -53,7 +54,7 @@ class Api::V1::RegistrationsController < Devise::RegistrationsController
   end
 
   def sign_up_params
-    params.require(:user).permit(:user_name, :email, :password, :password_confirmation)
+    params.require(:user).permit(:first_name, :last_name, :email, :password, :password_confirmation)
   end
 
   def respond_with(current_user, _opts = {})
@@ -72,7 +73,9 @@ class Api::V1::RegistrationsController < Devise::RegistrationsController
     {
       id: user.id,
       email: user.email,
-      user_name: user.user_name,
+      display_name: user.display_name,
+      first_name: user.first_name,
+      last_name: user.last_name,
       roles: user.role_names,
       # Parity with GET /users/me so the Subscribe page can derive its
       # CTA enablement immediately without a hard refresh.

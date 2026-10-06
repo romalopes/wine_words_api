@@ -2,7 +2,7 @@ require "rails_helper"
 
 RSpec.describe User, type: :model do
   def create_user(attrs = {})
-    User.create!({ user_name: "Test User #{SecureRandom.hex(2)}", email: "test-#{SecureRandom.hex(4)}@example.com",
+    User.create!({ first_name: "Test User #{SecureRandom.hex(2)}", email: "test-#{SecureRandom.hex(4)}@example.com",
                    password: "password123" }.merge(attrs))
   end
 
@@ -24,6 +24,43 @@ RSpec.describe User, type: :model do
       u.roles << role unless u.roles.exists?(id: role.id)
     end
     u
+  end
+
+  describe "account-backed identity" do
+    it "creates exactly one persisted Account even when no names are supplied" do
+      user = create_user(first_name: nil)
+      expect(user.account).to be_persisted
+      expect(Account.where(user: user).count).to eq(1)
+      expect(user.display_name).to eq(user.email)
+      user.update!(email: "changed@example.com")
+      expect(Account.where(user: user).count).to eq(1)
+    end
+
+    it "persists supplied nested account information atomically" do
+      user = User.create!(email: "nested@example.com", password: "password123",
+                          account_attributes: { first_name: "Renée", last_name: "Smith" })
+      expect(user.reload.display_name).to eq("Renée Smith")
+      expect(Account.where(user: user).count).to eq(1)
+    end
+
+    it "does not persist a user whose account is invalid" do
+      expect {
+        expect { create_user(first_name: "x" * 81) }.to raise_error(ActiveRecord::RecordInvalid)
+      }.not_to change(Account, :count)
+      expect(User.where.missing(:account)).to be_empty
+    end
+
+    it "creates an account even when validations are bypassed" do
+      user = User.new(email: "no-validation@example.com")
+      user.save!(validate: false)
+      expect(user.account).to be_persisted
+    end
+
+    it "does not expose a username attribute or JWT claim" do
+      user = create_user
+      expect(user.attributes).not_to have_key("user_name")
+      expect(user.jwt_payload).not_to have_key(:user_name)
+    end
   end
 
   describe "#admin?" do

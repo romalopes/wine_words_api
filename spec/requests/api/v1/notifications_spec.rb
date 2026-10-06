@@ -8,11 +8,11 @@ RSpec.describe "Api::V1::Notifications", type: :request do
 
   let(:producer) { Producer.create!(name: "Penfolds") }
   let(:user) do
-    u = User.create!(user_name: "Notif User", email: "notif-user@example.com", password: "password123")
+    u = User.create!(first_name: "Notif User", email: "notif-user@example.com", password: "password123")
     u.roles << Role.find_or_create_by!(name: "Admin")
     u
   end
-  let(:other_user) { User.create!(user_name: "Notif Other", email: "notif-other@example.com", password: "password123") }
+  let(:other_user) { User.create!(first_name: "Notif Other", email: "notif-other@example.com", password: "password123") }
   let(:package) do
     WinePackage.create!(producer: producer, reviewer: user, created_by: user,
                         source: "unexpected", status: "arrived",

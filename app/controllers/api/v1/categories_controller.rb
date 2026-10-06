@@ -109,7 +109,7 @@ class Api::V1::CategoriesController < ApplicationController
 
     reviews = category.category_reviews
     reviews = reviews.visible_to(current_user) unless current_user&.wine_manager?
-    reviews = reviews.by_recency.includes(:user, vintage: :wine)
+    reviews = reviews.by_recency.includes({ user: :account }, vintage: :wine)
 
     articles =
       if current_user&.wine_manager? || user_signed_in?
@@ -135,7 +135,7 @@ class Api::V1::CategoriesController < ApplicationController
           id: article.id,
           title: article.title,
           status: article.status,
-          author: article.user&.user_name.presence || article.user&.email,
+          author: article.user&.display_name.presence || article.user&.email,
           published_at: article.published_at&.iso8601
         }
       end

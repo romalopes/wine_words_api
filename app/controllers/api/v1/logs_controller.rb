@@ -86,7 +86,7 @@ class Api::V1::LogsController < ApplicationController
     {
       id: log.id,
       description: log.description,
-      user: log.user ? { id: log.user.id, user_name: log.user.user_name, email: log.user.email } : nil,
+      user: log.user ? { id: log.user.id, display_name: log.user.display_name, email: log.user.email } : nil,
       action: log.action,
       method: log.method,
       path: log.path,

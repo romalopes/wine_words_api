@@ -8,7 +8,7 @@ RSpec.describe "Api::V1::Health", type: :request do
   include Devise::Test::IntegrationHelpers
 
   let(:admin) do
-    User.create!(user_name: "Admin", email: "admin@example.com", password: "password123")
+    User.create!(first_name: "Admin", email: "admin@example.com", password: "password123")
   end
 
   before do
@@ -58,7 +58,7 @@ RSpec.describe "Api::V1::Health", type: :request do
     end
 
     it "rejects a non-admin authenticated user" do
-      user = User.create!(user_name: "Guest", email: "guest@example.com", password: "password123")
+      user = User.create!(first_name: "Guest", email: "guest@example.com", password: "password123")
       sign_in user
       get "/api/v1/health/detailed"
       expect(response).to have_http_status(:forbidden)
@@ -98,13 +98,13 @@ RSpec.describe "Api::V1::Health", type: :request do
       end
 
       it "returns 403 for a non-admin token" do
-        guest = User.create!(user_name: "Guest2", email: "guest2@example.com", password: "password123")
+        guest = User.create!(first_name: "Guest2", email: "guest2@example.com", password: "password123")
         get "/api/v1/health/detailed", headers: { "Authorization" => bearer_for(guest) }
         expect(response).to have_http_status(:forbidden)
       end
 
       it "keeps access for an admin who is impersonating a normal user" do
-        guest = User.create!(user_name: "Guest3", email: "guest3@example.com", password: "password123")
+        guest = User.create!(first_name: "Guest3", email: "guest3@example.com", password: "password123")
         get "/api/v1/health/detailed",
             headers: { "Authorization" => bearer_for(admin, impersonated_user_id: guest.id) }
         expect(response).to have_http_status(:ok)
@@ -230,7 +230,7 @@ RSpec.describe "Api::V1::Health", type: :request do
   # tsvector matches nothing and nothing counted how many rows had one.
   describe "GET /api/v1/health/search_index" do
     let(:writer) do
-      User.create!(user_name: "Writer", email: "writer@example.com", password: "password123")
+      User.create!(first_name: "Writer", email: "writer@example.com", password: "password123")
     end
 
     def create_article(title)

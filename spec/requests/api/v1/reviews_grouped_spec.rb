@@ -12,10 +12,10 @@ RSpec.describe "Api::V1::Reviews grouped", type: :request do
   let(:wine) { Wine.create!(name: "Grouped Wine", producer: producer, color: "Red") }
   let(:vintage) { Vintage.create!(wine: wine, year: 2020) }
   let(:reviewer) do
-    User.create!(user_name: "Reviewer", email: "reviewer@example.com", password: "password123")
+    User.create!(first_name: "Reviewer", email: "reviewer@example.com", password: "password123")
   end
   let(:manager) do
-    user = User.create!(user_name: "Manager", email: "review-manager@example.com", password: "password123")
+    user = User.create!(first_name: "Manager", email: "review-manager@example.com", password: "password123")
     user.roles << Role.find_or_create_by!(name: "Admin")
     user
   end

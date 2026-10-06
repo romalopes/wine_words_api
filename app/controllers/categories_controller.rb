@@ -23,7 +23,7 @@ class CategoriesController < ActionController::Base
         @category.category_reviews.visible_to(current_user)
       else
         @category.category_reviews.published
-      end.by_recency.includes(:user, vintage: :wine)
+      end.by_recency.includes({ user: :account }, vintage: :wine)
   end
 
   def new

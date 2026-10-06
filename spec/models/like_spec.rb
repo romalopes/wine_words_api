@@ -2,7 +2,7 @@ require "rails_helper"
 
 RSpec.describe Like, type: :model do
   def create_user(suffix)
-    User.create!(user_name: "Like User #{suffix} #{SecureRandom.hex(2)}",
+    User.create!(first_name: "Like User #{suffix} #{SecureRandom.hex(2)}",
                  email: "like-#{suffix}-#{SecureRandom.hex(4)}@example.com",
                  password: "password123")
   end

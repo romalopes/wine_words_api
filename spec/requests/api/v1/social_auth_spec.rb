@@ -6,9 +6,9 @@ require "rails_helper"
 # resolution, User/Account/role/subscription behaviour, session issuance and
 # audit logging — runs for real.
 RSpec.describe "Api::V1::SocialAuth", type: :request do
-  def create_user(email: nil, password: "password123", user_name: nil)
+  def create_user(email: nil, password: "password123", first_name: nil)
     User.create!(
-      user_name: user_name || "Social User #{SecureRandom.hex(2)}",
+      first_name: first_name || "Social User #{SecureRandom.hex(2)}",
       email: email || "social-#{SecureRandom.hex(4)}@example.com",
       password: password
     )
@@ -32,7 +32,7 @@ RSpec.describe "Api::V1::SocialAuth", type: :request do
   end
 
   describe "POST /api/v1/auth/google" do
-    it "creates a User, an Account-less identity and returns the standard session" do
+    it "creates a User with Account names and returns the standard session" do
       stub_verification("google", claims_for("google", uid: "g-new", email: "New.Person@Example.com"))
 
       expect {
@@ -44,12 +44,26 @@ RSpec.describe "Api::V1::SocialAuth", type: :request do
       user = User.find(body["id"])
 
       expect(user.email).to eq("new.person@example.com")
+      expect(user.account).to be_persisted
+      expect(user.account.first_name).to eq("Social")
+      expect(user.account.last_name).to eq("Person")
+      expect(body).not_to have_key("user_name")
       # Same payload shape as email/password sign-in.
-      expect(body.keys).to include("id", "email", "user_name", "roles", "subscription")
+      expect(body.keys).to include("id", "email", "display_name", "roles", "subscription")
       # A JWT is issued by the existing devise-jwt mechanism.
       expect(auth_header).to be_present
       expect(user.user_identities.google.count).to eq(1)
       expect(user.user_identities.first.email).to eq("new.person@example.com")
+    end
+
+    it "still creates an account when a provider does not supply a name" do
+      stub_verification("google", claims_for("google", uid: "g-noname", email: "no-name@example.com", name: nil))
+      post "/api/v1/auth/google", params: { credential: "stub" }, as: :json
+      expect(response).to have_http_status(:ok)
+      user = User.find_by!(email: "no-name@example.com")
+      expect(user.account).to be_persisted
+      expect(user.account.first_name).to be_nil
+      expect(user.display_name).to eq(user.email)
     end
 
     it "gives a social-only user no password but a Guest role and FREE subscription" do
@@ -95,7 +109,7 @@ RSpec.describe "Api::V1::SocialAuth", type: :request do
     end
 
     it "links onto an existing email/password User instead of duplicating them" do
-      existing = create_user(email: "existing@example.com", user_name: "ExistingPerson")
+      existing = create_user(email: "existing@example.com", first_name: "ExistingPerson")
       stub_verification("google", claims_for("google", uid: "g-link", email: "existing@example.com"))
 
       expect {

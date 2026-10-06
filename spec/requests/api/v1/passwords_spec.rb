@@ -5,7 +5,7 @@ require "rails_helper"
 # including the JWT issued on a successful reset.
 RSpec.describe "Api::V1::Passwords", type: :request do
   let!(:user) do
-    User.create!(user_name: "Roma", email: "roma@example.com", password: "oldpassword123")
+    User.create!(first_name: "Roma", email: "roma@example.com", password: "oldpassword123")
   end
 
   describe "POST /api/v1/auth/password" do
@@ -77,7 +77,7 @@ RSpec.describe "Api::V1::Passwords", type: :request do
       expect(payload).to include(
         "id" => user.id,
         "email" => user.email,
-        "user_name" => user.user_name,
+        "first_name" => user.first_name,
         "roles" => user.role_names,
         "can_manage_billing" => Billing.configured?
       )

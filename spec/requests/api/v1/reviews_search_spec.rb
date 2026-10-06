@@ -9,7 +9,7 @@ RSpec.describe "Api::V1::Reviews search and sort", type: :request do
   include Devise::Test::IntegrationHelpers
 
   let(:author) do
-    User.create!(user_name: "Taster", email: "taster@example.com", password: "password123")
+    User.create!(first_name: "Taster", email: "taster@example.com", password: "password123")
   end
   # A producer saved without a country auto-creates the default one (see
   # Producer::DEFAULT_COUNTRY_CODE), so this must reuse that row instead of

@@ -6,7 +6,7 @@ require "rails_helper"
 RSpec.describe WinePackages::SendReviewDeadlineNotificationsJob, type: :job do
   let(:producer) { Producer.create!(name: "Penfolds") }
   let(:reviewer) do
-    user = User.create!(user_name: "Job Reviewer", email: "job-reviewer@example.com", password: "password123")
+    user = User.create!(first_name: "Job Reviewer", email: "job-reviewer@example.com", password: "password123")
     user.roles << Role.find_or_create_by!(name: "Admin")
     user
   end

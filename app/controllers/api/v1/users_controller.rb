@@ -3,9 +3,10 @@ class Api::V1::UsersController < ApplicationController
 
   def log_description
     if action_name == "assign_roles"
-      "Changed roles for user "#{@target_user&.user_name}""         "#{audit_roles_diff}"
+      %(Changed roles for user "#{@target_user&.display_name}"#{audit_roles_diff})
     else
-      "Changed subscription for user "#{@target_user&.user_name}""         "#{@assigned_subscription ? " to "#{@assigned_subscription.name}"" : ''}"
+      target = @assigned_subscription ? %( to "#{@assigned_subscription.name}") : ""
+      %(Changed subscription for user "#{@target_user&.display_name}"#{target})
     end
   end
 
@@ -20,7 +21,9 @@ class Api::V1::UsersController < ApplicationController
       user: {
         id: current_user.id,
         email: current_user.email,
-        user_name: current_user.user_name,
+        display_name: current_user.display_name,
+        first_name: current_user.first_name,
+        last_name: current_user.last_name,
         roles: current_user.role_names,
         subscription: current_user.subscription ? { id: current_user.subscription.id, name: current_user.subscription.name } : nil,
         billing_provider: current_sub&.billing_provider,
@@ -44,7 +47,7 @@ class Api::V1::UsersController < ApplicationController
 
   # GET /api/v1/users/search?q=name-or-email&page=N
   #
-  # Search by user_name OR email. With ?page=N the response is the standard
+  # Search by account name OR email. With ?page=N the response is the standard
   # pagination envelope (20 per page by default, see Api::Paginatable); without
   # a page param the legacy plain-array response (limit 20) is kept for
   # compatibility.
@@ -52,13 +55,7 @@ class Api::V1::UsersController < ApplicationController
     return head(:forbidden) unless real_current_user&.admin?
 
     query = params[:q].to_s.strip
-    users =
-      if query.blank?
-        User.order(:user_name)
-      else
-        User.where("user_name ILIKE ? OR email ILIKE ?", "%#{query}%", "%#{query}%")
-            .order(:user_name)
-      end
+    users = User.search_by_name_or_email(query)
 
     rendered = render_paginated(users) { |page_items| page_items.map { |u| user_json(u) } }
     render json: users.limit(20).map { |u| user_json(u) } unless rendered
@@ -125,7 +122,9 @@ class Api::V1::UsersController < ApplicationController
     {
       id: user.id,
       email: user.email,
-      user_name: user.user_name,
+      display_name: user.display_name,
+      first_name: user.first_name,
+      last_name: user.last_name,
       role_ids: user.role_ids,
       roles: user.role_names,
       subscription: user.subscription ? { id: user.subscription.id, name: user.subscription.name } : nil

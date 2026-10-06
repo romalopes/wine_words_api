@@ -8,7 +8,7 @@ RSpec.describe "Vintage price (price_cents)", type: :request do
   include Devise::Test::IntegrationHelpers
 
   let(:manager) do
-    user = User.create!(user_name: "Manager", email: "manager@example.com", password: "password123")
+    user = User.create!(first_name: "Manager", email: "manager@example.com", password: "password123")
     user.roles << Role.find_or_create_by!(name: "Admin")
     user
   end
@@ -16,7 +16,7 @@ RSpec.describe "Vintage price (price_cents)", type: :request do
   # Reviewers are wine managers too, so the reviewer who receives a wine package
   # may add the vintage of the wine straight from the item form.
   let(:reviewer) do
-    user = User.create!(user_name: "Vintage Reviewer", email: "vintage-reviewer@example.com",
+    user = User.create!(first_name: "Vintage Reviewer", email: "vintage-reviewer@example.com",
                         password: "password123")
     user.roles << Role.find_or_create_by!(name: "Reviewer")
     user
@@ -103,7 +103,7 @@ RSpec.describe "Vintage price (price_cents)", type: :request do
     end
 
     it "still blocks users without a wine-manager role" do
-      guest = User.create!(user_name: "Vintage Guest", email: "vintage-guest@example.com",
+      guest = User.create!(first_name: "Vintage Guest", email: "vintage-guest@example.com",
                            password: "password123")
       sign_in guest
 

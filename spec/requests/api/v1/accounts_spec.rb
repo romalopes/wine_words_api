@@ -1,12 +1,12 @@
 require "rails_helper"
 
 # Request specs for Api::V1::AccountsController — authenticated account
-# profile (username, personal info, address) and password change.
+# profile (personal info, address) and password change.
 RSpec.describe "Api::V1::Accounts", type: :request do
   include Devise::Test::IntegrationHelpers
 
   let(:user) do
-    User.create!(user_name: "roma", email: "roma@example.com", password: "password123")
+    User.create!(first_name: "roma", email: "roma@example.com", password: "password123")
   end
 
   before { sign_in user }
@@ -18,12 +18,13 @@ RSpec.describe "Api::V1::Accounts", type: :request do
       expect(response).to have_http_status(:unauthorized)
     end
 
-    it "returns defaults when the user has no account yet" do
+    it "returns the persisted account created with the user" do
       get "/api/v1/account"
       expect(response).to have_http_status(:ok)
       body = JSON.parse(response.body)
-      expect(body["user_name"]).to eq("roma")
-      expect(body["first_name"]).to be_nil
+      expect(body).not_to have_key("user_name")
+      expect(user.account).to be_persisted
+      expect(body["first_name"]).to eq("roma")
       expect(body["address"]).to be_nil
     end
   end
@@ -33,7 +34,6 @@ RSpec.describe "Api::V1::Accounts", type: :request do
       country = Country.first || Country.create!(name: "Testland", code: "TL")
 
       patch "/api/v1/account", params: {
-        user_name: "roma_new",
         first_name: "Roma",
         last_name: "Lopes",
         phone: "+61 400 000 000",
@@ -48,7 +48,7 @@ RSpec.describe "Api::V1::Accounts", type: :request do
       }, as: :json
 
       expect(response).to have_http_status(:ok)
-      expect(user.reload.user_name).to eq("roma_new")
+      expect(user.reload.display_name).to eq("Roma Lopes")
       account = user.account
       expect(account.first_name).to eq("Roma")
       expect(account.phone).to eq("+61 400 000 000")
@@ -56,12 +56,18 @@ RSpec.describe "Api::V1::Accounts", type: :request do
       expect(account.account_address.country_id).to eq(country.id)
     end
 
-    it "rejects a duplicate username" do
-      User.create!(user_name: "taken", email: "taken@example.com", password: "password123")
-      patch "/api/v1/account", params: { user_name: "TAKEN" }, as: :json
-      expect(response).to have_http_status(:unprocessable_entity)
-      expect(JSON.parse(response.body)["errors"].to_json).to include("user_name")
+    it "allows matching names on different accounts" do
+      User.create!(first_name: "Roma", last_name: "Lopes", email: "taken@example.com", password: "password123")
+      patch "/api/v1/account", params: { first_name: "Roma", last_name: "Lopes" }, as: :json
+      expect(response).to have_http_status(:ok)
     end
+
+    it "rejects blank names without changing the stored account" do
+      patch "/api/v1/account", params: { first_name: " ", last_name: "Lopes" }, as: :json
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(user.reload.first_name).to eq("roma")
+    end
+
   end
 
   describe "PATCH /api/v1/account/password" do

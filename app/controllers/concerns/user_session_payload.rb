@@ -18,7 +18,9 @@ module UserSessionPayload
       user: {
         id: user.id,
         email: user.email,
-        user_name: user.user_name,
+        display_name: user.display_name,
+        first_name: user.first_name,
+        last_name: user.last_name,
         roles: user.role_names,
         # Parity with GET /users/me: the Subscribe page derives its CTA
         # enablement (Choose plan / Manage subscription) from these fields.

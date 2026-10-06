@@ -16,7 +16,7 @@ class Api::V1::EmailVerificationsController < ApplicationController
       render json: {
         status: "verified",
         email: result.email,
-        user_name: result.user_name
+        display_name: result.display_name
       }
     else
       render json: { error: "Verification link is invalid or has expired." },

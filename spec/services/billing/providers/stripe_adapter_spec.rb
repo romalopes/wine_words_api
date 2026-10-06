@@ -75,7 +75,7 @@ RSpec.describe "Billing::Providers::Stripe change/preview", type: :model do
     trade = seed_stripe_price!("trade", "price_trade", 24_000)
     seed_stripe_price!("consumer", "price_consumer", 7_00)
 
-    u = User.create!(user_name: "roma", email: "adapter@example.com", password: "password123")
+    u = User.create!(first_name: "roma", email: "adapter@example.com", password: "password123")
     u.user_subscriptions.create!(
       subscription: trade, started_at: Time.current, status: :active,
       billing_provider: "stripe", provider_subscription_id: "sub_123",

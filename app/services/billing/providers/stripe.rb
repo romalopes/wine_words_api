@@ -18,7 +18,7 @@ module Billing
       def ensure_customer(user)
         customer = ::Stripe::Customer.create(
           email: user.email,
-          name: user.user_name,
+          name: user.display_name,
           metadata: { user_id: user.id }
         )
         { id: customer.id }

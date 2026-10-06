@@ -31,7 +31,7 @@ ActiveRecord::Base.transaction do
   author =
     User.find_by(email: "test@example.com") ||
     User.first ||
-    User.create!(email: "seeder@example.com", password: "password", name: "Seeder")
+    User.create!(email: "seeder@example.com", password: "password", first_name: "Seeder")
 
   now = Time.current
 

@@ -7,11 +7,11 @@ RSpec.describe "Api::V1::WinePackageItems", type: :request do
 
   let(:producer) { Producer.create!(name: "Penfolds") }
   let(:admin) do
-    user = User.create!(user_name: "Items Admin", email: "items-admin@example.com", password: "password123")
+    user = User.create!(first_name: "Items Admin", email: "items-admin@example.com", password: "password123")
     user.roles << Role.find_or_create_by!(name: "Admin")
     user
   end
-  let(:outsider) { User.create!(user_name: "Items Outsider", email: "items-outsider@example.com", password: "password123") }
+  let(:outsider) { User.create!(first_name: "Items Outsider", email: "items-outsider@example.com", password: "password123") }
   let(:wine) { Wine.create!(name: "Bin 389", color: "Red", producer: producer) }
   let(:vintage) { Vintage.create!(wine: wine, year: 2020) }
 

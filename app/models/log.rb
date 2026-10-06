@@ -19,7 +19,7 @@ class Log < ApplicationRecord
       {
         type: log_object.object_type,
         id: log_object.object_id,
-        label: log_object.object_label.presence || obj&.try(:name) || obj&.try(:user_name) || obj&.try(:email),
+        label: log_object.object_label.presence || obj&.try(:name) || obj&.try(:display_name) || obj&.try(:email),
         alive: obj.present?
       }
     end

@@ -7,8 +7,8 @@ require "rails_helper"
 RSpec.describe "Api::V1::WinePackages", type: :request do
   include Devise::Test::IntegrationHelpers
 
-  def user_with_role(role_name, user_name, email)
-    user = User.create!(user_name: user_name, email: email, password: "password123")
+  def user_with_role(role_name, first_name, email)
+    user = User.create!(first_name: first_name, email: email, password: "password123")
     user.roles << Role.find_or_create_by!(name: role_name)
     user
   end
@@ -17,7 +17,7 @@ RSpec.describe "Api::V1::WinePackages", type: :request do
   let(:admin) { user_with_role("Admin", "Package Admin", "package-admin@example.com") }
   # The Reviewer role may record packages but only manages its own.
   let(:reviewer_user) { user_with_role("Reviewer", "Package Reviewer", "package-reviewer@example.com") }
-  let(:outsider) { User.create!(user_name: "Package Outsider", email: "package-outsider@example.com", password: "password123") }
+  let(:outsider) { User.create!(first_name: "Package Outsider", email: "package-outsider@example.com", password: "password123") }
 
   def create_package(overrides = {})
     WinePackage.create!({

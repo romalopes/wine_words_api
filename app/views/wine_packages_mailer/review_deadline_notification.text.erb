@@ -1,4 +1,4 @@
-Hi <%= @recipient&.user_name || @recipient&.email %>,
+Hi <%= @recipient&.display_name || @recipient&.email %>,
 
 Wine package #<%= @package&.id %> from <%= @producer&.name || "Unknown producer" %> still has <%= @pending_count %> review(s) pending.
 

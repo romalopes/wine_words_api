@@ -19,7 +19,7 @@ class Api::V1::ArticlesController < ApplicationController
     # the list serializer reads `article.categories`, and a through-association
     # is not satisfied by preloading `article_categories`, so each card used to
     # issue its own queries.
-    articles = Article.recent.includes(:user, :categories, :tags, :wines, :producers,
+    articles = Article.recent.includes({ user: :account }, :categories, :tags, :wines, :producers,
                                       images: { file_attachment: :blob })
     # Content managers see everything (including drafts); everyone else sees
     # only what's visible to them (published + their own drafts).
@@ -84,7 +84,7 @@ class Api::V1::ArticlesController < ApplicationController
 
     article_ids = rows.map(&:id).uniq
     articles_by_id = Article.where(id: article_ids)
-                        .includes(:user, :categories, images: { file_attachment: :blob })
+                        .includes({ user: :account }, :categories, images: { file_attachment: :blob })
                         .index_by(&:id)
 
     groups = Hash.new { |h, k| h[k] = [] }
@@ -125,7 +125,7 @@ class Api::V1::ArticlesController < ApplicationController
   # Articles belonging to the signed-in user (including drafts), used by the
   # "My Articles" toggle on the Articles page.
   def my_articles
-    articles = Article.where(user: current_user).recent.includes(:user, :category, :tags, :wines, :producers)
+    articles = Article.where(user: current_user).recent.includes({ user: :account }, :category, :tags, :wines, :producers)
     liked_ids = Likes.liked_ids_for(articles, current_user)
     render json: articles.map { |a| ArticleSerializer.new(a, request.base_url, liked_ids: liked_ids).as_json }
   end
@@ -165,7 +165,7 @@ class Api::V1::ArticlesController < ApplicationController
     per_category = [ limit, 5 ].min + 1
     base = Article.where.not(id: @article.id)
     base = base.visible_to(current_user) unless current_user&.wine_manager?
-    base = base.includes(:user, images: { file_attachment: :blob })
+    base = base.includes({ user: :account }, images: { file_attachment: :blob })
 
     buckets = related_buckets(
       @article, base,
@@ -244,7 +244,7 @@ class Api::V1::ArticlesController < ApplicationController
   # Each linked review is serialized with its vintage -> wine and images, so both
   # are preloaded here instead of being resolved per review while rendering.
   def set_article
-    @article = Article.includes(:user, :tags, :producers,
+    @article = Article.includes({ user: :account }, :tags, :producers,
                                  vintages: :wine,
                                  article_reviews: { review: [ :vintage, { images: { file_attachment: :blob } } ] },
                                  article_categories: :category)

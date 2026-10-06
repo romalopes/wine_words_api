@@ -2,7 +2,7 @@ require "rails_helper"
 
 RSpec.describe LogService do
   let(:user) do
-    User.create!(user_name: "Audited", email: "audited@example.com", password: "password123")
+    User.create!(first_name: "Audited", email: "audited@example.com", password: "password123")
   end
   let(:producer) { Producer.create!(name: "Penfolds", slug: "penfolds") }
 

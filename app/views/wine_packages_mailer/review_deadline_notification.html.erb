@@ -1,7 +1,7 @@
 <h1>Wine package review deadline<%= " is today" if @days_until_deadline&.zero? %></h1>
 
 <p>
-  Hi <%= @recipient&.user_name || @recipient&.email %>,
+  Hi <%= @recipient&.display_name || @recipient&.email %>,
 </p>
 
 <p>

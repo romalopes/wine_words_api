@@ -46,7 +46,7 @@ class Api::V1::WinePackagesController < ApplicationController
   # GET /api/v1/wine_packages
   def index
     packages = packages_scope
-               .includes(:producer, :reviewer, :wine_package_items)
+               .includes(:producer, { reviewer: :account }, :wine_package_items)
                .by_recency
 
     packages = packages.where(status: params[:status]) if params[:status].present?
@@ -193,7 +193,7 @@ class Api::V1::WinePackagesController < ApplicationController
   end
 
   def set_package
-    @package = WinePackage.includes(:producer, :reviewer, wine_package_items: :review)
+    @package = WinePackage.includes(:producer, { reviewer: :account }, wine_package_items: :review)
                          .find(params[:id])
   rescue ActiveRecord::RecordNotFound
     render json: { error: "Wine package not found" }, status: :not_found

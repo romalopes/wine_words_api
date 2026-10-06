@@ -9,7 +9,7 @@ RSpec.describe "Email verification flow", type: :request do
   let(:password) { "password123" }
   let(:email) { "verify-flow-#{SecureRandom.hex(4)}@example.com" }
   let(:sign_up_params) do
-    { user: { user_name: "Verify Flow #{SecureRandom.hex(2)}", email: email,
+    { user: { first_name: "Verify Flow #{SecureRandom.hex(2)}", last_name: "Example", email: email,
               password: password, password_confirmation: password } }
   end
 

@@ -17,7 +17,7 @@ RSpec.describe WinePackage, type: :model do
   let(:arrival_time) { Time.zone.local(2026, 12, 15, 9, 30) }
 
   def create_user(name, email)
-    User.create!(user_name: name, email: email, password: "password123")
+    User.create!(first_name: name, email: email, password: "password123")
   end
 
   def build_package(attrs = {})

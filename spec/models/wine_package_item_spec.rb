@@ -13,7 +13,7 @@ RSpec.describe WinePackageItem, type: :model do
   let(:vintage) { Vintage.create!(wine: wine, year: 2019) }
 
   def create_user(name, email)
-    User.create!(user_name: name, email: email, password: "password123")
+    User.create!(first_name: name, email: email, password: "password123")
   end
 
   # An arrived package: completion logic is active for it.

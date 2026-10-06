@@ -114,7 +114,9 @@ module Api
         {
           id: user.id,
           email: user.email,
-          user_name: user.user_name,
+          display_name: user.display_name,
+          first_name: user.first_name,
+          last_name: user.last_name,
           roles: user.role_names,
           subscription: user.subscription ? { id: user.subscription.id, name: user.subscription.name } : nil,
           billing_provider: current_sub&.billing_provider,

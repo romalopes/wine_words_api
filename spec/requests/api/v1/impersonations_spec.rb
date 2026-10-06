@@ -14,7 +14,7 @@ RSpec.describe "Impersonation", type: :request do
 
   let!(:admin) do
     user = User.create!(
-      user_name: "Admin Alice",
+      first_name: "Admin Alice",
       email: "admin@example.com",
       password: "password123",
     )
@@ -24,7 +24,7 @@ RSpec.describe "Impersonation", type: :request do
 
   let!(:normal_user) do
     User.create!(
-      user_name: "John Smith",
+      first_name: "John Smith",
       email: "john@example.com",
       password: "password123",
     )
@@ -32,7 +32,7 @@ RSpec.describe "Impersonation", type: :request do
 
   let!(:other_normal_user) do
     User.create!(
-      user_name: "Jane Doe",
+      first_name: "Jane Doe",
       email: "jane@example.com",
       password: "password123",
     )
@@ -99,7 +99,7 @@ RSpec.describe "Impersonation", type: :request do
     # ----------------------------------------------------------------
     it "rejects impersonating another admin" do
       other_admin = User.create!(
-        user_name: "Admin Bob",
+        first_name: "Admin Bob",
         email: "bob@example.com",
         password: "password123",
       )
@@ -224,7 +224,7 @@ RSpec.describe "Impersonation", type: :request do
 
     it "blocks impersonating an admin via the web action" do
       other_admin = User.create!(
-        user_name: "Admin Bob",
+        first_name: "Admin Bob",
         email: "bob@example.com",
         password: "password123",
       )

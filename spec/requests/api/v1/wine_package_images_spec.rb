@@ -10,18 +10,18 @@ RSpec.describe "WinePackage images", type: :request do
   include Devise::Test::IntegrationHelpers
 
   let(:admin) do
-    u = User.create!(user_name: "Pkg Img Admin", email: "pkg-img-admin@example.com", password: "password123")
+    u = User.create!(first_name: "Pkg Img Admin", email: "pkg-img-admin@example.com", password: "password123")
     u.roles << Role.find_or_create_by!(name: "Admin")
     u
   end
   let(:producer) { Producer.create!(name: "Pkg Img Producer") }
   let(:reviewer) do
-    u = User.create!(user_name: "Pkg Img Reviewer", email: "pkg-img-reviewer@example.com", password: "password123")
+    u = User.create!(first_name: "Pkg Img Reviewer", email: "pkg-img-reviewer@example.com", password: "password123")
     u.roles << Role.find_or_create_by!(name: "Reviewer")
     u
   end
   let(:outsider) do
-    User.create!(user_name: "Pkg Img Outsider", email: "pkg-img-outsider@example.com", password: "password123")
+    User.create!(first_name: "Pkg Img Outsider", email: "pkg-img-outsider@example.com", password: "password123")
   end
   let(:package) do
     WinePackage.create!(producer: producer, reviewer: reviewer, status: "draft")

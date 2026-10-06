@@ -9,10 +9,10 @@ RSpec.describe "Api::V1::Articles grouped", type: :request do
   include Devise::Test::IntegrationHelpers
 
   let(:author) do
-    User.create!(user_name: "Author", email: "author@example.com", password: "password123")
+    User.create!(first_name: "Author", email: "author@example.com", password: "password123")
   end
   let(:manager) do
-    user = User.create!(user_name: "Manager", email: "manager@example.com", password: "password123")
+    user = User.create!(first_name: "Manager", email: "manager@example.com", password: "password123")
     user.roles << Role.find_or_create_by!(name: "Admin")
     user
   end

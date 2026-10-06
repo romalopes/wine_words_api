@@ -9,7 +9,7 @@ RSpec.describe "Api::V1::Articles search and sort", type: :request do
   include Devise::Test::IntegrationHelpers
 
   let(:author) do
-    User.create!(user_name: "Scribe", email: "scribe@example.com", password: "password123")
+    User.create!(first_name: "Scribe", email: "scribe@example.com", password: "password123")
   end
   let(:category) { Category.create!(name: "Regions") }
 

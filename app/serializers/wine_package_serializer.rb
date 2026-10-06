@@ -54,7 +54,7 @@ class WinePackageSerializer
   include ImageAttributes
 
   def reviewer_name
-    @package.reviewer&.user_name || @package.reviewer&.email
+    @package.reviewer&.display_name || @package.reviewer&.email
   end
 
   # The denormalized snapshot kept on the package by ShipmentTracking.

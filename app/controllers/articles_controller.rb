@@ -27,7 +27,7 @@ class ArticlesController < ActionController::Base
         Article.published
       end
     base = base.where(status: @status) unless @status == "all"
-    @articles = base.recent.includes(:user, :category)
+    @articles = base.recent.includes({ user: :account }, :category)
         if params[:category] == "Uncategorised"
       @articles = @articles.left_outer_joins(:categories).where(categories: { id: nil })
     elsif params[:category].present?
@@ -41,8 +41,8 @@ class ArticlesController < ActionController::Base
       return redirect_to articles_path, alert: "Article not found."
     end
 
-    @linked_reviews = @article.article_reviews.includes(review: [:user, :vintage])
-    @visible_reviews = @article.published_reviews.includes(:user, :vintage)
+    @linked_reviews = @article.article_reviews.includes(review: [{ user: :account }, :vintage])
+    @visible_reviews = @article.published_reviews.includes({ user: :account }, :vintage)
   end
 
   def new
@@ -72,8 +72,8 @@ class ArticlesController < ActionController::Base
   end
 
   def edit
-    @linked_reviews = @article.article_reviews.includes(review: [:user, :vintage])
-    @visible_reviews = @article.published_reviews.includes(:user, :vintage)
+    @linked_reviews = @article.article_reviews.includes(review: [{ user: :account }, :vintage])
+    @visible_reviews = @article.published_reviews.includes({ user: :account }, :vintage)
   end
 
   def destroy

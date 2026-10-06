@@ -2,7 +2,7 @@ require "rails_helper"
 
 RSpec.describe Comment, type: :model do
   def create_user(suffix)
-    User.create!(user_name: "Comment User #{suffix} #{SecureRandom.hex(2)}",
+    User.create!(first_name: "Comment User #{suffix} #{SecureRandom.hex(2)}",
                  email: "comment-#{suffix}-#{SecureRandom.hex(4)}@example.com",
                  password: "password123")
   end

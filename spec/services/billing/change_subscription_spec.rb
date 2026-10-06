@@ -68,7 +68,7 @@ RSpec.describe "Billing::ChangeSubscription" do
   end
 
   let(:user) do
-    u = User.create!(user_name: "roma", email: "change@example.com", password: "password123")
+    u = User.create!(first_name: "roma", email: "change@example.com", password: "password123")
     u.billing_customers.create!(provider: "stripe", provider_customer_id: "cus_123")
     activate(u, consumer, "sub_123")
   end

@@ -9,13 +9,13 @@ class Web::AccountsController < Web::BaseController
     load_account
 
     User.transaction do
-      current_user.update!(user_name: params[:user_name]) if params[:user_name].present?
-      @account.update!(account_params)
+      @account.assign_attributes(account_params)
+      @account.save!(context: :profile)
     end
 
     redirect_to account_path, notice: "Account updated."
-  rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique => e
-    @errors = errors_for(e)
+  rescue ActiveRecord::RecordInvalid => e
+    @errors = e.record.errors.full_messages
     render :show, status: :unprocessable_entity
   end
 
@@ -38,8 +38,7 @@ class Web::AccountsController < Web::BaseController
   private
 
   def load_account
-    @account = current_user.account ||
-               Account.new(user: current_user, account_address: AccountAddress.new)
+    @account = Account.build_default(current_user)
     @countries = Country.order(:name)
   end
 
@@ -58,13 +57,4 @@ class Web::AccountsController < Web::BaseController
     permitted
   end
 
-  def errors_for(error)
-    if error.is_a?(ActiveRecord::RecordNotUnique)
-      ["Username is already taken."]
-    elsif error.record.is_a?(User)
-      current_user.errors.full_messages
-    else
-      @account.errors.full_messages
-    end
-  end
 end

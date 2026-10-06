@@ -4,7 +4,7 @@ RSpec.describe "Api::V1::Users assign_roles self-lockout guard", type: :request 
   let(:admin_role) { Role.find_or_create_by!(name: "Admin") }
   let(:guest_role) { Role.find_or_create_by!(name: "Guest") }
   let(:admin) do
-    User.create!(user_name: "Self Guard Admin", email: "self-guard-admin@example.com",
+    User.create!(first_name: "Self Guard Admin", email: "self-guard-admin@example.com",
                  password: "password123", roles: [admin_role, guest_role])
   end
 
@@ -32,7 +32,7 @@ RSpec.describe "Api::V1::Users assign_roles self-lockout guard", type: :request 
   end
 
   it "still allows an admin to change another admin's roles" do
-    other = User.create!(user_name: "Other Admin", email: "other-admin@example.com",
+    other = User.create!(first_name: "Other Admin", email: "other-admin@example.com",
                          password: "password123", roles: [admin_role])
     patch "/api/v1/users/#{other.id}/assign_roles",
           params: { role_ids: [guest_role.id] }, as: :json

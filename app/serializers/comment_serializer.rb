@@ -39,7 +39,7 @@ class CommentSerializer
     user = @comment.user
     {
       id: user&.id,
-      name: user&.user_name || user&.email || "Unknown"
+      name: user&.display_name || user&.email || "Unknown"
     }
   end
 

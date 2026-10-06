@@ -72,7 +72,7 @@ class Api::V1::CommentsController < ApplicationController
 #   PATCH|DELETE /api/v1/comments/:id
 #   POST        /api/v1/comments/:comment_id/replies
   def set_comment
-    @comment = Comment.includes(:user, :replies).find(params[:comment_id] || params[:id])
+    @comment = Comment.includes({ user: :account }, :replies).find(params[:comment_id] || params[:id])
   rescue ActiveRecord::RecordNotFound
     render json: { error: "Comment not found" }, status: :not_found
     nil

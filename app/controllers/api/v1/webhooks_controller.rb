@@ -195,7 +195,7 @@ class Api::V1::WebhooksController < ActionController::Base
       log_billing(
         user, previous_plan, plan, provider_sub_id,
         action: "subscription.renewal",
-        description: "Subscription renewal (no plan change): #{plan.name} for #{user.user_name || user.email}"
+        description: "Subscription renewal (no plan change): #{plan.name} for #{user.display_name || user.email}"
       )
       return
     end
@@ -219,7 +219,7 @@ class Api::V1::WebhooksController < ActionController::Base
     log_billing(
       user, previous_plan, plan, provider_sub_id,
       action: "subscription.change_applied",
-      description: "Subscription changed (#{direction}): #{previous_plan&.name} -> #{plan.name} for #{user.user_name || user.email}"
+      description: "Subscription changed (#{direction}): #{previous_plan&.name} -> #{plan.name} for #{user.display_name || user.email}"
     )
   end
 
@@ -233,7 +233,7 @@ class Api::V1::WebhooksController < ActionController::Base
       log_billing(
         user, change.from_subscription, change.to_subscription, provider_sub_id,
         action: "subscription.downgrade_completed",
-        description: "Scheduled downgrade took effect: #{change.from_subscription&.name} -> #{change.to_subscription&.name} for #{user.user_name || user.email}"
+        description: "Scheduled downgrade took effect: #{change.from_subscription&.name} -> #{change.to_subscription&.name} for #{user.display_name || user.email}"
       )
     end
   end
@@ -260,7 +260,7 @@ class Api::V1::WebhooksController < ActionController::Base
     log_billing(
       user, current.subscription, free_plan, current.provider_subscription_id,
       action: "subscription.cancelled",
-      description: "Subscription cancelled, fell back to #{free_plan.name} for #{user.user_name || user.email}"
+      description: "Subscription cancelled, fell back to #{free_plan.name} for #{user.display_name || user.email}"
     )
   end
 

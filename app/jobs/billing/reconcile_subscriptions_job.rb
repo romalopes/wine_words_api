@@ -55,7 +55,7 @@ class Billing::ReconcileSubscriptionsJob < ApplicationJob
     )
 
     LogService.log(
-      description: "Reconciled subscription to #{plan.name} (period ends #{stripe_end}) for #{user_sub.user&.user_name || user_sub.user&.email}",
+      description: "Reconciled subscription to #{plan.name} (period ends #{stripe_end}) for #{user_sub.user&.display_name || user_sub.user&.email}",
       action: "subscription.reconciled",
       user: user_sub.user,
       path: "background/job/reconcile_subscriptions",

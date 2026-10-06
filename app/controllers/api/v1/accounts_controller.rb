@@ -3,9 +3,9 @@ class Api::V1::AccountsController < ApplicationController
 
   def log_description
     if action_name == "update_password"
-      "Changed password for user \"#{current_user.user_name}\""
+      "Changed password for user \"#{current_user.display_name}\""
     else
-      "Updated account settings for user \"#{current_user.user_name}\""
+      "Updated account settings for user \"#{current_user.display_name}\""
     end
   end
 
@@ -16,25 +16,23 @@ class Api::V1::AccountsController < ApplicationController
   before_action :authenticate_user!
 
   # GET /api/v1/account — current user's account with nested address.
-  # Returns an unsaved default shell when the user has no account yet so the
-  # settings form always has a stable shape.
+  # Every user has a persisted account.
   def show
     render json: account_json
   end
 
-  # PATCH /api/v1/account — update username, personal info and address.
-  # Creates the account + address rows lazily on first save.
+  # PATCH /api/v1/account — update personal info and address.
   def update
-    account = current_user.account || Account.new(user: current_user)
+    account = Account.build_default(current_user)
 
     User.transaction do
-      current_user.update!(user_name: params[:user_name]) if params.key?(:user_name)
-      account.update!(account_params)
+      account.assign_attributes(account_params)
+      account.save!(context: :profile)
     end
 
     render json: account_json(account.reload)
-  rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique => e
-    render json: { errors: errors_for(account, e) }, status: :unprocessable_entity
+  rescue ActiveRecord::RecordInvalid => e
+    render json: { errors: e.record.errors.to_hash(true) }, status: :unprocessable_entity
   end
 
   # PATCH /api/v1/account/password — change password, verifying the current one.
@@ -61,18 +59,6 @@ class Api::V1::AccountsController < ApplicationController
     permitted
   end
 
-  # Aggregate validation errors from both the user (username) and the account
-  # (personal info / address) so the UI can show everything at once.
-  def errors_for(account, error)
-    if error.is_a?(ActiveRecord::RecordNotUnique)
-      { user_name: ["is already taken"] }
-    elsif error.record.is_a?(User)
-      current_user.errors.to_hash(true)
-    else
-      account.errors.to_hash(true)
-    end
-  end
-
   def account_json(account = Account.build_default(current_user))
     address =
       if account.persisted? && account.account_address
@@ -86,7 +72,6 @@ class Api::V1::AccountsController < ApplicationController
       end
 
     {
-      user_name: current_user.user_name,
       first_name: account.first_name,
       last_name: account.last_name,
       phone: account.phone,

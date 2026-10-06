@@ -18,7 +18,7 @@ class ReviewListSerializer
       title: @review.title,
       score: @review.score&.to_f,
       status: @review.status,
-      reviewer_name: @review.user&.user_name || @review.user&.email || "Unknown",
+      reviewer_name: @review.user&.display_name || @review.user&.email || "Unknown",
       wine_name: @review.vintage&.wine&.name,
       wine_slug: @review.vintage&.wine&.slug,
       vintage_year: @review.vintage&.year,

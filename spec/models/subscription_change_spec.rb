@@ -2,7 +2,7 @@ require "rails_helper"
 
 RSpec.describe SubscriptionChange, type: :model do
   let(:user) do
-    User.create!(user_name: "roma", email: "sc@example.com", password: "password123")
+    User.create!(first_name: "roma", email: "sc@example.com", password: "password123")
   end
 
   it "requires a known change_type" do

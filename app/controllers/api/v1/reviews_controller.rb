@@ -33,7 +33,7 @@ class Api::V1::ReviewsController < ApplicationController
         Review.all
       end
     reviews = reviews.visible_to(current_user) unless current_user&.wine_manager?
-    reviews = reviews.includes(:user, :categories, images: { file_attachment: :blob },
+    reviews = reviews.includes({ user: :account }, :categories, images: { file_attachment: :blob },
                                vintage: { wine: { images: { file_attachment: :blob } } })
     reviews = reviews.joins(:review_categories).where(review_categories: { category_id: params[:category_id] }).distinct if params[:category_id].present?
     reviews = reviews.left_outer_joins(:review_categories).where(review_categories: { id: nil }) if params[:uncategorised] == "true"
@@ -91,7 +91,7 @@ class Api::V1::ReviewsController < ApplicationController
 
     review_ids = rows.map(&:id).uniq
     reviews_by_id = Review.where(id: review_ids)
-                      .includes(:user, :categories, images: { file_attachment: :blob },
+                      .includes({ user: :account }, :categories, images: { file_attachment: :blob },
                                 vintage: { wine: { images: { file_attachment: :blob } } })
                       .index_by(&:id)
 
@@ -138,7 +138,7 @@ class Api::V1::ReviewsController < ApplicationController
   def my_reviews
     reviews = Review.where(user: current_user)
                     .by_recency
-                    .includes(:user, vintage: :wine)
+                    .includes({ user: :account }, vintage: :wine)
     liked_ids = Likes.liked_ids_for(reviews, current_user)
     render json: reviews.map { |r| ReviewSerializer.new(r, request.base_url, liked_ids: liked_ids).as_json.merge(wine_name: r.vintage.wine.name, wine_slug: r.vintage.wine.slug, vintage_year: r.vintage.year) }
   end
@@ -167,7 +167,7 @@ class Api::V1::ReviewsController < ApplicationController
     base = base.visible_to(current_user) unless current_user&.wine_manager?
     # `ReviewSerializer` (unlike the list serializer) also renders the tasting
     # note the footer previews, and reads the vintage/wine/categories.
-    base = base.includes(:user, :categories, :vintage, images: { file_attachment: :blob })
+    base = base.includes({ user: :account }, :categories, :vintage, images: { file_attachment: :blob })
 
     buckets = related_buckets(
       @review, base,
@@ -255,9 +255,9 @@ class Api::V1::ReviewsController < ApplicationController
   end
 
   def set_review
-    @review = Review.includes(:user, vintage: :wine)
+    @review = Review.includes({ user: :account }, vintage: :wine)
                     .find_by(slug: params[:id]) ||
-              Review.includes(:user, vintage: :wine).find(params[:id])
+              Review.includes({ user: :account }, vintage: :wine).find(params[:id])
   rescue ActiveRecord::RecordNotFound
     render json: { error: "Review not found" }, status: :not_found
   end

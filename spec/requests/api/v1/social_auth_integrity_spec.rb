@@ -9,10 +9,10 @@ require "rails_helper"
 RSpec.describe "Api::V1::SocialAuth integrity", type: :request do
   include Devise::Test::IntegrationHelpers
 
-  def create_user(email: nil, password: "password123", user_name: nil, **attrs)
+  def create_user(email: nil, password: "password123", first_name: nil, **attrs)
     User.create!(
       {
-        user_name: user_name || "Integrity #{SecureRandom.hex(3)}",
+        first_name: first_name || "Integrity #{SecureRandom.hex(3)}",
         email: email || "integrity-#{SecureRandom.hex(4)}@example.com",
         password: password
       }.merge(attrs)
@@ -56,7 +56,7 @@ RSpec.describe "Api::V1::SocialAuth integrity", type: :request do
         expect(response).to have_http_status(:ok)
         user = body["user"]
         # Identical payload shape to email/password sign-in.
-        expect(user.keys).to include("id", "email", "user_name", "roles", "subscription")
+        expect(user.keys).to include("id", "email", "display_name", "roles", "subscription")
         # The existing devise-jwt mechanism issued the token.
         expect(response.headers["Authorization"]).to be_present
         expect(User.find(user["id"]).user_identities.count).to eq(1)
@@ -78,7 +78,7 @@ RSpec.describe "Api::V1::SocialAuth integrity", type: :request do
     # links onto the existing User instead of creating a second one.
     %w[google apple microsoft].each do |provider|
       it "does not duplicate an existing email/password User on #{provider}" do
-        existing = create_user(email: "shared-#{provider}@example.com", user_name: "Shared #{provider}")
+        existing = create_user(email: "shared-#{provider}@example.com", first_name: "Shared #{provider}")
 
         expect {
           social_sign_in(provider, uid: "#{provider}-dup", email: "shared-#{provider}@example.com")
@@ -117,7 +117,7 @@ RSpec.describe "Api::V1::SocialAuth integrity", type: :request do
 
   describe "authorization is preserved" do
     it "keeps an Admin (Super User) an Admin after social sign-in" do
-      admin = create_user(email: "admin-social@example.com", user_name: "Admin Social")
+      admin = create_user(email: "admin-social@example.com", first_name: "Admin Social")
       admin.roles << Role.find_or_create_by!(name: "Admin")
       expect(admin.admin?).to be true
 
@@ -192,8 +192,8 @@ RSpec.describe "Api::V1::SocialAuth integrity", type: :request do
 
   describe "Account is preserved" do
     it "keeps exactly one Account while all four providers are connected" do
-      user = create_user(email: "multi-account@example.com", user_name: "Multi Account")
-      user.create_account!(first_name: "Multi", last_name: "Account")
+      user = create_user(email: "multi-account@example.com", first_name: "Multi Account")
+      user.account.update!(first_name: "Multi", last_name: "Account")
 
       %w[google apple microsoft].each do |provider|
         social_sign_in(provider, uid: "#{provider}-multi", email: "multi-account@example.com")

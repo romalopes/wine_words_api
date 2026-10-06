@@ -11,7 +11,7 @@ RSpec.describe "Api::V1::Wines", type: :request do
 
   let(:producer) { Producer.create!(name: "Penfolds", slug: "penfolds") }
   let(:wine_manager) do
-    User.create!(user_name: "Manager", email: "wine-manager@example.com", password: "password123")
+    User.create!(first_name: "Manager", email: "wine-manager@example.com", password: "password123")
   end
 
   before do
@@ -188,7 +188,7 @@ RSpec.describe "Api::V1::Wines", type: :request do
   end
 
   describe "GET /api/v1/wines/advanced_search" do
-    let!(:review_user) { User.create!(user_name: "Reviewer", email: "adv-search@example.com", password: "password123") }
+    let!(:review_user) { User.create!(first_name: "Reviewer", email: "adv-search@example.com", password: "password123") }
 
     before do
       wine_one.update!(producer: producer, sparkling: true, alcohol_percentage: 14.5)
@@ -385,7 +385,7 @@ RSpec.describe "Api::V1::Wines", type: :request do
   # `producer_id` therefore has to return that producer's wines.
   describe "GET /api/v1/wines/search" do
     let(:reviewer) do
-      user = User.create!(user_name: "Search Reviewer", email: "search-reviewer@example.com",
+      user = User.create!(first_name: "Search Reviewer", email: "search-reviewer@example.com",
                           password: "password123")
       user.roles << Role.find_or_create_by!(name: "Reviewer")
       user
@@ -456,13 +456,13 @@ RSpec.describe "Api::V1::Wines", type: :request do
     # they may catalogue them. Admins/Editors keep everything; readers/guests
     # gain nothing.
     let(:role_user) do
-      user = User.create!(user_name: "Catalogue Reviewer", email: "catalogue-reviewer@example.com",
+      user = User.create!(first_name: "Catalogue Reviewer", email: "catalogue-reviewer@example.com",
                           password: "password123")
       user.roles << Role.find_or_create_by!(name: "Reviewer")
       user
     end
     let(:reader) do
-      user = User.create!(user_name: "Catalogue Reader", email: "catalogue-reader@example.com",
+      user = User.create!(first_name: "Catalogue Reader", email: "catalogue-reader@example.com",
                           password: "password123")
       user
     end

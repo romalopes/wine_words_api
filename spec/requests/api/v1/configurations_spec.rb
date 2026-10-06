@@ -5,13 +5,13 @@ RSpec.describe "Api::V1::Configurations", type: :request do
   include Devise::Test::IntegrationHelpers
 
   let(:admin) do
-    user = User.create!(user_name: "CfgAdmin", email: "cfg-admin@example.com", password: "password123")
+    user = User.create!(first_name: "CfgAdmin", email: "cfg-admin@example.com", password: "password123")
     user.roles << Role.find_or_create_by!(name: "Admin")
     user
   end
 
   let(:plain_user) do
-    User.create!(user_name: "CfgGuest", email: "cfg-guest@example.com", password: "password123")
+    User.create!(first_name: "CfgGuest", email: "cfg-guest@example.com", password: "password123")
   end
 
   after do
@@ -114,19 +114,19 @@ RSpec.describe "Api::V1::Configurations", type: :request do
     it "suppresses audit log persistence while disabled and restores it when re-enabled" do
       sign_in admin
       expect {
-        patch "/api/v1/account", params: { user_name: "cfg_admin_x" }, as: :json
+        patch "/api/v1/account", params: { first_name: "cfg_admin_x" }, as: :json
       }.to change(Log, :count).by(1)
 
       patch "/api/v1/configuration", params: { logs_saved_to_database: false }, as: :json
 
       expect {
-        patch "/api/v1/account", params: { user_name: "cfg_admin_y" }, as: :json
+        patch "/api/v1/account", params: { first_name: "cfg_admin_y" }, as: :json
       }.not_to change(Log, :count)
 
       patch "/api/v1/configuration", params: { logs_saved_to_database: true }, as: :json
 
       expect {
-        patch "/api/v1/account", params: { user_name: "cfg_admin_z" }, as: :json
+        patch "/api/v1/account", params: { first_name: "cfg_admin_z" }, as: :json
       }.to change(Log, :count).by(1)
     end
   end

@@ -1,5 +1,9 @@
 class Account < ApplicationRecord
-  belongs_to :user
+  belongs_to :user, inverse_of: :account
+  include SearchVectorDependent
+  SEARCH_VECTOR_ATTRIBUTES = %w[first_name last_name].freeze
+  before_validation :normalize_names
+  validates :first_name, :last_name, presence: true, on: :profile
   has_one :account_address, dependent: :destroy, class_name: "AccountAddress"
   accepts_nested_attributes_for :account_address, update_only: true
 
@@ -7,13 +11,21 @@ class Account < ApplicationRecord
   validates :phone, length: { maximum: 40 }, allow_nil: true
   validate :date_of_birth_in_the_past, if: -> { date_of_birth.present? }
 
-  # Shape used by GET /api/v1/account — always present, even before the
-  # account row is created, so the settings form has a stable shape.
+  # Persist a missing profile defensively for legacy records.
   def self.build_default(user)
-    user.account || new(user: user, account_address: AccountAddress.new)
+    user.account || user.create_account!
   end
 
   private
+
+  def normalize_names
+    self.first_name = first_name.to_s.strip.presence
+    self.last_name = last_name.to_s.strip.presence
+  end
+
+  def search_reindex_targets
+    { "Review" => Review.where(user_id: user_id).pluck(:id), "Article" => Article.where(user_id: user_id).pluck(:id) }
+  end
 
   def date_of_birth_in_the_past
     errors.add(:date_of_birth, "must be in the past") if date_of_birth >= Date.current

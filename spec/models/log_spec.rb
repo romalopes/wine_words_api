@@ -7,7 +7,7 @@ require "rails_helper"
 RSpec.describe Log, type: :model do
   let(:user) do
     User.create!(
-      user_name: "Tester",
+      first_name: "Tester",
       email: "tester@example.com",
       password: "password123"
     )

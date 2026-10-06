@@ -2,7 +2,7 @@ require "test_helper"
 
 class ArticlesFlowTest < ActionDispatch::IntegrationTest
   setup do
-    @user = User.create!(email: "art-#{Time.now.to_i}@example.com", password: "password123456", name: "Art Tester")
+    @user = User.create!(email: "art-#{Time.now.to_i}@example.com", password: "password123456", first_name: "Art Tester")
     @category = Category.find_or_create_by!(name: "News") { |c| c.slug = "news" }
   end
 
@@ -29,7 +29,7 @@ class ArticlesFlowTest < ActionDispatch::IntegrationTest
     assert_includes @response.body, "My Draft Story"
 
     # Another author's draft stays hidden
-    other = User.create!(email: "art-o-#{Time.now.to_i}@example.com", password: "password123456", name: "Other")
+    other = User.create!(email: "art-o-#{Time.now.to_i}@example.com", password: "password123456", first_name: "Other")
     Article.create!(user: other, title: "Secret Other Draft", status: "draft")
     get articles_path
     assert_not_includes @response.body, "Secret Other Draft"

@@ -9,7 +9,7 @@ RSpec.describe ShipmentTrackingEvent, type: :model do
   let(:package) { create_package }
 
   def create_user(name, email)
-    User.create!(user_name: name, email: email, password: "password123")
+    User.create!(first_name: name, email: email, password: "password123")
   end
 
   def create_package

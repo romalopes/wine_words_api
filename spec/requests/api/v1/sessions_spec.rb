@@ -16,7 +16,7 @@ RSpec.describe "Api::V1::Sessions", type: :request do
   end
 
   let(:user) do
-    User.create!(user_name: "Session Person", email: "session@example.com",
+    User.create!(first_name: "Session Person", email: "session@example.com",
                  password: "password123")
   end
 
@@ -32,10 +32,10 @@ RSpec.describe "Api::V1::Sessions", type: :request do
       payload = JSON.parse(response.body)["user"]
       expect(payload["id"]).to eq(user.id)
       expect(payload["email"]).to eq("session@example.com")
-      expect(payload["user_name"]).to eq("Session Person")
+      expect(payload["display_name"]).to eq("Session Person")
       expect(payload["roles"]).to include("Guest")
       expect(payload.keys).to include(
-        "id", "email", "user_name", "roles", "subscription",
+        "id", "email", "display_name", "roles", "subscription",
         "billing_provider", "can_manage_billing", "subscription_status"
       )
       # devise-jwt issued the usual token.
@@ -65,7 +65,7 @@ RSpec.describe "Api::V1::Sessions", type: :request do
       post "/api/v1/auth/sign_in", params: sign_in_params("password123"), as: :json
       password_keys = JSON.parse(response.body)["user"].keys.sort
 
-      social_user = User.create!(user_name: "Social Shape", email: "social-shape@example.com",
+      social_user = User.create!(first_name: "Social Shape", email: "social-shape@example.com",
                                  password: "password123")
       allow(Authentication.verifier_for("google")).to receive(:verify) do
         Authentication::Claims.new(provider: "google", provider_uid: "g-shape",
@@ -80,7 +80,7 @@ RSpec.describe "Api::V1::Sessions", type: :request do
 
     it "does not let a social-only user sign in with a password" do
       # Built the same way Authentication::SocialLogin builds one: no password.
-      social_only = User.new(user_name: "Social Only", email: "social-only-signin@example.com",
+      social_only = User.new(first_name: "Social Only", email: "social-only-signin@example.com",
                              social_signup: true)
       social_only.save!
       social_only.user_identities.create!(provider: "google", provider_uid: "g-only")

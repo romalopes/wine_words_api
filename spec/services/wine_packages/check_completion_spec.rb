@@ -13,7 +13,7 @@ RSpec.describe WinePackages::CheckCompletion do
   let(:vintage) { Vintage.create!(wine: wine, year: 2018) }
 
   def create_user(name, email)
-    User.create!(user_name: name, email: email, password: "password123")
+    User.create!(first_name: name, email: email, password: "password123")
   end
 
   def create_package(attrs = {})

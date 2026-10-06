@@ -4,7 +4,7 @@ RSpec.describe "Api::V1::Likes", type: :request do
   include Devise::Test::IntegrationHelpers
 
   def create_user(suffix)
-    User.create!(user_name: "API Like #{suffix} #{SecureRandom.hex(2)}",
+    User.create!(first_name: "API Like #{suffix} #{SecureRandom.hex(2)}",
                  email: "api-like-#{suffix}-#{SecureRandom.hex(4)}@example.com",
                  password: "password123")
   end

@@ -5,7 +5,8 @@ RSpec.describe "Api::V1::Registrations", type: :request do
     let(:valid_params) do
       {
         user: {
-          user_name: "newuser",
+          first_name: "newuser",
+          last_name: "Example",
           email: "newuser@example.com",
           password: "password123",
           password_confirmation: "password123"
@@ -13,28 +14,53 @@ RSpec.describe "Api::V1::Registrations", type: :request do
       }
     end
 
-    it "creates a user with the given user_name" do
+    it "creates a user and a persisted account with the submitted names" do
       expect {
         post "/api/v1/auth/sign_up", params: valid_params, as: :json
       }.to change(User, :count).by(1)
 
       expect(response).to have_http_status(:created)
       user = User.find_by(email: "newuser@example.com")
-      expect(user.user_name).to eq("newuser")
-      expect(JSON.parse(response.body)["user"]["user_name"]).to eq("newuser")
+      expect(user.first_name).to eq("newuser")
+      expect(user.account).to be_persisted
+      expect(user.account.last_name).to eq("Example")
+      expect(JSON.parse(response.body)["user"]["display_name"]).to eq("newuser Example")
+      expect(JSON.parse(response.body)["user"]).not_to have_key("user_name")
     end
 
-    it "rejects a blank user_name" do
+    it "rejects a blank first_name" do
       post "/api/v1/auth/sign_up",
-           params: valid_params.merge(user: valid_params[:user].merge(user_name: "")),
+           params: valid_params.merge(user: valid_params[:user].merge(first_name: "")),
            as: :json
       expect(response).to have_http_status(:unprocessable_entity)
     end
 
-    it "rejects a duplicate user_name (case-insensitive)" do
-      User.create!(user_name: "NewUser", email: "other@example.com", password: "password123")
+    it "allows duplicate names with different emails" do
+      User.create!(first_name: "newuser", last_name: "Example", email: "other@example.com", password: "password123")
       post "/api/v1/auth/sign_up", params: valid_params, as: :json
+      expect(response).to have_http_status(:created)
+    end
+
+    it "rejects an existing email regardless of case without leaving an account" do
+      User.create!(email: "newuser@example.com", password: "password123")
+      expect {
+        post "/api/v1/auth/sign_up", params: valid_params.deep_merge(user: { email: "NEWUSER@example.com" }), as: :json
+      }.not_to change(Account, :count)
       expect(response).to have_http_status(:unprocessable_entity)
+    end
+
+    it "requires a last name and rolls back user and account creation" do
+      expect {
+        post "/api/v1/auth/sign_up", params: valid_params.deep_merge(user: { last_name: "  " }), as: :json
+      }.not_to change(Account, :count)
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(User.find_by(email: "newuser@example.com")).to be_nil
+    end
+
+    it "supports accented and punctuated names" do
+      post "/api/v1/auth/sign_up", params: valid_params.deep_merge(user: { first_name: "  Élodie ", last_name: " O’Connor-Smith " }), as: :json
+      expect(response).to have_http_status(:created)
+      expect(User.find_by!(email: "newuser@example.com").display_name).to eq("Élodie O’Connor-Smith")
     end
 
     it "returns subscription and billing metadata in the sign-up response" do
@@ -60,7 +86,8 @@ RSpec.describe "Api::V1::Registrations", type: :request do
     let(:valid_params) do
       {
         user: {
-          user_name: "newuser",
+          first_name: "newuser",
+          last_name: "Example",
           email: "newuser@example.com",
           password: "password123",
           password_confirmation: "password123"
@@ -82,7 +109,7 @@ RSpec.describe "Api::V1::Registrations", type: :request do
 
     it "writes an anonymous audit log entry for a failed sign-up attempt" do
       post "/api/v1/auth/sign_up",
-           params: valid_params.merge(user: valid_params[:user].merge(user_name: "")),
+           params: valid_params.merge(user: valid_params[:user].merge(first_name: "")),
            as: :json
       expect(response).to have_http_status(:unprocessable_entity)
 

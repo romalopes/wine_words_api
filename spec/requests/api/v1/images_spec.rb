@@ -5,7 +5,7 @@ RSpec.describe "Api::V1::Images", type: :request do
   include Devise::Test::IntegrationHelpers
 
   let(:user) do
-    u = User.create!(user_name: "roma", email: "roma@example.com", password: "password123")
+    u = User.create!(first_name: "roma", email: "roma@example.com", password: "password123")
     u.roles << Role.find_or_create_by!(name: "Admin")
     u
   end

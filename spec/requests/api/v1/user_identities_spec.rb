@@ -13,9 +13,9 @@ require "rails_helper"
 RSpec.describe "Api::V1::UserIdentities", type: :request do
   include Devise::Test::IntegrationHelpers
 
-  def create_user(email: nil, password: "password123", user_name: nil)
+  def create_user(email: nil, password: "password123", first_name: nil)
     User.create!(
-      user_name: user_name || "Linker #{SecureRandom.hex(3)}",
+      first_name: first_name || "Linker #{SecureRandom.hex(3)}",
       email: email || "linker-#{SecureRandom.hex(4)}@example.com",
       password: password
     )
@@ -43,7 +43,7 @@ RSpec.describe "Api::V1::UserIdentities", type: :request do
                            visible: true, active: true)
   end
 
-  let(:user) { create_user(email: "linker@example.com", user_name: "Linker") }
+  let(:user) { create_user(email: "linker@example.com", first_name: "Linker") }
 
   describe "GET /api/v1/auth/identities" do
     it "requires authentication" do
@@ -90,9 +90,9 @@ RSpec.describe "Api::V1::UserIdentities", type: :request do
       expect(response).to have_http_status(:created)
       expect(body["identity"]["provider"]).to eq("google")
 
-      # Linking an identity creates no User or Account.
+      # Linking an identity preserves the existing User and its single Account.
       expect(User.where(email: user.email).count).to eq(1)
-      expect(Account.where(user: user).count).to eq(0)
+      expect(Account.where(user: user).count).to eq(1)
     end
 
     it "is idempotent when the identity is already connected to this User" do

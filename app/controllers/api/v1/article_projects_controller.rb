@@ -91,7 +91,7 @@ class Api::V1::ArticleProjectsController < ApplicationController
   def association_includes
     {
       article: [],
-      created_by: [],
+      created_by: :account,
       article_project_producers: :producer,
       article_project_vintages: { vintage: :wine },
       article_project_reviews: { review: { vintage: :wine } }

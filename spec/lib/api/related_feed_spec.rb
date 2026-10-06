@@ -119,7 +119,7 @@ RSpec.describe Api::RelatedFeed do
   describe "#related_buckets" do
     let(:author) do
       User.create!(
-        user_name: "Bucket Author",
+        first_name: "Bucket Author",
         email: "bucket-author@example.com",
         password: "password123"
       )

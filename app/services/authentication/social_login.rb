@@ -194,7 +194,9 @@ module Authentication
           # social sign-ups the provider has itself verified.
           email_verified_at: (Time.current if claims.email_verified?)
         )
-        new_user.user_name = unique_user_name_for(claims)
+        first_name, last_name = claims.name.to_s.squish.split(" ", 2)
+        new_user.first_name = first_name&.first(80)
+        new_user.last_name = last_name&.first(80)
         new_user.save!
         @created_user = true
 
@@ -221,28 +223,6 @@ module Authentication
         "We could not complete the sign-in. Please try again.",
         code: :sign_in_failed, status: :conflict
       )
-    end
-
-    # user_name is required, unique (case-insensitively) and restricted to
-    # letters/digits/space/dot/dash/underscore with 2..40 characters.
-    def unique_user_name_for(claims)
-      base = sanitize_user_name(claims.name)
-      base ||= sanitize_user_name(claims.email.to_s.split("@").first)
-      base = base.to_s[0, 40].strip
-      base = "user" if base.length < 2
-
-      candidate = base
-      suffix = 0
-      while User.exists?([ "LOWER(user_name) = ?", candidate.downcase ])
-        suffix += 1
-        tag = "_#{suffix}"
-        candidate = "#{base[0, 40 - tag.length]}#{tag}"
-      end
-      candidate
-    end
-
-    def sanitize_user_name(value)
-      value.to_s.gsub(/[^A-Za-z0-9_.\- ]/, " ").squish.presence
     end
 
     def identity_taken_error

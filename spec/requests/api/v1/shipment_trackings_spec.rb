@@ -7,11 +7,11 @@ RSpec.describe "Api::V1::ShipmentTrackings", type: :request do
 
   let(:producer) { Producer.create!(name: "Penfolds") }
   let(:admin) do
-    user = User.create!(user_name: "Track Admin", email: "track-admin@example.com", password: "password123")
+    user = User.create!(first_name: "Track Admin", email: "track-admin@example.com", password: "password123")
     user.roles << Role.find_or_create_by!(name: "Admin")
     user
   end
-  let(:outsider) { User.create!(user_name: "Track Outsider", email: "track-outsider@example.com", password: "password123") }
+  let(:outsider) { User.create!(first_name: "Track Outsider", email: "track-outsider@example.com", password: "password123") }
   let(:package) do
     WinePackage.create!(producer: producer, reviewer: admin, created_by: admin,
                         source: "unexpected", status: "announced")

@@ -21,13 +21,7 @@ class UserRolesController < ActionController::Base
   def index
     @roles = Role.order(:id)
     query = params[:q].to_s.strip
-    @users =
-      if query.blank?
-        User.order(:name).limit(20)
-      else
-        User.where("name ILIKE ? OR email ILIKE ?", "%#{query}%", "%#{query}%")
-            .order(:name).limit(20)
-      end
+    @users = User.search_by_name_or_email(query).limit(20)
   end
 
   # PATCH /user_roles/:user_id
@@ -36,7 +30,7 @@ class UserRolesController < ActionController::Base
     role_ids = Array(params[:user][:role_ids]).compact.map(&:to_i)
     user.user_roles.destroy_all
     role_ids.each { |rid| user.user_roles.create!(role_id: rid) }
-    redirect_to user_roles_path(q: params[:q]), notice: "Roles updated for #{user.user_name || user.email}."
+    redirect_to user_roles_path(q: params[:q]), notice: "Roles updated for #{user.display_name || user.email}."
   end
 
   # POST /user_roles/impersonate/:user_id — start impersonating a user (admin only)
@@ -58,12 +52,12 @@ class UserRolesController < ActionController::Base
     end
 
     session[:impersonated_user_id] = target_user.id
-    redirect_to root_path, notice: "Now impersonating #{target_user.user_name || target_user.email}."
+    redirect_to root_path, notice: "Now impersonating #{target_user.display_name || target_user.email}."
   end
 
   # DELETE /user_roles/impersonate — stop impersonating (admin only)
   def stop_impersonation
-    target_name = User.find_by(id: session[:impersonated_user_id])&.user_name
+    target_name = User.find_by(id: session[:impersonated_user_id])&.display_name
     session.delete(:impersonated_user_id)
     redirect_to user_roles_path, notice: target_name ? "Stopped impersonating #{target_name}." : "Impersonation stopped."
   end

@@ -7,6 +7,7 @@ module Web
 
     def create
       @user = User.new(user_params)
+      @user.require_account_names = true
 
       if @user.save
         # The "Guest" role is assigned automatically via User#assign_default_role.
@@ -20,7 +21,7 @@ module Web
     private
 
     def user_params
-      params.require(:user).permit(:user_name, :email, :password, :password_confirmation)
+      params.require(:user).permit(:first_name, :last_name, :email, :password, :password_confirmation)
     end
   end
 end
