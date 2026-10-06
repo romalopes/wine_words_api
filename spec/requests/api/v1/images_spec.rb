@@ -24,6 +24,19 @@ RSpec.describe "Api::V1::Images", type: :request do
       expect(body["images"]).to be_an(Array)
       expect(body["images"].first).to include("id", "url", "filename", "content_type", "position", "primary")
       expect(article.reload.images.count).to eq(1)
+      expect(body["uploaded_image_ids"]).to eq([article.images.first.id])
+    end
+
+    it "identifies only this request's uploads when the gallery already has images" do
+      existing = Image.create!(imageable: article, file: attached_png)
+      post "/api/v1/images",
+           params: { imageable_type: "article", imageable_id: article.id, images: [uploaded_file] },
+           headers: { "Accept" => "application/json" }
+
+      expect(response).to have_http_status(:ok)
+      body = JSON.parse(response.body)
+      expect(body["images"].size).to eq(2)
+      expect(body["uploaded_image_ids"]).to eq(article.reload.images.where.not(id: existing.id).pluck(:id))
     end
 
     it "rejects unauthenticated requests" do

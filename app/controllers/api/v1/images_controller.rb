@@ -20,6 +20,7 @@ class Api::V1::ImagesController < ApplicationController
     render json: {
       imageable_type: @record.class.name,
       imageable_id: @record.id,
+      uploaded_image_ids: created.map(&:id),
       images: image_details(@record)
     }
   rescue ActiveRecord::RecordNotFound
