@@ -130,4 +130,65 @@ RSpec.describe "Api::V1::ArticleProjects", type: :request do
       expect(foreign_join.reload.contacted).to be(false)
     end
   end
+
+  describe "notebooks and review drafts" do
+    let(:wine) { Wine.create!(name: "Barolo", producer: producer) }
+    let(:vintage) { Vintage.create!(wine: wine, year: 2022) }
+    let(:article_project) { create_article_project }
+    let!(:project_vintage) { article_project.article_project_vintages.create!(vintage: vintage) }
+
+    it "manages a notebook and creates an independently editable linked draft review" do
+      sign_in reviewer
+
+      post "/api/v1/article_projects/#{article_project.id}/article_project_vintages/#{project_vintage.id}/notebooks",
+           as: :json,
+           params: { article_project_notebook: { title: "Tasting notes", content: "Cherry and rose petals" } }
+
+      expect(response).to have_http_status(:created)
+      notebook = JSON.parse(response.body)
+      notebook_id = notebook.fetch("id")
+      expect(notebook.fetch("lock_version")).to eq(0)
+
+      post "/api/v1/article_projects/#{article_project.id}/article_project_vintages/#{project_vintage.id}/notebooks/#{notebook_id}/review",
+           as: :json
+
+      expect(response).to have_http_status(:created)
+      review_id = JSON.parse(response.body).fetch("id")
+      review = Review.find(review_id)
+      expect(review).to have_attributes(title: "Tasting notes", comment: "Cherry and rose petals", status: "draft", score: 80, vintage: vintage, user: reviewer)
+      expect(article_project.reviews).to include(review)
+
+      patch "/api/v1/article_projects/#{article_project.id}/article_project_vintages/#{project_vintage.id}/notebooks/#{notebook_id}",
+            as: :json,
+            params: { article_project_notebook: { content: "Updated notebook content", lock_version: notebook.fetch("lock_version") } }
+
+      expect(response).to have_http_status(:ok)
+      expect(review.reload.comment).to eq("Cherry and rose petals")
+    end
+
+    it "returns a recoverable conflict for a stale notebook update" do
+      notebook = project_vintage.article_project_notebooks.create!(title: "Tasting notes", content: "Original")
+      sign_in reviewer
+
+      notebook.update!(content: "Saved elsewhere")
+      patch "/api/v1/article_projects/#{article_project.id}/article_project_vintages/#{project_vintage.id}/notebooks/#{notebook.id}",
+            as: :json,
+            params: { article_project_notebook: { content: "Stale browser content", lock_version: 0 } }
+
+      expect(response).to have_http_status(:conflict)
+      expect(JSON.parse(response.body).fetch("error")).to include("Reload")
+      expect(notebook.reload.content).to eq("Saved elsewhere")
+    end
+
+    it "does not allow another reviewer to manage the project's notebooks" do
+      notebook = project_vintage.article_project_notebooks.create!(title: "Private notes", content: "Do not copy")
+      sign_in other_reviewer
+
+      post "/api/v1/article_projects/#{article_project.id}/article_project_vintages/#{project_vintage.id}/notebooks/#{notebook.id}/review",
+           as: :json
+
+      expect(response).to have_http_status(:not_found)
+      expect(Review.count).to eq(0)
+    end
+  end
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_06_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_07_000003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -105,6 +105,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_06_000001) do
     t.index ["article_id", "producer_id"], name: "index_article_producers_on_article_id_and_producer_id", unique: true
     t.index ["article_id"], name: "index_article_producers_on_article_id"
     t.index ["producer_id"], name: "index_article_producers_on_producer_id"
+  end
+
+  create_table "article_project_notebooks", force: :cascade do |t|
+    t.bigint "article_project_vintage_id", null: false
+    t.text "content"
+    t.datetime "created_at", null: false
+    t.integer "lock_version", default: 0, null: false
+    t.integer "position", default: 0, null: false
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.index ["article_project_vintage_id", "position"], name: "index_article_project_notebooks_on_vintage_and_position"
+    t.index ["article_project_vintage_id"], name: "index_article_project_notebooks_on_article_project_vintage_id"
   end
 
   create_table "article_project_producers", force: :cascade do |t|
@@ -1006,6 +1018,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_06_000001) do
   add_foreign_key "article_categories", "categories"
   add_foreign_key "article_producers", "articles"
   add_foreign_key "article_producers", "producers"
+  add_foreign_key "article_project_notebooks", "article_project_vintages"
   add_foreign_key "article_project_producers", "article_projects"
   add_foreign_key "article_project_producers", "producers"
   add_foreign_key "article_project_reviews", "article_projects"

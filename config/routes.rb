@@ -182,6 +182,14 @@ Rails.application.routes.draw do
       end
       resources :article_projects, only: [:index, :show, :create, :update, :destroy] do
         collection { get :lookup }
+        resources :article_project_vintages, only: [] do
+          resources :notebooks,
+                    controller: "article_project_notebooks",
+                    param: :notebook_id,
+                    only: [:index, :create, :show, :update, :destroy] do
+            member { post :review, action: :create_review }
+          end
+        end
       end
       # Comments that are not nested under a commentable: replying to a comment,
       # and editing / soft-deleting one. A reply inherits its commentable from the

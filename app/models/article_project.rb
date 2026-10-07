@@ -12,6 +12,7 @@ class ArticleProject < ApplicationRecord
   has_many :producers, through: :article_project_producers
   has_many :article_project_vintages, dependent: :destroy
   has_many :vintages, through: :article_project_vintages
+  has_many :article_project_notebooks, through: :article_project_vintages
   has_many :article_project_reviews, dependent: :destroy
   has_many :reviews, through: :article_project_reviews
 

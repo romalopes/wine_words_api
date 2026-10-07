@@ -93,7 +93,7 @@ class Api::V1::ArticleProjectsController < ApplicationController
       article: [],
       created_by: :account,
       article_project_producers: :producer,
-      article_project_vintages: { vintage: :wine },
+      article_project_vintages: [{ vintage: :wine }, :article_project_notebooks],
       article_project_reviews: { review: { vintage: :wine } }
     }
   end

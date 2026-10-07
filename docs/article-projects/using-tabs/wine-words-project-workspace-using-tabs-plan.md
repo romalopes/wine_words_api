@@ -2,6 +2,16 @@
 
 Date: 7 October 2026
 
+> **Implementation status update — October 7, 2026:** This remains the target
+> workspace plan. The repository currently has a delivered vertical slice in
+> the existing Article Project detail page: per-vintage notebook CRUD,
+> optimistic-lock conflict recovery, atomic notebook-to-draft-review creation,
+> and linked-review editing. It does **not** yet implement the complete
+> URL-backed tab workspace, embedded `ArticleForm`, notebook reordering, or all
+> verification scenarios specified below. Treat the phase prompts as design and
+> acceptance requirements unless a phase document explicitly records an
+> implementation result.
+
 ## 1. Goal
 
 Turn Article Projects into an editorial workspace organised into three tabs:

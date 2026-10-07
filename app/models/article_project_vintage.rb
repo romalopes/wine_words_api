@@ -3,6 +3,7 @@ class ArticleProjectVintage < ApplicationRecord
 
   belongs_to :article_project
   belongs_to :vintage
+  has_many :article_project_notebooks, dependent: :destroy
 
   validates :vintage_id, uniqueness: { scope: :article_project_id }
   validates :bottle_condition, inclusion: { in: BOTTLE_CONDITIONS }

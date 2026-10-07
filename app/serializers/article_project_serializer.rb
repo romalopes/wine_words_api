@@ -53,7 +53,11 @@ class ArticleProjectSerializer
   def vintage_json(row)
     vintage = row.vintage
     wine = vintage.wine
-    { id: row.id, vintage: { id: vintage.id, display_name: vintage.name, year: vintage.year, wine_name: wine&.name, wine_slug: wine&.slug, producer_id: wine&.producer_id }, requested: row.requested, received: row.received, selected: row.selected, tasted: row.tasted, date_received: row.date_received&.iso8601, bottle_condition: row.bottle_condition, notes: row.notes }
+    { id: row.id, vintage: { id: vintage.id, display_name: vintage.name, year: vintage.year, wine_name: wine&.name, wine_slug: wine&.slug, producer_id: wine&.producer_id }, requested: row.requested, received: row.received, selected: row.selected, tasted: row.tasted, date_received: row.date_received&.iso8601, bottle_condition: row.bottle_condition, notes: row.notes, article_project_notebooks: row.article_project_notebooks.ordered.map { |notebook| notebook_json(notebook) } }
+  end
+
+  def notebook_json(notebook)
+    { id: notebook.id, title: notebook.title, content: notebook.content, position: notebook.position, lock_version: notebook.lock_version, created_at: notebook.created_at&.iso8601, updated_at: notebook.updated_at&.iso8601 }
   end
 
   def review_json(row)
