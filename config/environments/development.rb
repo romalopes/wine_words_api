@@ -57,7 +57,8 @@ Rails.application.configure do
       authentication: ENV.fetch("SMTP_AUTHENTICATION", "plain").to_sym,
       enable_starttls_auto: ENV.fetch("SMTP_ENABLE_STARTTLS", "true") == "true",
       open_timeout: 5,
-      read_timeout: 5
+      read_timeout: 5,
+      return_path: ENV.fetch("MAIL_FROM")
     }
   else
     config.action_mailer.delivery_method = :file

@@ -242,7 +242,7 @@ class Api::V1::HealthController < ApplicationController
   # A real round trip instead of `connection.active?`: in a freshly booted
   # process the pooled connection is created lazily, so `active?` reports
   # false until some other query has warmed it — which made a healthy
-  # database report "error" 
+  # database report "error"
 
   def authenticate_admin!
     # Use the REAL authenticated user so an admin who is impersonating a
