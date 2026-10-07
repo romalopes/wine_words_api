@@ -11,8 +11,8 @@
 # Mailers evaluate `default from:` at class-load time, so set the variables in
 # the environment (.env.development / Render dashboard) before booting.
 module MailSender
-  DEFAULT_FROM = "kasia@mywineadviser.com.au"
-  DEFAULT_REPLY_TO = "romalopes@yahoo.com.br"
+  DEFAULT_FROM = "Wine Words <support@wine-words.com>"
+  DEFAULT_REPLY_TO = "romalopes@wine-words.com.br"
 
   module_function
 

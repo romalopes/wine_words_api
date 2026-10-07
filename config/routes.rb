@@ -112,6 +112,13 @@ Rails.application.routes.draw do
       get "health/detailed", to: "health#detailed"
       get "health/search_index", to: "health#search_index"
 
+      # --- Diagnostics: health e-mail tool (issue #167) ------------------------- #
+      # `email_transport` is public (no auth) so the React ApiHealth page can
+      # render the email-status row without a token. `send_test_email` is
+      # admin-only (authenticate_admin!).
+      get  "health/email/transport",    to: "health#email_transport",    as: :health_email_transport
+      post "health/email/test",         to: "health#send_test_email",    as: :health_send_test_email
+
 
       # Private test-access gate (see TestAccessToken): password -> signed
       # token; token verification for the SPA on boot.

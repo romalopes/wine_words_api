@@ -20,6 +20,23 @@ class MailTransport
     new(env, logger: logger).resolve
   end
 
+  # The transport name to surface in diagnostics.
+  #
+  # In the test environment the mail delivery is handled by the Active Job
+  # test delivery, so the name reported here is the literal `"test"` — this
+  # keeps the health check honest when the process is exercising
+  # `MAIL_TRANSPORT=file` as `file` but the rails `test` delivery is active
+  # (CI/output-mode shells), instead of silently quoting a non-existent
+  # live transport.
+  #
+  # Otherwise this resolves the transport name the operator requested, just
+  # like {.resolve}.
+  def self.effective_transport_name(env, logger: nil)
+    return "test" if Rails.env.test?
+
+    resolve(env, logger: logger)
+  end
+
   def initialize(env, logger: nil)
     @env = env
     @logger = logger

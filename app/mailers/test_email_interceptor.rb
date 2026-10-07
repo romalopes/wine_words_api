@@ -4,6 +4,7 @@
 # when AppSetting.use_test_email? is true.
 class TestEmailInterceptor
   def self.delivering_email(message)
+
     return unless AppSetting.use_test_email?
 
     test_addr = AppSetting.test_email

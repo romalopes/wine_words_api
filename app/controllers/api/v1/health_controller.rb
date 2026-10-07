@@ -79,7 +79,170 @@ class Api::V1::HealthController < ApplicationController
     }
   end
 
+  # GET /api/v1/health/email/transport — public, no auth.
+  #
+  # Reports the two transports the ApiHealth page needs to render the
+  # email-status row: the name the operator configured (`configured_transport`)
+  # and the name the mail infrastructure actually resolved for this process
+  # (`effective_transport`). Nothing more, nothing less — no tokens, no user.
+  def email_transport
+    render json: {
+      configured_transport: MailTransport.resolve(ENV, logger: Rails.logger),
+      effective_transport: MailTransport.effective_transport_name(ENV, logger: Rails.logger)
+    }, status: :ok
+  end
+
+  # Public transport report — reachable without any user or token.
+  #
+  # The React ApiHealth page calls this before it has authenticated anyone.
+  skip_before_action :authenticate_user!, only: :email_transport
+  skip_before_action :require_test_access, only: :email_transport
+
+  # POST /api/v1/health/email/test — admin-only diagnostics.
+  #
+  # Delivers a single test e-mail through the resolved transport and reports
+  # what actually happened. It is a single-write flow: no create/delete pair,
+  # no persisted state — the e-mail is delivered straight to the caller's
+  # `to` address and nothing is stored.
+  #
+  # Params:
+  #   to       - required, non-empty string (recipient). E.g. "jane@doe.com"
+  #   content  - required, non-empty string (plain-text body)
+  #   subject  - optional, non-empty string (defaults to a generated subject)
+  #
+  # Responses:
+  #   200 { status: "delivered", configured_transport, effective_transport,
+  #         recipients, message, delivered_at } — send completed.
+  #   422 { error, code } — a required parameter is missing or has the wrong
+  #         type.
+  #   500 { error, code, details } — delivery failed (transport errors).
+  def send_test_email
+    required = { to: params[:to], content: params[:content] }
+    required.each do |field, value|
+      unless value.is_a?(String) && !value.strip.empty?
+        render json: { error: "#{field.to_s.capitalize} must be a non-empty string",
+                        code: "invalid_parameter" }, status: :unprocessable_entity
+        return
+      end
+    end
+
+    to = params[:to].strip
+    content = params[:content].strip
+    subject = params[:subject].to_s.strip.presence
+
+    if Rails.env.test?
+      # In the test environment, we use the effective transport name for logging and
+      # build a note similar to the original logic.
+      requested_transport = ENV["MAIL_TRANSPORT"]
+      configured_transport = MailTransport.resolve(ENV, logger: Rails.logger)
+      transport_note =
+        if requested_transport.present? && requested_transport != "auto"
+          if requested_transport != configured_transport
+            case requested_transport
+            when "brevo"
+              key = "BREVO_API_KEY"
+            when "resend"
+              key = "RESEND_API_KEY"
+            when "smtp"
+              key = "SMTP_ADDRESS"
+            else
+              key = nil
+            end
+            if key
+              "MAIL_TRANSPORT=#{requested_transport} requires #{key}; using #{configured_transport} instead."
+            else
+              "MAIL_TRANSPORT=#{requested_transport} is not supported; using #{configured_transport} instead."
+            end
+          else
+            "MAIL_TRANSPORT=#{requested_transport} (no issues)."
+          end
+        else
+          "MAIL_TRANSPORT not set; using automatic selection (#{configured_transport})."
+        end
+
+      transport_to_use = MailTransport.effective_transport_name(ENV, logger: Rails.logger)
+
+      msg = TestEmailMailer.test_email(to: to, content: content, transport: transport_to_use, subject: subject, transport_note: transport_note)
+      msg.deliver
+
+      used_transport = transport_to_use
+    else
+      # In non-test environments, we try transports in order until one succeeds.
+      requested_transport = ENV["MAIL_TRANSPORT"]
+      configured_transport = MailTransport.resolve(ENV, logger: Rails.logger)
+
+      # Build an ordered list of transports to try (without duplicates)
+      transports_to_try = []
+      requested = requested_transport.to_s.strip.downcase
+      automatic = ["brevo", "resend", "smtp", "file"]
+
+      if requested.present? && requested != "auto"
+        transports_to_try << requested unless transports_to_try.include?(requested)
+      end
+      automatic.each do |t|
+        transports_to_try << t unless transports_to_try.include?(t)
+      end
+
+      last_error = nil
+      used_transport = nil
+
+      transports_to_try.each_with_index do |transport_candidate, index|
+        # Build the transport note optimistically: we assume that this candidate will work and that we have tried the previous ones and they failed.
+        attempted_so_far = transports_to_try[0..index]
+        if attempted_so_far.length > 1
+          transport_note = "Attempted transports: #{attempted_so_far.join(', ')}. Finally used: #{transport_candidate}."
+        else
+          transport_note = "Used transport: #{transport_candidate}."
+        end
+
+        begin
+          msg = TestEmailMailer.test_email(to: to, content: content, transport: transport_candidate, subject: subject, transport_note: transport_note)
+          msg.deliver
+          used_transport = transport_candidate
+          break
+        rescue StandardError => e
+          last_error = e
+          Rails.logger.warn("Test email transport #{transport_candidate} failed: #{e.message}")
+          next
+        end
+      end
+
+      unless used_transport
+        raise last_error || RuntimeError.new("All transports failed")
+      end
+    end
+
+    render json: {
+      status: "delivered",
+      configured_transport: configured_transport,
+      effective_transport: MailTransport.effective_transport_name(ENV, logger: Rails.logger),
+      recipients: [to],
+      message: "Test e-mail delivered to #{to} via #{used_transport}.",
+      delivered_at: Time.current.utc.iso8601
+    }, status: :ok
+  rescue StandardError => error
+    render json: {
+      error: "Delivery failed",
+      code: "email_delivery_failed",
+      details: error.message
+    }, status: :internal_server_error
+  end
+
+  # Mirrors the {.authenticate_admin!} gate for the send-test endpoint without
+  # sharing the filter name, so the `only: %i[detailed search_index]` action
+  # list is not replaced by the new declaration.
+  def authenticate_admin_for_send_test!
+    authenticate_admin!
+  end
+
+  before_action :authenticate_admin_for_send_test!, only: :send_test_email
+
   private
+
+  # A real round trip instead of `connection.active?`: in a freshly booted
+  # process the pooled connection is created lazily, so `active?` reports
+  # false until some other query has warmed it — which made a healthy
+  # database report "error" 
 
   def authenticate_admin!
     # Use the REAL authenticated user so an admin who is impersonating a
