@@ -177,17 +177,17 @@ class Api::V1::ArticlesController < ApplicationController
   end
 
   def create
-    article = Article.new(article_params)
-    article.user = current_user
-    if article.save
-      image_errors = attach_images(article)
+    @article = Article.new(article_params)
+    @article.user = current_user
+    if @article.save
+      image_errors = attach_images(@article)
       if image_errors.any?
         return render json: { errors: image_errors }, status: :unprocessable_entity
       end
 
-      render json: ArticleSerializer.new(article, request.base_url, liked_ids: Likes.liked_ids_for([article], current_user)).as_json, status: :created
+      render json: ArticleSerializer.new(@article, request.base_url, liked_ids: Likes.liked_ids_for([@article], current_user)).as_json, status: :created
     else
-      render json: { errors: article.errors.full_messages }, status: :unprocessable_entity
+      render json: { errors: @article.errors.full_messages }, status: :unprocessable_entity
     end
   end
 
