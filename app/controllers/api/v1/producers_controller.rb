@@ -19,6 +19,9 @@ class Api::V1::ProducersController < ApplicationController
     scope = scope.where(country_id: params[:country_id]) if params[:country_id].present?
     scope = scope.joins(:regions).where(regions: { id: params[:region_id] }) if params[:region_id].present?
     scope = scope.joins(:grapes).where(grapes: { id: params[:grape_id] }) if params[:grape_id].present?
+    scope = scope.where(producer_type: params[:producer_type]) if params[:producer_type].present?
+    scope = scope.where(active: ActiveModel::Type::Boolean.new.cast(params[:active])) if params[:active].present?
+    scope = scope.where("name ILIKE ?", "%#{params[:q]}%") if params[:q].present?
     return if render_paginated(scope) { |items| items.map { |producer| producer_json(producer) } }
 
     render json: scope.map { |producer| producer_json(producer) }
