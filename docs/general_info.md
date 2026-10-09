@@ -1,3 +1,7 @@
+## Local setup and deployment
+
+See [Local development and deployment configuration](LOCAL_AND_DEPLOYMENT_SETUP.md) for local startup, Vercel/Render setup, and the environment variable reference.
+
 ### How to check the server
 
 - lsof -i :3000
