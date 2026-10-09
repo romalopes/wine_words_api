@@ -189,6 +189,7 @@ alone does not configure CORS.
 | [Operational dashboard links](docs/general_info.md) | GitHub, Render, Vercel, and monitoring dashboards |
 | [Database seed scripts](docs/DATABASE_SEEDS.md) | Each seed file, run commands, dependency order, and destructive/rerun behaviour |
 | [Database backup and restore](docs/DATABASE_BACKUP_AND_RESTORE.md) | Backup workflows, recovery, and restoring development data; database backups do not include uploaded media |
+| [Database backup script](docs/DATABASE_BACKUP_SCRIPT.md) | Standalone CLI script for backup/restore/verify/list/download with Cloudflare R2 compatibility |
 | [Domain setup](docs/wine_words_domain_setup.md) | Custom domains and DNS configuration |
 | [Cloudflare, Render, and email setup](docs/webcentral_cloudflare_render_email_setup.md) | Domain and transactional email infrastructure configuration |
 | [Email infrastructure migration](docs/email-infrastructure-migration.md) | Email migration context and procedures |
