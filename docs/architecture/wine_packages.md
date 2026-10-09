@@ -1,5 +1,7 @@
 # Wine packages
 
+[Architecture index](architecture.md) · [Reviews](reviews.md) · [Wine and Vintage](wine_vintages.md)
+
 Receiving wines from producers, and tracking the reviews they need.
 
 A **WinePackage** is the unit of work behind the reviewing workflow: a producer
@@ -19,28 +21,24 @@ workflow without changing how wines, vintages or reviews already work:
 
 ## 1. Domain model
 
-```
-                    Producer
-                        |
-                        | 1..n
-                        v
-                  WinePackage <--------------- User (reviewer, created_by,
-                /     |      \                           accepted_by, rejected_by)
-      1..n     /      |       \   1..1
-              v      v        v
-   WinePackageItem  ShipmentTracking    Notification (recipient)
-        |            |
-        | 0..n       | 0..n
-        v            v
-      Review   ShipmentTrackingEvent
-        ^
-        |
-   Vintage ---> Wine ---> Producer        (the existing catalogue)
+```mermaid
+erDiagram
+  Producer ||--o{ WinePackage : sends
+  User o|--o{ WinePackage : reviews
+  WinePackage ||--o{ WinePackageItem : contains
+  WinePackage ||--o| ShipmentTracking : tracks
+  WinePackage ||--o{ ShipmentTrackingEvent : records
+  WinePackage ||--o{ Notification : schedules
+  Vintage o|--o{ WinePackageItem : identifies
+  Review o|--o{ WinePackageItem : fulfills
+  Wine ||--o{ Vintage : has
 ```
 
-Rows below a table are its children (`has_many`), rows above are its parents
-(`belongs_to`). `WinePackageItem.vintage_id` is **optional**: a line can be
-recorded before its wine exists in the catalogue.
+An item belongs to one package and optionally references one vintage and one
+review; a review can be referenced by multiple items. A package has at most one
+tracking row and can have many tracking events and notifications.
+`WinePackageItem.vintage_id` is optional, so a line can be recorded before its
+wine exists in the catalogue.
 
 ### Tables
 
@@ -57,9 +55,10 @@ recorded before its wine exists in the catalogue.
 * **One link, one truth.** An item points at its review through
   `wine_package_items.review_id`. There is no `reviews.wine_package_item_id`
   column — that would store the same fact twice, and the two copies can drift.
-* **No Project association.** The application has no `Project` model, so adding
-  the FK would only create a dangling reference. If a Project model is ever
-  introduced, an optional `project_id` can be added additively.
+* **No direct project association.** The application has an `ArticleProject`
+  model, but packages do not reference it. Projects and packages can refer to
+  the same vintages and reviews through their separate join/item records;
+  see [Article projects](article_projects.md).
 * **`status` / `source` are string-backed enums** (the codebase convention, cf.
   `Review#status`, `Producer#producer_type`) *plus* an explicit transition guard,
   because a Rails enum alone does not enforce a legal workflow.
@@ -257,9 +256,12 @@ the reminders for `THRESHOLD_DAYS = [15, 5, 0]`:
 
 ### Delivery
 
-`WinePackages::SendReviewDeadlineNotificationsJob` runs daily
-(`config/recurring.yml` → `wine_package_review_deadline_reminders`,
-`at 7am every day`, queue `background`) and does exactly two things:
+`config/recurring.yml` configures `WinePackages::SendReviewDeadlineNotificationsJob`
+for `at 7am every day` on queue `background` under
+`wine_package_review_deadline_reminders`. This requires an active recurring-job
+scheduler; the effective production adapter is currently `:async`, so the file
+alone does not guarantee execution. See the
+[deployment guide](../LOCAL_AND_DEPLOYMENT_SETUP.md). When invoked, the job does two things:
 
 1. top up the reminders for every `WinePackage.active` with a deadline;
 2. deliver every `Notification.undelivered.for_date(..today)` whose type is
@@ -603,7 +605,8 @@ Frontend (Vitest + Testing Library): `WinePackages.test.jsx`,
 
 ```bash
 # backend
-bin/rails db:prepare
+# Confirm DATABASE_URL targets a dedicated test database first.
+RAILS_ENV=test bin/rails db:create db:migrate
 bundle exec rspec spec/models/wine_package_spec.rb      # or the whole suite
 
 # frontend
@@ -656,3 +659,10 @@ any redesign:
 What is intentionally **not** built yet: a Producer account/auth model, a
 producer-facing API surface, and the UI for producer submissions (the reviewer
 picker gap noted in §8 is part of the same future work).
+
+## Related architecture and source
+
+[System lifecycle](system_lifecycle.md), [Review](../../app/models/review.rb),
+[WinePackage](../../app/models/wine_package.rb),
+[WinePackageItem](../../app/models/wine_package_item.rb),
+[workflow services](../../app/services/wine_packages/).

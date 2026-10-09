@@ -1,3 +1,5 @@
+[Architecture and model lifecycles](architecture/architecture.md) · [Database seeds](DATABASE_SEEDS.md)
+
 ## Local setup and deployment
 
 See [Local development and deployment configuration](LOCAL_AND_DEPLOYMENT_SETUP.md) for local startup, Vercel/Render setup, and the environment variable reference.

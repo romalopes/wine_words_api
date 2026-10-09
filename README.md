@@ -10,6 +10,9 @@ contains the full installation steps, environment variable reference, deployment
 instructions, and troubleshooting. This README provides the system overview and a
 short local startup path.
 
+For model relationships and workflows, start with the
+[architecture documentation](docs/architecture/architecture.md).
+
 ## How the system fits together
 
 | Component | Responsibility | Local / hosted runtime |
@@ -181,6 +184,7 @@ alone does not configure CORS.
 | Guide | What to use it for |
 |---|---|
 | [Local development and deployment setup](docs/LOCAL_AND_DEPLOYMENT_SETUP.md) | Complete local startup, Vercel/Render configuration, environment variables, and troubleshooting |
+| [Architecture and model lifecycles](docs/architecture/architecture.md) | Domain models, relationships, publication, planning, and end-to-end workflows |
 | [System and feature reference](WINE_WORDS_README.md) | Detailed architecture, domain features, API behaviour, and repository layout; consult the setup guide for current runtime configuration |
 | [Operational dashboard links](docs/general_info.md) | GitHub, Render, Vercel, and monitoring dashboards |
 | [Database seed scripts](docs/DATABASE_SEEDS.md) | Each seed file, run commands, dependency order, and destructive/rerun behaviour |
@@ -190,4 +194,4 @@ alone does not configure CORS.
 | [Email infrastructure migration](docs/email-infrastructure-migration.md) | Email migration context and procedures |
 | [Social authentication](docs/social_authentication.md) | Provider setup for Google, Apple, Microsoft, and Facebook login |
 | [User account identity](docs/user-account-identity.md) | Account identity and authentication behaviour |
-| [Wine packages](docs/wine_packages.md) | Producer/reviewer package workflow, tracking, and reminders |
+| [Wine packages](docs/architecture/wine_packages.md) | Producer/reviewer package workflow, tracking, and reminders |

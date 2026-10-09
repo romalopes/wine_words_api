@@ -1,5 +1,8 @@
 # Wine Words — Project Documentation (shared, verified)
 
+For current domain relationships and workflows, see the
+[architecture index](docs/architecture/architecture.md).
+
 > Generated 2026-09-24 from working trees `wine_prediction` (frontend) and
 > `wine_prediction_api` (backend). Documents **implemented, verified**
 > functionality only. Planned items are explicitly marked.
@@ -89,7 +92,7 @@ wine_project/
     ├── WINE_WORDS_README.md   # this file (shared draft location)
     ├── README.md              # stub (untouched)
     ├── docs/                  # DATABASE_BACKUP_AND_RESTORE.md,
-    │                          # social_authentication.md, wine_packages.md,
+    │                          # social_authentication.md, architecture/wine_packages.md,
     │                          # general_info.md (do not duplicate)
     └── secrets/ (workspace root) # WARNING: contains a live Google client
                                   # secret JSON; out-of-repo by luck, must be
@@ -408,7 +411,7 @@ Implemented: catalogue + fuzzy/advanced search, reviews/articles + galleries,
 packages workflow + tracking + deadline reminders, social/password auth +
 impersonation, five roles, Stripe plans + reconcile, audit logs, config API,
 API-health console, backups. Planned (per docs): **producer portal/accounts**
-(`docs/wine_packages.md` §13), content-entitlement enforcement, repo/remote
+(`docs/architecture/wine_packages.md` §13), content-entitlement enforcement, repo/remote
 rename alignment, CORS cleanup of the retired Vercel URL, Node pinning,
 frontend quality gate (lint currently fails with 21 errors; fix or scope the
 config, and fix the `WinePackageDetail` empty-tracking copy/test drift). Not
@@ -420,7 +423,7 @@ Follow repo conventions (RSpec + RuboCop omakase; ESLint + Vitest). No
 `LICENSE`/`CONTRIBUTING` file was found — licensing is **undefined**; add one
 before public release. Links: live app, API health, both GitHub canonical
 repos (§2); in-repo docs `docs/social_authentication.md`,
-`docs/wine_packages.md`, `docs/DATABASE_BACKUP_AND_RESTORE.md`.
+`docs/architecture/wine_packages.md`, `docs/DATABASE_BACKUP_AND_RESTORE.md`.
 
 ## Appendix — verification notes
 

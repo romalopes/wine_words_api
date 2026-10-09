@@ -405,7 +405,7 @@ There is no separate `JWT_SECRET` env reader: Devise JWT uses Rails `secret_key_
 
 Stripe webhook route is `/api/v1/webhooks/stripe`; configure that endpoint and its
 signing secret in the matching Stripe environment. See
-[wine packages](wine_packages.md) for shipment/tracking behavior.
+[wine packages](architecture/wine_packages.md) for shipment/tracking behavior.
 
 ### Legacy aliases and infrastructure-only variables
 
