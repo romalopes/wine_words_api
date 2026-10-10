@@ -167,6 +167,7 @@ Rails.application.routes.draw do
         resource :like, only: [:create, :destroy], controller: "review_likes"
         resources :comments, only: [:index, :create], controller: "review_comments"
       end
+      resources :sources, only: [:index]
       resources :articles, only: [:index, :show, :create, :update, :destroy] do
         collection do
           get :my_articles

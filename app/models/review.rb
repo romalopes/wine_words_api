@@ -15,13 +15,14 @@ class Review < ApplicationRecord
   has_many :wine_package_items, dependent: :nullify
 
   STATUSES = %w[draft published archived].freeze
+  SOURCES = %w[manual substack wine_front].freeze
 
   validates :score, presence: true,
                     numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100 }
   validates :status, presence: true, inclusion: { in: STATUSES }
   validates :title, presence: true
   validates :slug, presence: true, uniqueness: true
-  validates :source, presence: true, inclusion: { in: %w[manual substack wine_front] }
+  validates :source, presence: true, inclusion: { in: SOURCES }
 
   validate :drink_window_is_consistent
 

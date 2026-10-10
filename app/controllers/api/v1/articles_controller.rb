@@ -26,6 +26,7 @@ class Api::V1::ArticlesController < ApplicationController
     articles = articles.visible_to(current_user) unless current_user&.wine_manager?
     articles = articles.joins(:article_categories).where(article_categories: { category_id: params[:category_id] }).distinct if params[:category_id].present?
     articles = articles.left_outer_joins(:article_categories).where(article_categories: { id: nil }) if params[:uncategorised] == "true"
+    articles = articles.where(source: params[:source]) if params[:source].present?
     # Full-text search (title, abstract, body, tags, category, author) plus the
     # requested ordering. `ordered_for_search` replaces `recent` instead of
     # appending to it, otherwise recency wins and relevance is silently ignored.

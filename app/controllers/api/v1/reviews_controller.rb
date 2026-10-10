@@ -37,6 +37,7 @@ class Api::V1::ReviewsController < ApplicationController
                                vintage: { wine: { images: { file_attachment: :blob } } })
     reviews = reviews.joins(:review_categories).where(review_categories: { category_id: params[:category_id] }).distinct if params[:category_id].present?
     reviews = reviews.left_outer_joins(:review_categories).where(review_categories: { id: nil }) if params[:uncategorised] == "true"
+    reviews = reviews.where(source: params[:source]) if params[:source].present?
     # Full-text search + the requested ordering. `ordered_for_search` replaces
     # the scope's default ordering rather than appending to it, otherwise the
     # recency scope wins and relevance is silently ignored.
