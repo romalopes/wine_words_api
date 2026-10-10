@@ -19,6 +19,7 @@ class Review < ApplicationRecord
   validates :status, presence: true, inclusion: { in: %w[draft published] }
   validates :title, presence: true
   validates :slug, presence: true, uniqueness: true
+  validates :source, presence: true, inclusion: { in: %w[manual substack wine_front] }
 
   validate :drink_window_is_consistent
 

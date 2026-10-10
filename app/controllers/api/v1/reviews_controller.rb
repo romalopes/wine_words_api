@@ -255,16 +255,20 @@ class Api::V1::ReviewsController < ApplicationController
   end
 
   def set_review
-    @review = Review.includes({ user: :account }, vintage: :wine)
+    @review = Review.includes({ user: :account },
+                              images: { file_attachment: :blob },
+                              vintage: { wine: { images: { file_attachment: :blob } } })
                     .find_by(slug: params[:id]) ||
-              Review.includes({ user: :account }, vintage: :wine).find(params[:id])
+              Review.includes({ user: :account },
+                              images: { file_attachment: :blob },
+                              vintage: { wine: { images: { file_attachment: :blob } } }).find(params[:id])
   rescue ActiveRecord::RecordNotFound
     render json: { error: "Review not found" }, status: :not_found
   end
 
   def review_params
     params.require(:review).permit(:comment, :score, :status, :published_at, :title,
-                                   :vintage_id,
+                                   :vintage_id, :source,
                                    :drink_from, :drink_to, :drink_plus, images: [],
                                    category_ids: [])
   end

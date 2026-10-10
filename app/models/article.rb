@@ -25,9 +25,12 @@ class Article < ApplicationRecord
   has_many :article_reviews, dependent: :destroy
   has_many :reviews, through: :article_reviews
 
+  SOURCES = %w[manual substack wine_front].freeze
+
   validates :title, presence: true
   validates :slug, presence: true, uniqueness: true
   validates :status, presence: true, inclusion: { in: %w[draft published] }
+  validates :source, presence: true, inclusion: { in: SOURCES }
 
   before_validation :generate_slug
 before_save :update_search_vector

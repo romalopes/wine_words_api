@@ -25,6 +25,7 @@ class ArticleSerializer
       status: @article.status,
       user_id: @article.user_id,
       author_name: @article.user&.display_name || @article.user&.email || "Unknown",
+      source: @article.source,
       published_at: @article.published_at&.iso8601,
       created_at: @article.created_at&.iso8601,
       updated_at: @article.updated_at&.iso8601,
@@ -35,7 +36,10 @@ class ArticleSerializer
       images: image_urls(@article),
       image_ids: image_ids(@article),
       image_details: image_details(@article),
-      primary_image: primary_image(@article),
+      primary_image: primary_image(@article) || linked_review_image,
+      # Review fallback: when the article itself has no images, the UI shows
+      # the first linked review's image instead.
+      fallback_review_image: linked_review_image,
       producers: producers,
       producer_ids: @article.producers.map(&:id),
       vintages: vintages,
@@ -99,9 +103,35 @@ class ArticleSerializer
         wine_name: review.vintage&.wine&.name,
         wine_slug: review.vintage&.wine&.slug,
         images: image_urls(review),
-        primary_image: primary_image(review),
+        primary_image: primary_image(review) || review_wine_image(review),
+        wine_image: review_wine_image(review),
         **like_fields(review, @review_liked_ids)
       }
     end
+  end
+
+  # First linked review (published link preferred) that carries an image —
+  # own image first, else its wine's image. Used as the article fallback.
+  def linked_review_image
+    published = @article.article_reviews.select { |l| l.status == "published" }
+    ordered_links = published.presence || @article.article_reviews.to_a
+    ordered_links.each do |link|
+      review = link.review
+      next if review.nil?
+      own = primary_image(review)
+      return own if own.present?
+      wine_img = review_wine_image(review)
+      return wine_img if wine_img.present?
+    end
+    nil
+  end
+
+  def review_wine_image(review)
+    wine = review.vintage&.wine
+    return nil unless wine&.images&.any?
+
+    images = ordered_images(wine)
+    primary = images.find(&:primary?) || images.first
+    primary&.file&.attached? ? blob_url(primary.file.blob) : nil
   end
 end

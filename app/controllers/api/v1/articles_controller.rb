@@ -245,8 +245,10 @@ class Api::V1::ArticlesController < ApplicationController
   # are preloaded here instead of being resolved per review while rendering.
   def set_article
     @article = Article.includes({ user: :account }, :tags, :producers,
-                                 vintages: :wine,
-                                 article_reviews: { review: [ :vintage, { images: { file_attachment: :blob } } ] },
+                                 images: { file_attachment: :blob },
+                                 vintages: { wine: { images: { file_attachment: :blob } } },
+                                 article_reviews: { review: [ :vintage, { images: { file_attachment: :blob } },
+                                                              { vintage: { wine: { images: { file_attachment: :blob } } } } ] },
                                  article_categories: :category)
                        .find_by(slug: params[:id]) || Article.find(params[:id])
   rescue ActiveRecord::RecordNotFound
@@ -267,7 +269,7 @@ class Api::V1::ArticlesController < ApplicationController
 
   def article_params
     permitted = params.require(:article).permit(
-      :title, :abstract, :body, :status, :published_at,
+      :title, :abstract, :body, :status, :published_at, :source,
       :tag_names, vintage_ids: [], review_ids: [], producer_ids: [],
       category_ids: []
     )

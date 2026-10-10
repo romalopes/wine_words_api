@@ -314,6 +314,7 @@ URLS.each_with_index do |url, idx|
   common = {
     title: review_title,
     status: 'draft',
+    source: 'substack',
     published_at: data[:published_at],
     user: user
   }
@@ -443,6 +444,7 @@ URLS.each_with_index do |url, idx|
       updated += 1
       print '🔄'
     end
+    # because the image is attached to the wine already.
     attach_image(record, data[:lead_image_url])
     puts " ✅ #{data[:title]}"
   rescue => e

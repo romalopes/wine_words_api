@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_07_000003) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_08_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -220,6 +220,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_07_000003) do
     t.datetime "published_at"
     t.tsvector "searchable"
     t.string "slug", null: false
+    t.string "source", limit: 32, default: "manual", null: false
     t.string "status", default: "draft", null: false
     t.string "title", null: false
     t.datetime "updated_at", null: false
@@ -227,6 +228,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_07_000003) do
     t.index ["category_id"], name: "index_articles_on_category_id"
     t.index ["searchable"], name: "index_articles_on_searchable", using: :gin
     t.index ["slug"], name: "index_articles_on_slug", unique: true
+    t.index ["source"], name: "index_articles_on_source"
     t.index ["user_id"], name: "index_articles_on_user_id"
   end
 
@@ -474,6 +476,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_07_000003) do
     t.decimal "score", precision: 5, scale: 2
     t.tsvector "searchable"
     t.string "slug", null: false
+    t.string "source", limit: 32, default: "manual", null: false
     t.string "status", default: "draft", null: false
     t.string "title"
     t.datetime "updated_at", null: false
@@ -482,6 +485,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_07_000003) do
     t.index ["category_id"], name: "index_reviews_on_category_id"
     t.index ["searchable"], name: "index_reviews_on_searchable", using: :gin
     t.index ["slug"], name: "index_reviews_on_slug", unique: true
+    t.index ["source"], name: "index_reviews_on_source"
     t.index ["user_id"], name: "index_reviews_on_user_id"
     t.index ["vintage_id"], name: "index_reviews_on_vintage_id"
   end
