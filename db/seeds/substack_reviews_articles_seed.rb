@@ -282,7 +282,8 @@ URLS = [
   'https://kasiasobiesiak.substack.com/p/mount-pleasant-museum-release-showcase',
   'https://kasiasobiesiak.substack.com/p/tumbarumba-chardonnay-benchmark-blind',
   'https://kasiasobiesiak.substack.com/p/penfolds-st-henri-mini-vertical-1991',
-  'https://kasiasobiesiak.substack.com/p/wynns-john-riddoch-and-black-label'
+  'https://kasiasobiesiak.substack.com/p/wynns-john-riddoch-and-black-label',
+  'https://kasiasobiesiak.substack.com/p/review-six-wines-of-heifer-station'
 ]
 
 user = fallback_user

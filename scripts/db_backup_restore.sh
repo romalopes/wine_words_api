@@ -11,10 +11,10 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-API_DIR="$PROJECT_ROOT/wine_prediction_api"
+API_DIR="$PROJECT_ROOT"
 
 # Default versions (match GitHub Actions workflows)
-PG_CLIENT_MAJOR="18"
+PG_CLIENT_MAJOR="${PG_CLIENT_MAJOR:-18}"
 AGE_VERSION="1.3.2"
 SYSTEM_PREFIX="wine-words"
 ENCRYPTION_KEY_ID="v1"
@@ -33,7 +33,7 @@ NC='\033[0m' # No Color
 log_info() { echo -e "${BLUE}[INFO]${NC} $*"; }
 log_success() { echo -e "${GREEN}[SUCCESS]${NC} $*"; }
 log_warn() { echo -e "${YELLOW}[WARN]${NC} $*"; }
-log_error() { echo -e "${RED}[ERROR]${NC} $*"; }
+log_error() { echo -e "${RED}[ERROR]${NC} $*" >&2; }
 
 die() { log_error "$*"; exit 1; }
 
@@ -45,8 +45,34 @@ require_cmd() {
 # DEPENDENCY CHECKS
 # ============================================================================
 
+postgres_clients_match() {
+  local client version
+  for client in pg_dump pg_restore psql; do
+    version=$("$client" --version 2>/dev/null) || return 1
+    [[ "$version" =~ PostgreSQL\)\ ([0-9]+) ]] || return 1
+    [[ "${BASH_REMATCH[1]}" == "$PG_CLIENT_MAJOR" ]] || return 1
+  done
+}
+
+select_postgres_clients() {
+  [[ "$PG_CLIENT_MAJOR" =~ ^[0-9]+$ ]] || die "PG_CLIENT_MAJOR must be a major version number"
+  if ! postgres_clients_match; then
+    local prefix
+    if command -v brew >/dev/null 2>&1; then
+      prefix=$(brew --prefix "postgresql@$PG_CLIENT_MAJOR" 2>/dev/null) || prefix=""
+      if [ -n "$prefix" ] && [ -x "$prefix/bin/pg_dump" ]; then
+        export PATH="$prefix/bin:$PATH"
+        hash -r
+      fi
+    fi
+  fi
+  postgres_clients_match || die "PostgreSQL $PG_CLIENT_MAJOR clients required. Install with: brew install postgresql@$PG_CLIENT_MAJOR; or prepend the matching PostgreSQL bin directory to PATH."
+  log_info "Using $(pg_dump --version) from $(command -v pg_dump)"
+}
+
 check_dependencies() {
   log_info "Checking dependencies..."
+  select_postgres_clients
   require_cmd pg_dump
   require_cmd pg_restore
   require_cmd psql
@@ -65,26 +91,39 @@ check_dependencies() {
 get_database_url() {
   local provider="$1"
   local env_file="$API_DIR/.env.development.local"
-  
+  local variable
+
   case "$provider" in
-    local)
-      echo "postgresql:///wine_words_development"
-      ;;
-    supabase)
-      grep -E '^SUPABASE_DATABASE_URL=' "$env_file" 2>/dev/null | cut -d'=' -f2- || die "SUPABASE_DATABASE_URL not found in $env_file"
-      ;;
-    neon)
-      grep -E '^NEON_DATABASE_URL=' "$env_file" 2>/dev/null | cut -d'=' -f2- || die "NEON_DATABASE_URL not found in $env_file"
-      ;;
-    *)
-      die "Unknown provider: $provider. Use: local, supabase, or neon"
-      ;;
+    local) variable="LOCAL_DATABASE_URL" ;;
+    supabase) variable="SUPABASE_DATABASE_URL" ;;
+    neon) variable="NEON_DATABASE_URL" ;;
+    *) die "Unknown provider: $provider. Use: local, supabase, or neon" ;;
   esac
+
+  local value
+  value=$(get_config_value "$variable")
+  [ -n "$value" ] || die "$variable not set in the environment or $env_file"
+  printf '%s\n' "$value"
+}
+
+get_config_value() {
+  local variable="$1"
+  local env_file="$API_DIR/.env.development.local"
+  # Exported variables take precedence. Read dotenv values as data, never shell code.
+  local value="${!variable:-}"
+  if [ -z "$value" ] && [ -f "$env_file" ]; then
+    value=$(sed -En "s/^[[:space:]]*(export[[:space:]]+)?${variable}[[:space:]]*=[[:space:]]*//p" "$env_file" | tail -n 1)
+    value="${value%$'\r'}"
+    if [[ "$value" == \"*\" || "$value" == \'*\' ]]; then
+      value="${value:1:${#value}-2}"
+    fi
+  fi
+  printf '%s\n' "$value"
 }
 
 validate_database_url() {
   local url="$1"
-  [[ "$url" =~ ^postgresql:// ]] || die "Invalid DATABASE_URL format: $url"
+  [[ "$url" =~ ^postgres(ql)?:// ]] || die "Invalid database URL: expected postgres:// or postgresql://"
 }
 
 get_database_name() {
@@ -160,7 +199,7 @@ META_EOF
   log_success "Metadata saved: $metadata_file"
   
   log_info "Encrypting with age (key id: $ENCRYPTION_KEY_ID)..."
-  local recipient="${BACKUP_ENCRYPTION_RECIPIENT:-}"
+  local recipient="$(get_config_value BACKUP_ENCRYPTION_RECIPIENT)"
   if [ -z "$recipient" ]; then
     log_warn "BACKUP_ENCRYPTION_RECIPIENT not set. Skipping encryption."
     log_success "Backup completed (unencrypted): $dump_file"
@@ -190,6 +229,14 @@ META_EOF
 # RESTORE FUNCTIONS
 # ============================================================================
 
+check_restore_server_version() {
+  local target_url="$1" server_number server_major
+  server_number=$(psql -X "$target_url" -Atc 'SHOW server_version_num;') || die "Cannot determine target PostgreSQL server version"
+  [[ "$server_number" =~ ^[0-9]+$ ]] || die "Invalid target PostgreSQL server version"
+  server_major=$((server_number / 10000))
+  [ "$server_major" -ge "$PG_CLIENT_MAJOR" ] || die "Target server is PostgreSQL $server_major, but restore uses PostgreSQL $PG_CLIENT_MAJOR. Restore into a PostgreSQL $PG_CLIENT_MAJOR or newer server; selecting newer client binaries does not upgrade the server. No restore changes made."
+}
+
 restore_database() {
   local provider="$1"
   local backup_file="$2"
@@ -216,6 +263,7 @@ restore_database() {
     die "SAFETY: Target database '$target_db_name' appears to be production. Aborting."
   fi
   
+  check_restore_server_version "$target_url"
   log_info "Target database: $target_db_name"
   log_warn "This will OVERWRITE the target database. Continue? (y/N)"
   read -r confirm
@@ -229,10 +277,10 @@ restore_database() {
   
   if [[ "$backup_file" == *.age ]]; then
     log_info "Decrypting age-encrypted backup..."
-    local identity="${BACKUP_ENCRYPTION_IDENTITY:-}"
-    [ -n "$identity" ] || die "BACKUP_ENCRYPTION_IDENTITY (private key) required for decryption. Set it in your environment."
+    local identity="$(get_config_value BACKUP_ENCRYPTION_IDENTITY)"
+    [ -n "$identity" ] || die "BACKUP_ENCRYPTION_IDENTITY (private key) required for decryption. Set it in .env.development.local or your environment."
     
-    age -d -i "$identity" -o "$decrypted_dump" "$backup_file"
+    decrypt_backup -o "$decrypted_dump" "$backup_file"
     log_success "Decrypted to: $decrypted_dump"
   elif [[ "$backup_file" == *.dump ]]; then
     log_info "Using plaintext dump directly..."
@@ -251,9 +299,9 @@ restore_database() {
   if [ -f "$checksum_file" ]; then
     log_info "Verifying SHA-256 checksum..."
     local expected_checksum
-    expected_checksum=$(cat "$checksum_file")
+    expected_checksum=$(awk 'NR == 1 {print $1}' "$checksum_file")
     local actual_checksum
-    actual_checksum=$(sha256sum "$decrypted_dump" | awk '{print $1}')
+    actual_checksum=$(sha256sum "$backup_file" | awk '{print $1}')
     [ "$expected_checksum" = "$actual_checksum" ] || die "CHECKSUM MISMATCH! Expected: $expected_checksum, Got: $actual_checksum"
     log_success "Checksum verified"
   else
@@ -261,7 +309,7 @@ restore_database() {
   fi
   
   log_info "Restoring database (this may take a while)..."
-  pg_restore --clean --if-exists --no-owner --no-acl --dbname="$target_url" "$decrypted_dump"
+  pg_restore --single-transaction --exit-on-error --clean --if-exists --no-owner --no-acl --dbname="$target_url" "$decrypted_dump"
   log_success "Database restored successfully!"
   
   log_info "Validating restore..."
@@ -286,65 +334,76 @@ restore_database() {
 # CLOUDFLARE R2 FUNCTIONS
 # ============================================================================
 
-verify_cloudflare_downloads() {
-  local download_dir="$1"
-  
-  log_info "Verifying Cloudflare R2 downloaded files in: $download_dir"
-  
-  [ -d "$download_dir" ] || die "Directory not found: $download_dir"
-  
-  local dump_file
-  dump_file=$(find "$download_dir" -name "*.dump.age" -o -name "*.dump" | head -1)
-  [ -n "$dump_file" ] || die "No .dump.age or .dump file found in $download_dir"
-  
-  local checksum_file
-  checksum_file=$(find "$download_dir" -name "*.sha256" | head -1)
-  
-  local metadata_file
-  metadata_file=$(find "$download_dir" -name "*.json" | head -1)
-  
-  log_info "Found files:"
-  echo "  Dump: $dump_file"
-  [ -n "$checksum_file" ] && echo "  Checksum: $checksum_file" || echo "  Checksum: NOT FOUND"
-  [ -n "$metadata_file" ] && echo "  Metadata: $metadata_file" || echo "  Metadata: NOT FOUND"
-  
-  if [ -n "$checksum_file" ] && [ -f "$checksum_file" ]; then
-    log_info "Verifying SHA-256 checksum..."
-    local expected
-    expected=$(cat "$checksum_file")
-    local actual
-    actual=$(sha256sum "$dump_file" | awk '{print $1}')
-    if [ "$expected" = "$actual" ]; then
-      log_success "Checksum MATCHES"
-    else
-      die "CHECKSUM MISMATCH! Expected: $expected, Got: $actual"
-    fi
+decrypt_backup() {
+  local identity="$(get_config_value BACKUP_ENCRYPTION_IDENTITY)"
+  [ -n "$identity" ] || die "BACKUP_ENCRYPTION_IDENTITY is required for decryption"
+  if [[ "$identity" == AGE-SECRET-KEY-* || "$identity" == *$'\n'* ]]; then
+    # Feed raw keys (or an age-keygen identity document) over stdin, not argv.
+    printf '%s\n' "$identity" | age -d -i - "$@"
+  else
+    [ -f "$identity" ] && [ -r "$identity" ] || die "BACKUP_ENCRYPTION_IDENTITY must contain an age private key or a readable identity-file path"
+    age -d -i "$identity" "$@"
   fi
-  
-  if [ -n "$metadata_file" ] && [ -f "$metadata_file" ]; then
-    log_info "Backup metadata:"
-    cat "$metadata_file" | jq .
+}
+
+verify_backup_file() {
+  local dump_file="$1"
+  local checksum_file="${dump_file}.sha256"
+  local metadata_file="${dump_file}.json"
+  if [[ "$dump_file" == *.age ]] && [ ! -f "$metadata_file" ]; then
+    metadata_file="${dump_file%.age}.json"
   fi
-  
+  [ -s "$dump_file" ] || die "Empty or missing dump: $dump_file"
+  [ -f "$checksum_file" ] || die "Missing checksum: $checksum_file"
+  [ -f "$metadata_file" ] || die "Missing metadata: $metadata_file"
+  log_info "Verifying backup: $dump_file"
+  local expected actual
+  expected=$(awk 'NR == 1 {print $1}' "$checksum_file")
+  [[ "$expected" =~ ^[[:xdigit:]]{64}$ ]] || die "Invalid SHA-256 checksum: $checksum_file"
+  actual=$(sha256sum "$dump_file" | awk '{print $1}')
+  [ "$expected" = "$actual" ] || die "CHECKSUM MISMATCH for $dump_file"
+  log_success "Checksum MATCHES"
+  jq -e 'type == "object"' "$metadata_file" >/dev/null || die "Invalid metadata: $metadata_file"
+
   if [[ "$dump_file" == *.age ]]; then
-    log_info "Testing decryption (requires BACKUP_ENCRYPTION_IDENTITY)..."
-    local identity="${BACKUP_ENCRYPTION_IDENTITY:-}"
-    if [ -n "$identity" ]; then
-      local test_output
-      test_output=$(mktemp)
-      if age -d -i "$identity" -o "$test_output" "$dump_file" 2>/dev/null; then
-        log_success "Decryption test PASSED"
-        shred -u "$test_output" 2>/dev/null || rm -f "$test_output"
-      else
-        die "Decryption test FAILED - wrong private key?"
-      fi
+    if [ -n "$(get_config_value BACKUP_ENCRYPTION_IDENTITY)" ]; then
+      # Stream to /dev/null to avoid leaving decrypted database contents on disk.
+      decrypt_backup "$dump_file" > /dev/null || die "Decryption test FAILED: $dump_file"
+      log_success "Decryption test PASSED"
     else
-      log_warn "BACKUP_ENCRYPTION_IDENTITY not set. Skipping decryption test."
+      log_warn "BACKUP_ENCRYPTION_IDENTITY not set. Decryption not tested."
     fi
   fi
-  
-  log_success "All Cloudflare download files verified!"
-  echo "$dump_file"
+  log_success "Checksum and metadata verified: $dump_file"
+}
+
+verify_cloudflare_downloads() {
+  local input="$1"
+  if [ -f "$input" ]; then
+    verify_backup_file "$input"
+    return
+  fi
+  [ -d "$input" ] || die "Backup file or directory not found: $input"
+  local dump_file metadata_file count=0 skipped=0 failed=0
+  while IFS= read -r -d '' dump_file; do
+    metadata_file="${dump_file}.json"
+    if [[ "$dump_file" == *.age ]] && [ ! -f "$metadata_file" ]; then
+      metadata_file="${dump_file%.age}.json"
+    fi
+    if [ ! -s "$dump_file" ] || [ ! -f "${dump_file}.sha256" ] || [ ! -f "$metadata_file" ]; then
+      log_warn "Skipping empty or incomplete backup: $dump_file"
+      skipped=$((skipped + 1))
+      continue
+    fi
+    if (verify_backup_file "$dump_file"); then
+      count=$((count + 1))
+    else
+      failed=$((failed + 1))
+    fi
+  done < <(find "$input" -type f \( -name '*.dump.age' -o -name '*.dump' \) -print0)
+  log_info "Verified: $count; skipped empty/incomplete: $skipped; failed: $failed"
+  [ "$failed" -eq 0 ] || die "Backup verification failed"
+  [ "$count" -gt 0 ] || die "No complete backups found in $input"
 }
 
 list_r2_backups() {
@@ -354,15 +413,15 @@ list_r2_backups() {
   
   require_cmd aws
   
-  local bucket="${R2_BUCKET:-}"
-  local endpoint="${R2_ENDPOINT:-}"
-  local access_key="${R2_ACCESS_KEY_ID:-}"
-  local secret_key="${R2_SECRET_ACCESS_KEY:-}"
+  local bucket="$(get_config_value R2_BUCKET)"
+  local endpoint="$(get_config_value R2_ENDPOINT)"
+  local access_key="$(get_config_value R2_ACCESS_KEY_ID)"
+  local secret_key="$(get_config_value R2_SECRET_ACCESS_KEY)"
   
-  [ -n "$bucket" ] || die "R2_BUCKET environment variable not set"
-  [ -n "$endpoint" ] || die "R2_ENDPOINT environment variable not set"
-  [ -n "$access_key" ] || die "R2_ACCESS_KEY_ID environment variable not set"
-  [ -n "$secret_key" ] || die "R2_SECRET_ACCESS_KEY environment variable not set"
+  [ -n "$bucket" ] || die "R2_BUCKET not set in .env.development.local or environment"
+  [ -n "$endpoint" ] || die "R2_ENDPOINT not set in .env.development.local or environment"
+  [ -n "$access_key" ] || die "R2_ACCESS_KEY_ID not set in .env.development.local or environment"
+  [ -n "$secret_key" ] || die "R2_SECRET_ACCESS_KEY not set in .env.development.local or environment"
   
   export AWS_ACCESS_KEY_ID="$access_key"
   export AWS_SECRET_ACCESS_KEY="$secret_key"
@@ -379,15 +438,15 @@ download_from_r2() {
   
   require_cmd aws
   
-  local bucket="${R2_BUCKET:-}"
-  local endpoint="${R2_ENDPOINT:-}"
-  local access_key="${R2_ACCESS_KEY_ID:-}"
-  local secret_key="${R2_SECRET_ACCESS_KEY:-}"
+  local bucket="$(get_config_value R2_BUCKET)"
+  local endpoint="$(get_config_value R2_ENDPOINT)"
+  local access_key="$(get_config_value R2_ACCESS_KEY_ID)"
+  local secret_key="$(get_config_value R2_SECRET_ACCESS_KEY)"
   
-  [ -n "$bucket" ] || die "R2_BUCKET environment variable not set"
-  [ -n "$endpoint" ] || die "R2_ENDPOINT environment variable not set"
-  [ -n "$access_key" ] || die "R2_ACCESS_KEY_ID environment variable not set"
-  [ -n "$secret_key" ] || die "R2_SECRET_ACCESS_KEY environment variable not set"
+  [ -n "$bucket" ] || die "R2_BUCKET not set in .env.development.local or environment"
+  [ -n "$endpoint" ] || die "R2_ENDPOINT not set in .env.development.local or environment"
+  [ -n "$access_key" ] || die "R2_ACCESS_KEY_ID not set in .env.development.local or environment"
+  [ -n "$secret_key" ] || die "R2_SECRET_ACCESS_KEY not set in .env.development.local or environment"
   
   export AWS_ACCESS_KEY_ID="$access_key"
   export AWS_SECRET_ACCESS_KEY="$secret_key"
@@ -429,68 +488,69 @@ usage() {
 Database Backup & Restore Script for Wine Words
 
 USAGE:
-  \$0 <command> [options]
+  $0 <command> [options]
 
 COMMANDS:
   backup <provider> [output_dir] [custom_name]
     Create a backup from the specified provider
     Providers: local, supabase, neon
-    Example: \$0 backup neon ./backups
-    Example: \$0 backup local ./backups my-custom-backup
+    Example: $0 backup neon ./backups
+    Example: $0 backup local ./backups my-custom-backup
 
   restore <provider> <backup_file> [target_provider] [target_db_url]
     Restore a backup to the specified target
     Providers: local, supabase, neon
-    Example: \$0 restore neon backup.dump.age local
-    Example: \$0 restore neon backup.dump.age neon postgresql://user:pass@host/db
+    Example: $0 restore neon backup.dump.age local
+    Example: $0 restore neon backup.dump.age neon postgresql://user:pass@host/db
 
-  verify <download_dir>
-    Verify the three Cloudflare R2 downloaded files (dump, checksum, metadata)
-    Example: \$0 verify ./downloads
+  verify <backup_file_or_directory>
+    Verify matching dump, checksum, and metadata sets (local or R2)
+    Example: $0 verify ./downloads
 
   list <provider>
     List available backups in Cloudflare R2
-    Example: \$0 list neon
+    Example: $0 list neon
 
   download <provider> <backup_key> <output_dir>
     Download a specific backup (or 'latest') from Cloudflare R2
-    Example: \$0 download neon latest ./downloads
-    Example: \$0 download neon wine-words/postgresql/neon/DAILY_20240115T020000Z.dump.age ./downloads
+    Example: $0 download neon latest ./downloads
+    Example: $0 download neon wine-words/postgresql/neon/DAILY_20240115T020000Z.dump.age ./downloads
 
-ENVIRONMENT VARIABLES:
+CONFIGURATION (.env.development.local; exported values take precedence):
   BACKUP_ENCRYPTION_RECIPIENT    Age public key for encryption (age1...)
-  BACKUP_ENCRYPTION_IDENTITY     Age private key for decryption (AGE-SECRET-KEY-...)
+  BACKUP_ENCRYPTION_IDENTITY     Age private key (AGE-SECRET-KEY-...) or identity-file path
   R2_BUCKET                      Cloudflare R2 bucket name
   R2_ENDPOINT                    Cloudflare R2 S3 endpoint URL
   R2_ACCESS_KEY_ID               Cloudflare R2 access key ID
   R2_SECRET_ACCESS_KEY           Cloudflare R2 secret access key
-  NEON_DATABASE_URL              Neon database URL (in .env.development.local)
-  SUPABASE_DATABASE_URL          Supabase database URL (in .env.development.local)
+  LOCAL_DATABASE_URL             Local database URL (exported or in .env.development.local)
+  NEON_DATABASE_URL              Neon database URL (exported or in .env.development.local)
+  SUPABASE_DATABASE_URL          Supabase database URL (exported or in .env.development.local)
   PG_CLIENT_MAJOR                PostgreSQL client major version (default: 18)
 
 FILES:
-  .env.development.local         Local environment file (in wine_prediction_api/)
+  .env.development.local         Local environment file (in wine_words_api/)
 
 EXAMPLES:
   # Backup local database to ./backups
-  \$0 backup local ./backups
+  $0 backup local ./backups
 
   # Backup Neon database (requires NEON_DATABASE_URL in .env.development.local)
-  \$0 backup neon ./backups
+  $0 backup neon ./backups
 
   # Restore from Cloudflare download to local database
-  \$0 verify ./cloudflare-downloads
-  \$0 restore neon ./cloudflare-downloads/backup.dump.age local
+  $0 verify ./cloudflare-downloads
+  $0 restore neon ./cloudflare-downloads/backup.dump.age local
 
   # Restore to a specific Neon test database
-  \$0 restore neon backup.dump.age neon "postgresql://user:pass@ep-xxx.neon.tech/db"
+  $0 restore neon backup.dump.age neon "postgresql://user:pass@ep-xxx.neon.tech/db"
 
   # List and download latest backup from R2
-  export R2_BUCKET=... R2_ENDPOINT=... R2_ACCESS_KEY_ID=... R2_SECRET_ACCESS_KEY=...
-  \$0 list neon
-  \$0 download neon latest ./downloads
-  \$0 verify ./downloads
-  \$0 restore neon ./downloads/backup.dump.age local
+  # Set R2_BUCKET, R2_ENDPOINT, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY in .env.development.local
+  $0 list neon
+  $0 download neon latest ./downloads
+  $0 verify ./downloads
+  $0 restore neon ./downloads/backup.dump.age local
 
 REQUIREMENTS:
   - PostgreSQL client (pg_dump, pg_restore, psql) version 18
@@ -506,43 +566,46 @@ USAGE_EOF
 # ============================================================================
 
 main() {
-  local command="\${1:-}"
+  local command="${1:-}"
   shift || true
   
-  case "\$command" in
+  case "$command" in
+    help|--help|-h)
+      usage
+      ;;
     backup)
       check_dependencies
-      local provider="\${1:-}"
-      local output_dir="\${2:-./backups}"
-      local custom_name="\${3:-}"
-      [ -n "\$provider" ] || die "Provider required. Usage: \$0 backup <provider> [output_dir] [custom_name]"
-      backup_database "\$provider" "\$output_dir" "\$custom_name"
+      local provider="${1:-}"
+      local output_dir="${2:-./backups}"
+      local custom_name="${3:-}"
+      [ -n "$provider" ] || die "Provider required. Usage: $0 backup <provider> [output_dir] [custom_name]"
+      backup_database "$provider" "$output_dir" "$custom_name"
       ;;
     restore)
       check_dependencies
-      local provider="\${1:-}"
-      local backup_file="\${2:-}"
-      local target_provider="\${3:-local}"
-      local target_db_url="\${4:-}"
-      [ -n "\$provider" ] && [ -n "\$backup_file" ] || die "Usage: \$0 restore <provider> <backup_file> [target_provider] [target_db_url]"
-      restore_database "\$provider" "\$backup_file" "\$target_provider" "\$target_db_url"
+      local provider="${1:-}"
+      local backup_file="${2:-}"
+      local target_provider="${3:-local}"
+      local target_db_url="${4:-}"
+      [ -n "$provider" ] && [ -n "$backup_file" ] || die "Usage: $0 restore <provider> <backup_file> [target_provider] [target_db_url]"
+      restore_database "$provider" "$backup_file" "$target_provider" "$target_db_url"
       ;;
     verify)
       check_dependencies
-      local download_dir="\${1:-}"
-      [ -n "\$download_dir" ] || die "Usage: \$0 verify <download_dir>"
-      verify_cloudflare_downloads "\$download_dir"
+      local download_dir="${1:-}"
+      [ -n "$download_dir" ] || die "Usage: $0 verify <backup_file_or_directory>"
+      verify_cloudflare_downloads "$download_dir"
       ;;
     list)
-      local provider="\${1:-neon}"
-      list_r2_backups "\$provider"
+      local provider="${1:-neon}"
+      list_r2_backups "$provider"
       ;;
     download)
-      local provider="\${1:-}"
-      local backup_key="\${2:-}"
-      local output_dir="\${3:-}"
-      [ -n "\$provider" ] && [ -n "\$backup_key" ] && [ -n "\$output_dir" ] || die "Usage: \$0 download <provider> <backup_key> <output_dir>"
-      download_from_r2 "\$provider" "\$backup_key" "\$output_dir"
+      local provider="${1:-}"
+      local backup_key="${2:-}"
+      local output_dir="${3:-}"
+      [ -n "$provider" ] && [ -n "$backup_key" ] && [ -n "$output_dir" ] || die "Usage: $0 download <provider> <backup_key> <output_dir>"
+      download_from_r2 "$provider" "$backup_key" "$output_dir"
       ;;
     *)
       usage
@@ -551,4 +614,6 @@ main() {
   esac
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+  main "$@"
+fi

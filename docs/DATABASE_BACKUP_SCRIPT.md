@@ -33,11 +33,16 @@ age --version        # Should show 1.3.2
 ```
 ## Environment Setup
 
+The `local` provider requires `LOCAL_DATABASE_URL`, read from the exported
+environment or `wine_words_api/.env.development.local`. Exported values take
+precedence. This variable selects the database for local backups and restores;
+there is no hard-coded fallback.
+
 ### 1. Database URLs (in `.env.development.local`)
 
 ```dotenv
-# Local PostgreSQL (default)
-DATABASE_URL=postgresql:///wine_words_development
+# Local PostgreSQL
+LOCAL_DATABASE_URL=postgresql:///wine_words_development
 
 # Supabase
 SUPABASE_DATABASE_URL=postgresql://postgres:password@db.xxx.supabase.co:5432/postgres
@@ -46,28 +51,27 @@ SUPABASE_DATABASE_URL=postgresql://postgres:password@db.xxx.supabase.co:5432/pos
 NEON_DATABASE_URL=postgresql://user:password@ep-xxx.neon.tech/dbname
 ```
 
-### 2. Encryption Keys
+### 2. Encryption and Cloudflare R2 settings
 
-```bash
-# Generate age key pair (run once)
-age-keygen -o age-keys.txt
-# Contains: AGE-SECRET-KEY-... (private) and age1... (public)
+Set these in `wine_words_api/.env.development.local`; no shell exports are needed.
+Exported values, when present, take precedence, just as for database URLs. Values
+may be unquoted or single/double quoted. An optional `export` prefix is supported. The file is read as data, not executed.
 
-# For BACKUP: export public key
-export BACKUP_ENCRYPTION_RECIPIENT=age1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-
-# For RESTORE: export private key
-export BACKUP_ENCRYPTION_IDENTITY=AGE-SECRET-KEY-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```dotenv
+BACKUP_ENCRYPTION_RECIPIENT=age1YOUR_PUBLIC_KEY
+BACKUP_ENCRYPTION_IDENTITY=/absolute/path/to/age-keys.txt
+R2_BUCKET=database-backups
+R2_ENDPOINT=https://<account-id>.r2.cloudflarestorage.com
+R2_ACCESS_KEY_ID=YOUR_ACCESS_KEY_ID
+R2_SECRET_ACCESS_KEY=YOUR_SECRET_ACCESS_KEY
 ```
 
-### 3. Cloudflare R2 (for list/download)
-
-```bash
-export R2_BUCKET=database-backups
-export R2_ENDPOINT=https://<account-id>.r2.cloudflarestorage.com
-export R2_ACCESS_KEY_ID=xxxxxxxxxxxxxxxxxxxx
-export R2_SECRET_ACCESS_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-```
+`BACKUP_ENCRYPTION_IDENTITY` also accepts a raw `AGE-SECRET-KEY-...` value.
+Use an identity-file path for an age-keygen document spanning multiple lines.
+Generate a new key pair, if needed, with `age-keygen -o age-keys.txt`.
+Encryption settings apply to backup, verification, and restore. R2 settings apply
+to list and download. Relative identity-file paths are relative to the working
+directory from which you run the script.
 
 ## Usage Examples
 
@@ -214,3 +218,23 @@ This script uses the same format as the automated workflows:
 
 - [Database Backup & Restore Guide](DATABASE_BACKUP_AND_RESTORE.md) - Full runbook with GitHub Actions workflows
 - [Local & Deployment Setup](LOCAL_AND_DEPLOYMENT_SETUP.md) - Environment configuration
+### Restore error: unrecognized `transaction_timeout`
+
+Selecting PostgreSQL 18 clients does not upgrade the running local server.
+A PostgreSQL 18 restore into PostgreSQL 14 can fail on `SET transaction_timeout`.
+Use a PostgreSQL 18 or newer target server for these backups. The script now checks
+its version before requesting overwrite confirmation and restores in one transaction
+with error stopping, so SQL failures roll back rather than leave a partial restore.
+
+Check the running server with `psql postgresql:///wine_words_development -Atc
+'SHOW server_version;'` (as one shell command). If running a separate PostgreSQL 18
+instance on another port, create the target database there and pass its URL as the
+final restore argument, for example:
+
+```bash
+./scripts/db_backup_restore.sh restore neon ./backups/BACKUP.dump.age local postgresql://localhost:5433/wine_words_development
+```
+
+The port above is an example; confirm the target server and port before restoring.
+Earlier script versions continued after SQL errors; inspect an already attempted
+restore before assuming it left the target unchanged.
