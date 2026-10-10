@@ -8,7 +8,8 @@
 - **Webcentral** is your domain registrar. You can leave the registration and renewals there.
 - **DNS hosting** controls records for the domain. DNS can stay at Webcentral or move to Cloudflare's DNS service (without transferring registration).
 - **Render** hosts Rails APIs. Its `*.onrender.com` subdomains are not domains you own, so you cannot manage their DNS or authenticate them as your own sending domains with Brevo/Resend.
-- **Vercel** can host React frontends.
+- **Vercel** and **Cloudflare Workers** host the Wine Words React frontend.
+  Cloudflare Workers URL: https://wine-words.romalopes.workers.dev/
 - **Brevo or Resend** sends application emails; it authenticates your domain by asking you to publish DNS records.
 - **Cloudflare R2 object storage** is independent of using Cloudflare as your DNS provider. You can use R2 while keeping DNS at Webcentral.
 
@@ -102,7 +103,7 @@ Existing services:
 5. Choose a canonical hostname and configure redirects if desired.
 6. Check that frontend API URLs point to the correct Render API hostname.
 
-Wine Words currently uses `https://wine-words.vercel.app`; the BVP frontend may remain on its current deployment until a domain is configured.
+Wine Words currently runs on Vercel at `https://wine-words.vercel.app` and Cloudflare Workers at `https://wine-words.romalopes.workers.dev/`; the BVP frontend may remain on its current deployment until a domain is configured.
 
 ## 6. Authenticate a sending domain with Brevo
 

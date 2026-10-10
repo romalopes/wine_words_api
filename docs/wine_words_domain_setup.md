@@ -2,7 +2,7 @@
 
 **Domain:** `wine-words.com`  
 **Goal:** Connect the new Wine Words frontend, Rails API, and legacy Substack archive using one domain.  
-**Updated:** 8 October 2026
+**Updated:** 10 October 2026
 
 ## 1. Recommended architecture
 
@@ -13,8 +13,11 @@
 | https://api.wine-words.com | Rails API | Render |
 | https://archive.wine-words.com | Legacy articles | Substack |
 
+The custom-domain plan below uses Vercel for the apex and `www`. The frontend also runs on Cloudflare Workers at its existing provider URL.
+
 Existing service URLs (retain while migrating):
-- Frontend: https://wine-words.vercel.app
+- Frontend (Vercel): https://wine-words.vercel.app
+- Frontend (Cloudflare Workers): https://wine-words.romalopes.workers.dev/
 - API: https://wine-words-api.onrender.com
 - Legacy Substack publication: use its existing `[publication].substack.com` URL (not yet specified).
 
@@ -52,7 +55,7 @@ Rails API ─────→ Neon or Supabase PostgreSQL
 1. Open [Cloudflare](https://dash.cloudflare.com/), sign in, and check whether `wine-words.com` is available for registration.
 2. Purchase the domain, enable auto-renewal and account MFA.
 3. Open the domain → **DNS → Records**. Cloudflare will be your DNS manager.
-4. Do not enable unrelated Cloudflare hosting products: Vercel and Render will continue hosting the application.
+4. Keep the existing Vercel and Cloudflare Workers frontend deployments and Render API available while configuring DNS.
 
 ### Option B: Purchase through Webcentral
 
@@ -134,9 +137,9 @@ Do not add a second, conflicting A/CNAME record for the same hostname. DNS does 
 
 ## 8. Step 5 — Update Wine Words application configuration
 
-### Frontend environment (Vercel)
+### Frontend environment (Vercel and Cloudflare Workers)
 
-Set production environment variable:
+Set the production environment variable for both frontend builds:
 
 ```dotenv
 VITE_API_BASE_URL=https://api.wine-words.com/api/v1
@@ -152,7 +155,8 @@ Allow the actual production frontend origins (and only necessary development/pre
 # config/initializers/cors.rb
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
-    origins 'https://wine-words.com', 'https://www.wine-words.com'
+    origins 'https://wine-words.com', 'https://www.wine-words.com',
+            'https://wine-words.vercel.app', 'https://wine-words.romalopes.workers.dev'
     resource '/api/*',
              headers: :any,
              methods: %i[get post put patch delete options]
@@ -168,7 +172,7 @@ Adjust to your existing authentication strategy and configuration; if using cros
 - Update Rails mailer host, password-reset links, invitation links, and canonical frontend URLs.
 - Check `config.hosts` / Rails HostAuthorization if you restrict allowed hostnames.
 - Check cookie `SameSite`, `Secure`, domain, and CSRF settings if you use session-cookie authentication.
-- Update webhook allowlists, CSP `connect-src`, analytics settings, and any hardcoded Render/Vercel URLs.
+- Update webhook allowlists, CSP `connect-src`, analytics settings, and any hardcoded Render/Vercel/Cloudflare Workers URLs.
 - Leave Cloudflare R2 storage configuration and Neon/Supabase database URLs unchanged: domain routing does not require a database or object-storage migration.
 - Deploy and test login, logout, password reset, image uploads, API calls, and cross-origin requests.
 
@@ -208,13 +212,13 @@ Expected outcomes:
 - [ ] Frontend network requests use `https://api.wine-words.com/api/v1`.
 - [ ] Login, OAuth, reset emails, images, comments, and articles work.
 - [ ] No unexpected CORS failures, mixed-content errors, or TLS warnings.
-- [ ] Existing Vercel/Render provider URLs still work until deliberately retired.
+- [ ] Existing Vercel/Cloudflare Workers/Render provider URLs still work until deliberately retired.
 
 ## 11. Rollout and rollback
 
 **Suggested order:** register domain → configure DNS → verify Vercel → verify Render → configure Substack → update frontend API URL and Rails CORS → test → publish the new domain.
 
-Keep the original `wine-words.vercel.app` and `wine-words-api.onrender.com` URLs available during rollout. If a custom hostname fails, use the existing provider URLs for troubleshooting; restore previous frontend environment settings and redeploy if necessary. Record old DNS values before editing and allow time for propagation.
+Keep the original `wine-words.vercel.app`, `wine-words.romalopes.workers.dev`, and `wine-words-api.onrender.com` URLs available during rollout. If a custom hostname fails, use the existing provider URLs for troubleshooting; restore previous frontend environment settings and redeploy if necessary. Record old DNS values before editing and allow time for propagation.
 
 ## 12. Later: branded email
 

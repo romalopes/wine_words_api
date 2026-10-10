@@ -29,7 +29,8 @@ flowchart LR
 ```
 
 The frontend lives in the sibling `wine_prediction/` application and is deployed
-to Vercel. Rails lives here and is deployed as a Docker application on Render.
+to Vercel (https://wine-words.vercel.app) and Cloudflare Workers
+(https://wine-words.romalopes.workers.dev/). Rails lives here and is deployed as a Docker application on Render.
 Rails also has server-rendered web controllers and views; their routes are separate
 from the `/api/v1` JSON interface.
 

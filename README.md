@@ -17,7 +17,7 @@ For model relationships and workflows, start with the
 
 | Component | Responsibility | Local / hosted runtime |
 |---|---|---|
-| React + TypeScript + Vite frontend | Browser interface for readers, reviewers, producers, and administrators | Sibling `wine_prediction/` directory on port 5173 / Vercel |
+| React + TypeScript + Vite frontend | Browser interface for readers, reviewers, producers, and administrators | Sibling `wine_prediction/` directory on port 5173 / Vercel and Cloudflare Workers |
 | Rails 8.1 backend | JSON API under `/api/v1`, authentication, permissions, and business workflows; also includes Rails-rendered pages | This repository on port 3000 / Docker on Render |
 | PostgreSQL | Application records and search data, including the `pg_trgm` extension | Dedicated development database / hosted PostgreSQL |
 | Active Storage + Cloudflare R2 | Images and other uploaded files | R2 is currently selected in both development and production |
@@ -167,7 +167,8 @@ does not automatically allow other hostnames or ports.
 
 ## Deploy and operate
 
-The frontend is deployed to **Vercel** and the Rails Docker application to
+The frontend is deployed to **Vercel** (https://wine-words.vercel.app) and
+**Cloudflare Workers** (https://wine-words.romalopes.workers.dev/), and the Rails Docker application to
 **Render**, with PostgreSQL and Cloudflare R2 configured separately. Follow the
 [deployment guide](docs/LOCAL_AND_DEPLOYMENT_SETUP.md#2-configure-the-api-on-render)
 for the actual environment values and rollout checks.
@@ -183,10 +184,10 @@ alone does not configure CORS.
 
 | Guide | What to use it for |
 |---|---|
-| [Local development and deployment setup](docs/LOCAL_AND_DEPLOYMENT_SETUP.md) | Complete local startup, Vercel/Render configuration, environment variables, and troubleshooting |
+| [Local development and deployment setup](docs/LOCAL_AND_DEPLOYMENT_SETUP.md) | Complete local startup, Vercel/Cloudflare Workers/Render configuration, environment variables, and troubleshooting |
 | [Architecture and model lifecycles](docs/architecture/architecture.md) | Domain models, relationships, publication, planning, and end-to-end workflows |
 | [System and feature reference](WINE_WORDS_README.md) | Detailed architecture, domain features, API behaviour, and repository layout; consult the setup guide for current runtime configuration |
-| [Operational dashboard links](docs/general_info.md) | GitHub, Render, Vercel, and monitoring dashboards |
+| [Operational dashboard links](docs/general_info.md) | GitHub, Render, Vercel, Cloudflare, and monitoring dashboards |
 | [Database seed scripts](docs/DATABASE_SEEDS.md) | Each seed file, run commands, dependency order, and destructive/rerun behaviour |
 | [Database backup and restore](docs/DATABASE_BACKUP_AND_RESTORE.md) | Backup workflows, recovery, and restoring development data; database backups do not include uploaded media |
 | [Database backup script](docs/DATABASE_BACKUP_SCRIPT.md) | Standalone CLI script for backup/restore/verify/list/download with Cloudflare R2 compatibility |

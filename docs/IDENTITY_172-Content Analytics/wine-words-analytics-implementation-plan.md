@@ -12,7 +12,8 @@ Repository targets:
 
 - API: https://github.com/romalopes/wine_words_api
 - Frontend: https://github.com/romalopes/wine_words_front_end
-- Current frontend: https://wine-words.vercel.app
+- Current frontend (Vercel): https://wine-words.vercel.app
+- Current frontend (Cloudflare Workers): https://wine-words.romalopes.workers.dev/
 - Current API: https://wine-words-api.onrender.com
 
 This document is based on the supplied analytics discussion. It does **not** claim that these repositories were inspected for this deliverable. Phase 0 must establish current model names, relationships, roles, libraries and routes before code changes. File paths below are proposed locations; adapt them to verified repository conventions.

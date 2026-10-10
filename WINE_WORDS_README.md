@@ -31,7 +31,10 @@ Local folders (not repo names):
 | Frontend | `../wine_prediction` | `https://github.com/romalopes/wine_words_front_end` (clone remote still uses pre-rename `wine_finder_quiz`) |
 | Backend | `.` (`wine_prediction_api`) | `https://github.com/romalopes/wine_words_api` (clone remote still uses pre-rename `wine_prediction_api`) |
 
-Verified live:
+Current frontend deployments: Vercel at https://wine-words.vercel.app and
+Cloudflare Workers at https://wine-words.romalopes.workers.dev/.
+
+Previously verified live:
 
 | What | URL | Verified status |
 |---|---|---|
@@ -46,7 +49,7 @@ Status: active development, private-testing gate enabled in production.
 
 ```mermaid
 flowchart LR
-    U["User"] --> SPA["React SPA<br/>(wine_words_front_end<br/>on Vercel)"]
+    U["User"] --> SPA["React SPA<br/>(wine_words_front_end<br/>on Vercel / Cloudflare Workers)"]
     SPA -->|"HTTPS JSON + Bearer JWT"| API["Rails 8.1 API<br/>(wine_words_api<br/>Puma on Render)"]
     API --> DB[("PostgreSQL<br/>(Render; shared by<br/>cache/queue/cable)")]
     WORKER["Solid Queue worker<br/>(bin/jobs)"] --> DB
@@ -374,7 +377,7 @@ check (Slack). See `docs/DATABASE_BACKUP_AND_RESTORE.md`.
 
 ## 18. Deployment and operations
 
-Frontend → Vercel (`vercel --prod`; project `wine-prediction`;
+Frontend → Cloudflare Workers (https://wine-words.romalopes.workers.dev/) and Vercel (`vercel --prod`; project `wine-prediction`;
 `vercel.json` SPA rewrite; set `VITE_API_BASE_URL` + public IDs at build).
 Backend → Render blueprint `render.yaml`: web `wine-prediction-api` (Docker
 runtime; Dockerfile CMD runs Thruster :80 → Puma :3000, `releaseCommand:

@@ -2,22 +2,22 @@
 
 Checked against the repository on 8 October 2026. This guide covers the React/Vite
 frontend in `wine_prediction/` and Rails API in `wine_prediction_api/`, with Vercel
-hosting the frontend, Render hosting the API, PostgreSQL storing data, and Cloudflare
+and Cloudflare Workers hosting the frontend, Render hosting the API, PostgreSQL storing data, and Cloudflare
 R2 storing Active Storage uploads. Examples contain placeholders, never live secrets.
 
 ## Where configuration belongs
 
 | Component | Local configuration | Hosted configuration |
 |---|---|---|
-| React/Vite | `wine_prediction/.env.development.local` | Vercel project → Settings → Environment Variables |
+| React/Vite | `wine_prediction/.env.development.local` | Vercel project → Settings → Environment Variables; Cloudflare Workers frontend build environment |
 | Rails | `wine_prediction_api/.env.development.local` | Render API service → Environment |
 | Background worker, if enabled | Rails configuration | Its own Render environment, or a shared environment group |
 | Database backup workflows | Not required to run the app | GitHub Actions secrets; see [backup guide](DATABASE_BACKUP_AND_RESTORE.md) |
 
 Use app-directory files, not the workspace-root `.env.local`. Vite exposes `VITE_*`
 values to browser code and embeds them at build time: put no passwords, database
-URLs, R2 secrets, or provider secret keys in Vercel's frontend variables. Restart Vite
-after local changes; rebuild/redeploy after Vercel changes. Mode-specific files take
+URLs, R2 secrets, or provider secret keys in either hosting platform's frontend variables. Restart Vite
+after local changes; rebuild/redeploy after hosted frontend environment changes. Mode-specific files take
 precedence over generic files; process environment values take priority.
 [Source: Vite environment variables](https://vite.dev/guide/env-and-mode).
 
@@ -278,17 +278,29 @@ sets it to `false`. None of these code/blueprint discrepancies is repaired by th
 See [Vite on Vercel](https://vercel.com/docs/frameworks/frontend/vite). Vercel does
 not run this Rails backend, and its static frontend does not need `DATABASE_URL`.
 
+### Additional frontend deployment: Cloudflare Workers
+
+The frontend also runs at https://wine-words.romalopes.workers.dev/ alongside
+https://wine-words.vercel.app. Configure the Cloudflare frontend build with the
+same `VITE_API_BASE_URL` and applicable public `VITE_*` values documented here,
+then rebuild/redeploy when those values change.
+
+Verify API calls, login, and direct route refresh on both deployments. Include
+both exact HTTPS origins in API CORS and the applicable social-login provider
+settings. Rails `FRONTEND_URL` remains a single chosen frontend origin for email
+and checkout links; do not set it to a comma-separated list.
+
 ## 4. Environment variable reference
 
 “Optional” means needed only for the feature described. All backend variables go in
 Rails local env files or Render, never in the Vite frontend. Use production provider
 credentials only in production; keep test/sandbox keys and resources separate.
 
-### Frontend: local Vite and Vercel
+### Frontend: local Vite, Vercel, and Cloudflare Workers
 
-| Variable | Local / Vercel value and purpose |
+| Variable | Local / Vercel / Cloudflare Workers value and purpose |
 |---|---|
-| `VITE_API_BASE_URL` | Local `http://localhost:3000/api/v1`; Vercel `https://YOUR_API_HOST/api/v1`. Include `/api/v1`. |
+| `VITE_API_BASE_URL` | Local `http://localhost:3000/api/v1`; Vercel and Cloudflare Workers `https://YOUR_API_HOST/api/v1`. Include `/api/v1`. |
 | `VITE_GOOGLE_CLIENT_ID` | Optional Google web OAuth client ID; must match Rails `GOOGLE_CLIENT_ID`. |
 | `VITE_APPLE_CLIENT_ID` | Optional Apple Services ID; matches Rails `APPLE_CLIENT_ID`. |
 | `VITE_APPLE_REDIRECT_URI` | Optional registered Apple return URL; defaults to browser origin. Use a provider-accepted HTTPS URL; follow the social-auth guide for local testing. |
@@ -424,7 +436,8 @@ signing secret in the matching Stripe environment. See
 [config/initializers/cors.rb](../config/initializers/cors.rb). Add the exact HTTPS
 production frontend origin and any intended staging origins there, then deploy Rails.
 There is no current `CORS_ORIGINS` env variable. The file currently allows selected
-Vercel hosts, including `https://wine-words.vercel.app`, and local port 5173;
+Vercel hosts, including `https://wine-words.vercel.app`, the Cloudflare Workers
+origin `https://wine-words.romalopes.workers.dev`, and local port 5173;
 a custom domain or arbitrary Vercel preview URL is not automatically allowed.
 
 After configuring both platforms, verify:
