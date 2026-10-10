@@ -196,6 +196,42 @@ ENV
   validate_restored_table_count fake.dump postgresql:///fake > "$TEST_DIR/extra-tables.log"
   grep -q 'additional tables' "$TEST_DIR/extra-tables.log"
 )
+# Copy shortcuts route the source backup to the exact configured destination.
+(
+  check_dependencies() { :; }
+  check_restore_server_version() { :; }
+  get_database_url() { printf 'postgresql:///source_%s\n' "$1"; }
+  get_config_value() {
+    case "$1" in
+      *_DATABASE_URL) printf 'postgresql:///target_%s\n' "$1" ;;
+    esac
+  }
+  backup_database() {
+    printf '%s' "$1" > "$TEST_DIR/copy-source"
+    BACKUP_RESULT_FILE="$2/source.dump"
+    printf 'fake dump' > "$BACKUP_RESULT_FILE"
+  }
+  verify_backup_file() { test -s "$1"; }
+  restore_database() { printf '%s|%s|%s' "$1" "$3" "$4" > "$TEST_DIR/copy-target"; }
+  for spec in \
+    'restore_local_to_neondb local neon NEON_DATABASE_URL' \
+    'restore_local_to_supabase local supabase SUPA_DATABASE_URL' \
+    'restore_neondb_to_neondb neon neon NEON_SECOND_DATABASE_URL' \
+    'restore_neondb_to_local neon local LOCAL_DATABASE_URL'; do
+    read -r command source_provider target_provider variable <<< "$spec"
+    main "$command" "$TEST_DIR/copy backups" > /dev/null
+    assert_equal "$(cat "$TEST_DIR/copy-source")" "$source_provider" copy_source
+    assert_equal "$(cat "$TEST_DIR/copy-target")" "$source_provider|$target_provider|postgresql:///target_$variable" copy_destination
+  done
+  get_config_value() { :; }
+  if (main restore_local_to_neondb "$TEST_DIR/copies") > /dev/null 2>&1; then
+    echo 'FAIL: accepted missing copy destination'; exit 1
+  fi
+  get_config_value() { printf 'postgresql:///source_local'; }
+  if (main restore_local_to_neondb "$TEST_DIR/copies") > /dev/null 2>&1; then
+    echo 'FAIL: accepted identical copy URLs'; exit 1
+  fi
+)
 bash "$SCRIPT_PATH" --help > "$TEST_DIR/help"
 if grep -Fq '$0' "$TEST_DIR/help"; then exit 1; fi
 if bash "$SCRIPT_PATH" unknown > /dev/null 2>&1; then exit 1; fi

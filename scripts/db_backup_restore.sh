@@ -203,6 +203,7 @@ META_EOF
   if [ -z "$recipient" ]; then
     log_warn "BACKUP_ENCRYPTION_RECIPIENT not set. Skipping encryption."
     log_success "Backup completed (unencrypted): $dump_file"
+    BACKUP_RESULT_FILE="$dump_file"
     echo "$dump_file"
     return 0
   fi
@@ -222,12 +223,48 @@ META_EOF
   sha256sum "$encrypted_file" | awk '{print $1}' > "${encrypted_file}.sha256"
   
   log_success "Backup completed successfully!"
+  BACKUP_RESULT_FILE="$encrypted_file"
   echo "$encrypted_file"
 }
 
 # ============================================================================
 # RESTORE FUNCTIONS
 # ============================================================================
+
+copy_database() {
+  local command="$1" output_dir="${2:-./backups}"
+  local source_provider target_provider target_variable
+  case "$command" in
+    restore_local_to_neondb) source_provider=local; target_provider=neon; target_variable=NEON_DATABASE_URL ;;
+    restore_local_to_supabase) source_provider=local; target_provider=supabase; target_variable=SUPA_DATABASE_URL ;;
+    restore_neondb_to_neondb) source_provider=neon; target_provider=neon; target_variable=NEON_SECOND_DATABASE_URL ;;
+    restore_neondb_to_local) source_provider=neon; target_provider=local; target_variable=LOCAL_DATABASE_URL ;;
+    *) die "Unknown copy command: $command" ;;
+  esac
+  local source_url target_url recipient identity
+  source_url=$(get_database_url "$source_provider")
+  target_url=$(get_config_value "$target_variable")
+  [ -n "$target_url" ] || die "$target_variable not set in .env.development.local or environment"
+  validate_database_url "$source_url"
+  validate_database_url "$target_url"
+  [ "$source_url" != "$target_url" ] || die "Source and destination URLs are identical"
+  is_production_database "$(get_database_name "$target_url")" && die "SAFETY: Target database appears to be production. Aborting."
+  check_restore_server_version "$target_url"
+  recipient=$(get_config_value BACKUP_ENCRYPTION_RECIPIENT)
+  identity=$(get_config_value BACKUP_ENCRYPTION_IDENTITY)
+  if [ -n "$recipient" ] && [ -z "$identity" ]; then
+    die "BACKUP_ENCRYPTION_IDENTITY is required to restore the encrypted source backup"
+  fi
+  local backup_dir
+  mkdir -p "$output_dir"
+  backup_dir=$(mktemp -d "$output_dir/${command}.XXXXXX")
+  log_info "Copying $source_provider to $target_variable; source backup retained in $backup_dir"
+  BACKUP_RESULT_FILE=""
+  backup_database "$source_provider" "$backup_dir"
+  [ -n "$BACKUP_RESULT_FILE" ] && [ -s "$BACKUP_RESULT_FILE" ] || die "Source backup was not created"
+  verify_backup_file "$BACKUP_RESULT_FILE"
+  restore_database "$source_provider" "$BACKUP_RESULT_FILE" "$target_provider" "$target_url"
+}
 
 validate_restored_table_count() {
   local dump_file="$1" target_url="$2" archive_list expected actual
@@ -502,6 +539,17 @@ USAGE:
   $0 <command> [options]
 
 COMMANDS:
+  restore_local_to_neondb [output_dir]
+    Copy LOCAL_DATABASE_URL to NEON_DATABASE_URL
+  restore_local_to_supabase [output_dir]
+    Copy LOCAL_DATABASE_URL to SUPA_DATABASE_URL
+  restore_neondb_to_neondb [output_dir]
+    Copy NEON_DATABASE_URL to NEON_SECOND_DATABASE_URL
+  restore_neondb_to_local [output_dir]
+    Copy NEON_DATABASE_URL to LOCAL_DATABASE_URL
+    These commands back up, verify, then prompt before restoring the target.
+    Source backups are retained under output_dir (default: ./backups).
+
   backup <provider> [output_dir] [custom_name]
     Create a backup from the specified provider
     Providers: local, supabase, neon
@@ -536,6 +584,8 @@ CONFIGURATION (.env.development.local; exported values take precedence):
   R2_SECRET_ACCESS_KEY           Cloudflare R2 secret access key
   LOCAL_DATABASE_URL             Local database URL (exported or in .env.development.local)
   NEON_DATABASE_URL              Neon database URL (exported or in .env.development.local)
+  SUPA_DATABASE_URL              Destination for restore_local_to_supabase
+  NEON_SECOND_DATABASE_URL       Destination for restore_neondb_to_neondb
   SUPABASE_DATABASE_URL          Supabase database URL (exported or in .env.development.local)
   PG_CLIENT_MAJOR                PostgreSQL client major version (default: 18)
 
@@ -583,6 +633,11 @@ main() {
   case "$command" in
     help|--help|-h)
       usage
+      ;;
+    restore_local_to_neondb|restore_local_to_supabase|restore_neondb_to_neondb|restore_neondb_to_local)
+      [ "$#" -le 1 ] || die "Usage: $0 $command [output_dir]"
+      check_dependencies
+      copy_database "$command" "${1:-./backups}"
       ;;
     backup)
       check_dependencies

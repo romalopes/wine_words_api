@@ -251,3 +251,43 @@ of reporting fabricated zero row counts. Extra target tables produce a warning:
 The source-provider argument labels the backup; it does not fetch data from that
 provider. Restoring a `_local_` file with `restore neon` still restores that local
 file. Use the intended Neon backup if you need the Neon database contents.
+
+## Copy directly between configured databases
+
+Run from the API root:
+
+```bash
+./scripts/db_backup_restore.sh restore_local_to_neondb
+./scripts/db_backup_restore.sh restore_local_to_supabase
+./scripts/db_backup_restore.sh restore_neondb_to_neondb
+./scripts/db_backup_restore.sh restore_neondb_to_local
+```
+
+| Command | Source variable | Destination variable |
+|---|---|---|
+| `restore_local_to_neondb` | `LOCAL_DATABASE_URL` | `NEON_DATABASE_URL` |
+| `restore_local_to_supabase` | `LOCAL_DATABASE_URL` | `SUPA_DATABASE_URL` |
+| `restore_neondb_to_neondb` | `NEON_DATABASE_URL` | `NEON_SECOND_DATABASE_URL` |
+| `restore_neondb_to_local` | `NEON_DATABASE_URL` | `LOCAL_DATABASE_URL` |
+
+Set these URLs in `.env.development.local`; exported values take precedence.
+`SUPA_DATABASE_URL` is the exact name used by the new shortcut. Existing
+`backup supabase` and `restore ... supabase` commands still use
+`SUPABASE_DATABASE_URL`.
+
+Each command checks the destination version, creates a source backup in a unique
+subdirectory of `./backups`, verifies it, and asks for overwrite confirmation
+before restoring. Supply an optional output directory, for example:
+
+```bash
+./scripts/db_backup_restore.sh restore_neondb_to_local ./scripts/backups
+```
+
+Backups are retained even if you cancel the restore. If encryption is configured,
+both `BACKUP_ENCRYPTION_RECIPIENT` and a matching `BACKUP_ENCRYPTION_IDENTITY` are
+needed. Without a recipient the retained backup is plaintext. No R2 upload or
+download is involved. The source is not modified. The destination must already
+exist, meet the PostgreSQL version requirement, and allow the restore operations.
+Existing production-name checks and transactional restore behavior still apply.
+Objects present in the backup are replaced; unrelated destination objects remain.
+These commands do not create a separate backup of the destination.
