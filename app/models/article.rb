@@ -26,10 +26,11 @@ class Article < ApplicationRecord
   has_many :reviews, through: :article_reviews
 
   SOURCES = %w[manual substack wine_front].freeze
+  STATUSES = %w[draft published archived].freeze
 
   validates :title, presence: true
   validates :slug, presence: true, uniqueness: true
-  validates :status, presence: true, inclusion: { in: %w[draft published] }
+  validates :status, presence: true, inclusion: { in: STATUSES }
   validates :source, presence: true, inclusion: { in: SOURCES }
 
   before_validation :generate_slug
@@ -42,6 +43,7 @@ before_save :update_search_vector
 
   scope :published, -> { where(status: "published") }
   scope :drafts, -> { where(status: "draft") }
+  scope :archived, -> { where(status: "archived") }
   scope :visible_to, ->(user) { published.or(where(user: user)) }
   scope :recent, -> { order(created_at: :desc) }
 

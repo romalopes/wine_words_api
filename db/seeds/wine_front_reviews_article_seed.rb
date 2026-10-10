@@ -18,18 +18,20 @@ GRAPE_VARIETIES = %w[
   prosecco champagne sparkling
 ].freeze
 
-# Map CSV closure values to the allowed list in Wine::CLOSURES
-CLOSURE_MAP = {
-  "screwcap"        => "Screw cap",
-  "diam"            => "Diam",
-  "cork"            => "Cork",
-  "crownseal"       => "Crownseal",
-  "synthetic"       => "Synthetic",
-  "glass stopper"   => "Glass Stopper",
-  "nomacorc plantcorc" => "Nomacorc PlantCorc",
-  "vino-lok"        => "Vino-Lok",
-  "agglomerate"     => "Agglomerate"
-}.freeze
+# Normalise a CSV closure string to the canonical Wine::CLOSURES list
+# (see wine.rb line 44). Case-insensitive exact match first, then a
+# normalised comparison ignoring case/spaces/hyphens; falls back to
+# Wine::DEFAULT_CLOSURE so validation never fails on seed data.
+def normalize_closure(raw)
+  return Wine::DEFAULT_CLOSURE if raw.blank?
+  stripped = raw.strip
+  return Wine::DEFAULT_CLOSURE if stripped.blank?
+  exact = Wine::CLOSURES.find { |c| c.casecmp?(stripped) }
+  return exact if exact
+  squished = stripped.downcase.gsub(/[\s_-]+/, "")
+  found = Wine::CLOSURES.find { |c| c.downcase.gsub(/[\s_-]+/, "") == squished }
+  found || Wine::DEFAULT_CLOSURE
+end
 
 # WordPress thumbnail URLs look like `name-104x300.png` or `name-300x225.jpg`.
 # Stripping the `-WxH` suffix yields the full-size original, which is what
@@ -158,12 +160,8 @@ ActiveRecord::Base.transaction do
       price_cents = (dollars * 100).round
     end
 
-    # closure (Wine attribute) – normalize to allowed list
-    normalized_closure = nil
-    if closure_raw.present?
-      normalized_closure = CLOSURE_MAP[closure_raw.downcase] || Wine::DEFAULT_CLOSURE
-    end
-    wine.closure = normalized_closure if normalized_closure
+    # closure (Wine attribute) – normalise against Wine::CLOSURES
+    wine.closure = normalize_closure(closure_raw)
 
     wine.save! if wine.changed?
 

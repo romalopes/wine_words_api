@@ -14,9 +14,11 @@ class Review < ApplicationRecord
   # existing review stays valid. Nullify (not destroy) on deletion.
   has_many :wine_package_items, dependent: :nullify
 
+  STATUSES = %w[draft published archived].freeze
+
   validates :score, presence: true,
                     numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100 }
-  validates :status, presence: true, inclusion: { in: %w[draft published] }
+  validates :status, presence: true, inclusion: { in: STATUSES }
   validates :title, presence: true
   validates :slug, presence: true, uniqueness: true
   validates :source, presence: true, inclusion: { in: %w[manual substack wine_front] }
@@ -47,6 +49,7 @@ before_save :update_search_vector
 
   scope :published, -> { where(status: "published") }
   scope :drafts, -> { where(status: "draft") }
+  scope :archived, -> { where(status: "archived") }
   scope :visible_to, ->(user) { where(status: "published").or(where(user: user)) }
   scope :by_recency, -> { order(created_at: :desc) }
 

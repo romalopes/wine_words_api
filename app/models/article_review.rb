@@ -3,7 +3,7 @@ class ArticleReview < ApplicationRecord
   belongs_to :review
 
   validates :article_id, uniqueness: { scope: :review_id }
-  validates :status, presence: true, inclusion: { in: %w[draft published] }
+  validates :status, presence: true, inclusion: { in: %w[draft published archived] }
 
   # A link can only be published when the underlying review is published.
   validate :review_must_be_published

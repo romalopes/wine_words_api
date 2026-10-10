@@ -11,7 +11,7 @@ class ReviewsController < ActionController::Base
 
   def index
     @scope = can_manage_wines? && params[:scope] == "mine" && user_signed_in? ? "mine" : "all"
-    @status = can_manage_wines? && %w[all draft published].include?(params[:status]) ? params[:status] : "all"
+    @status = can_manage_wines? && %w[all draft published archived].include?(params[:status]) ? params[:status] : "all"
 
     base =
       if @scope == "mine"
@@ -36,7 +36,7 @@ class ReviewsController < ActionController::Base
     @review = Review.includes(:vintage).find_by(slug: params[:id]) ||
               Review.includes(:vintage).find_by(id: params[:id]) ||
               not_found
-    if @review.status == "draft" &&
+    if %w[draft archived].include?(@review.status) &&
        !(current_user&.wine_manager? || @review.user_id == current_user&.id)
       redirect_to reviews_path, alert: "Review not found."
     end

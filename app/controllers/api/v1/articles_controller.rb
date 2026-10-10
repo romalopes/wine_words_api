@@ -131,7 +131,7 @@ class Api::V1::ArticlesController < ApplicationController
   end
 
   def show
-    if @article.status == "draft" &&
+    if %w[draft archived].include?(@article.status) &&
        @article.user_id != current_user&.id &&
        !current_user&.wine_manager?
       return render json: { error: "Not found" }, status: :not_found

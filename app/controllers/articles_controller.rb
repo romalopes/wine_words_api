@@ -14,7 +14,7 @@ class ArticlesController < ActionController::Base
   # Guests/Readers always see published only; ignore scope/status params.
   def index
     @scope = can_manage_wines? && params[:scope] == "mine" && user_signed_in? ? "mine" : "all"
-    @status = can_manage_wines? && %w[all draft published].include?(params[:status]) ? params[:status] : "all"
+    @status = can_manage_wines? && %w[all draft published archived].include?(params[:status]) ? params[:status] : "all"
 
     base =
       if @scope == "mine"
@@ -36,7 +36,7 @@ class ArticlesController < ActionController::Base
   end
 
   def show
-    if @article.status == "draft" &&
+    if %w[draft archived].include?(@article.status) &&
        !(current_user&.wine_manager? || @article.user_id == current_user&.id)
       return redirect_to articles_path, alert: "Article not found."
     end

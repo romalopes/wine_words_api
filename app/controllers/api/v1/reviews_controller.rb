@@ -144,7 +144,7 @@ class Api::V1::ReviewsController < ApplicationController
   end
 
   def show
-    if @review.status == "draft" &&
+    if %w[draft archived].include?(@review.status) &&
        @review.user_id != current_user&.id &&
        !current_user&.wine_manager?
       return render json: { error: "Not found" }, status: :not_found
