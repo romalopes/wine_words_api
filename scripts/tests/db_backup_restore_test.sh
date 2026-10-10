@@ -181,6 +181,21 @@ ENV
   export R2_BUCKET=override
   assert_equal "$(get_config_value R2_BUCKET)" override r2_export_precedence
 )
+# Small databases are valid; compare against archive definitions, not five tables.
+(
+  pg_restore() {
+    printf '%s\n' '; Archive TOC' '1; 1259 100 TABLE public first owner' '2; 1259 101 TABLE public second owner' '3; 0 100 TABLE DATA public first owner' '4; 0 0 TABLE ATTACH public child owner'
+  }
+  psql() { echo 2; }
+  validate_restored_table_count fake.dump postgresql:///fake > /dev/null
+  psql() { echo 1; }
+  if (validate_restored_table_count fake.dump postgresql:///fake) > /dev/null 2>&1; then
+    echo 'FAIL: accepted fewer tables than archive'; exit 1
+  fi
+  psql() { echo 3; }
+  validate_restored_table_count fake.dump postgresql:///fake > "$TEST_DIR/extra-tables.log"
+  grep -q 'additional tables' "$TEST_DIR/extra-tables.log"
+)
 bash "$SCRIPT_PATH" --help > "$TEST_DIR/help"
 if grep -Fq '$0' "$TEST_DIR/help"; then exit 1; fi
 if bash "$SCRIPT_PATH" unknown > /dev/null 2>&1; then exit 1; fi

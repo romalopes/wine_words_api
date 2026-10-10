@@ -229,6 +229,20 @@ META_EOF
 # RESTORE FUNCTIONS
 # ============================================================================
 
+validate_restored_table_count() {
+  local dump_file="$1" target_url="$2" archive_list expected actual
+  archive_list=$(pg_restore --list "$dump_file") || die "Cannot inspect backup table list"
+  # TABLE DATA and TABLE ATTACH entries are not table definitions.
+  expected=$(printf '%s\n' "$archive_list" | awk '$1 ~ /^[0-9]+;$/ && $4 == "TABLE" && $2 != 0 {n++} END {print n+0}')
+  actual=$(psql -X "$target_url" -Atc "SELECT count(*) FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE c.relkind IN ('r','p','f') AND n.nspname NOT IN ('pg_catalog','information_schema') AND n.nspname !~ '^pg_toast';") || die "Cannot count restored tables"
+  [[ "$actual" =~ ^[0-9]+$ ]] || die "Invalid restored table count"
+  log_info "Table definitions in backup: $expected; user tables in target: $actual"
+  [ "$actual" -ge "$expected" ] || die "Restore committed, but target has fewer tables ($actual) than the backup ($expected)"
+  if [ "$actual" -gt "$expected" ]; then
+    log_warn "Target has additional tables; pg_restore --clean only replaces objects included in the backup."
+  fi
+}
+
 check_restore_server_version() {
   local target_url="$1" server_number server_major
   server_number=$(psql -X "$target_url" -Atc 'SHOW server_version_num;') || die "Cannot determine target PostgreSQL server version"
@@ -312,20 +326,17 @@ restore_database() {
   pg_restore --single-transaction --exit-on-error --clean --if-exists --no-owner --no-acl --dbname="$target_url" "$decrypted_dump"
   log_success "Database restored successfully!"
   
-  log_info "Validating restore..."
-  local table_count
-  table_count=$(psql "$target_url" -Atc "SELECT count(*) FROM information_schema.tables WHERE table_schema NOT IN ('pg_catalog','information_schema');")
-  log_info "User tables restored: $table_count"
-  [ "$table_count" -ge 5 ] || die "Too few tables restored ($table_count). Expected full application schema."
-  
-  local migrations_count
-  migrations_count=$(psql "$target_url" -Atc "SELECT count(*) FROM schema_migrations;" 2>/dev/null || echo "0")
-  log_info "Schema migrations: $migrations_count"
-  
-  local users_count
-  users_count=$(psql "$target_url" -Atc "SELECT count(*) FROM users;" 2>/dev/null || echo "0")
-  log_info "Users: $users_count"
-  
+  validate_restored_table_count "$decrypted_dump" "$target_url"
+
+  local relation row_count
+  for relation in schema_migrations users; do
+    if row_count=$(psql -X "$target_url" -Atc "SELECT count(*) FROM public.$relation;" 2>/dev/null); then
+      log_info "$relation rows: $row_count"
+    else
+      log_warn "$relation row count unavailable; this backup may not contain that Rails table."
+    fi
+  done
+
   shred -u "$decrypted_dump" 2>/dev/null || rm -f "$decrypted_dump"
   log_success "Restore validation passed! Plaintext dump shredded."
 }

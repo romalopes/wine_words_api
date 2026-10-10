@@ -238,3 +238,16 @@ final restore argument, for example:
 The port above is an example; confirm the target server and port before restoring.
 Earlier script versions continued after SQL errors; inspect an already attempted
 restore before assuming it left the target unchanged.
+
+### Small backups and restore validation
+
+Restore compares the number of table definitions in the archive with the target's
+user-table count; there is no five-table minimum. This is a count sanity check,
+not a row-by-row integrity check. Successful transactional `pg_restore` is the
+primary restore check. Missing Rails tables are reported as unavailable instead
+of reporting fabricated zero row counts. Extra target tables produce a warning:
+`--clean` only replaces objects present in the archive.
+
+The source-provider argument labels the backup; it does not fetch data from that
+provider. Restoring a `_local_` file with `restore neon` still restores that local
+file. Use the intended Neon backup if you need the Neon database contents.
