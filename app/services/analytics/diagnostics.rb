@@ -14,14 +14,21 @@ module Analytics
     # @return [Hash] { events: [...], pagination: {...}, scope_label: "..." }
     def self.accepted_events(params)
       page = [params[:page].to_i, 1].max
-      per_page = [[params[:per_page].to_i, 1].max, MAX_PER_PAGE].min
+      per_page = params[:per_page].present? ? [[params[:per_page].to_i, 1].max, MAX_PER_PAGE].min : DEFAULT_PER_PAGE
 
       scope = Event.accepted.order(viewed_at: :desc)
 
       # Optional filters
       scope = scope.where(viewable_type: params[:content_type]) if params[:content_type].present?
       scope = scope.where(viewable_id: params[:viewable_id]) if params[:viewable_id].present?
-      scope = scope.where(viewed_at: params[:start_date]..params[:end_date]) if params[:start_date].present? && params[:end_date].present?
+      if params[:start_date].present? && params[:end_date].present?
+        start_dt = Time.iso8601(params[:start_date]) rescue nil
+        end_dt = Time.iso8601(params[:end_date]) rescue nil
+        if start_dt && end_dt
+          # Include the entire end second by adding 1 second and using exclusive upper bound
+          scope = scope.where(viewed_at: start_dt..(end_dt + 1.second))
+        end
+      end
 
       total_count = scope.count
       total_pages = (total_count.to_f / per_page).ceil
@@ -54,7 +61,14 @@ module Analytics
     # @return [Hash] { exclusion_reasons: {...}, scope_label: "..." }
     def self.exclusion_reasons(params)
       scope = Event.rejected
-      scope = scope.where(viewed_at: params[:start_date]..params[:end_date]) if params[:start_date].present? && params[:end_date].present?
+      if params[:start_date].present? && params[:end_date].present?
+        start_dt = Time.iso8601(params[:start_date]) rescue nil
+        end_dt = Time.iso8601(params[:end_date]) rescue nil
+        if start_dt && end_dt
+          # Include the entire end second by adding 1 second and using exclusive upper bound
+          scope = scope.where(viewed_at: start_dt..(end_dt + 1.second))
+        end
+      end
 
       # Current schema only has accepted boolean; detailed reasons not persisted.
       # This is a placeholder for future enhancement with rejection_reason column.

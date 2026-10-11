@@ -318,10 +318,8 @@ Rails.application.routes.draw do
         get "wine-insights", to: "reports#wine_insights"
 
         # Diagnostics endpoints (Admin only; explicit debug permission required)
-        namespace :diagnostics do
-          get "accepted", to: "diagnostics#accepted"
-          get "exclusion_reasons", to: "diagnostics#exclusion_reasons"
-        end
+        get "diagnostics/accepted", to: "diagnostics#accepted"
+        get "diagnostics/exclusion_reasons", to: "diagnostics#exclusion_reasons"
       end
 
       resources :users, only: [] do

@@ -28,7 +28,7 @@ module Api
         private
 
         def require_diagnostics_enabled!
-          enabled = AppSetting.get("analytics_diagnostics_enabled", false)
+          enabled = AppSetting.boolean("analytics_diagnostics_enabled")
           unless enabled
             render json: {
               error: "Diagnostics disabled",
