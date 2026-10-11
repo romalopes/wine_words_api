@@ -316,6 +316,12 @@ Rails.application.routes.draw do
         get "content/:content_type/:id", to: "reports#content_detail"
         get "timeseries", to: "reports#timeseries"
         get "wine-insights", to: "reports#wine_insights"
+
+        # Diagnostics endpoints (Admin only; explicit debug permission required)
+        namespace :diagnostics do
+          get "accepted", to: "diagnostics#accepted"
+          get "exclusion_reasons", to: "diagnostics#exclusion_reasons"
+        end
       end
 
       resources :users, only: [] do

@@ -24,16 +24,21 @@ module Analytics
       return Result.failure(:invalid_content_id) unless content_id&.positive?
       return Result.failure(:invalid_identity) unless identity&.match?(/\A(account:[0-9]+|visitor:[0-9a-f-]{36})\z/i)
 
-      # Authorization/exclusion checks
-      exclusion = check_exclusions
-      return exclusion if exclusion
-
       viewed_at = Time.current
-      lock_key = Analytics::Event.dedup_lock_key(content_type, content_id, identity, viewed_at)
       visitor_key = Analytics::Event.compute_visitor_key(content_type, content_id, identity, viewed_at)
 
+      # Authorization/exclusion checks
+      exclusion = check_exclusions
+      if exclusion
+        # Persist rejected event for diagnostics (Phase 11)
+        rejection_reason = exclusion.rejection_reason
+        create_rejected_event(viewed_at, visitor_key, rejection_reason)
+        return exclusion
+      end
+
+      lock_key = Analytics::Event.dedup_lock_key(content_type, content_id, identity, viewed_at)
+
       # Advisory lock deduplication with pre-check logic
-      result = nil
       ActiveRecord::Base.transaction do
         # Set lock timeout
         ActiveRecord::Base.connection.execute("SET LOCAL lock_timeout = #{Rails.application.config.analytics[:lock_timeout_ms]}")
@@ -43,6 +48,8 @@ module Analytics
         acquired = ActiveRecord::Base.connection.select_value("SELECT pg_try_advisory_xact_lock(#{lock_key})")
         unless acquired
           Rails.logger.warn "[Analytics] Advisory lock contention for key #{lock_key}"
+          rejection_reason = "dedup_window"
+          create_rejected_event(viewed_at, visitor_key, rejection_reason)
           return Result.success(duplicate: true, accepted: false, reason: :lock_contention)
         end
 
@@ -55,6 +62,8 @@ module Analytics
                           .exists?
 
         if existing
+          rejection_reason = "dedup_window"
+          create_rejected_event(viewed_at, visitor_key, rejection_reason)
           return Result.success(duplicate: true, accepted: false, reason: :deduplicated)
         end
 
@@ -76,6 +85,8 @@ module Analytics
     rescue ActiveRecord::RecordNotUnique => e
       # Race condition - another transaction got there first
       if e.message.include?("idx_analytics_events_dedup")
+        rejection_reason = "dedup_window"
+        create_rejected_event(viewed_at, visitor_key, rejection_reason)
         Result.success(duplicate: true, accepted: false, reason: :deduplicated)
       else
         raise
@@ -83,10 +94,29 @@ module Analytics
     rescue ActiveRecord::StatementInvalid => e
       if e.message.include?("lock_timeout") || e.message.include?("statement_timeout")
         Rails.logger.warn "[Analytics] Lock/statement timeout: #{e.message}"
+        rejection_reason = "rate_limited"
+        create_rejected_event(viewed_at, visitor_key, rejection_reason)
         Result.success(duplicate: false, accepted: false, reason: :timeout)
       else
         raise
       end
+    end
+
+    def create_rejected_event(viewed_at, visitor_key, rejection_reason)
+      Analytics::Event.create!(
+        viewable_type: content_type,
+        viewable_id: content_id,
+        identity: identity,
+        visitor_key: visitor_key,
+        viewed_at: viewed_at,
+        source: source,
+        referrer: referrer,
+        viewport: viewport,
+        accepted: false,
+        rejection_reason: rejection_reason
+      )
+    rescue StandardError => e
+      Rails.logger.error "[Analytics] Failed to persist rejected event: #{e.message}"
     end
 
     private
@@ -167,6 +197,26 @@ module Analytics
 
       def duplicate?
         @duplicate
+      end
+
+      # Map internal reason to rejection_reason column value
+      def rejection_reason
+        case @reason
+        when :deduplicated, :lock_contention
+          "dedup_window"
+        when :opt_out, :anonymous_disallowed
+          "opt_out"
+        when :invalid_event_type, :invalid_content_type, :invalid_content_id, :invalid_identity
+          "invalid_payload"
+        when :excluded_role, :excluded_author
+          "excluded_role"
+        when :inaccessible
+          "invalid_payload"
+        when :timeout
+          "rate_limited"
+        else
+          "invalid_payload"
+        end
       end
     end
   end
