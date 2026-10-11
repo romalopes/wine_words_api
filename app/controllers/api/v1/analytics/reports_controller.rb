@@ -25,7 +25,7 @@ module Api
           period, period_error = resolve_period
           return render_period_error(period_error) if period_error
 
-          result = Analytics::Summary.call(@scope, period, reporting_params)
+          result = ::Analytics::Summary.call(@scope, period, reporting_params)
 
           render json: result
         end
@@ -35,7 +35,7 @@ module Api
           period, period_error = resolve_period
           return render_period_error(period_error) if period_error
 
-          result = Analytics::TopContent.call(@scope, period, reporting_params)
+          result = ::Analytics::TopContent.call(@scope, period, reporting_params)
 
           render json: result
         end
@@ -52,7 +52,7 @@ module Api
             return render json: { error: "Invalid content_type" }, status: :unprocessable_entity
           end
 
-          result = Analytics::ContentDetail.call(@scope, period, content_type, content_id, reporting_params)
+          result = ::Analytics::ContentDetail.call(@scope, period, content_type, content_id, reporting_params)
 
           if result.nil?
             return render json: { error: "Not found" }, status: :not_found
@@ -66,7 +66,7 @@ module Api
           period, period_error = resolve_period
           return render_period_error(period_error) if period_error
 
-          result = Analytics::Timeseries.call(@scope, period, reporting_params)
+          result = ::Analytics::Timeseries.call(@scope, period, reporting_params)
 
           render json: result
         end
@@ -74,28 +74,28 @@ module Api
         private
 
         def require_reporting_access!
-          @scope = Analytics::Scope.new(current_user)
+          @scope = ::Analytics::Scope.new(current_user)
           return if @scope.reporting_access?
 
           render json: { error: "Forbidden" }, status: :forbidden
         end
 
         def resolve_period
-          Analytics::Period.resolve(
+          ::Analytics::Period.resolve(
             params,
             max_range_days: Rails.application.config.analytics[:max_custom_range_days],
-            history_from: Analytics::Event.accepted.minimum(:viewed_at),
-            history_to: Analytics::Event.accepted.maximum(:viewed_at)
+            history_from: ::Analytics::Event.accepted.minimum(:viewed_at),
+            history_to: ::Analytics::Event.accepted.maximum(:viewed_at)
           )
         end
 
         def render_period_error(error)
           message = case error
-          when Analytics::Period::INVALID_PERIOD
-            "period must be one of: #{Analytics::Period::PERIOD_TOKENS.join(', ')}"
-          when Analytics::Period::INVALID_DATE_RANGE
+          when ::Analytics::Period::INVALID_PERIOD
+            "period must be one of: #{::Analytics::Period::PERIOD_TOKENS.join(', ')}"
+          when ::Analytics::Period::INVALID_DATE_RANGE
             "start_date/end_date must be valid YYYY-MM-DD dates, end_date >= start_date, and within the period window"
-          when Analytics::Period::RANGE_TOO_LONG
+          when ::Analytics::Period::RANGE_TOO_LONG
             "custom date range exceeds maximum of #{Rails.application.config.analytics[:max_custom_range_days]} days"
           else
             "Invalid period"
