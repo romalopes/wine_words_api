@@ -17,7 +17,42 @@ Track successful authorized Wine, Review and Article detail loads without blocki
 
 ## Implemented in this phase
 
-**Frontend beacon hook, identity management, consent handling, detail page integration, and tests designed and recorded below.** No code committed to application yet.
+**Frontend beacon hook, identity management, consent handling, detail page integration, and tests designed and recorded below.** This phase was a design/specification phase — the actual frontend implementation is tracked separately in the frontend repository.
+
+## Backend infrastructure created (supporting Phase 5)
+
+The following backend endpoints and models were created to receive and store frontend beacon events:
+
+### `Analytics::Event` model (`app/models/analytics/event.rb`)
+- Polymorphic `viewable` (Article, Review, Wine)
+- `identity` (visitor UUID from frontend)
+- `user_id` (null for anonymous visitors)
+- `accepted` boolean (server-side accept/reject)
+- `occurred_at` (client timestamp)
+- `source` / `referrer` / `viewport` (navigation context)
+- Scopes: `.accepted`, `.in_window`, `.for_content`, `.by_identity`
+
+### `ViewsController` (`app/controllers/api/v1/analytics/views_controller.rb`)
+- `POST /api/v1/analytics/views` — accepts batched events
+- `POST /api/v1/analytics/events` — alias for legacy compatibility
+- Idempotency via `event_id` (client-provided UUID)
+- Duplicate suppression within 30-minute window per (identity, content_type, content_id)
+- Server-side consent check via `user.analytics_opt_out` and `Analytics::Event.where(identity: visitor_id).accepted.count`
+- Rate limiting: max 50 events/batch, 100 events/minute/IP
+- Returns `{ accepted: N, rejected: N, duplicate_count: N }`
+
+### Routes (`config/routes.rb`)
+```ruby
+post '/api/v1/analytics/views', to: 'api/v1/analytics/views#create'
+post '/api/v1/analytics/events', to: 'api/v1/analytics/views#create'
+```
+
+### Account opt-out endpoint
+- `PATCH /api/v1/account/analytics_opt_out` — toggles `analytics_opt_out` on Account
+
+## Next phase
+
+Proceed to [Phase 6 — Reporting Periods and Authorization Scopes](phase-6-reporting-periods-and-scopes.md).
 ---
 
 ## 1. Visitor Identity Management

@@ -309,6 +309,12 @@ Rails.application.routes.draw do
       namespace :analytics do
         post "views", to: "views#create"
         post "events", to: "views#create"
+
+        # Reporting endpoints (authenticated; Reviewer/Editor/Admin only)
+        get "summary", to: "reports#summary"
+        get "top_content", to: "reports#top_content"
+        get "content/:content_type/:id", to: "reports#content_detail"
+        get "timeseries", to: "reports#timeseries"
       end
 
       resources :users, only: [] do
