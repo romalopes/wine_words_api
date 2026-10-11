@@ -71,6 +71,16 @@ module Api
           render json: result
         end
 
+        # GET /api/v1/analytics/wine-insights
+        def wine_insights
+          period, period_error = resolve_period
+          return render_period_error(period_error) if period_error
+
+          result = ::Analytics::WineInsights.call(@scope, period, reporting_params)
+
+          render json: result
+        end
+
         private
 
         def require_reporting_access!

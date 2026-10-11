@@ -315,6 +315,7 @@ Rails.application.routes.draw do
         get "top_content", to: "reports#top_content"
         get "content/:content_type/:id", to: "reports#content_detail"
         get "timeseries", to: "reports#timeseries"
+        get "wine-insights", to: "reports#wine_insights"
       end
 
       resources :users, only: [] do

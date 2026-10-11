@@ -278,3 +278,7 @@ Restore a disposable database from a known state when needed.
 For Substack imports, inspect content and image warnings individually: external
 page structure and availability can change, and some setup errors occur outside
 the per-record rescue block. Both importers can stop after already saving data.
+
+```bash
+bin/rails runner -e development db/seeds/wine_front_reviews_article_seed.rb
+```
