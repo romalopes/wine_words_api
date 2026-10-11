@@ -29,6 +29,18 @@ key, and a separate target database. Neither option automatically changes the li
 application's database connection. Uploaded files are in Cloudflare R2 and require
 separate recovery if missing; they are not included in the database dump.
 
+For a direct R2-to-local restore from the API root:
+
+```bash
+./scripts/db_backup_restore.sh restore_r2_to_local "wine-words/postgresql/neon/DAILY_20240115T020000Z.dump.age"
+# Omit the key to use R2_BACKUP_SPECIFIC from .env.development.local:
+./scripts/db_backup_restore.sh restore_r2_to_local
+```
+
+`R2_BACKUP_SPECIFIC=latest` selects the newest Neon snapshot by R2 modification
+time. The command downloads and verifies the backup, then prompts before restoring
+`LOCAL_DATABASE_URL`. See [configuration and behavior](DATABASE_BACKUP_SCRIPT.md#copy-directly-from-r2-to-local).
+
 ### Option 1: Restore using GitHub Actions
 
 1. **Choose the snapshot.** Open the
