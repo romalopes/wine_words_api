@@ -305,6 +305,23 @@ Rails.application.routes.draw do
       get "me", to: "users#me"
       get "stats", to: "stats#index"
 
+      # Content analytics beacon (public; anonymous allowed)
+      namespace :analytics do
+        post "views", to: "views#create"
+        post "events", to: "views#create"
+
+        # Reporting endpoints (authenticated; Reviewer/Editor/Admin only)
+        get "summary", to: "reports#summary"
+        get "top_content", to: "reports#top_content"
+        get "content/:content_type/:id", to: "reports#content_detail"
+        get "timeseries", to: "reports#timeseries"
+        get "wine-insights", to: "reports#wine_insights"
+
+        # Diagnostics endpoints (Admin only; explicit debug permission required)
+        get "diagnostics/accepted", to: "diagnostics#accepted"
+        get "diagnostics/exclusion_reasons", to: "diagnostics#exclusion_reasons"
+      end
+
       resources :users, only: [] do
         collection { get :search }
         member { patch :assign_roles; patch :assign_subscription }
@@ -329,6 +346,7 @@ Rails.application.routes.draw do
       get "account", to: "accounts#show"
       patch "account", to: "accounts#update"
       patch "account/password", to: "accounts#update_password"
+      patch "account/analytics_opt_out", to: "accounts#update_analytics_opt_out"
 
       resources :subscriptions, only: [:index, :show, :create, :update, :destroy]
     end

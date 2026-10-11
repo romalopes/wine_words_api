@@ -168,6 +168,20 @@ class User < ApplicationRecord
     role?(:reviewer)
   end
 
+  # Content authorship check for analytics self-view exclusion.
+  # Wines have no author; only Article/Review authorship excludes self-views.
+  ANALYTICS_AUTHOR_TYPES = %w[Article Review].freeze
+
+  def author_of?(content_type, content_id)
+    return false unless ANALYTICS_AUTHOR_TYPES.include?(content_type.to_s)
+    return false unless content_id.to_i.positive?
+
+    klass = content_type.to_s.constantize
+    klass.where(id: content_id.to_i, user_id: id).exists?
+  rescue NameError
+    false
+  end
+
   # Admins and Editors: the tier that also sees and manages everything
   # (including every wine package, see WinePackageAuthorizable).
   def catalogue_manager?
@@ -225,6 +239,15 @@ class User < ApplicationRecord
 
   def jwt_payload
     { roles: role_names }
+  end
+
+  # Analytics erasure (GDPR Art. 17): anonymize view identities while
+  # preserving aggregates. Runs before dependent: :destroy callbacks remove
+  # reviews/comments owned by this user.
+  before_destroy :anonymize_analytics_events
+
+  def anonymize_analytics_events
+    Analytics::Event.anonymize_account!(id)
   end
 
   # ---- Authentication methods -------------------------------------------

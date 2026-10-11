@@ -1,0 +1,3 @@
+Results: {accepted: 1, rejected: 4, errors: []}
+Expected: accepted=1, rejected=4
+PASS: Rolling deduplication working correctly

@@ -9,7 +9,8 @@ class AppSetting < ApplicationRecord
   DEFAULTS = {
     "logs_enabled" => true,
     "use_test_email" => false,
-    "test_email" => ENV["MAIL_REPLY_TO"]
+    "test_email" => ENV["MAIL_REPLY_TO"],
+    "analytics_diagnostics_enabled" => false
   }.freeze
 
   validates :key, presence: true, uniqueness: true
@@ -63,5 +64,15 @@ class AppSetting < ApplicationRecord
     raw
   rescue ActiveRecord::StatementInvalid
     DEFAULTS[key.to_s]
+  end
+
+  # Generic getter that returns the value with default fallback.
+  # Used by controllers for feature flags and settings.
+  def self.get(key, default = nil)
+    raw = find_by(key: key.to_s)&.value
+    return default if raw.nil?
+    raw
+  rescue ActiveRecord::StatementInvalid
+    default
   end
 end

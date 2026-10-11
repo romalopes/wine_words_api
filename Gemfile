@@ -40,6 +40,9 @@ gem "image_processing", "~> 1.2"
 # Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin Ajax possible
 gem "rack-cors"
 
+# Rate limiting for the analytics beacon (Phase 4 contract)
+gem "rack-attack"
+
 gem "devise"
 gem "devise-jwt"
 # Social sign-in providers (Google / Apple / Microsoft) publish their signing

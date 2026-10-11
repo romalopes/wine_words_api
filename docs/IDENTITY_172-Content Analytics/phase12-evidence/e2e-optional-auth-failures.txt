@@ -1,0 +1,16 @@
+
+Analytics Diagnostics Authorization
+  GET /api/v1/analytics/diagnostics/accepted
+    requires authentication
+    requires admin role
+    allows admin when enabled
+    returns 403 when disabled for admin
+  GET /api/v1/analytics/diagnostics/exclusion_reasons
+    requires authentication
+    requires admin role
+    allows admin when enabled
+    returns 403 when disabled for admin
+
+Finished in 0.20952 seconds (files took 0.87479 seconds to load)
+8 examples, 0 failures
+

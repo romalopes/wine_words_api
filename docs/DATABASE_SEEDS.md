@@ -220,9 +220,9 @@ transaction, so an exception rolls back the rows created in that run.
 bin/rails runner -e development db/seeds/articles_and_reviews.rb
 ```
 
-### `substract_reviews_articles_seed.rb` — fixed-list Substack import
+### `substack_reviews_articles_seed.rb` — fixed-list Substack import
 
-[Source](../db/seeds/substract_reviews_articles_seed.rb)
+[Source](../db/seeds/substack_reviews_articles_seed.rb)
 
 Imports the hard-coded `URLS` list rather than the RSS feed. Preserves hyperlinks
 as Markdown in extracted text, creates articles/reviews and categories, and attempts
@@ -278,3 +278,7 @@ Restore a disposable database from a known state when needed.
 For Substack imports, inspect content and image warnings individually: external
 page structure and availability can change, and some setup errors occur outside
 the per-record rescue block. Both importers can stop after already saving data.
+
+```bash
+bin/rails runner -e development db/seeds/wine_front_reviews_article_seed.rb
+```

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_08_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_11_000005) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -77,6 +77,30 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_08_000001) do
     t.string "street_address"
     t.datetime "updated_at", null: false
     t.index ["producer_id"], name: "index_addresses_on_producer_id", unique: true
+  end
+
+  create_table "analytics_events", force: :cascade do |t|
+    t.boolean "accepted", default: false, null: false
+    t.datetime "created_at", null: false
+    t.string "identity", limit: 128, null: false
+    t.string "referrer", limit: 500
+    t.string "rejection_reason", limit: 32
+    t.string "source", limit: 32
+    t.datetime "updated_at", null: false
+    t.bigint "viewable_id", null: false
+    t.string "viewable_type", limit: 32, null: false
+    t.timestamptz "viewed_at", null: false
+    t.string "viewport", limit: 32
+    t.string "visitor_key", limit: 64
+    t.index ["accepted", "rejection_reason"], name: "idx_analytics_events_rejection_reason", where: "(accepted = false)"
+    t.index ["accepted"], name: "idx_analytics_events_accepted", where: "(accepted = true)"
+    t.index ["identity", "viewed_at"], name: "idx_analytics_events_identity_time"
+    t.index ["viewable_type", "viewable_id", "identity", "viewed_at"], name: "idx_analytics_events_dedup", unique: true, where: "(accepted = true)"
+    t.index ["viewable_type", "viewable_id", "viewed_at"], name: "idx_analytics_events_content_time"
+    t.index ["viewable_type", "viewable_id"], name: "idx_analytics_events_viewable"
+    t.check_constraint "identity::text ~ '^(account:\\d+|visitor:([0-9a-f-]{36}|erased-[0-9a-f-]+))$'::text", name: "ck_analytics_events_identity_format"
+    t.check_constraint "viewable_id > 0", name: "ck_analytics_events_viewable_id_positive"
+    t.check_constraint "viewable_type::text = ANY (ARRAY['Article'::character varying, 'Review'::character varying, 'Wine'::character varying]::text[])", name: "ck_analytics_events_viewable_type"
   end
 
   create_table "app_settings", force: :cascade do |t|
@@ -839,6 +863,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_08_000001) do
   end
 
   create_table "users", force: :cascade do |t|
+    t.boolean "analytics_opt_out", default: false, null: false
     t.datetime "created_at", null: false
     t.string "email", default: "", null: false
     t.datetime "email_verification_sent_at"
@@ -850,6 +875,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_08_000001) do
     t.string "reset_password_token"
     t.bigint "subscription_id"
     t.datetime "updated_at", null: false
+    t.index ["analytics_opt_out"], name: "idx_users_analytics_opt_out", where: "(analytics_opt_out = true)"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["email_verification_token_digest"], name: "index_users_on_email_verification_token_digest"
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true

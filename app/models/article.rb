@@ -28,6 +28,19 @@ class Article < ApplicationRecord
   SOURCES = %w[manual substack wine_front].freeze
   STATUSES = %w[draft published archived].freeze
 
+  # Analytics lifecycle: hard-delete events on destroy, soft-exclude on
+  # archive so aggregates stay truthful without callback-order surprises.
+  after_destroy :purge_analytics_events
+  after_update :archive_analytics_events, if: :saved_change_to_status?
+
+  def purge_analytics_events
+    Analytics::Event.purge_content!("Article", id)
+  end
+
+  def archive_analytics_events
+    Analytics::Event.archive_content!("Article", id) if status == "archived"
+  end
+
   validates :title, presence: true
   validates :slug, presence: true, uniqueness: true
   validates :status, presence: true, inclusion: { in: STATUSES }

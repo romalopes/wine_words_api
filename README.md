@@ -197,3 +197,12 @@ alone does not configure CORS.
 | [Social authentication](docs/social_authentication.md) | Provider setup for Google, Apple, Microsoft, and Facebook login |
 | [User account identity](docs/user-account-identity.md) | Account identity and authentication behaviour |
 | [Wine packages](docs/architecture/wine_packages.md) | Producer/reviewer package workflow, tracking, and reminders |
+
+### Database copy shortcuts
+
+`scripts/db_backup_restore.sh` supports `restore_local_to_neondb`,
+`restore_local_to_supabase`, `restore_neondb_to_neondb`, and
+`restore_neondb_to_local`. Each backs up the configured source, verifies the
+backup, and prompts before restoring the destination. See the
+[database copy instructions](docs/DATABASE_BACKUP_SCRIPT.md#copy-directly-between-configured-databases)
+for URL variables, retained backups, and examples.

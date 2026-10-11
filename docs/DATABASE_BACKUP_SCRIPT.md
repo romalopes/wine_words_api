@@ -14,6 +14,7 @@ A standalone Bash script for backing up and restoring Wine Words databases (loca
 | `restore` | Restore `.dump` or `.dump.age` to local/Supabase/Neon |
 | `verify` | Verify Cloudflare R2 downloaded files (checksum + decryption test) |
 | `list` | List available backups in Cloudflare R2 |
+| `restore_r2_to_local` | Download and restore a specific R2 backup (or configured default) to local |
 | `download` | Download specific backup (or `latest`) from R2 |
 
 ## Prerequisites
@@ -251,3 +252,94 @@ of reporting fabricated zero row counts. Extra target tables produce a warning:
 The source-provider argument labels the backup; it does not fetch data from that
 provider. Restoring a `_local_` file with `restore neon` still restores that local
 file. Use the intended Neon backup if you need the Neon database contents.
+
+## Copy directly between configured databases
+
+Run from the API root:
+
+```bash
+./scripts/db_backup_restore.sh restore_local_to_neondb
+./scripts/db_backup_restore.sh restore_local_to_supabase
+./scripts/db_backup_restore.sh restore_neondb_to_neondb
+./scripts/db_backup_restore.sh restore_neondb_to_local
+```
+
+| Command | Source variable | Destination variable |
+|---|---|---|
+| `restore_local_to_neondb` | `LOCAL_DATABASE_URL` | `NEON_DATABASE_URL` |
+| `restore_local_to_supabase` | `LOCAL_DATABASE_URL` | `SUPA_DATABASE_URL` |
+| `restore_neondb_to_neondb` | `NEON_DATABASE_URL` | `NEON_SECOND_DATABASE_URL` |
+| `restore_neondb_to_local` | `NEON_DATABASE_URL` | `LOCAL_DATABASE_URL` |
+
+Set these URLs in `.env.development.local`; exported values take precedence.
+`SUPA_DATABASE_URL` is the exact name used by the new shortcut. Existing
+`backup supabase` and `restore ... supabase` commands still use
+`SUPABASE_DATABASE_URL`.
+
+Each command checks the destination version, creates a source backup in a unique
+subdirectory of `./backups`, verifies it, and asks for overwrite confirmation
+before restoring. Supply an optional output directory, for example:
+
+```bash
+./scripts/db_backup_restore.sh restore_neondb_to_local ./scripts/backups
+```
+
+Backups are retained even if you cancel the restore. If encryption is configured,
+both `BACKUP_ENCRYPTION_RECIPIENT` and a matching `BACKUP_ENCRYPTION_IDENTITY` are
+needed. Without a recipient the retained backup is plaintext. No R2 upload or
+download is involved. The source is not modified. The destination must already
+exist, meet the PostgreSQL version requirement, and allow the restore operations.
+Existing production-name checks and transactional restore behavior still apply.
+Objects present in the backup are replaced; unrelated destination objects remain.
+These commands do not create a separate backup of the destination.
+
+## Copy directly from R2 to local
+
+Run from the API root to download, verify, and restore a specific snapshot to
+`LOCAL_DATABASE_URL`:
+
+```bash
+./scripts/db_backup_restore.sh restore_r2_to_local "wine-words/postgresql/neon/DAILY_20240115T020000Z.dump.age"
+```
+
+Set the default in `.env.development.local`:
+
+```dotenv
+R2_BACKUP_SPECIFIC=latest
+```
+
+An omitted or empty first argument uses `R2_BACKUP_SPECIFIC`. Exported values take
+precedence. `latest` selects the most recently modified `.dump.age` object under
+`wine-words/postgresql/neon/`. A full object key selects that exact snapshot.
+
+```bash
+./scripts/db_backup_restore.sh restore_r2_to_local
+./scripts/db_backup_restore.sh restore_r2_to_local "" ./downloads
+```
+
+Configure the R2 credentials listed above, `BACKUP_ENCRYPTION_IDENTITY`, and
+`LOCAL_DATABASE_URL`. Downloads and sidecars are retained in a unique directory
+under `./backups` (or the optional second argument). Checksum, metadata, and
+decryption verification run before the existing overwrite confirmation prompt.
+The destination must already exist and meet the PostgreSQL version requirement.
+Production-name checks and transactional restore behavior apply. Objects in the
+backup replace matching destination objects; unrelated objects remain. This
+command does not back up the destination.
+
+### R2 listing returns AccessDenied
+
+`latest` requires `ListObjectsV2` access. This error means listing failed, not
+that the bucket has no backups. Check that the R2 S3 credentials have **Object
+Read only** (or **Object Read & Write**) access to the bucket in `R2_BUCKET`,
+and that `R2_ENDPOINT` belongs to the same account. See
+[Cloudflare R2 authentication](https://developers.cloudflare.com/r2/api/tokens/).
+Exported R2 variables override `.env.development.local`; check for stale shell
+settings if you changed the file.
+
+A full `.dump.age` object key, supplied as the first argument or as
+`R2_BACKUP_SPECIFIC`, skips listing. Download access to the dump and its sidecars
+is still required. After correcting access, retry the read-only listing with:
+
+```bash
+./scripts/db_backup_restore.sh list neon
+```

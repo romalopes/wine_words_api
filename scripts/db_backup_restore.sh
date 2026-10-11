@@ -203,6 +203,7 @@ META_EOF
   if [ -z "$recipient" ]; then
     log_warn "BACKUP_ENCRYPTION_RECIPIENT not set. Skipping encryption."
     log_success "Backup completed (unencrypted): $dump_file"
+    BACKUP_RESULT_FILE="$dump_file"
     echo "$dump_file"
     return 0
   fi
@@ -222,12 +223,71 @@ META_EOF
   sha256sum "$encrypted_file" | awk '{print $1}' > "${encrypted_file}.sha256"
   
   log_success "Backup completed successfully!"
+  BACKUP_RESULT_FILE="$encrypted_file"
   echo "$encrypted_file"
 }
 
 # ============================================================================
 # RESTORE FUNCTIONS
 # ============================================================================
+
+copy_database() {
+  local command="$1" output_dir="${2:-./backups}"
+  local source_provider target_provider target_variable
+  case "$command" in
+    restore_local_to_neondb) source_provider=local; target_provider=neon; target_variable=NEON_DATABASE_URL ;;
+    restore_local_to_supabase) source_provider=local; target_provider=supabase; target_variable=SUPA_DATABASE_URL ;;
+    restore_neondb_to_neondb) source_provider=neon; target_provider=neon; target_variable=NEON_SECOND_DATABASE_URL ;;
+    restore_neondb_to_local) source_provider=neon; target_provider=local; target_variable=LOCAL_DATABASE_URL ;;
+    *) die "Unknown copy command: $command" ;;
+  esac
+  local source_url target_url recipient identity
+  source_url=$(get_database_url "$source_provider")
+  target_url=$(get_config_value "$target_variable")
+  [ -n "$target_url" ] || die "$target_variable not set in .env.development.local or environment"
+  validate_database_url "$source_url"
+  validate_database_url "$target_url"
+  [ "$source_url" != "$target_url" ] || die "Source and destination URLs are identical"
+  is_production_database "$(get_database_name "$target_url")" && die "SAFETY: Target database appears to be production. Aborting."
+  check_restore_server_version "$target_url"
+  recipient=$(get_config_value BACKUP_ENCRYPTION_RECIPIENT)
+  identity=$(get_config_value BACKUP_ENCRYPTION_IDENTITY)
+  if [ -n "$recipient" ] && [ -z "$identity" ]; then
+    die "BACKUP_ENCRYPTION_IDENTITY is required to restore the encrypted source backup"
+  fi
+  local backup_dir
+  mkdir -p "$output_dir"
+  backup_dir=$(mktemp -d "$output_dir/${command}.XXXXXX")
+  log_info "Copying $source_provider to $target_variable; source backup retained in $backup_dir"
+  BACKUP_RESULT_FILE=""
+  backup_database "$source_provider" "$backup_dir"
+  [ -n "$BACKUP_RESULT_FILE" ] && [ -s "$BACKUP_RESULT_FILE" ] || die "Source backup was not created"
+  verify_backup_file "$BACKUP_RESULT_FILE"
+  restore_database "$source_provider" "$BACKUP_RESULT_FILE" "$target_provider" "$target_url"
+}
+
+restore_r2_to_local() {
+  local backup_key="${1:-}" output_dir="${2:-./backups}"
+  [ -n "$backup_key" ] || backup_key=$(get_config_value R2_BACKUP_SPECIFIC)
+  [ -n "$backup_key" ] || die "Provide an R2 backup key or set R2_BACKUP_SPECIFIC (use latest for the newest Neon backup)"
+  local provider=neon target_url backup_dir
+  if [ "$backup_key" != latest ]; then
+    [[ "$backup_key" == "$SYSTEM_PREFIX"/postgresql/*/*.dump.age ]] || die "Expected a full R2 .dump.age object key or latest"
+    provider="${backup_key#"$SYSTEM_PREFIX"/postgresql/}"
+    provider="${provider%%/*}"
+  fi
+  target_url=$(get_database_url local)
+  validate_database_url "$target_url"
+  is_production_database "$(get_database_name "$target_url")" && die "SAFETY: Target database appears to be production. Aborting."
+  check_restore_server_version "$target_url"
+  [ -n "$(get_config_value BACKUP_ENCRYPTION_IDENTITY)" ] || die "BACKUP_ENCRYPTION_IDENTITY is required to restore the encrypted R2 backup"
+  mkdir -p "$output_dir"
+  backup_dir=$(mktemp -d "$output_dir/restore_r2_to_local.XXXXXX")
+  DOWNLOAD_RESULT_FILE=""
+  download_from_r2 "$provider" "$backup_key" "$backup_dir" || die "R2 download failed"
+  verify_backup_file "$DOWNLOAD_RESULT_FILE" || die "R2 backup verification failed"
+  restore_database "$provider" "$DOWNLOAD_RESULT_FILE" local "$target_url"
+}
 
 validate_restored_table_count() {
   local dump_file="$1" target_url="$2" archive_list expected actual
@@ -468,25 +528,27 @@ download_from_r2() {
   
   if [ "$backup_key" = "latest" ]; then
     log_info "Finding latest backup..."
-    backup_key=$(aws s3api list-objects-v2 \
+    if ! backup_key=$(aws s3api list-objects-v2 \
       --bucket "$bucket" \
       --prefix "$prefix" \
       --endpoint-url "$endpoint" \
-      --query 'Contents[?ends_with(Key, `.dump.age`)].Key | sort_by(@, &LastModified)[-1]' \
-      --output text)
+      --query 'Contents[?ends_with(Key, `.dump.age`)] | sort_by(@, &LastModified)[-1].Key' \
+      --output text); then
+      die "Cannot list R2 backups. Check R2 credentials, bucket access, and the account endpoint (exported settings override .env.development.local). For AccessDenied, grant Object Read access to the configured bucket. A full backup object key skips listing but still requires download access."
+    fi
     [ -n "$backup_key" ] && [ "$backup_key" != "None" ] || die "No backups found for provider $provider"
     log_info "Latest backup: $backup_key"
   fi
   
-  local base_key="${backup_key%.age}"
-  local files=("${base_key}.age" "${base_key}.sha256" "${base_key}.json")
-  
-  for file in "${files[@]}"; do
-    local local_file="$output_dir/$(basename "$file")"
-    log_info "Downloading: $file"
-    aws s3 cp "s3://${bucket}/$file" "$local_file" --endpoint-url "$endpoint" || log_warn "File not found: $file (may not exist for older backups)"
-  done
-  
+  [[ "$backup_key" == *.dump.age ]] || die "Expected an R2 .dump.age object key"
+  local dump_file="$output_dir/$(basename "$backup_key")"
+  aws s3 cp "s3://${bucket}/$backup_key" "$dump_file" --endpoint-url "$endpoint" || die "Failed to download backup: $backup_key"
+  aws s3 cp "s3://${bucket}/${backup_key}.sha256" "${dump_file}.sha256" --endpoint-url "$endpoint" || die "Failed to download backup checksum"
+  if ! aws s3 cp "s3://${bucket}/${backup_key}.json" "${dump_file}.json" --endpoint-url "$endpoint"; then
+    aws s3 cp "s3://${bucket}/${backup_key%.age}.json" "${dump_file%.age}.json" --endpoint-url "$endpoint" || die "Failed to download backup metadata"
+  fi
+  DOWNLOAD_RESULT_FILE="$dump_file"
+
   log_success "Download complete to: $output_dir"
 }
 
@@ -502,6 +564,22 @@ USAGE:
   $0 <command> [options]
 
 COMMANDS:
+  restore_local_to_neondb [output_dir]
+    Copy LOCAL_DATABASE_URL to NEON_DATABASE_URL
+  restore_local_to_supabase [output_dir]
+    Copy LOCAL_DATABASE_URL to SUPA_DATABASE_URL
+  restore_neondb_to_neondb [output_dir]
+    Copy NEON_DATABASE_URL to NEON_SECOND_DATABASE_URL
+  restore_neondb_to_local [output_dir]
+    Copy NEON_DATABASE_URL to LOCAL_DATABASE_URL
+    These commands back up, verify, then prompt before restoring the target.
+    Source backups are retained under output_dir (default: ./backups).
+
+  restore_r2_to_local [backup_key] [output_dir]
+    Download, verify, and restore an R2 backup to LOCAL_DATABASE_URL.
+    An omitted or empty key uses R2_BACKUP_SPECIFIC; latest selects Neon.
+    Downloads are retained under output_dir (default: ./backups).
+
   backup <provider> [output_dir] [custom_name]
     Create a backup from the specified provider
     Providers: local, supabase, neon
@@ -530,12 +608,15 @@ COMMANDS:
 CONFIGURATION (.env.development.local; exported values take precedence):
   BACKUP_ENCRYPTION_RECIPIENT    Age public key for encryption (age1...)
   BACKUP_ENCRYPTION_IDENTITY     Age private key (AGE-SECRET-KEY-...) or identity-file path
+  R2_BACKUP_SPECIFIC            Default R2 object key or latest (Neon)
   R2_BUCKET                      Cloudflare R2 bucket name
   R2_ENDPOINT                    Cloudflare R2 S3 endpoint URL
   R2_ACCESS_KEY_ID               Cloudflare R2 access key ID
   R2_SECRET_ACCESS_KEY           Cloudflare R2 secret access key
   LOCAL_DATABASE_URL             Local database URL (exported or in .env.development.local)
   NEON_DATABASE_URL              Neon database URL (exported or in .env.development.local)
+  SUPA_DATABASE_URL              Destination for restore_local_to_supabase
+  NEON_SECOND_DATABASE_URL       Destination for restore_neondb_to_neondb
   SUPABASE_DATABASE_URL          Supabase database URL (exported or in .env.development.local)
   PG_CLIENT_MAJOR                PostgreSQL client major version (default: 18)
 
@@ -583,6 +664,16 @@ main() {
   case "$command" in
     help|--help|-h)
       usage
+      ;;
+    restore_local_to_neondb|restore_local_to_supabase|restore_neondb_to_neondb|restore_neondb_to_local)
+      [ "$#" -le 1 ] || die "Usage: $0 $command [output_dir]"
+      check_dependencies
+      copy_database "$command" "${1:-./backups}"
+      ;;
+    restore_r2_to_local)
+      [ "$#" -le 2 ] || die "Usage: $0 $command [backup_key] [output_dir]"
+      check_dependencies
+      restore_r2_to_local "${1:-}" "${2:-./backups}"
       ;;
     backup)
       check_dependencies

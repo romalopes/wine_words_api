@@ -287,6 +287,13 @@ class Wine < ApplicationRecord
     slug
   end
 
+  # Analytics lifecycle: hard-delete events on destroy (wines have no archive state).
+  after_destroy :purge_analytics_events
+
+  def purge_analytics_events
+    Analytics::Event.purge_content!("Wine", id)
+  end
+
   private
 
   # Pre-fill the required wine attributes so a new record is never blank.

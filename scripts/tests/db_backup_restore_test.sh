@@ -196,6 +196,114 @@ ENV
   validate_restored_table_count fake.dump postgresql:///fake > "$TEST_DIR/extra-tables.log"
   grep -q 'additional tables' "$TEST_DIR/extra-tables.log"
 )
+# Copy shortcuts route the source backup to the exact configured destination.
+(
+  check_dependencies() { :; }
+  check_restore_server_version() { :; }
+  get_database_url() { printf 'postgresql:///source_%s\n' "$1"; }
+  get_config_value() {
+    case "$1" in
+      *_DATABASE_URL) printf 'postgresql:///target_%s\n' "$1" ;;
+    esac
+  }
+  backup_database() {
+    printf '%s' "$1" > "$TEST_DIR/copy-source"
+    BACKUP_RESULT_FILE="$2/source.dump"
+    printf 'fake dump' > "$BACKUP_RESULT_FILE"
+  }
+  verify_backup_file() { test -s "$1"; }
+  restore_database() { printf '%s|%s|%s' "$1" "$3" "$4" > "$TEST_DIR/copy-target"; }
+  for spec in \
+    'restore_local_to_neondb local neon NEON_DATABASE_URL' \
+    'restore_local_to_supabase local supabase SUPA_DATABASE_URL' \
+    'restore_neondb_to_neondb neon neon NEON_SECOND_DATABASE_URL' \
+    'restore_neondb_to_local neon local LOCAL_DATABASE_URL'; do
+    read -r command source_provider target_provider variable <<< "$spec"
+    main "$command" "$TEST_DIR/copy backups" > /dev/null
+    assert_equal "$(cat "$TEST_DIR/copy-source")" "$source_provider" copy_source
+    assert_equal "$(cat "$TEST_DIR/copy-target")" "$source_provider|$target_provider|postgresql:///target_$variable" copy_destination
+  done
+  get_config_value() { :; }
+  if (main restore_local_to_neondb "$TEST_DIR/copies") > /dev/null 2>&1; then
+    echo 'FAIL: accepted missing copy destination'; exit 1
+  fi
+  get_config_value() { printf 'postgresql:///source_local'; }
+  if (main restore_local_to_neondb "$TEST_DIR/copies") > /dev/null 2>&1; then
+    echo 'FAIL: accepted identical copy URLs'; exit 1
+  fi
+)
+# Download latest from object metadata and fetch the encrypted checksum sidecar.
+(
+  export R2_BUCKET=test R2_ENDPOINT=https://example.invalid
+  export R2_ACCESS_KEY_ID=fake R2_SECRET_ACCESS_KEY=fake
+  aws() {
+    if [ "$1" = s3api ]; then
+      [[ "$*" == *'sort_by(@, &LastModified)[-1].Key'* ]] || exit 1
+      printf 'wine-words/postgresql/neon/latest.dump.age\n'
+    else
+      printf '%s\n' "$3" >> "$TEST_DIR/download-keys"
+      printf fixture > "$4"
+    fi
+  }
+  download_from_r2 neon latest "$TEST_DIR/downloaded" > /dev/null
+  test -s "$DOWNLOAD_RESULT_FILE"
+  test -s "${DOWNLOAD_RESULT_FILE}.sha256"
+  test -s "${DOWNLOAD_RESULT_FILE}.json"
+  grep -q 'latest.dump.age.sha256$' "$TEST_DIR/download-keys"
+  aws() { echo 'AccessDenied' >&2; return 1; }
+  if (download_from_r2 neon latest "$TEST_DIR/denied") > "$TEST_DIR/list-error" 2>&1; then
+    echo 'FAIL: accepted denied R2 listing'; exit 1
+  fi
+  grep -q 'Cannot list R2 backups' "$TEST_DIR/list-error"
+  if grep -q 'No backups found' "$TEST_DIR/list-error"; then
+    echo 'FAIL: listing failure reported as empty bucket'; exit 1
+  fi
+  aws() { echo None; }
+  if (download_from_r2 neon latest "$TEST_DIR/empty") > "$TEST_DIR/empty-error" 2>&1; then
+    echo 'FAIL: accepted empty R2 listing'; exit 1
+  fi
+  grep -q 'No backups found' "$TEST_DIR/empty-error"
+  aws() { return 1; }
+  if (download_from_r2 neon wine-words/postgresql/neon/missing.dump.age "$TEST_DIR/missing") > /dev/null 2>&1; then
+    echo 'FAIL: accepted missing R2 object'; exit 1
+  fi
+)
+# R2 shortcut: exact key takes precedence; omitted and empty keys use dotenv.
+(
+  unset R2_BACKUP_SPECIFIC
+  API_DIR="$TEST_DIR/r2-shortcut"
+  mkdir -p "$API_DIR"
+  printf 'R2_BACKUP_SPECIFIC=latest\n' > "$API_DIR/.env.development.local"
+  export LOCAL_DATABASE_URL=postgresql:///local_test
+  export BACKUP_ENCRYPTION_IDENTITY="$TEST_DIR/test-identity.txt"
+  check_dependencies() { :; }
+  check_restore_server_version() { :; }
+  download_from_r2() {
+    printf '%s|%s' "$1" "$2" > "$TEST_DIR/r2-selection"
+    DOWNLOAD_RESULT_FILE="$3/snapshot.dump.age"
+    printf fixture > "$DOWNLOAD_RESULT_FILE"
+  }
+  verify_backup_file() { test -s "$1"; }
+  restore_database() {
+    test -s "$2"
+    assert_equal "$3|$4" 'local|postgresql:///local_test' r2_target
+  }
+  main restore_r2_to_local 'wine-words/postgresql/supabase/specific.dump.age' "$TEST_DIR/r2 downloads" > /dev/null
+  assert_equal "$(cat "$TEST_DIR/r2-selection")" 'supabase|wine-words/postgresql/supabase/specific.dump.age' explicit_r2_key
+  main restore_r2_to_local '' "$TEST_DIR/r2 downloads" > /dev/null
+  assert_equal "$(cat "$TEST_DIR/r2-selection")" 'neon|latest' empty_r2_key
+  (cd "$TEST_DIR"; main restore_r2_to_local) > /dev/null
+  assert_equal "$(cat "$TEST_DIR/r2-selection")" 'neon|latest' omitted_r2_key
+  export R2_BACKUP_SPECIFIC=wine-words/postgresql/neon/exported.dump.age
+  main restore_r2_to_local '' "$TEST_DIR/r2 downloads" > /dev/null
+  assert_equal "$(cat "$TEST_DIR/r2-selection")" "neon|$R2_BACKUP_SPECIFIC" exported_r2_key
+  verify_backup_file() { return 1; }
+  restore_database() { touch "$TEST_DIR/unexpected-restore"; }
+  if (main restore_r2_to_local latest "$TEST_DIR/r2 downloads") > /dev/null 2>&1; then
+    echo 'FAIL: accepted failed R2 verification'; exit 1
+  fi
+  test ! -e "$TEST_DIR/unexpected-restore"
+)
 bash "$SCRIPT_PATH" --help > "$TEST_DIR/help"
 if grep -Fq '$0' "$TEST_DIR/help"; then exit 1; fi
 if bash "$SCRIPT_PATH" unknown > /dev/null 2>&1; then exit 1; fi
