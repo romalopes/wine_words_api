@@ -1,0 +1,104 @@
+
+GET /api/v1/analytics/diagnostics/accepted - Filters
+  filters by content_type
+  filters by viewable_id
+  filters by date range
+
+GET /api/v1/analytics/diagnostics/accepted - Masking
+  returns paginated masked events
+  masks account identity as account:***
+  masks visitor identity as visitor:***
+  masks referrer to origin only
+  masks visitor_key to first 8 chars
+  includes safe fields: id, viewable_type, viewable_id, viewed_at, source, viewport, created_at
+  never exposes raw IPs, tokens, names, or full user agents
+  only returns accepted events, never rejected
+
+GET /api/v1/analytics/diagnostics/accepted - Pagination
+  defaults to page 1, 25 per page
+  respects page parameter
+  caps per_page at 50
+  returns correct total_count and total_pages
+
+Analytics Diagnostics Authorization
+  GET /api/v1/analytics/diagnostics/accepted
+    requires authentication
+    requires admin role
+    allows admin when enabled
+    returns 403 when disabled for admin
+  GET /api/v1/analytics/diagnostics/exclusion_reasons
+    requires authentication
+    requires admin role
+    allows admin when enabled
+    returns 403 when disabled for admin
+
+GET /api/v1/analytics/diagnostics/exclusion_reasons
+  authorization
+    requires authentication
+    requires admin role
+    allows admin when enabled
+    returns 403 when disabled for admin
+  response structure
+    returns exclusion reasons with total_rejected count
+    includes total_rejected in exclusion_reasons
+    includes note about future enhancement
+    filters by date range
+
+POST /api/v1/analytics/views
+  anonymous with X-Visitor-ID
+    returns 202 with accepted true
+    creates an accepted event with visitor identity
+    deduplicates a second view within the window
+  anonymous without X-Visitor-ID
+    generates a visitor identity and returns 202
+  invalid payload
+/Users/romalopes/.rbenv/versions/3.4.2/lib/ruby/gems/3.4.0/gems/rspec-rails-7.1.1/lib/rspec/rails/matchers/have_http_status.rb:219: warning: Status code :unprocessable_entity is deprecated and will be removed in a future version of Rack. Please use :unprocessable_content instead.
+    rejects unknown content_type with 422
+/Users/romalopes/.rbenv/versions/3.4.2/lib/ruby/gems/3.4.0/gems/rspec-rails-7.1.1/lib/rspec/rails/matchers/have_http_status.rb:219: warning: Status code :unprocessable_entity is deprecated and will be removed in a future version of Rack. Please use :unprocessable_content instead.
+    rejects missing content_id with 422
+/Users/romalopes/.rbenv/versions/3.4.2/lib/ruby/gems/3.4.0/gems/rspec-rails-7.1.1/lib/rspec/rails/matchers/have_http_status.rb:219: warning: Status code :unprocessable_entity is deprecated and will be removed in a future version of Rack. Please use :unprocessable_content instead.
+    rejects invalid event_type with 422
+/Users/romalopes/.rbenv/versions/3.4.2/lib/ruby/gems/3.4.0/gems/rspec-rails-7.1.1/lib/rspec/rails/matchers/have_http_status.rb:219: warning: Status code :unprocessable_entity is deprecated and will be removed in a future version of Rack. Please use :unprocessable_content instead.
+    rejects malformed visitor ID with 422
+  authenticated
+    uses account identity
+    returns 202 for opted-out user without creating an event
+    returns 202 without counting when author views own article
+    returns 202 for inaccessible content without counting
+  invalid JWT
+    returns 401 instead of anonymous fallback
+  CORS
+    allows the configured frontend origin
+
+Analytics::Ingest
+  creates an accepted event for valid input
+  rejects invalid event types
+  rejects invalid content types
+  deduplicates a repeat view within the window
+  accepts a new event after the window expires
+  silently drops admin views
+  silently drops author self-views
+  silently drops opted-out users
+  silently drops inaccessible content
+
+Analytics::Event
+  validations
+    accepts a valid event
+    rejects unknown content types
+    rejects non-positive content IDs
+    rejects malformed identities
+    accepts account identities
+  scopes
+    .accepted returns only accepted events
+    .for_content filters by type and id
+    .for_identity filters by identity
+  .anonymize_account!
+    rewrites account identity to erased form
+  .purge_content!
+    deletes events for the content
+  .dedup_lock_key
+    fits in signed 63-bit range
+
+Finished in 0.90068 seconds (files took 0.65336 seconds to load)
+65 examples, 0 failures
+

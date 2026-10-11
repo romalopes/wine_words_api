@@ -1,0 +1,46 @@
+
+An error occurred while loading ./spec/services/analytics/period_spec.rb. - Did you mean?
+                    rspec ./spec/services/analytics/ingest_spec.rb
+
+Failure/Error: __send__(method, file)
+
+LoadError:
+  cannot load such file -- /Users/romalopes/Documents/studies/my_project/wine_project/wine_words_api/spec/services/analytics/period_spec.rb
+# /Users/romalopes/.rbenv/versions/3.4.2/lib/ruby/gems/3.4.0/gems/rspec-core-3.13.6/lib/rspec/core/configuration.rb:2144:in 'Kernel#load'
+# /Users/romalopes/.rbenv/versions/3.4.2/lib/ruby/gems/3.4.0/gems/rspec-core-3.13.6/lib/rspec/core/configuration.rb:2144:in 'RSpec::Core::Configuration#load_file_handling_errors'
+# /Users/romalopes/.rbenv/versions/3.4.2/lib/ruby/gems/3.4.0/gems/rspec-core-3.13.6/lib/rspec/core/configuration.rb:1643:in 'block in RSpec::Core::Configuration#load_spec_files'
+# /Users/romalopes/.rbenv/versions/3.4.2/lib/ruby/gems/3.4.0/gems/rspec-core-3.13.6/lib/rspec/core/configuration.rb:1641:in 'Array#each'
+# /Users/romalopes/.rbenv/versions/3.4.2/lib/ruby/gems/3.4.0/gems/rspec-core-3.13.6/lib/rspec/core/configuration.rb:1641:in 'RSpec::Core::Configuration#load_spec_files'
+# /Users/romalopes/.rbenv/versions/3.4.2/lib/ruby/gems/3.4.0/gems/rspec-core-3.13.6/lib/rspec/core/runner.rb:102:in 'RSpec::Core::Runner#setup'
+# /Users/romalopes/.rbenv/versions/3.4.2/lib/ruby/gems/3.4.0/gems/rspec-core-3.13.6/lib/rspec/core/runner.rb:86:in 'RSpec::Core::Runner#run'
+# /Users/romalopes/.rbenv/versions/3.4.2/lib/ruby/gems/3.4.0/gems/rspec-core-3.13.6/lib/rspec/core/runner.rb:71:in 'RSpec::Core::Runner.run'
+# /Users/romalopes/.rbenv/versions/3.4.2/lib/ruby/gems/3.4.0/gems/rspec-core-3.13.6/lib/rspec/core/runner.rb:45:in 'RSpec::Core::Runner.invoke'
+# /Users/romalopes/.rbenv/versions/3.4.2/lib/ruby/gems/3.4.0/gems/rspec-core-3.13.6/exe/rspec:4:in '<top (required)>'
+# /Users/romalopes/.rbenv/versions/3.4.2/bin/rspec:25:in 'Kernel#load'
+# /Users/romalopes/.rbenv/versions/3.4.2/bin/rspec:25:in '<top (required)>'
+# /Users/romalopes/.rbenv/versions/3.4.2/lib/ruby/gems/3.4.0/gems/bundler-2.7.2/lib/bundler/cli/exec.rb:59:in 'Kernel.load'
+# /Users/romalopes/.rbenv/versions/3.4.2/lib/ruby/gems/3.4.0/gems/bundler-2.7.2/lib/bundler/cli/exec.rb:59:in 'Bundler::CLI::Exec#kernel_load'
+# /Users/romalopes/.rbenv/versions/3.4.2/lib/ruby/gems/3.4.0/gems/bundler-2.7.2/lib/bundler/cli/exec.rb:23:in 'Bundler::CLI::Exec#run'
+# /Users/romalopes/.rbenv/versions/3.4.2/lib/ruby/gems/3.4.0/gems/bundler-2.7.2/lib/bundler/cli.rb:456:in 'Bundler::CLI#exec'
+# /Users/romalopes/.rbenv/versions/3.4.2/lib/ruby/gems/3.4.0/gems/bundler-2.7.2/lib/bundler/vendor/thor/lib/thor/command.rb:28:in 'Bundler::Thor::Command#run'
+# /Users/romalopes/.rbenv/versions/3.4.2/lib/ruby/gems/3.4.0/gems/bundler-2.7.2/lib/bundler/vendor/thor/lib/thor/invocation.rb:127:in 'Bundler::Thor::Invocation#invoke_command'
+# /Users/romalopes/.rbenv/versions/3.4.2/lib/ruby/gems/3.4.0/gems/bundler-2.7.2/lib/bundler/vendor/thor/lib/thor.rb:538:in 'Bundler::Thor.dispatch'
+# /Users/romalopes/.rbenv/versions/3.4.2/lib/ruby/gems/3.4.0/gems/bundler-2.7.2/lib/bundler/cli.rb:35:in 'Bundler::CLI.dispatch'
+# /Users/romalopes/.rbenv/versions/3.4.2/lib/ruby/gems/3.4.0/gems/bundler-2.7.2/lib/bundler/vendor/thor/lib/thor/base.rb:584:in 'Bundler::Thor::Base::ClassMethods#start'
+# /Users/romalopes/.rbenv/versions/3.4.2/lib/ruby/gems/3.4.0/gems/bundler-2.7.2/lib/bundler/cli.rb:29:in 'Bundler::CLI.start'
+# /Users/romalopes/.rbenv/versions/3.4.2/lib/ruby/gems/3.4.0/gems/bundler-2.7.2/exe/bundle:28:in 'block in <top (required)>'
+# /Users/romalopes/.rbenv/versions/3.4.2/lib/ruby/gems/3.4.0/gems/bundler-2.7.2/lib/bundler/friendly_errors.rb:118:in 'Bundler.with_friendly_errors'
+# /Users/romalopes/.rbenv/versions/3.4.2/lib/ruby/gems/3.4.0/gems/bundler-2.7.2/exe/bundle:20:in '<top (required)>'
+# /Users/romalopes/.rbenv/versions/3.4.2/bin/bundle:25:in 'Kernel#load'
+# /Users/romalopes/.rbenv/versions/3.4.2/bin/bundle:25:in '<main>'
+# 
+#   Showing full backtrace because every line was filtered out.
+#   See docs for RSpec::Configuration#backtrace_exclusion_patterns and
+#   RSpec::Configuration#backtrace_inclusion_patterns for more information.
+Run options: include {full_description: /dst/}
+
+All examples were filtered out
+
+Finished in 0.00004 seconds (files took 0.09313 seconds to load)
+0 examples, 0 failures, 1 error occurred outside of examples
+

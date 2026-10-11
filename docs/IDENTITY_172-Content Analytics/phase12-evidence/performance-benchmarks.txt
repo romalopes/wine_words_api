@@ -1,0 +1,15 @@
+=== EXPLAIN ANALYZE for Summary ===
+EXPLAIN ANALYZE SELECT "analytics_events".* FROM "analytics_events" WHERE "analytics_events"."accepted" = TRUE AND "analytics_events"."viewable_type" = 'Article' AND "analytics_events"."viewable_id" = 42 AND "analytics_events"."viewed_at" >= '2026-09-12 21:07:22.554510' AND "analytics_events"."viewed_at" < '2026-10-11 21:12:03.351401'
+EXPLAIN ANALYZE SELECT DISTINCT "analytics_events"."identity" FROM "analytics_events" WHERE "analytics_events"."accepted" = TRUE AND "analytics_events"."viewable_type" = 'Article' AND "analytics_events"."viewable_id" = 42 AND "analytics_events"."viewed_at" >= '2026-09-12 21:07:22.554510' AND "analytics_events"."viewed_at" < '2026-10-11 21:12:03.351401'
+=== EXPLAIN ANALYZE for TopContent ===
+EXPLAIN ANALYZE SELECT "articles".* FROM "articles" WHERE "articles"."id" = 42
+=== Benchmark Summary (100 iterations) ===
+Summary: min=20.15ms avg=26.26ms max=58.1ms p95=30.28ms
+=== Benchmark TopContent (100 iterations) ===
+TopContent: min=6.89ms avg=9.05ms max=24.58ms p95=10.48ms
+=== Benchmark ContentDetail (100 iterations) ===
+ContentDetail: min=4.81ms avg=6.79ms max=20.83ms p95=8.09ms
+=== Benchmark Timeseries (100 iterations) ===
+Timeseries: min=11.73ms avg=13.48ms max=21.76ms p95=15.15ms
+=== Benchmark WineInsights (100 iterations) ===
+WineInsights: min=1.11ms avg=1.49ms max=2.93ms p95=2.37ms

@@ -1,0 +1,16 @@
+Run options: include {full_description: /invalid\ payload/}
+
+POST /api/v1/analytics/views
+  invalid payload
+/Users/romalopes/.rbenv/versions/3.4.2/lib/ruby/gems/3.4.0/gems/rspec-rails-7.1.1/lib/rspec/rails/matchers/have_http_status.rb:219: warning: Status code :unprocessable_entity is deprecated and will be removed in a future version of Rack. Please use :unprocessable_content instead.
+    rejects unknown content_type with 422
+/Users/romalopes/.rbenv/versions/3.4.2/lib/ruby/gems/3.4.0/gems/rspec-rails-7.1.1/lib/rspec/rails/matchers/have_http_status.rb:219: warning: Status code :unprocessable_entity is deprecated and will be removed in a future version of Rack. Please use :unprocessable_content instead.
+    rejects missing content_id with 422
+/Users/romalopes/.rbenv/versions/3.4.2/lib/ruby/gems/3.4.0/gems/rspec-rails-7.1.1/lib/rspec/rails/matchers/have_http_status.rb:219: warning: Status code :unprocessable_entity is deprecated and will be removed in a future version of Rack. Please use :unprocessable_content instead.
+    rejects invalid event_type with 422
+/Users/romalopes/.rbenv/versions/3.4.2/lib/ruby/gems/3.4.0/gems/rspec-rails-7.1.1/lib/rspec/rails/matchers/have_http_status.rb:219: warning: Status code :unprocessable_entity is deprecated and will be removed in a future version of Rack. Please use :unprocessable_content instead.
+    rejects malformed visitor ID with 422
+
+Finished in 0.14121 seconds (files took 0.61326 seconds to load)
+4 examples, 0 failures
+

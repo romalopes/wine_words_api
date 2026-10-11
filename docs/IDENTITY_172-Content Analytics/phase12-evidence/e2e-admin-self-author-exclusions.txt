@@ -1,0 +1,16 @@
+
+GET /api/v1/analytics/diagnostics/exclusion_reasons
+  authorization
+    requires authentication
+    requires admin role
+    allows admin when enabled
+    returns 403 when disabled for admin
+  response structure
+    returns exclusion reasons with total_rejected count
+    includes total_rejected in exclusion_reasons
+    includes note about future enhancement
+    filters by date range
+
+Finished in 0.24494 seconds (files took 0.64437 seconds to load)
+8 examples, 0 failures
+

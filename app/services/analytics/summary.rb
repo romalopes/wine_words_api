@@ -91,10 +91,10 @@ module Analytics
     def views_aggregation
       { count: sum_across_content_types(->(type, ids) {
         return { count: 0 } if ids.empty?
-        Analytics::Event.accepted
+        { count: Analytics::Event.accepted
           .where(viewable_type: type, viewable_id: ids)
           .in_window(@period.start_at, @period.end_at)
-          .count
+          .count }
       }) }
     end
 
@@ -102,11 +102,11 @@ module Analytics
     def unique_viewers_aggregation
       { count: sum_across_content_types(->(type, ids) {
         return { count: 0 } if ids.empty?
-        Analytics::Event.accepted
+        { count: Analytics::Event.accepted
           .where(viewable_type: type, viewable_id: ids)
           .in_window(@period.start_at, @period.end_at)
           .distinct
-          .count(:identity)
+          .count(:identity) }
       }) }
     end
 
@@ -116,9 +116,9 @@ module Analytics
     def likes_aggregation
       { count: sum_across_content_types(->(type, ids) {
         return { count: 0 } if ids.empty?
-        Like.where(likeable_type: type, likeable_id: ids)
+        { count: Like.where(likeable_type: type, likeable_id: ids)
           .where(created_at: @period.start_at...@period.end_at)
-          .count
+          .count }
       }) }
     end
 
@@ -126,11 +126,11 @@ module Analytics
     def comments_aggregation
       { count: sum_across_content_types(->(type, ids) {
         return { count: 0 } if ids.empty?
-        Comment.visible
+        { count: Comment.visible
           .top_level
           .where(commentable_type: type, commentable_id: ids)
           .where(created_at: @period.start_at...@period.end_at)
-          .count
+          .count }
       }) }
     end
 
@@ -138,11 +138,11 @@ module Analytics
     def replies_aggregation
       { count: sum_across_content_types(->(type, ids) {
         return { count: 0 } if ids.empty?
-        Comment.visible
+        { count: Comment.visible
           .where.not(parent_id: nil)
           .where(commentable_type: type, commentable_id: ids)
           .where(created_at: @period.start_at...@period.end_at)
-          .count
+          .count }
       }) }
     end
   end

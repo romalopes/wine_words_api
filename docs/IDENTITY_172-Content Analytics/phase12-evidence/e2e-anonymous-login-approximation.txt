@@ -1,0 +1,30 @@
+
+POST /api/v1/analytics/views
+  anonymous with X-Visitor-ID
+    returns 202 with accepted true
+    creates an accepted event with visitor identity
+    deduplicates a second view within the window
+  anonymous without X-Visitor-ID
+    generates a visitor identity and returns 202
+  invalid payload
+/Users/romalopes/.rbenv/versions/3.4.2/lib/ruby/gems/3.4.0/gems/rspec-rails-7.1.1/lib/rspec/rails/matchers/have_http_status.rb:219: warning: Status code :unprocessable_entity is deprecated and will be removed in a future version of Rack. Please use :unprocessable_content instead.
+    rejects unknown content_type with 422
+/Users/romalopes/.rbenv/versions/3.4.2/lib/ruby/gems/3.4.0/gems/rspec-rails-7.1.1/lib/rspec/rails/matchers/have_http_status.rb:219: warning: Status code :unprocessable_entity is deprecated and will be removed in a future version of Rack. Please use :unprocessable_content instead.
+    rejects missing content_id with 422
+/Users/romalopes/.rbenv/versions/3.4.2/lib/ruby/gems/3.4.0/gems/rspec-rails-7.1.1/lib/rspec/rails/matchers/have_http_status.rb:219: warning: Status code :unprocessable_entity is deprecated and will be removed in a future version of Rack. Please use :unprocessable_content instead.
+    rejects invalid event_type with 422
+/Users/romalopes/.rbenv/versions/3.4.2/lib/ruby/gems/3.4.0/gems/rspec-rails-7.1.1/lib/rspec/rails/matchers/have_http_status.rb:219: warning: Status code :unprocessable_entity is deprecated and will be removed in a future version of Rack. Please use :unprocessable_content instead.
+    rejects malformed visitor ID with 422
+  authenticated
+    uses account identity
+    returns 202 for opted-out user without creating an event
+    returns 202 without counting when author views own article
+    returns 202 for inaccessible content without counting
+  invalid JWT
+    returns 401 instead of anonymous fallback
+  CORS
+    allows the configured frontend origin
+
+Finished in 0.37539 seconds (files took 0.56522 seconds to load)
+14 examples, 0 failures
+
