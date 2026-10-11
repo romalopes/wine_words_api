@@ -6,7 +6,7 @@ Deliverable: phased implementation specification, acceptance criteria, AI coding
 
 ## Implementation tracking documents
 
-**Planning status as of 11 October 2026:** this master document is the approved planning baseline for issue #172. It does not claim that the analytics feature has been implemented. The phase documents below turn the specification into dependency-ordered execution records. Each phase must be updated during delivery with the files changed, commands and tests actually run, acceptance criteria satisfied, remaining limitations, and a link to the next phase. Do not mark planned work as implemented without repository evidence.
+**Planning status as of 11 October 2026:** this master document is the approved planning baseline for issue #172. Phases 0–9 have been implemented; Phases 10–14 remain planned. The phase documents below turn the specification into dependency-ordered execution records. Each phase must be updated during delivery with the files changed, commands and tests actually run, acceptance criteria satisfied, remaining limitations, and a link to the next phase. Do not mark planned work as implemented without repository evidence.
 
 | Phase | Execution record | Dependency / hand-off |
 | --- | --- | --- |
@@ -18,8 +18,8 @@ Deliverable: phased implementation specification, acceptance criteria, AI coding
 | 5 | [Frontend tracking](phase-5-frontend-tracking.md) | Produces accepted events for reporting in Phase 6 |
 | 6 | [Reporting periods and authorization scopes](phase-6-reporting-periods-and-scopes.md) | Provides safe reporting inputs for Phase 7 |
 | 7 | [Reporting aggregations and API](phase-7-reporting-aggregations-and-api.md) | Provides dashboard data for Phase 8 |
-| 8 | [Dashboard overview and content tables](phase-8-dashboard-overview-and-content-tables.md) | Provides overview navigation for Phase 9 |
-| 9 | [Content details, rankings and trending](phase-9-content-details-rankings-and-trending.md) | Provides reporting surfaces extended in Phase 10 |
+| 8 | [Dashboard overview and content tables](phase-8-dashboard-overview-and-content-tables.md) | **Completed** — provides overview navigation for Phase 9 |
+| 9 | [Content details, rankings and trending](phase-9-content-details-rankings-and-trending.md) | **Completed** — provides detail navigation for Phase 10 |
 | 10 | [Wine insights and navigation context](phase-10-wine-insights-and-navigation-context.md) | Provides product analytics inputs for Phase 11 |
 | 11 | [Diagnostics, retention and erasure](phase-11-diagnostics-retention-and-erasure.md) | Provides operational controls for Phase 12 |
 | 12 | [Security, performance and end-to-end verification](phase-12-security-performance-and-e2e.md) | Produces release evidence for Phase 13 |
