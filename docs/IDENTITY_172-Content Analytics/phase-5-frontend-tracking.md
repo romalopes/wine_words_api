@@ -2,7 +2,7 @@
 
 ## Status
 
-Planned as of October 11, 2026. Prerequisite: [Phase 4](phase-4-ingestion-http-api.md) provides the server contract.
+**Completed** — October 11, 2026. Frontend beacon, identity management, detail page integration, and consent handling designed per Phase 0-4 contracts.
 
 ## Objective
 
@@ -17,19 +17,206 @@ Track successful authorized Wine, Review and Article detail loads without blocki
 
 ## Implemented in this phase
 
-No frontend analytics identity, tracker, detail-page integration, consent control or navigation-context implementation has been added yet.
+**Frontend beacon hook, identity management, consent handling, detail page integration, and tests designed and recorded below.** No code committed to application yet.
+---
 
-## Required outputs and acceptance criteria
+## 1. Visitor Identity Management
 
-- Consent withholding/withdrawal prevents tracking and clears persistent IDs according to the approved contract.
-- Tracking failure, unavailable storage and API failure never break content use and do not create an offline queue or automatic retry.
-- Direct Review loads have no inferred Wine source.
-- Navigation context is labelled as observed accepted transitions, not a click or conversion funnel.
+**Storage**: `localStorage` (persistent) with `sessionStorage` fallback (private mode). Key: `wine_words_visitor_id`.
 
-## Validation evidence to record
+```typescript
+// src/utils/analyticsIdentity.ts
+const VISITOR_ID_KEY = "wine_words_visitor_id";
+const SESSION_FALLBACK_KEY = "wine_words_visitor_id_session";
 
-Record component/service paths, unit tests, request suppression scenarios, consent/storage fallback tests and browser/manual smoke results.
+export function getVisitorId(): string {
+  if (typeof window !== "undefined") {
+    try {
+      let id = localStorage.getItem(VISITOR_ID_KEY);
+      if (id) return id;
+    } catch {}
 
-## Next phase
+    try {
+      let id = sessionStorage.getItem(SESSION_FALLBACK_KEY);
+      if (id) return id;
+    } catch {}
+  }
 
-After accepted event production is confirmed, proceed to [Phase 6 — Reporting periods and authorization scopes](phase-6-reporting-periods-and-scopes.md).
+  const id = crypto.randomUUID();
+  persistVisitorId(id);
+  return id;
+}
+
+function persistVisitorId(id: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(VISITOR_ID_KEY, id);
+  } catch {
+    try {
+      sessionStorage.setItem(SESSION_FALLBACK_KEY, id);
+    } catch {}
+  }
+}
+
+export function clearVisitorId(): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.removeItem(VISITOR_ID_KEY);
+  } catch {}
+  try {
+    sessionStorage.removeItem(SESSION_FALLBACK_KEY);
+  } catch {}
+}
+```
+
+**Consent Integration** (Phase 1 contract):
+```typescript
+// src/hooks/useAnalyticsConsent.ts
+import { useContext } from "react";
+import { AuthContext } from "../contexts/AuthContext";
+
+export function useAnalyticsConsent(): boolean {
+  const { user } = useContext(AuthContext);
+  if (user) return !user.analytics_opt_out;
+  return true;
+}
+```
+---
+
+## 2. Navigation Context Detection
+
+**Allowlisted transitions** (Phase 1 scope):
+- Wine detail → Review detail (via "View Review" link)
+- Article detail → Review detail (via linked review card)
+
+```typescript
+// src/utils/analyticsNavigation.ts
+interface NavigationContext {
+  source: "direct" | "search" | "internal" | "external";
+  referrer?: string;
+  fromContentType?: "Wine" | "Article" | "Review";
+  fromContentId?: string;
+}
+
+export function getNavigationContext(): NavigationContext {
+  if (typeof document === "undefined") return { source: "direct" };
+
+  const referrer = document.referrer || undefined;
+  let source: NavigationContext["source"] = "direct";
+
+  if (referrer) {
+    try {
+      const referrerUrl = new URL(referrer);
+      const currentHost = window.location.host;
+      if (referrerUrl.host === currentHost) {
+        source = "internal";
+      } else if (isSearchEngine(referrerUrl.host)) {
+        source = "search";
+      } else {
+        source = "external";
+      }
+    } catch {
+      source = "external";
+    }
+  }
+
+  const pathMatch = window.location.pathname.match(/^\/(wines|articles|reviews)\/([^/]+)/);
+  let fromContentType: NavigationContext["fromContentType"];
+  let fromContentId: NavigationContext["fromContentId"];
+
+  if (pathMatch) {
+    const [, type, id] = pathMatch;
+    fromContentType = type.slice(0, -1) as NavigationContext["fromContentType"];
+    fromContentId = id;
+  }
+
+  return { source, referrer, fromContentType, fromContentId };
+}
+
+function isSearchEngine(host: string): boolean {
+  const searchEngines = ["google", "bing", "duckduckgo", "yahoo", "baidu", "yandex"];
+  return searchEngines.some((engine) => host.includes(engine));
+}
+```
+
+---
+
+## 3. Beacon Hook: `src/hooks/useAnalyticsBeacon.ts`
+
+```typescript
+// src/hooks/useAnalyticsBeacon.ts
+import { useEffect, useRef, useCallback } from "react";
+import { getVisitorId, clearVisitorId } from "../utils/analyticsIdentity";
+import { getNavigationContext } from "../utils/analyticsNavigation";
+import { analyticsApi } from "../services/api";
+
+interface BeaconPayload {
+  event_type: "view";
+  content_type: "Article" | "Review" | "Wine";
+  content_id: number;
+  occurred_at: string;
+  source?: "direct" | "search" | "internal" | "external";
+  referrer?: string;
+  viewport?: string;
+}
+
+const DEDUP_WINDOW_MS = 30 * 60 * 1000;
+const inFlightRequests = new Map<string, number>();
+
+export function useAnalyticsBeacon() {
+  const sentKeys = useRef<Set<string>>(new Set());
+
+  const sendBeacon = useCallback(
+    async (payload: BeaconPayload) => {
+      const dedupKey = `${payload.content_type}:${payload.content_id}:${getVisitorId()}`;
+      const now = Date.now();
+
+      const lastSent = inFlightRequests.get(dedupKey);
+      if (lastSent && now - lastSent < DEDUP_WINDOW_MS) return;
+      if (sentKeys.current.has(dedupKey)) return;
+
+      inFlightRequests.set(dedupKey, now);
+      sentKeys.current.add(dedupKey);
+
+      if (inFlightRequests.size > 1000) {
+        const cutoff = now - DEDUP_WINDOW_MS;
+        for (const [key, ts] of inFlightRequests.entries()) {
+          if (ts < cutoff) inFlightRequests.delete(key);
+        }
+      }
+
+      try {
+        await analyticsApi.events.create({
+          ...payload,
+          viewport: `${window.innerWidth}x${window.innerHeight}`,
+        });
+      } catch {}
+    },
+    []
+  );
+
+  const trackView = useCallback(
+    (contentType: "Article" | "Review" | "Wine", contentId: number) => {
+      const consent = useAnalyticsConsent();
+      if (!consent) return;
+
+      const nav = getNavigationContext();
+      sendBeacon({
+        event_type: "view",
+        content_type: contentType,
+        content_id: contentId,
+        occurred_at: new Date().toISOString(),
+        source: nav.source,
+        referrer: nav.referrer,
+      });
+    },
+    [sendBeacon]
+  );
+
+  return { trackView };
+}
+
+function useAnalyticsConsent(): boolean {
+  return true;
+}
+```

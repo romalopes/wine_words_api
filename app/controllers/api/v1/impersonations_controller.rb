@@ -118,6 +118,7 @@ module Api
           first_name: user.first_name,
           last_name: user.last_name,
           roles: user.role_names,
+          analytics_opt_out: user.analytics_opt_out,
           subscription: user.subscription ? { id: user.subscription.id, name: user.subscription.name } : nil,
           billing_provider: current_sub&.billing_provider,
           can_manage_billing: Billing.configured?,

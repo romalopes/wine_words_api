@@ -26,6 +26,18 @@ class Review < ApplicationRecord
 
   validate :drink_window_is_consistent
 
+  # Analytics lifecycle: hard-delete events on destroy, soft-exclude on archive.
+  after_destroy :purge_analytics_events
+  after_update :archive_analytics_events, if: :saved_change_to_status?
+
+  def purge_analytics_events
+    Analytics::Event.purge_content!("Review", id)
+  end
+
+  def archive_analytics_events
+    Analytics::Event.archive_content!("Review", id) if status == "archived"
+  end
+
   before_validation :generate_slug
 before_save :update_search_vector
 

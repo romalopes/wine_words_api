@@ -93,4 +93,28 @@ RSpec.describe "Api::V1::Accounts", type: :request do
       expect(user.reload.valid_password?("password123")).to be(true)
     end
   end
+
+  describe "PATCH /api/v1/account/analytics_opt_out" do
+    it "opts the user out and back in" do
+      patch "/api/v1/account/analytics_opt_out", params: { analytics_opt_out: true }, as: :json
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body["analytics_opt_out"]).to be true
+      expect(user.reload.analytics_opt_out).to be true
+
+      patch "/api/v1/account/analytics_opt_out", params: { analytics_opt_out: false }, as: :json
+      expect(response).to have_http_status(:ok)
+      expect(user.reload.analytics_opt_out).to be false
+    end
+
+    it "rejects non-boolean values" do
+      patch "/api/v1/account/analytics_opt_out", params: { analytics_opt_out: "yes" }, as: :json
+      expect(response).to have_http_status(:unprocessable_entity)
+    end
+
+    it "requires authentication" do
+      sign_out user
+      patch "/api/v1/account/analytics_opt_out", params: { analytics_opt_out: true }, as: :json
+      expect(response).to have_http_status(:unauthorized)
+    end
+  end
 end

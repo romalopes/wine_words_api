@@ -48,6 +48,19 @@ class Api::V1::AccountsController < ApplicationController
     end
   end
 
+  # PATCH /api/v1/account/analytics_opt_out — toggle content-view tracking.
+  # Body: { analytics_opt_out: true|false }.
+  def update_analytics_opt_out
+    value = params[:analytics_opt_out]
+    unless [ true, false ].include?(value)
+      return render json: { errors: { analytics_opt_out: ["must be true or false"] } },
+                    status: :unprocessable_entity
+    end
+
+    current_user.update!(analytics_opt_out: value)
+    render json: { analytics_opt_out: current_user.analytics_opt_out }
+  end
+
   private
 
   def account_params

@@ -305,6 +305,12 @@ Rails.application.routes.draw do
       get "me", to: "users#me"
       get "stats", to: "stats#index"
 
+      # Content analytics beacon (public; anonymous allowed)
+      namespace :analytics do
+        post "views", to: "views#create"
+        post "events", to: "views#create"
+      end
+
       resources :users, only: [] do
         collection { get :search }
         member { patch :assign_roles; patch :assign_subscription }
@@ -329,6 +335,7 @@ Rails.application.routes.draw do
       get "account", to: "accounts#show"
       patch "account", to: "accounts#update"
       patch "account/password", to: "accounts#update_password"
+      patch "account/analytics_opt_out", to: "accounts#update_analytics_opt_out"
 
       resources :subscriptions, only: [:index, :show, :create, :update, :destroy]
     end

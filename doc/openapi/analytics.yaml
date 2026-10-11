@@ -1,0 +1,151 @@
+openapi: 3.1.0
+info:
+  title: Wine Words Analytics Ingestion API
+  version: "1.0"
+  description: |
+    Client-side beacon endpoint for content view tracking.
+    Returns 202 Accepted for all structurally valid requests
+    (counted or intentionally ignored). Never reveals exclusion
+    reasons (admin, author, opt-out, inaccessible).
+servers:
+  - url: https://api.winewords.example/api/v1
+    description: Production
+  - url: http://localhost:3000/api/v1
+    description: Development
+paths:
+  /analytics/views:
+    post:
+      summary: Record a content view
+      operationId: recordView
+      security:
+        - bearerAuth: []
+        - visitorId: []
+      parameters:
+        - $ref: '#/components/parameters/VisitorId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ViewEventRequest'
+      responses:
+        '202':
+          description: Event accepted (counted or intentionally ignored)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ViewEventResponse'
+              example:
+                accepted: true
+        '400':
+          description: Invalid payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Invalid or expired credentials (no anonymous fallback)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '415':
+          description: Unsupported Media Type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Unprocessable entity (valid JSON, invalid values)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /analytics/events:
+    post:
+      summary: Record a content view (alias of /analytics/views)
+      operationId: recordEvent
+      security:
+        - bearerAuth: []
+        - visitorId: []
+      parameters:
+        - $ref: '#/components/parameters/VisitorId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ViewEventRequest'
+      responses:
+        '202':
+          description: Event accepted (counted or intentionally ignored)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ViewEventResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Optional. Authenticated users get account: identity.
+    visitorId:
+      type: apiKey
+      in: header
+      name: X-Visitor-ID
+      description: Anonymous visitor UUID (client-generated, stored in localStorage). Always sent.
+  parameters:
+    VisitorId:
+      name: X-Visitor-ID
+      in: header
+      required: false
+      schema:
+        type: string
+        format: uuid
+  schemas:
+    ViewEventRequest:
+      type: object
+      required: [event_type, content_type, content_id, occurred_at]
+      properties:
+        event_type:
+          type: string
+          enum: [view]
+        content_type:
+          type: string
+          enum: [Article, Review, Wine]
+        content_id:
+          type: integer
+          minimum: 1
+        occurred_at:
+          type: string
+          format: date-time
+          description: Client time, logged only; server uses Time.current.
+        source:
+          type: string
+          enum: [direct, search, internal, external]
+          default: direct
+        referrer:
+          type: string
+          maxLength: 500
+        viewport:
+          type: string
+          maxLength: 32
+    ViewEventResponse:
+      type: object
+      required: [accepted]
+      properties:
+        accepted:
+          type: boolean
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string

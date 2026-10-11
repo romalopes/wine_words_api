@@ -25,6 +25,7 @@ class Api::V1::UsersController < ApplicationController
         first_name: current_user.first_name,
         last_name: current_user.last_name,
         roles: current_user.role_names,
+        analytics_opt_out: current_user.analytics_opt_out,
         subscription: current_user.subscription ? { id: current_user.subscription.id, name: current_user.subscription.name } : nil,
         billing_provider: current_sub&.billing_provider,
         can_manage_billing: Billing.configured?,

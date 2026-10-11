@@ -220,9 +220,9 @@ transaction, so an exception rolls back the rows created in that run.
 bin/rails runner -e development db/seeds/articles_and_reviews.rb
 ```
 
-### `substract_reviews_articles_seed.rb` — fixed-list Substack import
+### `substack_reviews_articles_seed.rb` — fixed-list Substack import
 
-[Source](../db/seeds/substract_reviews_articles_seed.rb)
+[Source](../db/seeds/substack_reviews_articles_seed.rb)
 
 Imports the hard-coded `URLS` list rather than the RSS feed. Preserves hyperlinks
 as Markdown in extracted text, creates articles/reviews and categories, and attempts
