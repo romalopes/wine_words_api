@@ -15,6 +15,13 @@ Rails.application.config.analytics = {
   # Whether to track anonymous visitors (Phase 1: yes, with visitor: identity)
   track_anonymous: true,
 
+  # Reporting defaults (Phase 6): pagination follows the Api::Paginatable
+  # convention (default 20, cap 100); custom ranges are capped so a single
+  # report cannot span more history than the UI's "all history" filter.
+  default_per_page: ENV.fetch("ANALYTICS_DEFAULT_PER_PAGE", 20).to_i,
+  max_per_page: ENV.fetch("ANALYTICS_MAX_PER_PAGE", 100).to_i,
+  max_custom_range_days: ENV.fetch("ANALYTICS_MAX_CUSTOM_RANGE_DAYS", 400).to_i,
+
   # Batch size for background job processing
   batch_size: ENV.fetch("ANALYTICS_BATCH_SIZE", 100).to_i
 }.freeze
