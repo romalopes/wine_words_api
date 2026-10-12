@@ -18,6 +18,7 @@ class Api::V1::WinesController < ApplicationController
 
   def index
     wines = Wine.includes(producer: [], grapes: [], regions: [], wine_categories: :category).order(:name)
+    wines = wines.where(producer_id: params[:producer_id]) if params[:producer_id].present?
     wines = wines.joins(:grapes).where(grapes: { id: params[:grape_id] }) if params[:grape_id].present?
     wines = wines.joins(:wine_categories).where(wine_categories: { category_id: params[:category_id] }) if params[:category_id].present?
     wines = wines.left_outer_joins(:wine_categories).where(wine_categories: { id: nil }) if params[:uncategorised] == "true"

@@ -15,16 +15,16 @@ class Api::V1::ProducersController < ApplicationController
   before_action :set_producer, only: [:show, :update, :destroy, :attach_logo, :remove_logo, :link_wine]
 
   def index
-    scope = Producer.includes(:wines, :country, :regions, :grapes, :logo_attachment, address: :country).order(:name)
+    scope = Producer.includes(:country, :regions, :grapes, :logo_attachment, address: :country).order(:name)
     scope = scope.where(country_id: params[:country_id]) if params[:country_id].present?
     scope = scope.joins(:regions).where(regions: { id: params[:region_id] }) if params[:region_id].present?
     scope = scope.joins(:grapes).where(grapes: { id: params[:grape_id] }) if params[:grape_id].present?
     scope = scope.where(producer_type: params[:producer_type]) if params[:producer_type].present?
     scope = scope.where(active: ActiveModel::Type::Boolean.new.cast(params[:active])) if params[:active].present?
     scope = scope.where("name ILIKE ?", "%#{params[:q]}%") if params[:q].present?
-    return if render_paginated(scope) { |items| items.map { |producer| producer_json(producer) } }
+    return if render_paginated(scope) { |items| producers_list_json(items) }
 
-    render json: scope.map { |producer| producer_json(producer) }
+    render json: producers_list_json(scope)
   end
 
   # JSON endpoint used by the wine form's "search producers" picker.
@@ -145,7 +145,15 @@ class Api::V1::ProducersController < ApplicationController
     permitted
   end
 
-  def producer_json(producer)
+  def producers_list_json(scope)
+    producers = scope.to_a
+    wine_counts = Wine.where(producer_id: producers.map(&:id)).group(:producer_id).count
+    producers.map do |producer|
+      producer_json(producer, wines_count: wine_counts.fetch(producer.id, 0))
+    end
+  end
+
+  def producer_json(producer, wines_count: nil)
     {
       id: producer.id,
       slug: producer.slug,
@@ -170,8 +178,9 @@ class Api::V1::ProducersController < ApplicationController
       end,
       logo_url: producer_logo_url(producer),
       images: image_urls(producer),
-      wines: wines_serialized(producer)
+      wines_count: wines_count || producer.wines.count
     }
+
   end
 
   def address_json(address)
@@ -197,15 +206,6 @@ class Api::V1::ProducersController < ApplicationController
     return nil unless producer.logo.attached?
 
     Rails.application.routes.url_helpers.rails_blob_url(producer.logo, host: request.base_url)
-  end
-
-  def wines_serialized(producer)
-    wines = producer.wines.includes(
-      wine_taste_parameters: :taste_parameter, vintages: [], producer: [],
-      grapes: [], regions: [:country]
-    )
-    liked_ids = Likes.liked_ids_for(wines, current_user)
-    wines.map { |wine| WineSerializer.new(wine, request.base_url, liked_ids: liked_ids).as_json }
   end
 
   def image_urls(record)

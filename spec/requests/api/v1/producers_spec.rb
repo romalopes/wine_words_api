@@ -171,6 +171,35 @@ RSpec.describe "Api::V1::Producers", type: :request do
     end
   end
 
+  describe "GET /api/v1/producers" do
+    [ {}, { page: 1, per_page: 20 } ].each do |query|
+      it "returns wine counts without loading wine records (#{query.inspect})" do
+        producer = Producer.create!(name: "Unknown Producer")
+        empty_producer = Producer.create!(name: "Empty Estate")
+        3.times { |i| Wine.create!(name: "Unknown Wine #{i}", color: "White", producer: producer) }
+        wine_queries = []
+        subscriber = lambda do |*args|
+          sql = args.last[:sql]
+          wine_queries << sql if sql.match?(/\bFROM\s+"wines"/i)
+        end
+        expect(WineSerializer).not_to receive(:new)
+
+        ActiveSupport::Notifications.subscribed(subscriber, "sql.active_record") do
+          get "/api/v1/producers", params: query
+        end
+
+        expect(response).to have_http_status(:ok)
+        body = JSON.parse(response.body)
+        items = query.empty? ? body : body.fetch("items")
+        expect(items.find { |item| item["id"] == producer.id }).to include("wines_count" => 3)
+        expect(items.find { |item| item["id"] == empty_producer.id }).to include("wines_count" => 0)
+        expect(items).to all(satisfy { |item| !item.key?("wines") })
+        expect(wine_queries.size).to eq(1)
+        expect(wine_queries.first).to match(/COUNT\(/i)
+      end
+    end
+  end
+
   describe "GET /api/v1/producers/:id" do
     let!(:producer) do
       Producer.create!(producer_attributes.except(:region_ids, :grape_ids)).tap do |p|
@@ -189,7 +218,27 @@ RSpec.describe "Api::V1::Producers", type: :request do
       expect(body["grapes"].size).to eq(2)
       expect(body).to have_key("logo_url")
       expect(body).to have_key("images")
-      expect(body).to have_key("wines")
+      expect(body).to include("wines_count" => 0)
+      expect(body).not_to have_key("wines")
+    end
+
+    it "counts wines without loading or serializing their records" do
+      Wine.create!(name: "Unknown Chardonnay", color: "White", producer: producer)
+      wine_queries = []
+      subscriber = lambda do |*args|
+        sql = args.last[:sql]
+        wine_queries << sql if sql.match?(/\bFROM\s+"wines"/i)
+      end
+
+      ActiveSupport::Notifications.subscribed(subscriber, "sql.active_record") do
+        get "/api/v1/producers/#{producer.slug}"
+      end
+
+      expect(response).to have_http_status(:ok)
+      expect(JSON.parse(response.body)).not_to have_key("wines")
+      expect(JSON.parse(response.body)).to include("wines_count" => 1)
+      expect(wine_queries.size).to eq(1)
+      expect(wine_queries.first).to match(/COUNT\(/i)
     end
 
     it "returns 404 for a missing producer" do

@@ -49,6 +49,25 @@ RSpec.describe "Api::V1::Wines", type: :request do
   end
 
   describe "GET /api/v1/wines" do
+    it "filters producer wines before paginating and counting them" do
+      other_producer = Producer.create!(name: "Other Estate")
+      Wine.create!(name: "A Different Wine", color: "Red", producer: other_producer)
+
+      get "/api/v1/wines", params: { producer_id: producer.id, page: 2, per_page: 1 }
+
+      expect(response).to have_http_status(:ok)
+      body = JSON.parse(response.body)
+      expect(body["total_count"]).to eq(2)
+      expect(body["total_pages"]).to eq(2)
+      expect(body["items"].map { |wine| wine["slug"] }).to eq([wine_two.slug])
+    end
+
+    it "returns no wines for a nonexistent producer" do
+      get "/api/v1/wines", params: { producer_id: 0, page: 1, per_page: 20 }
+      expect(response).to have_http_status(:ok)
+      expect(JSON.parse(response.body)).to include("items" => [], "total_count" => 0)
+    end
+
     it "returns a successful response" do
       get "/api/v1/wines"
       expect(response).to have_http_status(:ok)
