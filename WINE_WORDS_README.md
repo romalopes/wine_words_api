@@ -26,23 +26,23 @@ Wine Words is a wine review/content platform with:
 
 Local folders (not repo names):
 
-| App | Local folder | GitHub canonical |
-|---|---|---|
-| Frontend | `../wine_prediction` | `https://github.com/romalopes/wine_words_front_end` (clone remote still uses pre-rename `wine_finder_quiz`) |
-| Backend | `.` (`wine_prediction_api`) | `https://github.com/romalopes/wine_words_api` (clone remote still uses pre-rename `wine_prediction_api`) |
+| App      | Local folder                | GitHub canonical                                                                                            |
+| -------- | --------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Frontend | `../wine_prediction`        | `https://github.com/romalopes/wine_words_front_end` (clone remote still uses pre-rename `wine_finder_quiz`) |
+| Backend  | `.` (`wine_prediction_api`) | `https://github.com/romalopes/wine_words_api` (clone remote still uses pre-rename `wine_prediction_api`)    |
 
 Current frontend deployments: Vercel at https://wine-words.vercel.app and
 Cloudflare Workers at https://wine-words.romalopes.workers.dev/.
 
 Previously verified live:
 
-| What | URL | Verified status |
-|---|---|---|
-| Web app | `https://wine-prediction-mu.vercel.app` | Live, title "Wine Words"; bundle embeds Render API URL |
-| API | `https://wine-words-api.onrender.com` | Live; `/api/v1/health` 200 `{"status":"ok","database":"ok","version":"0.0.20"}`; cold starts and boot windows return 502/503. Former `wine-prediction-api-mq4a` host: 503 |
-| Legacy frontend | `wine-prediction-app.vercel.app` | Retired (`DEPLOYMENT_NOT_FOUND`); still listed in CORS — cleanup pending |
+| What            | URL                                     | Verified status                                                                                                                                                           |
+| --------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Web app         | `https://wine-prediction-mu.vercel.app` | Live, title "Wine Words"; bundle embeds Render API URL                                                                                                                    |
+| API             | `https://wine-words-api.onrender.com`   | Live; `/api/v1/health` 200 `{"status":"ok","database":"ok","version":"0.0.21"}`; cold starts and boot windows return 502/503. Former `wine-prediction-api-mq4a` host: 503 |
+| Legacy frontend | `wine-prediction-app.vercel.app`        | Retired (`DEPLOYMENT_NOT_FOUND`); still listed in CORS — cleanup pending                                                                                                  |
 
-Version: API `0.0.20` (`config/initializers/app_version.rb`).
+Version: API `0.0.21` (`config/initializers/app_version.rb`).
 Status: active development, private-testing gate enabled in production.
 
 ## 3. Architecture
@@ -70,16 +70,16 @@ Notes:
 
 ## 4. Technology stack
 
-| Layer | Technology | Version/source |
-|---|---|---|
-| Frontend | React, Vite, react-router | `^19.0.0`, `^6.4.3`, `^7.3.0` (`wine_prediction/package.json`) |
-| Frontend UI/tests | react-bootstrap/Bootstrap 5, DOMPurify, Vitest 4 + Testing Library + jsdom, ESLint 9 flat config | `^2.10.9`/`^5.3.3`, `^3.4.14`, `^4.1.11`; `scripts/smoke-test.js` |
-| Backend language/framework | Ruby, Rails | `3.4.2` (`.ruby-version`), `~> 8.1.3` (`Gemfile`) |
-| Backend data | PostgreSQL, Active Storage, Solid Cache/Queue/Cable | `pg ~> 1.1`; storage/dev+prod Supabase S3; Solid adapters |
-| Auth | Devise, devise-jwt, bcrypt, JWT denylist | Verified in `Gemfile`, `User`, `config/initializers/devise.rb` |
-| Billing | Stripe | `stripe` gem; adapter architecture; webhook + reconcile job |
-| Search | `pg_trgm`, optional local Ollama LLM search | `LlmSearchService`; `OLLAMA_*` env; graceful fallback |
-| Quality/security | RSpec, RuboCop omakase, Brakeman, bundler-audit | `rspec-rails ~> 7.0`; `bin/*`; CI `ci.yml` |
+| Layer                      | Technology                                                                                       | Version/source                                                    |
+| -------------------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------- |
+| Frontend                   | React, Vite, react-router                                                                        | `^19.0.0`, `^6.4.3`, `^7.3.0` (`wine_prediction/package.json`)    |
+| Frontend UI/tests          | react-bootstrap/Bootstrap 5, DOMPurify, Vitest 4 + Testing Library + jsdom, ESLint 9 flat config | `^2.10.9`/`^5.3.3`, `^3.4.14`, `^4.1.11`; `scripts/smoke-test.js` |
+| Backend language/framework | Ruby, Rails                                                                                      | `3.4.2` (`.ruby-version`), `~> 8.1.3` (`Gemfile`)                 |
+| Backend data               | PostgreSQL, Active Storage, Solid Cache/Queue/Cable                                              | `pg ~> 1.1`; storage/dev+prod Supabase S3; Solid adapters         |
+| Auth                       | Devise, devise-jwt, bcrypt, JWT denylist                                                         | Verified in `Gemfile`, `User`, `config/initializers/devise.rb`    |
+| Billing                    | Stripe                                                                                           | `stripe` gem; adapter architecture; webhook + reconcile job       |
+| Search                     | `pg_trgm`, optional local Ollama LLM search                                                      | `LlmSearchService`; `OLLAMA_*` env; graceful fallback             |
+| Quality/security           | RSpec, RuboCop omakase, Brakeman, bundler-audit                                                  | `rspec-rails ~> 7.0`; `bin/*`; CI `ci.yml`                        |
 
 Local toolchain at documentation time (not pinned): Node `24.6.0`, npm `11.6.0`, psql `14.19`. No `.nvmrc`/`engines`; `.ruby-version` pins Ruby.
 
@@ -233,12 +233,12 @@ for Neon/R2/AWS storage and backup.
   header, stored in `localStorage` (`wine_prediction_token`), sent as
   `Bearer`; sign-out revokes via `jwt_denylists`.
 - Social auth: client obtains the provider credential, `POST
-  /api/v1/auth/{google,apple,microsoft,facebook}`; server verifies against
+/api/v1/auth/{google,apple,microsoft,facebook}`; server verifies against
   JWKS (Google/Apple/Microsoft) or Graph (Facebook), then links/creates
   `user_identities`. Details: `docs/social_authentication.md`.
 - Email verification: optional gate (`REQUIRE_EMAIL_VERIFICATION`); login
   returns `email_verification_required`; link is `GET
-  /api/v1/email-verifications/:token`.
+/api/v1/email-verifications/:token`.
 - Production test-access gate: `POST /api/v1/test_access`
   (`TEST_ACCESS_PASSWORD`) → signed `X-Test-Access-Token` in
   `sessionStorage`; API 401s carry `test_access_required`.
@@ -253,11 +253,11 @@ for Neon/R2/AWS storage and backup.
 Seeded roles: **Admin, Editor, Reviewer, Reader, Guest** (`Role` enum). There
 is no "Super User".
 
-| Capability | Admin | Editor | Reviewer | Reader | Guest |
-|---|---|---|---|---|---|
-| Users/roles/subscriptions, logs, config, impersonation, API health | yes | no | no | no | no |
-| All content + packages workflow | yes | yes | packages + reviews; can create packages | no | no |
-| Published content | yes | yes | yes | yes | partial (plan-gated) |
+| Capability                                                         | Admin | Editor | Reviewer                                | Reader | Guest                |
+| ------------------------------------------------------------------ | ----- | ------ | --------------------------------------- | ------ | -------------------- |
+| Users/roles/subscriptions, logs, config, impersonation, API health | yes   | no     | no                                      | no     | no                   |
+| All content + packages workflow                                    | yes   | yes    | packages + reviews; can create packages | no     | no                   |
+| Published content                                                  | yes   | yes    | yes                                     | yes    | partial (plan-gated) |
 
 FREE maps the base role Guest, paid maps Reader; privileged roles are
 independent. Plan content entitlements are **not enforced in code** (metadata).
@@ -434,7 +434,7 @@ Executed: lockfile/config/route/schema/seed/job/service/serializer/controller
 reads; `bin/rails routes` (378 lines — corrected package/billing actions to
 `mark_in_transit/mark_arrived/mark_completed/reopen`, entry-status creation,
 `change_preview/change_confirm`); live probes (`/` title "Wine Words",
-`/api/v1/health` 200 `0.0.20`, `/api/v1/stats` 200 producers 154 / wines 302
+`/api/v1/health` 200 `0.0.21`, `/api/v1/stats` 200 producers 154 / wines 302
 / reviews 20 / articles 5, `/api/v1/health/detailed` 401, `/up` 404, legacy
 Vercel host retired, GitHub canonical renames confirmed); toolchain versions;
 frontend `npm run lint` (**21 errors, 5 warnings — failing**), `npm run
