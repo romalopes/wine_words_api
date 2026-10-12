@@ -47,7 +47,7 @@ class Article < ApplicationRecord
   validates :source, presence: true, inclusion: { in: SOURCES }
 
   before_validation :generate_slug
-before_save :update_search_vector
+before_save :update_search_vector, if: :will_save_change_to_searchable_content?
 
   # Use slug instead of numeric id in URLs so lookups resolve via find_by!(slug:)
   def to_param
@@ -97,6 +97,23 @@ before_save :update_search_vector
 
   def update_search_vector
     self.searchable = self.class.connection.select_value(search_vector_sql)
+  end
+
+  # Determine if any searchable content has changed to avoid unnecessary vector updates
+  def will_save_change_to_searchable_content?
+    # For new records, always update search vector
+    return true if new_record?
+    
+    # For existing records, check if searchable content changed
+    saved_change_to_title? ||
+      saved_change_to_abstract? ||
+      saved_change_to_body? ||
+      # Check if category changed (affects category_name in search vector)
+      saved_change_to_category_id? ||
+      # Check if user changed (affects author_name in search vector)
+      saved_change_to_user_id? ||
+      # Check if tags changed
+      tag_ids_changed?
   end
 
   # A = title
