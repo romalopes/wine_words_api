@@ -26,13 +26,12 @@ class Api::V1::CountriesController < ApplicationController
       .joins(:producer)
       .where(producers: { country_id: country_ids })
       .group("producers.country_id")
-      .count
+      .count unless params[:include_wine_counts] == "false"
 
     render json: countries.map { |country|
       country.as_json(only: %i[id slug name code continent flag_emoji is_wine_country]).merge(
-        producers_count: producer_counts[country.id] || 0,
-        wines_count: wine_counts[country.id] || 0
-      )
+        producers_count: producer_counts[country.id] || 0
+      ).merge(wine_counts ? { wines_count: wine_counts[country.id] || 0 } : {})
     }
   end
 

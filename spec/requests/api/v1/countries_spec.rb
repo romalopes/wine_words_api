@@ -6,6 +6,26 @@ require "rails_helper"
 # the payload or every link degrades to `/countries/undefined`.
 RSpec.describe "Api::V1::Countries", type: :request do
   describe "GET /api/v1/countries" do
+    it "skips wine counts for the producer filter but keeps them by default" do
+      country = Country.create!(name: "Countland", code: "CL")
+      producer = Producer.create!(name: "Count Estate", country: country)
+      Wine.create!(name: "Count Wine", color: "Red", producer: producer)
+      queries = []
+      callback = ->(*args) { queries << args.last[:sql] }
+      ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
+        get "/api/v1/countries", params: { include_wine_counts: false }
+      end
+      expect(response).to have_http_status(:ok)
+      item = JSON.parse(response.body).find { |row| row["id"] == country.id }
+      expect(item).to include("producers_count" => 1)
+      expect(item).not_to have_key("wines_count")
+      expect(queries.grep(/FROM "wines"/)).to be_empty
+
+      get "/api/v1/countries"
+      item = JSON.parse(response.body).find { |row| row["id"] == country.id }
+      expect(item).to include("producers_count" => 1, "wines_count" => 1)
+    end
+
     it "is public (no auth required) and returns an array" do
       get "/api/v1/countries"
       expect(response).to have_http_status(:ok)

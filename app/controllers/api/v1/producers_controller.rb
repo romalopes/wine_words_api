@@ -15,8 +15,8 @@ class Api::V1::ProducersController < ApplicationController
   before_action :set_producer, only: [:show, :update, :destroy, :attach_logo, :remove_logo, :link_wine]
 
   def index
-    scope = Producer.eager_load(:country, address: :country)
-                    .preload(:grapes, regions: :country, logo_attachment: :blob,
+    scope = Producer.eager_load(:country, :address)
+                    .preload(logo_attachment: :blob,
                              images: { file_attachment: :blob }).order(:name)
     scope = scope.where(country_id: params[:country_id]) if params[:country_id].present?
     scope = scope.joins(:regions).where(regions: { id: params[:region_id] }) if params[:region_id].present?
@@ -151,7 +151,19 @@ class Api::V1::ProducersController < ApplicationController
     producers = scope.to_a
     wine_counts = Wine.where(producer_id: producers.map(&:id)).group(:producer_id).count
     producers.map do |producer|
-      producer_json(producer, wines_count: wine_counts.fetch(producer.id, 0))
+      {
+        id: producer.id,
+        slug: producer.slug,
+        name: producer.name,
+        email: producer.email,
+        producer_type: producer.producer_type,
+        active: producer.active,
+        country: country_json(producer.country),
+        address: producer.address && { street_address: producer.address.street_address },
+        logo_url: producer_logo_url(producer),
+        images: image_urls(producer).first(1),
+        wines_count: wine_counts.fetch(producer.id, 0)
+      }
     end
   end
 

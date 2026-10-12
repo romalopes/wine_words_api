@@ -172,6 +172,18 @@ RSpec.describe "Api::V1::Producers", type: :request do
   end
 
   describe "GET /api/v1/producers" do
+    it "still filters by region and grape without embedding their records" do
+      matching = Producer.create!(name: "Matching Estate", country: australia)
+      matching.regions << region_sa
+      matching.grapes << grape_shiraz
+      Producer.create!(name: "Other Estate", country: australia)
+      [{ region_id: region_sa.id }, { grape_id: grape_shiraz.id }].each do |filter|
+        get "/api/v1/producers", params: filter.merge(page: 1, per_page: 20)
+        expect(response).to have_http_status(:ok)
+        expect(JSON.parse(response.body).fetch("items").map { |item| item["id"] }).to eq([matching.id])
+      end
+    end
+
     it "batches list associations instead of querying each producer" do
       3.times do |i|
         producer = Producer.create!(name: "Batch Estate #{i}", country: australia)
@@ -190,14 +202,15 @@ RSpec.describe "Api::V1::Producers", type: :request do
       items = JSON.parse(response.body).fetch("items")
       expect(items.size).to eq(3)
       items.each do |item|
-        expect(item["regions"]).to include(include("country_name" => "Australia"))
-        expect(item["grapes"].map { |grape| grape["name"] }).to eq(["Riesling", "Shiraz"])
+        expect(item).not_to have_key("regions")
+        expect(item).not_to have_key("grapes")
         expect(item["images"].size).to eq(1)
         expect(item["logo_url"]).to be_present
       end
-      %w[regions grapes images].each do |table|
-        expect(queries.grep(/FROM "#{table}"/).size).to eq(1)
+      %w[regions grapes producer_regions producer_grapes].each do |table|
+        expect(queries.grep(/FROM "#{table}"/)).to be_empty
       end
+      expect(queries.grep(/FROM "images"/).size).to eq(1)
       expect(queries.grep(/FROM "active_storage_blobs"/).size).to be <= 2
     end
 
