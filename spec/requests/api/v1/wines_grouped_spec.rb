@@ -12,12 +12,26 @@ RSpec.describe "Wine list query efficiency", type: :request do
 
   def capture_queries(path, params = {})
     queries = []
-    callback = ->(*args) { queries << args.last[:sql] unless args.last[:cached] }
+    callback = ->(*args) { queries << args.last[:sql] unless args.last[:cached] || args.last[:name] == "SCHEMA" }
     ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
       get path, params: params
     end
     expect(response).to have_http_status(:ok)
     queries
+  end
+
+  it "uses seven queries for uncategorised cards with grapes and images" do
+    wine = make_wine("Round Trip Wine")
+    wine.grapes << Grape.create!(name: "Test Shiraz", color: "red")
+    Vintage.create!(wine: wine, year: 2020)
+    Vintage.create!(wine: wine, year: 2021)
+    queries = capture_queries("/api/v1/wines/grouped")
+    card = JSON.parse(response.body).first.fetch("wines").first
+    expect(card["vintages_count"]).to eq(2)
+    expect(card["images"].size).to eq(1)
+    expect(queries.grep(/FROM "active_storage_(?:attachments|blobs)"/)).to be_empty
+    expect(queries.grep(/SELECT COUNT\(\*\).*FROM "vintages"/)).to be_empty
+    expect(queries.grep(/\ASELECT/i).size).to eq(7)
   end
 
   it "caps category cards while preserving totals and multi-category membership" do

@@ -71,9 +71,16 @@ class Api::V1::WinesController < ApplicationController
 
     wine_ids = rows.map(&:id).uniq
     wines_by_id = Wine.where(id: wine_ids)
-                      .eager_load(:producer).preload(:grapes, :regions, :categories, images: { file_attachment: :blob })
+                      .select("wines.*", "(SELECT COUNT(*) FROM vintages WHERE vintages.wine_id = wines.id) AS list_vintages_count")
+                      .eager_load(:producer).preload(:grapes, :regions, :categories)
                       .index_by(&:id)
-    vintage_counts = Vintage.where(wine_id: wine_ids).group(:wine_id).count
+    # Join image metadata separately so it does not multiply grape/region rows.
+    ActiveRecord::Associations::Preloader.new(
+      records: wines_by_id.values,
+      associations: :images,
+      scope: Image.eager_load(file_attachment: :blob)
+    ).call
+    vintage_counts = wines_by_id.transform_values { |wine| wine[:list_vintages_count].to_i }
 
     # Bucket each window row into its category group (0 == Uncategorised).
     groups = Hash.new { |h, k| h[k] = [] }
