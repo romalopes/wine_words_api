@@ -48,6 +48,7 @@ class Article < ApplicationRecord
 
   before_validation :generate_slug
 before_save :update_search_vector, if: :will_save_change_to_searchable_content?
+after_initialize :set_tag_ids_was
 
   # Use slug instead of numeric id in URLs so lookups resolve via find_by!(slug:)
   def to_param
@@ -112,8 +113,16 @@ before_save :update_search_vector, if: :will_save_change_to_searchable_content?
       saved_change_to_category_id? ||
       # Check if user changed (affects author_name in search vector)
       saved_change_to_user_id? ||
-      # Check if tags changed
-      tag_ids != tag_ids_was
+      # Check if tags changed (using sorted tag_ids for order-independent comparison)
+      tag_ids.sort != @tag_ids_was
+  end
+
+  private
+
+  def set_tag_ids_was
+    if persisted?
+      @tag_ids_was = tag_ids.sort
+    end
   end
 
   # A = title
