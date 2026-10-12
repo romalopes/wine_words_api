@@ -47,8 +47,7 @@ class Article < ApplicationRecord
   validates :source, presence: true, inclusion: { in: SOURCES }
 
   before_validation :generate_slug
-before_save :update_search_vector, if: :will_save_change_to_searchable_content?
-after_initialize :set_tag_ids_was
+  before_save :update_search_vector, unless: :status_only_update?
 
   # Use slug instead of numeric id in URLs so lookups resolve via find_by!(slug:)
   def to_param
@@ -100,29 +99,11 @@ after_initialize :set_tag_ids_was
     self.searchable = self.class.connection.select_value(search_vector_sql)
   end
 
-  # Determine if any searchable content has changed to avoid unnecessary vector updates
-  def will_save_change_to_searchable_content?
-    # For new records, always update search vector
-    return true if new_record?
-    
-    # For existing records, check if searchable content changed
-    saved_change_to_title? ||
-      saved_change_to_abstract? ||
-      saved_change_to_body? ||
-      # Check if category changed (affects category_name in search vector)
-      saved_change_to_category_id? ||
-      # Check if user changed (affects author_name in search vector)
-      saved_change_to_user_id? ||
-      # Check if tags changed (using sorted tag_ids for order-independent comparison)
-      tag_ids.sort != @tag_ids_was
-  end
-
-  private
-
-  def set_tag_ids_was
-    if persisted?
-      @tag_ids_was = tag_ids.sort
-    end
+  # Loading a record must not query its tags. Rebuild on ordinary saves,
+  # including association edits, but skip status-only transitions.
+  def status_only_update?
+    persisted? && (will_save_change_to_status? || will_save_change_to_published_at?) &&
+      (changes_to_save.keys - %w[status published_at updated_at]).empty?
   end
 
   # A = title

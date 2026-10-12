@@ -19,8 +19,8 @@ class Api::V1::ArticlesController < ApplicationController
     # the list serializer reads `article.categories`, and a through-association
     # is not satisfied by preloading `article_categories`, so each card used to
     # issue its own queries.
-    articles = Article.recent.includes({ user: :account }, :categories, :tags, :wines, :producers,
-                                      images: { file_attachment: :blob })
+    articles = Article.recent.eager_load(user: :account)
+                      .preload(:categories, images: { file_attachment: :blob })
     # Content managers see everything (including drafts); everyone else sees
     # only what's visible to them (published + their own drafts).
     articles = articles.visible_to(current_user) unless current_user&.wine_manager?
@@ -72,6 +72,7 @@ class Api::V1::ArticlesController < ApplicationController
         SELECT DISTINCT a.id, a.title, a.abstract, a.status,
                a.user_id, a.created_at, a.updated_at,
                COALESCE(ac.category_id, 0) AS grouped_cat_id,
+               COUNT(*) OVER (PARTITION BY COALESCE(ac.category_id, 0)) AS grouped_count,
                ROW_NUMBER() OVER (
                  PARTITION BY COALESCE(ac.category_id, 0)
                  ORDER BY #{order_sql}
@@ -85,7 +86,7 @@ class Api::V1::ArticlesController < ApplicationController
 
     article_ids = rows.map(&:id).uniq
     articles_by_id = Article.where(id: article_ids)
-                        .includes({ user: :account }, :categories, images: { file_attachment: :blob })
+                        .eager_load(user: :account).preload(:categories, images: { file_attachment: :blob })
                         .index_by(&:id)
 
     groups = Hash.new { |h, k| h[k] = [] }
@@ -95,18 +96,8 @@ class Api::V1::ArticlesController < ApplicationController
       groups[cat_id] << ArticleListSerializer.new(articles_by_id[row.id], request.base_url, liked_ids: liked_ids).as_json
     end
 
-    # Counts come from the filtered scope too, so "Show all (N)" matches the
-    # cards that are actually rendered. `except(:select)` drops the `rank`
-    # column search added: it is not aggregated or grouped, so keeping it would
-    # make these GROUP BY / COUNT statements invalid.
-    count_scope = scope.except(:select)
-    category_counts = count_scope.joins(:article_categories).group("article_categories.category_id").count
-    uncategorised_count =
-      if groups.key?(nil)
-        count_scope.left_outer_joins(:article_categories).where(article_categories: { id: nil }).count
-      else
-        0
-      end
+    category_counts = rows.to_h { |row| [row.grouped_cat_id, row.grouped_count.to_i] }
+    uncategorised_count = category_counts.fetch(0, 0)
 
     categories = Category.where(id: groups.keys.compact).to_a
     ordered = categories.select { |c| c.sort_order_article.present? }.sort_by { |c| [c.sort_order_article, c.name.to_s] }

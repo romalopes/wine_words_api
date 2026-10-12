@@ -32,6 +32,16 @@ RSpec.describe "Api::V1::Articles grouped", type: :request do
   end
 
   describe "GET /api/v1/articles/grouped" do
+    it "does not query tags while loading search results" do
+      queries = []
+      callback = ->(*args) { queries << args.last[:sql] }
+      ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
+        get "/api/v1/articles/grouped", params: { query: "barolo" }
+      end
+      expect(response).to have_http_status(:ok)
+      expect(queries.grep(/FROM "tags"/)).to be_empty
+    end
+
     it "keeps another user's drafts hidden from a reader with a bearer token" do
       reader = User.create!(first_name: "Reader", email: "token-reader@example.com", password: "password123")
       reader.roles << Role.find_or_create_by!(name: "Reader")
