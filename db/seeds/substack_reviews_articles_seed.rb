@@ -111,6 +111,18 @@ def parse_article_page(doc, url)
   abstract = (doc.at('meta[name="description"]') || doc.at('meta[property="og:description"]'))&.[]('content')&.strip
 
   body_el   = doc.at('.body.markup') || doc.at('.available-content .body') || doc.at('article .body')
+  
+  # Remove Substack UI chrome (like/comment/share/save buttons) before extracting content
+  if body_el
+    # Remove by class patterns (CSS selectors)
+    body_el.css('.post-ufi, [class*="post-ufi"], .like-button-container, button.post-ufi-button').remove
+    # Remove buttons by aria-label (case-insensitive check in Ruby)
+    body_el.css('button[aria-label]').each do |btn|
+      label = btn['aria-label'].to_s.downcase
+      btn.remove if label.include?('like') || label.include?('comment') || label.include?('share') || label.include?('save')
+    end
+  end
+  
   body_html = body_el&.inner_html || ''
 
   # Convert HTML <a href="...">text</a> into Markdown links before extracting plain text

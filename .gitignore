@@ -35,3 +35,7 @@
 /config/*.key
 
 scripts/age-keys.txt
+/backups/*
+
+/db/data/Kasia_Wine_Front_*
+db/data/Kasia_Wine_Front_All_Reviews.csv

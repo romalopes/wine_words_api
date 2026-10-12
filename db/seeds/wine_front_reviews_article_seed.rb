@@ -196,6 +196,7 @@ ActiveRecord::Base.transaction do
     #      the title actually changes (model callback guard).
     #      NOTE: reviews table has no `tasted_at` column, so the CSV
     #      "Date Tasted" value is intentionally not parsed or stored.
+    #      Skip if source is "substack" (imported from Substack seed).
     # ------------------------------------------------------------------
     published_at = nil
     begin
@@ -216,7 +217,7 @@ ActiveRecord::Base.transaction do
     review_attrs = {
       title:       wine_name_grape,
       comment:     review_body,
-      status:      "published",
+      status:      "archived",
       source:      "wine_front",
       drink_from:  drink_from,
       drink_to:    drink_to,
@@ -231,6 +232,14 @@ ActiveRecord::Base.transaction do
         { user: author, vintage: vintage }.merge(review_attrs)
       )
       $front_seed_created_reviews += 1
+    elsif review.source == "substack"
+      # instead of Skiping, updating only the body of reviews that originated from Substack import
+      review_attrs = { comment: review_body }
+        review.assign_attributes(review_attrs)
+        if review.changed?
+          review.save!
+          $front_seed_updated_reviews += 1
+        end
     else
       # UPSERT: overwrite CSV-driven fields with fresh values.
       # assign_attributes + save! so validations still run; slug only
@@ -246,6 +255,7 @@ ActiveRecord::Base.transaction do
     # 9️⃣  Article UPSERT when Categories mentions "articles"
     #      If the article already exists (same author + title) it is
     #      UPDATED with the CSV body. Links are ensured, never duplicated.
+    #      Skip if source is "substack" (imported from Substack seed).
     # ------------------------------------------------------------------
     if categories_raw =~ /articles/i
       article = Article.find_by(user: author, title: wine_name_grape)
@@ -254,12 +264,20 @@ ActiveRecord::Base.transaction do
           title:        wine_name_grape,
           body:         review_body,
           user:         author,
-          status:       "published",
+          status:       "archived",
           source:       "wine_front"
         )
         $front_seed_created_articles += 1
+      elsif article.source == "substack"
+        # instead of Skiping, updating only the body of articles that originated from Substack import
+        article_attrs = { body: review_body }
+        article.assign_attributes(article_attrs)
+        if article.changed?
+          article.save!
+          $front_seed_updated_articles += 1
+        end
       else
-        article_attrs = { body: review_body, status: "published", source: "wine_front" }
+        article_attrs = { body: review_body, status: "archived", source: "wine_front" }
         article.assign_attributes(article_attrs)
         if article.changed?
           article.save!
@@ -272,7 +290,7 @@ ActiveRecord::Base.transaction do
       end
       # Link article to the review — once only
       unless ArticleReview.exists?(article: article, review: review)
-        ArticleReview.create!(article: article, review: review, status: "published")
+        ArticleReview.create!(article: article, review: review, status: "archived")
       end
     end
   end

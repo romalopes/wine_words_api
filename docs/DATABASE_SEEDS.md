@@ -246,7 +246,7 @@ itself contains a duplicate entry. There is no whole-import transaction; wine,
 vintage, category, or image changes can persist even if a later review save fails.
 
 ```bash
-bin/rails runner -e development db/seeds/substract_reviews_articles_seed.rb
+bin/rails runner -e development db/seeds/substack_reviews_articles_seed.rb
 ```
 
 ## How this differs from `bin/rails db:seed`
