@@ -203,6 +203,11 @@ class Api::V1::ArticlesController < ApplicationController
         return render json: { errors: image_errors }, status: :unprocessable_entity
       end
 
+      if request.headers["Prefer"] == "return=minimal"
+        response.set_header("Preference-Applied", "return=minimal")
+        return head :no_content
+      end
+
       render json: ArticleSerializer.new(@article, request.base_url, liked_ids: Likes.liked_ids_for([@article], current_user)).as_json
     else
       render json: { errors: @article.errors.full_messages }, status: :unprocessable_entity

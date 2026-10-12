@@ -209,6 +209,11 @@ class Api::V1::ReviewsController < ApplicationController
     end
 
     if @review.update(review_params)
+      if request.headers["Prefer"] == "return=minimal"
+        response.set_header("Preference-Applied", "return=minimal")
+        return head :no_content
+      end
+
       render json: ReviewSerializer.new(@review, request.base_url, liked_ids: Likes.liked_ids_for([@review], current_user)).as_json
     else
       render json: { errors: @review.errors.full_messages }, status: :unprocessable_entity

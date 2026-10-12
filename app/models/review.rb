@@ -39,7 +39,7 @@ class Review < ApplicationRecord
   end
 
   before_validation :generate_slug
-before_save :update_search_vector
+before_save :update_search_vector, unless: :status_only_update?
 
   # Use slug instead of numeric id in URLs so lookups resolve via find_by!(slug:)
   def to_param
@@ -116,6 +116,10 @@ before_save :update_search_vector
   end
 
   private
+
+  def status_only_update?
+    persisted? && (changes_to_save.keys - %w[status published_at updated_at]).empty?
+  end
 
   def update_search_vector
     self.searchable = self.class.connection.select_value(search_vector_sql)

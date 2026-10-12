@@ -6,9 +6,9 @@
 # serves each request in a thread from an internal thread pool.
 #
 # You can control the number of workers using ENV["WEB_CONCURRENCY"]. You
-# should only set this value when you want to run 2 or more workers. The
-# default is already 1. You can set it to `auto` to automatically start a worker
-# for each available processor.
+# should only set this value when you want to run 2 or more workers.
+# Development and macOS use single-process mode; other environments default
+# to 1 worker unless WEB_CONCURRENCY specifies another integer.
 #
 # The ideal number of threads per worker depends both on how much time the
 # application spends waiting for IO operations and on how much you wish to
@@ -41,9 +41,10 @@ plugin :solid_queue if ENV["SOLID_QUEUE_IN_PUMA"]
 # In other environments, only set the PID file if requested.
 pidfile ENV["PIDFILE"] if ENV["PIDFILE"]
 
-if ENV.fetch("RAILS_ENV", "development") == "development"
+# macOS native libraries can abort in a forked worker even when Rails runs in
+# production mode. Keep local macOS runs in single-process, threaded mode.
+if RUBY_PLATFORM.include?("darwin") || ENV.fetch("RAILS_ENV", "development") == "development"
   workers 0
 else
-  # workers ENV.fetch("WEB_CONCURRENCY", 1)
   workers Integer(ENV.fetch("WEB_CONCURRENCY", "1"))
 end
