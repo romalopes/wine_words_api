@@ -15,7 +15,9 @@ class Api::V1::ProducersController < ApplicationController
   before_action :set_producer, only: [:show, :update, :destroy, :attach_logo, :remove_logo, :link_wine]
 
   def index
-    scope = Producer.includes(:country, :regions, :grapes, :logo_attachment, address: :country).order(:name)
+    scope = Producer.eager_load(:country, address: :country)
+                    .preload(:grapes, regions: :country, logo_attachment: :blob,
+                             images: { file_attachment: :blob }).order(:name)
     scope = scope.where(country_id: params[:country_id]) if params[:country_id].present?
     scope = scope.joins(:regions).where(regions: { id: params[:region_id] }) if params[:region_id].present?
     scope = scope.joins(:grapes).where(grapes: { id: params[:grape_id] }) if params[:grape_id].present?
@@ -170,10 +172,10 @@ class Api::V1::ProducersController < ApplicationController
       founded_year: producer.founded_year,
       active: producer.active,
       country: country_json(producer.country),
-      regions: producer.regions.order(:name).map do |region|
+      regions: ordered_by_name(producer.regions).map do |region|
         { id: region.id, name: region.name, country_name: region.country&.name }
       end,
-      grapes: producer.grapes.order(:name).map do |grape|
+      grapes: ordered_by_name(producer.grapes).map do |grape|
         { id: grape.id, name: grape.name, color: grape.color }
       end,
       logo_url: producer_logo_url(producer),
@@ -181,6 +183,10 @@ class Api::V1::ProducersController < ApplicationController
       wines_count: wines_count || producer.wines.count
     }
 
+  end
+
+  def ordered_by_name(association)
+    association.loaded? ? association.sort_by { |record| record.name.to_s } : association.order(:name)
   end
 
   def address_json(address)
@@ -209,7 +215,9 @@ class Api::V1::ProducersController < ApplicationController
   end
 
   def image_urls(record)
-    record.images.ordered.filter_map do |image|
+    images = record.images
+    ordered = images.loaded? ? images.sort_by { |image| [image.position.to_i, image.id] } : images.ordered
+    ordered.filter_map do |image|
       Rails.application.routes.url_helpers.rails_blob_url(
         image.file.blob,
         host: request.base_url

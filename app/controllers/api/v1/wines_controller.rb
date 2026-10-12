@@ -17,7 +17,7 @@ class Api::V1::WinesController < ApplicationController
   skip_before_action :authenticate_user!, only: [:index, :show, :search, :advanced_search]
 
   def index
-    wines = Wine.includes(producer: [], grapes: [], regions: [], wine_categories: :category).order(:name)
+    wines = Wine.eager_load(:producer).preload(:grapes, :regions, :categories, images: { file_attachment: :blob }).order(:name)
     wines = wines.where(producer_id: params[:producer_id]) if params[:producer_id].present?
     wines = wines.joins(:grapes).where(grapes: { id: params[:grape_id] }) if params[:grape_id].present?
     wines = wines.joins(:wine_categories).where(wine_categories: { category_id: params[:category_id] }) if params[:category_id].present?
@@ -27,14 +27,14 @@ class Api::V1::WinesController < ApplicationController
 
     # Vintage counts come from a single grouped query instead of one query
     # per vintage (the old N+1 that dominated the "All Wines" response time).
-    vintage_counts = Vintage.where(wine_id: wines).group(:wine_id).count
+    return if render_paginated(wines) { |items| serialize_wines(items) }
 
-    return if render_paginated(wines) { |items| serialize_wines(items, vintage_counts) }
-
-    render json: serialize_wines(wines, vintage_counts)
+    render json: serialize_wines(wines)
   end
 
-  def serialize_wines(wines, vintage_counts)
+  def serialize_wines(wines, vintage_counts = nil)
+    wines = wines.to_a
+    vintage_counts ||= Vintage.where(wine_id: wines.map(&:id)).group(:wine_id).count
     liked_ids = Likes.liked_ids_for(wines, current_user)
     wines.map { |wine| WineListSerializer.new(wine, request.base_url, vintage_counts, liked_ids: liked_ids).as_json }
   end
@@ -56,20 +56,22 @@ class Api::V1::WinesController < ApplicationController
     # (a wine with several categories yields one row per category).
     rows = Wine.find_by_sql([<<~SQL, per_group])
       SELECT sub.* FROM (
-        SELECT wines.*, COALESCE(wc.category_id, 0) AS grouped_cat_id,
+        SELECT wines.id, COALESCE(wc.category_id, 0) AS grouped_cat_id,
+               COUNT(*) OVER (PARTITION BY COALESCE(wc.category_id, 0)) AS grouped_count,
                ROW_NUMBER() OVER (
                  PARTITION BY COALESCE(wc.category_id, 0)
-                 ORDER BY wines.name
+                 ORDER BY wines.name, wines.id
                ) AS rn
         FROM wines
         LEFT JOIN wine_categories wc ON wc.wine_id = wines.id
       ) sub
       WHERE sub.rn <= ?
+      ORDER BY sub.grouped_cat_id, sub.rn
     SQL
 
     wine_ids = rows.map(&:id).uniq
     wines_by_id = Wine.where(id: wine_ids)
-                      .includes(producer: [], grapes: [], regions: [], wine_categories: :category)
+                      .eager_load(:producer).preload(:grapes, :regions, :categories, images: { file_attachment: :blob })
                       .index_by(&:id)
     vintage_counts = Vintage.where(wine_id: wine_ids).group(:wine_id).count
 
@@ -81,14 +83,8 @@ class Api::V1::WinesController < ApplicationController
       groups[cat_id] << WineListSerializer.new(wines_by_id[row.id], request.base_url, vintage_counts, liked_ids: liked_ids).as_json
     end
 
-    # Per-category totals and the uncategorised total, each in one grouped query.
-    category_counts = WineCategory.where(category_id: groups.keys.compact).group(:category_id).count
-    uncategorised_count =
-      if groups.key?(nil)
-        Wine.left_outer_joins(:wine_categories).where(wine_categories: { id: nil }).count
-      else
-        0
-      end
+    category_counts = rows.to_h { |row| [row.grouped_cat_id, row.grouped_count.to_i] }
+    uncategorised_count = category_counts.fetch(0, 0)
 
     categories = Category.where(id: groups.keys.compact).to_a
     ordered = categories.select { |c| c.sort_order_wine.present? }.sort_by { |c| [c.sort_order_wine, c.name.to_s] }
@@ -111,15 +107,13 @@ class Api::V1::WinesController < ApplicationController
   # See Wine.advanced_search for the query construction (EXISTS-based,
   # index-friendly, no row duplication).
   def advanced_search
-    wines = Wine.includes(producer: [], grapes: [], regions: [], wine_categories: :category)
+    wines = Wine.eager_load(:producer).preload(:grapes, :regions, :categories, images: { file_attachment: :blob })
                 .advanced_search(advanced_search_filters)
                 .order(:name)
 
-    vintage_counts = Vintage.where(wine_id: wines).group(:wine_id).count
+    return if render_paginated(wines) { |items| serialize_wines(items) }
 
-    return if render_paginated(wines) { |items| serialize_wines(items, vintage_counts) }
-
-    render json: serialize_wines(wines, vintage_counts)
+    render json: serialize_wines(wines)
   end
 
   def show

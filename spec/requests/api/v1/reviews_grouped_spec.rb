@@ -35,6 +35,18 @@ RSpec.describe "Api::V1::Reviews grouped", type: :request do
   end
 
   describe "GET /api/v1/reviews/grouped" do
+    it "loads author and wine context with the reviews and reuses window counts" do
+      queries = []
+      callback = ->(*args) { queries << args.last[:sql] }
+      ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
+        get "/api/v1/reviews/grouped"
+      end
+      expect(response).to have_http_status(:ok)
+      expect(queries.grep(/SELECT COUNT\(\*\)/i)).to be_empty
+      expect(queries.grep(/SELECT "(?:users|accounts|vintages|wines)"\.\*/)).to be_empty
+      expect(queries.grep(/logs_enabled/)).to be_empty
+    end
+
     it "keeps another user's drafts hidden from a reader with a bearer token" do
       reader = User.create!(first_name: "Reader", email: "token-reader@example.com", password: "password123")
       reader.roles << Role.find_or_create_by!(name: "Reader")

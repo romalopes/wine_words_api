@@ -33,7 +33,8 @@ class Api::V1::ReviewsController < ApplicationController
         Review.all
       end
     reviews = reviews.visible_to(current_user) unless current_user&.wine_manager?
-    reviews = reviews.includes({ user: :account }, :categories, images: { file_attachment: :blob },
+    reviews = reviews.eager_load({ user: :account }, vintage: :wine)
+                     .preload(:categories, images: { file_attachment: :blob },
                                vintage: { wine: { images: { file_attachment: :blob } } })
     reviews = reviews.joins(:review_categories).where(review_categories: { category_id: params[:category_id] }).distinct if params[:category_id].present?
     reviews = reviews.left_outer_joins(:review_categories).where(review_categories: { id: nil }) if params[:uncategorised] == "true"
@@ -79,6 +80,7 @@ class Api::V1::ReviewsController < ApplicationController
       SELECT sub.* FROM (
         SELECT r.id, r.created_at,
                COALESCE(rc.category_id, 0) AS grouped_cat_id,
+               COUNT(*) OVER (PARTITION BY COALESCE(rc.category_id, 0)) AS grouped_count,
                ROW_NUMBER() OVER (
                  PARTITION BY COALESCE(rc.category_id, 0)
                  ORDER BY #{order_sql}
@@ -92,8 +94,9 @@ class Api::V1::ReviewsController < ApplicationController
 
     review_ids = rows.map(&:id).uniq
     reviews_by_id = Review.where(id: review_ids)
-                      .includes({ user: :account }, :categories, images: { file_attachment: :blob },
-                                vintage: { wine: { images: { file_attachment: :blob } } })
+                      .eager_load({ user: :account }, vintage: :wine)
+                      .preload(:categories, images: { file_attachment: :blob },
+                               vintage: { wine: { images: { file_attachment: :blob } } })
                       .index_by(&:id)
 
     groups = Hash.new { |h, k| h[k] = [] }
@@ -103,18 +106,10 @@ class Api::V1::ReviewsController < ApplicationController
       groups[cat_id] << ReviewListSerializer.new(reviews_by_id[row.id], request.base_url, liked_ids: liked_ids).as_json
     end
 
-    # Counts come from the filtered scope too, so "Show all (N)" matches the
-    # cards that are actually rendered. `except(:select)` drops the `rank`
-    # column search added: it is not aggregated or grouped, so keeping it would
-    # make these GROUP BY / COUNT statements invalid.
-    count_scope = scope.except(:select)
-    category_counts = count_scope.joins(:review_categories).group("review_categories.category_id").count
-    uncategorised_count =
-      if groups.key?(nil)
-        count_scope.left_outer_joins(:review_categories).where(review_categories: { id: nil }).count
-      else
-        0
-      end
+    # Window counts are calculated before the per-group limit, over the same
+    # filtered rows. Reuse them instead of issuing separate count queries.
+    category_counts = rows.to_h { |row| [row.grouped_cat_id, row.grouped_count.to_i] }
+    uncategorised_count = category_counts.fetch(0, 0)
 
     categories = Category.where(id: groups.keys.compact).to_a
     ordered = categories.select { |c| c.sort_order_review.present? }.sort_by { |c| [c.sort_order_review, c.name.to_s] }

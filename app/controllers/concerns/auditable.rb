@@ -47,6 +47,7 @@ module Auditable
   private
 
   def audit_this_action?
+    return false unless (audited_actions || {}).key?(action_name)
     return false if response.status >= 500 # server errors are not business audits
     # Global kill-switch from the Configuration page (defaults to true, so
     # auditing stays on until an admin turns it off).

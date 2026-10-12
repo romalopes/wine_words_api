@@ -172,6 +172,35 @@ RSpec.describe "Api::V1::Producers", type: :request do
   end
 
   describe "GET /api/v1/producers" do
+    it "batches list associations instead of querying each producer" do
+      3.times do |i|
+        producer = Producer.create!(name: "Batch Estate #{i}", country: australia)
+        producer.regions << region_sa
+        producer.grapes << [grape_shiraz, grape_riesling]
+        producer.logo.attach(logo_file)
+        image = producer.images.create!
+        image.file.attach(logo_file)
+      end
+      queries = []
+      callback = ->(*args) { queries << args.last[:sql] unless args.last[:cached] }
+      ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
+        get "/api/v1/producers", params: { page: 1, per_page: 20 }
+      end
+      expect(response).to have_http_status(:ok)
+      items = JSON.parse(response.body).fetch("items")
+      expect(items.size).to eq(3)
+      items.each do |item|
+        expect(item["regions"]).to include(include("country_name" => "Australia"))
+        expect(item["grapes"].map { |grape| grape["name"] }).to eq(["Riesling", "Shiraz"])
+        expect(item["images"].size).to eq(1)
+        expect(item["logo_url"]).to be_present
+      end
+      %w[regions grapes images].each do |table|
+        expect(queries.grep(/FROM "#{table}"/).size).to eq(1)
+      end
+      expect(queries.grep(/FROM "active_storage_blobs"/).size).to be <= 2
+    end
+
     [ {}, { page: 1, per_page: 20 } ].each do |query|
       it "returns wine counts without loading wine records (#{query.inspect})" do
         producer = Producer.create!(name: "Unknown Producer")
