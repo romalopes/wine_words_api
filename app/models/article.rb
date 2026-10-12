@@ -113,7 +113,7 @@ before_save :update_search_vector, if: :will_save_change_to_searchable_content?
       # Check if user changed (affects author_name in search vector)
       saved_change_to_user_id? ||
       # Check if tags changed
-      tag_ids_changed?
+      saved_change_to_tag_ids?
   end
 
   # A = title
