@@ -85,18 +85,18 @@ Rails.application.configure do
   config.action_mailer.default_url_options = {
     host: ENV.fetch("APP_HOST", "example.com")
   }
-   config.action_mailer.smtp_settings = {
-   address: ENV["SMTP_ADDRESS"],
-   port: ENV.fetch("SMTP_PORT", 587).to_i,
-   domain: ENV.fetch("SMTP_DOMAIN", "localhost"),
-   user_name: ENV["SMTP_USERNAME"],
-   password: ENV["SMTP_PASSWORD"],
-   authentication: ENV.fetch("SMTP_AUTHENTICATION", "plain").to_sym,
-   enable_starttls_auto: ENV.fetch("SMTP_ENABLE_STARTTLS", "true") == "true",
-   open_timeout: 5,
-   read_timeout: 5,
-   return_path: ENV.fetch("MAIL_FROM")
-   }
+    config.action_mailer.smtp_settings = {
+    address: ENV.fetch("SMTP_ADDRESS", "localhost"),
+    port: ENV.fetch("SMTP_PORT", 587).to_i,
+    domain: ENV.fetch("SMTP_DOMAIN", "localhost"),
+    user_name: ENV.fetch("SMTP_USERNAME", ""),
+    password: ENV.fetch("SMTP_PASSWORD", ""),
+    authentication: ENV.fetch("SMTP_AUTHENTICATION", "plain").to_sym,
+    enable_starttls_auto: ENV.fetch("SMTP_ENABLE_STARTTLS", "true") == "true",
+    open_timeout: 5,
+    read_timeout: 5,
+    return_path: ENV.fetch("MAIL_FROM", "from@example.com")
+    }
 
   # Use the in‑process async queue for Active Job (zero extra infrastructure)
   config.active_job.queue_adapter = :async
