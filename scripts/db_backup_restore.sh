@@ -237,6 +237,7 @@ copy_database() {
   case "$command" in
     restore_local_to_neondb) source_provider=local; target_provider=neon; target_variable=NEON_DATABASE_URL ;;
     restore_local_to_supabase) source_provider=local; target_provider=supabase; target_variable=SUPA_DATABASE_URL ;;
+    restore_local_to_local) source_provider=local; target_provider=local; target_variable=LOCAL_SECOND_DATABASE_URL ;;
     restore_neondb_to_neondb) source_provider=neon; target_provider=neon; target_variable=NEON_SECOND_DATABASE_URL ;;
     restore_neondb_to_local) source_provider=neon; target_provider=local; target_variable=LOCAL_DATABASE_URL ;;
     *) die "Unknown copy command: $command" ;;
@@ -568,6 +569,8 @@ COMMANDS:
     Copy LOCAL_DATABASE_URL to NEON_DATABASE_URL
   restore_local_to_supabase [output_dir]
     Copy LOCAL_DATABASE_URL to SUPA_DATABASE_URL
+  restore_local_to_local [output_dir]
+    Copy LOCAL_DATABASE_URL to LOCAL_SECOND_DATABASE_URL
   restore_neondb_to_neondb [output_dir]
     Copy NEON_DATABASE_URL to NEON_SECOND_DATABASE_URL
   restore_neondb_to_local [output_dir]
@@ -616,6 +619,7 @@ CONFIGURATION (.env.development.local; exported values take precedence):
   LOCAL_DATABASE_URL             Local database URL (exported or in .env.development.local)
   NEON_DATABASE_URL              Neon database URL (exported or in .env.development.local)
   SUPA_DATABASE_URL              Destination for restore_local_to_supabase
+  LOCAL_SECOND_DATABASE_URL      Destination for restore_local_to_local
   NEON_SECOND_DATABASE_URL       Destination for restore_neondb_to_neondb
   SUPABASE_DATABASE_URL          Supabase database URL (exported or in .env.development.local)
   PG_CLIENT_MAJOR                PostgreSQL client major version (default: 18)
@@ -665,7 +669,7 @@ main() {
     help|--help|-h)
       usage
       ;;
-    restore_local_to_neondb|restore_local_to_supabase|restore_neondb_to_neondb|restore_neondb_to_local)
+    restore_local_to_neondb|restore_local_to_supabase|restore_local_to_local|restore_neondb_to_neondb|restore_neondb_to_local)
       [ "$#" -le 1 ] || die "Usage: $0 $command [output_dir]"
       check_dependencies
       copy_database "$command" "${1:-./backups}"

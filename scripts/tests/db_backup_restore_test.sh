@@ -216,6 +216,7 @@ ENV
   for spec in \
     'restore_local_to_neondb local neon NEON_DATABASE_URL' \
     'restore_local_to_supabase local supabase SUPA_DATABASE_URL' \
+    'restore_local_to_local local local LOCAL_SECOND_DATABASE_URL' \
     'restore_neondb_to_neondb neon neon NEON_SECOND_DATABASE_URL' \
     'restore_neondb_to_local neon local LOCAL_DATABASE_URL'; do
     read -r command source_provider target_provider variable <<< "$spec"

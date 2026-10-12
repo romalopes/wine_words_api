@@ -201,7 +201,7 @@ alone does not configure CORS.
 ### Database copy shortcuts
 
 `scripts/db_backup_restore.sh` supports `restore_local_to_neondb`,
-`restore_local_to_supabase`, `restore_neondb_to_neondb`, and
+`restore_local_to_supabase`, `restore_local_to_local`, `restore_neondb_to_neondb`, and
 `restore_neondb_to_local`. Each backs up the configured source, verifies the
 backup, and prompts before restoring the destination. See the
 [database copy instructions](docs/DATABASE_BACKUP_SCRIPT.md#copy-directly-between-configured-databases)

@@ -260,6 +260,7 @@ Run from the API root:
 ```bash
 ./scripts/db_backup_restore.sh restore_local_to_neondb
 ./scripts/db_backup_restore.sh restore_local_to_supabase
+./scripts/db_backup_restore.sh restore_local_to_local
 ./scripts/db_backup_restore.sh restore_neondb_to_neondb
 ./scripts/db_backup_restore.sh restore_neondb_to_local
 ```
@@ -268,6 +269,7 @@ Run from the API root:
 |---|---|---|
 | `restore_local_to_neondb` | `LOCAL_DATABASE_URL` | `NEON_DATABASE_URL` |
 | `restore_local_to_supabase` | `LOCAL_DATABASE_URL` | `SUPA_DATABASE_URL` |
+| `restore_local_to_local` | `LOCAL_DATABASE_URL` | `LOCAL_SECOND_DATABASE_URL` |
 | `restore_neondb_to_neondb` | `NEON_DATABASE_URL` | `NEON_SECOND_DATABASE_URL` |
 | `restore_neondb_to_local` | `NEON_DATABASE_URL` | `LOCAL_DATABASE_URL` |
 

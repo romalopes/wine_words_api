@@ -115,7 +115,7 @@ ActiveRecord::Base.transaction do
     # ------------------------------------------------------------------
     # 2️⃣  Parse score (numeric part only)
     # ------------------------------------------------------------------
-    score = score_raw[/\d+/]&.to_i
+    score = (score_raw[/\d+/]&.to_i) || 0
 
     # ------------------------------------------------------------------
     # 3️⃣  Parse vintage year (last 4‑digit number in the wine name)
@@ -211,6 +211,16 @@ ActiveRecord::Base.transaction do
     drink_from   = drink_from_raw.to_i if drink_from_raw =~ /\A\d{4}\z/
     drink_to     = drink_by_raw.gsub("+", "").to_i if drink_by_raw =~ /\A\d{4}\+?\z/
     drink_plus   = drink_by_raw.present? && drink_by_raw.end_with?("+")
+    # Ensure drink_from is not earlier than vintage_year
+    if drink_from.present? && vintage_year.present? && drink_from < vintage_year
+      drink_from = vintage_year
+    end
+    
+    # Ensure drink_to is not earlier than drink_from
+    if drink_from.present? && drink_to.present? && drink_to < drink_from
+      drink_to = drink_from
+    end
+    
 
     # Natural key: same author + same vintage.
     # The CSV has one review per vintage, so (user, vintage) is unique.
