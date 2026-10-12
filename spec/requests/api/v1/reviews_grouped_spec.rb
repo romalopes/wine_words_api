@@ -35,6 +35,26 @@ RSpec.describe "Api::V1::Reviews grouped", type: :request do
   end
 
   describe "GET /api/v1/reviews/grouped" do
+    it "keeps another user's drafts hidden from a reader with a bearer token" do
+      reader = User.create!(first_name: "Reader", email: "token-reader@example.com", password: "password123")
+      reader.roles << Role.find_or_create_by!(name: "Reader")
+      token, = Warden::JWTAuth::UserEncoder.new.call(reader, :user, nil)
+      get "/api/v1/reviews/grouped", headers: { "Authorization" => "Bearer #{token}" }
+
+      expect(response).to have_http_status(:ok)
+      titles = JSON.parse(response.body).flat_map { |group| group["reviews"].map { |item| item["title"] } }
+      expect(titles).not_to include("Draft malbec")
+    end
+
+    it "shows drafts to an admin authenticated only by a bearer token" do
+      token, = Warden::JWTAuth::UserEncoder.new.call(manager, :user, nil)
+      get "/api/v1/reviews/grouped", headers: { "Authorization" => "Bearer #{token}" }
+
+      expect(response).to have_http_status(:ok)
+      titles = JSON.parse(response.body).flat_map { |group| group["reviews"].map { |item| item["title"] } }
+      expect(titles).to include("Draft malbec")
+    end
+
     it "groups published reviews by category" do
       get "/api/v1/reviews/grouped"
 

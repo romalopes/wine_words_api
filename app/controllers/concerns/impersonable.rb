@@ -65,7 +65,10 @@ module Impersonable
   def warden_user
     return nil unless defined?(:warden) && warden
 
-    warden.user(:user)
+    # Public endpoints skip authenticate_user!, but still personalize visibility
+    # for signed-in callers. Run the configured strategies to resolve a bearer
+    # token as well as a session, just as Devise's current_user helper does.
+    warden.authenticate(scope: :user)
   rescue StandardError
     nil
   end
