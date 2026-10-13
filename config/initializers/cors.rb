@@ -16,14 +16,13 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
     # origins "http://localhost:5173", "https://wine-prediction-app.vercel.app", "http://wine-prediction-mu.vercel.app", "https://wine-words.vercel.app", "http://wine-words.vercel.app", "https://wine-words.romalopes.workers.dev", "http://wine-words.romalopes.workers.dev", "https://172-first-party-content-analytics-content-view-wine-words.romalopes.workers.dev", "https://f23a39ca-wine-words.romalopes.workers.dev"
     origins(
         "http://localhost:5173",
+        "https://wine-words.beachvolleyballhub.com",
         "https://wine-prediction-app.vercel.app",
         "http://wine-prediction-mu.vercel.app",
         "https://wine-words.vercel.app",
         "https://wine-words.romalopes.workers.dev",
         %r{\Ahttps://[a-zA-Z0-9-]+-wine-words\.romalopes\.workers\.dev\z}
       )
-
-
 
     resource "*",
       headers: :any,

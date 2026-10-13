@@ -112,13 +112,13 @@ check_dependencies() {
 
 get_database_url() {
   local provider="$1"
-  local env_file="$API_DIR/.env.development.local"
+  local env_file="$API_DIR/.env.development"
   local variable
 
   case "$provider" in
-    local) variable="LOCAL_DATABASE_URL" ;;
-    supabase) variable="SUPABASE_DATABASE_URL" ;;
-    neon) variable="NEON_DATABASE_URL" ;;
+    local) variable="BACKUP_LOCAL_DATABASE_URL" ;;
+    supabase) variable="BACKUP_SUPABASE_DATABASE_URL" ;;
+    neon) variable="BACKUP_NEON_DATABASE_URL" ;;
     *) die "Unknown provider: $provider. Use: local, supabase, or neon" ;;
   esac
 
@@ -130,7 +130,7 @@ get_database_url() {
 
 get_config_value() {
   local variable="$1"
-  local env_file="$API_DIR/.env.development.local"
+  local env_file="$API_DIR/.env.development"
   # Exported variables take precedence. Read dotenv values as data, never shell code.
   local value="${!variable:-}"
   if [ -z "$value" ] && [ -f "$env_file" ]; then
@@ -257,17 +257,19 @@ copy_database() {
   local command="$1" output_dir="${2:-./backups}"
   local source_provider target_provider target_variable
   case "$command" in
-    restore_local_to_neondb) source_provider=local; target_provider=neon; target_variable=NEON_DATABASE_URL ;;
+    restore_local_to_neondb) source_provider=local; target_provider=neon; target_variable=BACKUP_NEON_DATABASE_URL ;;
     restore_local_to_supabase) source_provider=local; target_provider=supabase; target_variable=SUPA_DATABASE_URL ;;
-    restore_local_to_local) source_provider=local; target_provider=local; target_variable=LOCAL_SECOND_DATABASE_URL ;;
-    restore_neondb_to_neondb) source_provider=neon; target_provider=neon; target_variable=NEON_SECOND_DATABASE_URL ;;
-    restore_neondb_to_local) source_provider=neon; target_provider=local; target_variable=LOCAL_DATABASE_URL ;;
+    restore_local_to_local) source_provider=local; target_provider=local; target_variable=BACKUP_LOCAL_SECOND_DATABASE_URL ;;
+    restore_neondb_to_neondb) source_provider=neon; target_provider=neon; target_variable=BACKUP_NEON_SECOND_DATABASE_URL ;;
+    restore_neondb_to_local) source_provider=neon; target_provider=local; target_variable=BACKUP_LOCAL_DATABASE_URL ;;
+    restore_supabase_to_local) source_provider=supabase; target_provider=local; target_variable=BACKUP_LOCAL_DATABASE_URL ;;
+    restore_supabase_to_supabase) source_provider=supabase; target_provider=supabase; target_variable=SUPA_DATABASE_URL ;;
     *) die "Unknown copy command: $command" ;;
-  esac
+   esac
   local source_url target_url recipient identity
   source_url=$(get_database_url "$source_provider")
   target_url=$(get_config_value "$target_variable")
-  [ -n "$target_url" ] || die "$target_variable not set in .env.development.local or environment"
+  [ -n "$target_url" ] || die "$target_variable not set in .env.development or environment"
   validate_database_url "$source_url"
   validate_database_url "$target_url"
   [ "$source_url" != "$target_url" ] || die "Source and destination URLs are identical"
@@ -291,8 +293,8 @@ copy_database() {
 
 restore_r2_to_local() {
   local backup_key="${1:-}" output_dir="${2:-./backups}"
-  [ -n "$backup_key" ] || backup_key=$(get_config_value R2_BACKUP_SPECIFIC)
-  [ -n "$backup_key" ] || die "Provide an R2 backup key or set R2_BACKUP_SPECIFIC (use latest for the newest Neon backup)"
+  [ -n "$backup_key" ] || backup_key=$(get_config_value BACKUP_R2_BACKUP_SPECIFIC)
+  [ -n "$backup_key" ] || die "Provide an R2 backup key or set BACKUP_R2_BACKUP_SPECIFIC (use latest for the newest Neon backup)"
   local provider=neon target_url backup_dir
   if [ "$backup_key" != latest ]; then
     [[ "$backup_key" == "$SYSTEM_PREFIX"/postgresql/*/*.dump.age ]] || die "Expected a full R2 .dump.age object key or latest"
@@ -386,7 +388,7 @@ restore_database() {
   if [[ "$backup_file" == *.age ]]; then
     log_info "Decrypting age-encrypted backup..."
     local identity="$(get_config_value BACKUP_ENCRYPTION_IDENTITY)"
-    [ -n "$identity" ] || die "BACKUP_ENCRYPTION_IDENTITY (private key) required for decryption. Set it in .env.development.local or your environment."
+    [ -n "$identity" ] || die "BACKUP_ENCRYPTION_IDENTITY (private key) required for decryption. Set it in .env.development or your environment."
     
     decrypt_backup -o "$decrypted_dump" "$backup_file"
     log_success "Decrypted to: $decrypted_dump"
@@ -520,15 +522,15 @@ list_r2_backups() {
   
   require_cmd aws
   
-  local bucket="$(get_config_value R2_BUCKET)"
-  local endpoint="$(get_config_value R2_ENDPOINT)"
-  local access_key="$(get_config_value R2_ACCESS_KEY_ID)"
-  local secret_key="$(get_config_value R2_SECRET_ACCESS_KEY)"
+  local bucket="$(get_config_value BACKUP_R2_BUCKET)"
+  local endpoint="$(get_config_value BACKUP_R2_ENDPOINT)"
+  local access_key="$(get_config_value BACKUP_R2_ACCESS_KEY_ID)"
+  local secret_key="$(get_config_value BACKUP_R2_SECRET_ACCESS_KEY)"
   
-  [ -n "$bucket" ] || die "R2_BUCKET not set in .env.development.local or environment"
-  [ -n "$endpoint" ] || die "R2_ENDPOINT not set in .env.development.local or environment"
-  [ -n "$access_key" ] || die "R2_ACCESS_KEY_ID not set in .env.development.local or environment"
-  [ -n "$secret_key" ] || die "R2_SECRET_ACCESS_KEY not set in .env.development.local or environment"
+  [ -n "$bucket" ] || die "BACKUP_R2_BUCKET not set in .env.development or environment"
+  [ -n "$endpoint" ] || die "BACKUP_R2_ENDPOINT not set in .env.development or environment"
+  [ -n "$access_key" ] || die "BACKUP_R2_ACCESS_KEY_ID not set in .env.development or environment"
+  [ -n "$secret_key" ] || die "BACKUP_R2_SECRET_ACCESS_KEY not set in .env.development or environment"
   
   export AWS_ACCESS_KEY_ID="$access_key"
   export AWS_SECRET_ACCESS_KEY="$secret_key"
@@ -545,15 +547,15 @@ download_from_r2() {
   
   require_cmd aws
   
-  local bucket="$(get_config_value R2_BUCKET)"
-  local endpoint="$(get_config_value R2_ENDPOINT)"
-  local access_key="$(get_config_value R2_ACCESS_KEY_ID)"
-  local secret_key="$(get_config_value R2_SECRET_ACCESS_KEY)"
+  local bucket="$(get_config_value BACKUP_R2_BUCKET)"
+  local endpoint="$(get_config_value BACKUP_R2_ENDPOINT)"
+  local access_key="$(get_config_value BACKUP_R2_ACCESS_KEY_ID)"
+  local secret_key="$(get_config_value BACKUP_R2_SECRET_ACCESS_KEY)"
   
-  [ -n "$bucket" ] || die "R2_BUCKET not set in .env.development.local or environment"
-  [ -n "$endpoint" ] || die "R2_ENDPOINT not set in .env.development.local or environment"
-  [ -n "$access_key" ] || die "R2_ACCESS_KEY_ID not set in .env.development.local or environment"
-  [ -n "$secret_key" ] || die "R2_SECRET_ACCESS_KEY not set in .env.development.local or environment"
+  [ -n "$bucket" ] || die "BACKUP_R2_BUCKET not set in .env.development or environment"
+  [ -n "$endpoint" ] || die "BACKUP_R2_ENDPOINT not set in .env.development or environment"
+  [ -n "$access_key" ] || die "BACKUP_R2_ACCESS_KEY_ID not set in .env.development or environment"
+  [ -n "$secret_key" ] || die "BACKUP_R2_SECRET_ACCESS_KEY not set in .env.development or environment"
   
   export AWS_ACCESS_KEY_ID="$access_key"
   export AWS_SECRET_ACCESS_KEY="$secret_key"
@@ -570,7 +572,7 @@ download_from_r2() {
       --endpoint-url "$endpoint" \
       --query 'Contents[?ends_with(Key, `.dump.age`)] | sort_by(@, &LastModified)[-1].Key' \
       --output text); then
-      die "Cannot list R2 backups. Check R2 credentials, bucket access, and the account endpoint (exported settings override .env.development.local). For AccessDenied, grant Object Read access to the configured bucket. A full backup object key skips listing but still requires download access."
+      die "Cannot list R2 backups. Check R2 credentials, bucket access, and the account endpoint (exported settings override .env.development). For AccessDenied, grant Object Read access to the configured bucket. A full backup object key skips listing but still requires download access."
     fi
     [ -n "$backup_key" ] && [ "$backup_key" != "None" ] || die "No backups found for provider $provider"
     log_info "Latest backup: $backup_key"
@@ -601,21 +603,25 @@ USAGE:
 
 COMMANDS:
   restore_local_to_neondb [output_dir]
-    Copy LOCAL_DATABASE_URL to NEON_DATABASE_URL
+    Copy BACKUP_LOCAL_DATABASE_URL to BACKUP_NEON_DATABASE_URL
   restore_local_to_supabase [output_dir]
-    Copy LOCAL_DATABASE_URL to SUPA_DATABASE_URL
+    Copy BACKUP_LOCAL_DATABASE_URL to SUPA_DATABASE_URL
+   restore_supabase_to_local [output_dir]
+     Copy BACKUP_SUPABASE_DATABASE_URL to BACKUP_LOCAL_DATABASE_URL
+  restore_supabase_to_supabase [output_dir]
+     Copy BACKUP_SUPABASE_DATABASE_URL to SUPA_DATABASE_URL
   restore_local_to_local [output_dir]
-    Copy LOCAL_DATABASE_URL to LOCAL_SECOND_DATABASE_URL
+    Copy BACKUP_LOCAL_DATABASE_URL to BACKUP_LOCAL_SECOND_DATABASE_URL
   restore_neondb_to_neondb [output_dir]
-    Copy NEON_DATABASE_URL to NEON_SECOND_DATABASE_URL
+    Copy BACKUP_NEON_DATABASE_URL to BACKUP_NEON_SECOND_DATABASE_URL
   restore_neondb_to_local [output_dir]
-    Copy NEON_DATABASE_URL to LOCAL_DATABASE_URL
+    Copy BACKUP_NEON_DATABASE_URL to BACKUP_LOCAL_DATABASE_URL
     These commands back up, verify, then prompt before restoring the target.
     Source backups are retained under output_dir (default: ./backups).
 
   restore_r2_to_local [backup_key] [output_dir]
-    Download, verify, and restore an R2 backup to LOCAL_DATABASE_URL.
-    An omitted or empty key uses R2_BACKUP_SPECIFIC; latest selects Neon.
+    Download, verify, and restore an R2 backup to BACKUP_LOCAL_DATABASE_URL.
+    An omitted or empty key uses BACKUP_R2_BACKUP_SPECIFIC; latest selects Neon.
     Downloads are retained under output_dir (default: ./backups).
 
   backup <provider> [output_dir] [custom_name]
@@ -643,30 +649,30 @@ COMMANDS:
     Example: $0 download neon latest ./downloads
     Example: $0 download neon wine-words/postgresql/neon/DAILY_20240115T020000Z.dump.age ./downloads
 
-CONFIGURATION (.env.development.local; exported values take precedence):
+CONFIGURATION (.env.development; exported values take precedence):
   BACKUP_ENCRYPTION_RECIPIENT    Age public key for encryption (age1...)
   BACKUP_ENCRYPTION_IDENTITY     Age private key (AGE-SECRET-KEY-...) or identity-file path
-  R2_BACKUP_SPECIFIC            Default R2 object key or latest (Neon)
-  R2_BUCKET                      Cloudflare R2 bucket name
-  R2_ENDPOINT                    Cloudflare R2 S3 endpoint URL
-  R2_ACCESS_KEY_ID               Cloudflare R2 access key ID
-  R2_SECRET_ACCESS_KEY           Cloudflare R2 secret access key
-  LOCAL_DATABASE_URL             Local database URL (exported or in .env.development.local)
-  NEON_DATABASE_URL              Neon database URL (exported or in .env.development.local)
+  BACKUP_R2_BACKUP_SPECIFIC            Default R2 object key or latest (Neon)
+  BACKUP_R2_BUCKET                      Cloudflare R2 bucket name
+  BACKUP_R2_ENDPOINT                    Cloudflare R2 S3 endpoint URL
+  BACKUP_R2_ACCESS_KEY_ID               Cloudflare R2 access key ID
+  BACKUP_R2_SECRET_ACCESS_KEY           Cloudflare R2 secret access key
+  BACKUP_LOCAL_DATABASE_URL             Local database URL (exported or in .env.development)
+  BACKUP_NEON_DATABASE_URL              Neon database URL (exported or in .env.development)
   SUPA_DATABASE_URL              Destination for restore_local_to_supabase
-  LOCAL_SECOND_DATABASE_URL      Destination for restore_local_to_local
-  NEON_SECOND_DATABASE_URL       Destination for restore_neondb_to_neondb
-  SUPABASE_DATABASE_URL          Supabase database URL (exported or in .env.development.local)
+  BACKUP_LOCAL_SECOND_DATABASE_URL      Destination for restore_local_to_local
+  BACKUP_NEON_SECOND_DATABASE_URL       Destination for restore_neondb_to_neondb
+  BACKUP_SUPABASE_DATABASE_URL          Supabase database URL (exported or in .env.development)
   PG_CLIENT_MAJOR                PostgreSQL client major version (default: 18)
 
 FILES:
-  .env.development.local         Local environment file (in wine_words_api/)
+  .env.development         Local environment file (in wine_words_api/)
 
 EXAMPLES:
   # Backup local database to ./backups
   $0 backup local ./backups
 
-  # Backup Neon database (requires NEON_DATABASE_URL in .env.development.local)
+  # Backup Neon database (requires BACKUP_NEON_DATABASE_URL in .env.development)
   $0 backup neon ./backups
 
   # Restore from Cloudflare download to local database
@@ -677,7 +683,7 @@ EXAMPLES:
   $0 restore neon backup.dump.age neon "postgresql://user:pass@ep-xxx.neon.tech/db"
 
   # List and download latest backup from R2
-  # Set R2_BUCKET, R2_ENDPOINT, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY in .env.development.local
+  # Set BACKUP_R2_BUCKET, BACKUP_R2_ENDPOINT, BACKUP_R2_ACCESS_KEY_ID, BACKUP_R2_SECRET_ACCESS_KEY in .env.development
   $0 list neon
   $0 download neon latest ./downloads
   $0 verify ./downloads
@@ -704,7 +710,7 @@ main() {
     help|--help|-h)
       usage
       ;;
-    restore_local_to_neondb|restore_local_to_supabase|restore_local_to_local|restore_neondb_to_neondb|restore_neondb_to_local)
+    restore_local_to_neondb|restore_local_to_supabase|restore_local_to_local|restore_neondb_to_neondb|restore_neondb_to_local|restore_supabase_to_local|restore_supabase_to_supabase)
       [ "$#" -le 1 ] || die "Usage: $0 $command [output_dir]"
       check_dependencies
       copy_database "$command" "${1:-./backups}"

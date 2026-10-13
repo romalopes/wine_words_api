@@ -16,6 +16,12 @@ Rails.application.configure do
   # config.active_storage.service = :local
   config.active_storage.service = :cloudflare_r2
 
+  config.hosts << "api.wine-words.beachvolleyballhub.com"
+
+  config.action_mailer.default_url_options = {
+    host: ENV.fetch("APP_HOST"),
+    protocol: "https"
+  }
 
   # Cache assets for far-future expiry since they are all digest stamped.
   config.public_file_server.headers = { "cache-control" => "public, max-age=#{1.year.to_i}" }

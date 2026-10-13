@@ -34,37 +34,37 @@ age --version        # Should show 1.3.2
 ```
 ## Environment Setup
 
-The `local` provider requires `LOCAL_DATABASE_URL`, read from the exported
-environment or `wine_words_api/.env.development.local`. Exported values take
+The `local` provider requires `BACKUP_LOCAL_DATABASE_URL`, read from the exported
+environment or `wine_words_api/.env.development`. Exported values take
 precedence. This variable selects the database for local backups and restores;
 there is no hard-coded fallback.
 
-### 1. Database URLs (in `.env.development.local`)
+### 1. Database URLs (in `.env.development`)
 
 ```dotenv
 # Local PostgreSQL
-LOCAL_DATABASE_URL=postgresql:///wine_words_development
+BACKUP_LOCAL_DATABASE_URL=postgresql:///wine_words_development
 
 # Supabase
-SUPABASE_DATABASE_URL=postgresql://postgres:password@db.xxx.supabase.co:5432/postgres
+BACKUP_SUPABASE_DATABASE_URL=postgresql://postgres:password@db.xxx.supabase.co:5432/postgres
 
 # Neon
-NEON_DATABASE_URL=postgresql://user:password@ep-xxx.neon.tech/dbname
+BACKUP_NEON_DATABASE_URL=postgresql://user:password@ep-xxx.neon.tech/dbname
 ```
 
 ### 2. Encryption and Cloudflare R2 settings
 
-Set these in `wine_words_api/.env.development.local`; no shell exports are needed.
+Set these in `wine_words_api/.env.development`; no shell exports are needed.
 Exported values, when present, take precedence, just as for database URLs. Values
 may be unquoted or single/double quoted. An optional `export` prefix is supported. The file is read as data, not executed.
 
 ```dotenv
 BACKUP_ENCRYPTION_RECIPIENT=age1YOUR_PUBLIC_KEY
 BACKUP_ENCRYPTION_IDENTITY=/absolute/path/to/age-keys.txt
-R2_BUCKET=database-backups
-R2_ENDPOINT=https://<account-id>.r2.cloudflarestorage.com
-R2_ACCESS_KEY_ID=YOUR_ACCESS_KEY_ID
-R2_SECRET_ACCESS_KEY=YOUR_SECRET_ACCESS_KEY
+BACKUP_R2_BUCKET=database-backups
+BACKUP_R2_ENDPOINT=https://<account-id>.r2.cloudflarestorage.com
+BACKUP_R2_ACCESS_KEY_ID=YOUR_ACCESS_KEY_ID
+BACKUP_R2_SECRET_ACCESS_KEY=YOUR_SECRET_ACCESS_KEY
 ```
 
 `BACKUP_ENCRYPTION_IDENTITY` also accepts a raw `AGE-SECRET-KEY-...` value.
@@ -95,7 +95,7 @@ Output files created:
 ### Backup Neon/Supabase Database
 
 ```bash
-# Requires NEON_DATABASE_URL or SUPABASE_DATABASE_URL in .env.development.local
+# Requires BACKUP_NEON_DATABASE_URL or BACKUP_SUPABASE_DATABASE_URL in .env.development
 ./scripts/db_backup_restore.sh backup neon ./backups
 ./scripts/db_backup_restore.sh backup supabase ./backups
 ```
@@ -173,10 +173,10 @@ Interactive confirmation required:
 ```bash
 # 1. Set up environment
 export BACKUP_ENCRYPTION_IDENTITY=AGE-SECRET-KEY-...
-export R2_BUCKET=database-backups
-export R2_ENDPOINT=https://<account>.r2.cloudflarestorage.com
-export R2_ACCESS_KEY_ID=...
-export R2_SECRET_ACCESS_KEY=...
+export BACKUP_R2_BUCKET=database-backups
+export BACKUP_R2_ENDPOINT=https://<account>.r2.cloudflarestorage.com
+export BACKUP_R2_ACCESS_KEY_ID=...
+export BACKUP_R2_SECRET_ACCESS_KEY=...
 
 # 2. Download latest backup
 ./scripts/db_backup_restore.sh download neon latest ./recovery
@@ -263,20 +263,24 @@ Run from the API root:
 ./scripts/db_backup_restore.sh restore_local_to_local
 ./scripts/db_backup_restore.sh restore_neondb_to_neondb
 ./scripts/db_backup_restore.sh restore_neondb_to_local
+./scripts/db_backup_restore.sh restore_supabase_to_local
+./scripts/db_backup_restore.sh restore_supabase_to_supabase
 ```
 
 | Command | Source variable | Destination variable |
 |---|---|---|
-| `restore_local_to_neondb` | `LOCAL_DATABASE_URL` | `NEON_DATABASE_URL` |
-| `restore_local_to_supabase` | `LOCAL_DATABASE_URL` | `SUPA_DATABASE_URL` |
-| `restore_local_to_local` | `LOCAL_DATABASE_URL` | `LOCAL_SECOND_DATABASE_URL` |
-| `restore_neondb_to_neondb` | `NEON_DATABASE_URL` | `NEON_SECOND_DATABASE_URL` |
-| `restore_neondb_to_local` | `NEON_DATABASE_URL` | `LOCAL_DATABASE_URL` |
+| `restore_local_to_neondb` | `BACKUP_LOCAL_DATABASE_URL` | `BACKUP_NEON_DATABASE_URL` |
+| `restore_local_to_supabase` | `BACKUP_LOCAL_DATABASE_URL` | `BACKUP_SUPA_DATABASE_URL` |
+| `restore_local_to_local` | `BACKUP_LOCAL_DATABASE_URL` | `BACKUP_LOCAL_SECOND_DATABASE_URL` |
+| `restore_neondb_to_neondb` | `BACKUP_NEON_DATABASE_URL` | `BACKUP_NEON_SECOND_DATABASE_URL` |
+| `restore_neondb_to_local` | `BACKUP_NEON_DATABASE_URL` | `BACKUP_LOCAL_DATABASE_URL` |
+| `restore_supabase_to_local` | `BACKUP_SUPABASE_DATABASE_URL` | `BACKUP_LOCAL_DATABASE_URL` |
+| `restore_supabase_to_supabase` | `BACKUP_SUPABASE_DATABASE_URL` | `SUPA_DATABASE_URL` |
 
-Set these URLs in `.env.development.local`; exported values take precedence.
-`SUPA_DATABASE_URL` is the exact name used by the new shortcut. Existing
+Set these URLs in `.env.development`; exported values take precedence.
+`BACKUP_SUPA_DATABASE_URL` is the exact name used by the new shortcut. Existing
 `backup supabase` and `restore ... supabase` commands still use
-`SUPABASE_DATABASE_URL`.
+`BACKUP_SUPABASE_DATABASE_URL`.
 
 Each command checks the destination version, creates a source backup in a unique
 subdirectory of `./backups`, verifies it, and asks for overwrite confirmation
@@ -298,19 +302,19 @@ These commands do not create a separate backup of the destination.
 ## Copy directly from R2 to local
 
 Run from the API root to download, verify, and restore a specific snapshot to
-`LOCAL_DATABASE_URL`:
+`BACKUP_LOCAL_DATABASE_URL`:
 
 ```bash
 ./scripts/db_backup_restore.sh restore_r2_to_local "wine-words/postgresql/neon/DAILY_20240115T020000Z.dump.age"
 ```
 
-Set the default in `.env.development.local`:
+Set the default in `.env.development`:
 
 ```dotenv
-R2_BACKUP_SPECIFIC=latest
+BACKUP_R2_BACKUP_SPECIFIC=latest
 ```
 
-An omitted or empty first argument uses `R2_BACKUP_SPECIFIC`. Exported values take
+An omitted or empty first argument uses `BACKUP_R2_BACKUP_SPECIFIC`. Exported values take
 precedence. `latest` selects the most recently modified `.dump.age` object under
 `wine-words/postgresql/neon/`. A full object key selects that exact snapshot.
 
@@ -320,7 +324,7 @@ precedence. `latest` selects the most recently modified `.dump.age` object under
 ```
 
 Configure the R2 credentials listed above, `BACKUP_ENCRYPTION_IDENTITY`, and
-`LOCAL_DATABASE_URL`. Downloads and sidecars are retained in a unique directory
+`BACKUP_LOCAL_DATABASE_URL`. Downloads and sidecars are retained in a unique directory
 under `./backups` (or the optional second argument). Checksum, metadata, and
 decryption verification run before the existing overwrite confirmation prompt.
 The destination must already exist and meet the PostgreSQL version requirement.
@@ -332,14 +336,14 @@ command does not back up the destination.
 
 `latest` requires `ListObjectsV2` access. This error means listing failed, not
 that the bucket has no backups. Check that the R2 S3 credentials have **Object
-Read only** (or **Object Read & Write**) access to the bucket in `R2_BUCKET`,
-and that `R2_ENDPOINT` belongs to the same account. See
+Read only** (or **Object Read & Write**) access to the bucket in `BACKUP_R2_BUCKET`,
+and that `BACKUP_R2_ENDPOINT` belongs to the same account. See
 [Cloudflare R2 authentication](https://developers.cloudflare.com/r2/api/tokens/).
-Exported R2 variables override `.env.development.local`; check for stale shell
+Exported R2 variables override `.env.development`; check for stale shell
 settings if you changed the file.
 
 A full `.dump.age` object key, supplied as the first argument or as
-`R2_BACKUP_SPECIFIC`, skips listing. Download access to the dump and its sidecars
+`BACKUP_R2_BACKUP_SPECIFIC`, skips listing. Download access to the dump and its sidecars
 is still required. After correcting access, retry the read-only listing with:
 
 ```bash

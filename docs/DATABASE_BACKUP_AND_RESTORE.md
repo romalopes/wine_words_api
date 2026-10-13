@@ -33,13 +33,13 @@ For a direct R2-to-local restore from the API root:
 
 ```bash
 ./scripts/db_backup_restore.sh restore_r2_to_local "wine-words/postgresql/neon/DAILY_20240115T020000Z.dump.age"
-# Omit the key to use R2_BACKUP_SPECIFIC from .env.development.local:
+# Omit the key to use BACKUP_R2_BACKUP_SPECIFIC from .env.development:
 ./scripts/db_backup_restore.sh restore_r2_to_local
 ```
 
-`R2_BACKUP_SPECIFIC=latest` selects the newest Neon snapshot by R2 modification
+`BACKUP_R2_BACKUP_SPECIFIC=latest` selects the newest Neon snapshot by R2 modification
 time. The command downloads and verifies the backup, then prompts before restoring
-`LOCAL_DATABASE_URL`. See [configuration and behavior](DATABASE_BACKUP_SCRIPT.md#copy-directly-from-r2-to-local).
+`BACKUP_LOCAL_DATABASE_URL`. See [configuration and behavior](DATABASE_BACKUP_SCRIPT.md#copy-directly-from-r2-to-local).
 
 ### Option 1: Restore using GitHub Actions
 
@@ -57,7 +57,7 @@ time. The command downloads and verifies the backup, then prompts before restori
    `SUPABASE_RESTORE_TEST_DATABASE_URL`, matching the selected database provider.
 4. **Configure decryption and download access.** Set `BACKUP_ENCRYPTION_IDENTITY`
    to the matching original private identity (`AGE-SECRET-KEY-...`). Confirm
-   `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, and `R2_ENDPOINT`
+   `BACKUP_R2_ACCESS_KEY_ID`, `BACKUP_R2_SECRET_ACCESS_KEY`, `BACKUP_R2_BUCKET`, and `BACKUP_R2_ENDPOINT`
    are present. An existing backup setup normally already has these R2 secrets.
    Do not generate a new key to decrypt an existing backup.
 5. **Open the restore workflow.** Go to
@@ -137,7 +137,7 @@ source database without restoring or modifying application data.
 
 **Confirm which database is actually being backed up.** [render.yaml](../render.yaml)
 defines a Render PostgreSQL deployment, whereas the workflows select secrets named
-`NEON_DATABASE_URL` or `SUPABASE_DATABASE_URL`. A provider label or green workflow
+`BACKUP_NEON_DATABASE_URL` or `BACKUP_SUPABASE_DATABASE_URL`. A provider label or green workflow
 alone does not prove that the selected secret matches the application's live
 `DATABASE_URL`. Check the deployed configuration privately. There is no `render`
 provider option in the current workflows.
@@ -199,15 +199,15 @@ Add workflow secrets under **Settings → Secrets and variables → Actions** in
 
 | Secret | Purpose |
 |---|---|
-| `NEON_DATABASE_URL` | Source connection for the `neon` selection. Use a direct URL with TLS, not a pooler. |
-| `SUPABASE_DATABASE_URL` | Source connection for the `supabase` selection; same connection requirements. |
+| `BACKUP_NEON_DATABASE_URL` | Source connection for the `neon` selection. Use a direct URL with TLS, not a pooler. |
+| `BACKUP_SUPABASE_DATABASE_URL` | Source connection for the `supabase` selection; same connection requirements. |
 | `NEON_RESTORE_TEST_DATABASE_URL` | Direct connection to a disposable Neon restore database. Never production. |
 | `SUPABASE_RESTORE_TEST_DATABASE_URL` | Direct connection to a disposable Supabase restore database. Never production. |
 | `BACKUP_ENCRYPTION_RECIPIENT` | age public key (`age1...`) used to encrypt new backups. |
 | `BACKUP_ENCRYPTION_IDENTITY` | Matching age private key (`AGE-SECRET-KEY-...`) used by the restore workflow. |
-| `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` | R2 S3 API credentials. |
-| `R2_BUCKET` | Backup bucket name, currently `database-backups` for the linked bucket. |
-| `R2_ENDPOINT` | Bucket's S3 API endpoint, copied from Cloudflare; not the dashboard URL. |
+| `BACKUP_R2_ACCESS_KEY_ID`, `BACKUP_R2_SECRET_ACCESS_KEY` | R2 S3 API credentials. |
+| `BACKUP_R2_BUCKET` | Backup bucket name, currently `database-backups` for the linked bucket. |
+| `BACKUP_R2_ENDPOINT` | Bucket's S3 API endpoint, copied from Cloudflare; not the dashboard URL. |
 | `SLACK_WEBHOOK_URL` | Optional failure notification configuration. Check Actions directly as well. |
 
 For manual downloads via the dashboard you need Cloudflare access. CLI downloads
@@ -329,11 +329,11 @@ secret access key at the interactive prompts. Set region to `auto` and output to
 
 ```bash
 aws configure --profile wine-words-r2
-R2_BUCKET='database-backups'
-R2_ENDPOINT='https://17405548759055481513b0ec6ab9c290.r2.cloudflarestorage.com'
+BACKUP_R2_BUCKET='database-backups'
+BACKUP_R2_ENDPOINT='https://17405548759055481513b0ec6ab9c290.r2.cloudflarestorage.com'
 
-aws --profile wine-words-r2 --endpoint-url "$R2_ENDPOINT" \
-  s3 ls "s3://$R2_BUCKET/wine-words/postgresql/neon/" --recursive
+aws --profile wine-words-r2 --endpoint-url "$BACKUP_R2_ENDPOINT" \
+  s3 ls "s3://$BACKUP_R2_BUCKET/wine-words/postgresql/neon/" --recursive
 ```
 
 Confirm the endpoint against the bucket's S3 API endpoint in Cloudflare (and the
@@ -348,8 +348,8 @@ BACKUP_KEY='wine-words/postgresql/neon/2026/10/08/DAILY_20261008T020000Z.dump.ag
 BACKUP_FILE="${BACKUP_KEY##*/}"
 
 for suffix in '' '.sha256' '.json'; do
-  aws --profile wine-words-r2 --endpoint-url "$R2_ENDPOINT" \
-    s3 cp "s3://$R2_BUCKET/${BACKUP_KEY}${suffix}" "${BACKUP_FILE}${suffix}"
+  aws --profile wine-words-r2 --endpoint-url "$BACKUP_R2_ENDPOINT" \
+    s3 cp "s3://$BACKUP_R2_BUCKET/${BACKUP_KEY}${suffix}" "${BACKUP_FILE}${suffix}"
 done
 ```
 

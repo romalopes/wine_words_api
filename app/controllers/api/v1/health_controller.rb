@@ -353,7 +353,7 @@ class Api::V1::HealthController < ApplicationController
     pool = ActiveRecord::Base.connection_pool
     {
       adapter: db_config_value(config, :adapter),
-      database: db_config_value(config, :database),
+      database: db_config_value(config, :database)[0, 20], # truncate to avoid leaking long paths
       host: db_config_value(config, :host),
       port: db_config_value(config, :port),
       username: db_config_value(config, :username),
