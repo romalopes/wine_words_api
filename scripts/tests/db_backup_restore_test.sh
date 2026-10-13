@@ -196,6 +196,35 @@ ENV
   validate_restored_table_count fake.dump postgresql:///fake > "$TEST_DIR/extra-tables.log"
   grep -q 'additional tables' "$TEST_DIR/extra-tables.log"
 )
+# Restore wipes public first (FK-order safe) and never relies on --clean.
+(
+  tmp_restore=$(mktemp -d)
+  printf 'dump' > "$tmp_restore/backup.dump"
+  : > "$tmp_restore/calls.log"
+  check_restore_server_version() { return 0; }
+  psql() {
+    printf '%s\n' "$*" >> "$tmp_restore/calls.log"
+    cat >> "$tmp_restore/calls.log"
+    return 0
+  }
+  pg_restore() {
+    printf '%s\n' "$*" >> "$tmp_restore/calls.log"
+    return 0
+  }
+  sha256sum() { printf 'x  %s\n' "$1"; }
+  validate_restored_table_count() { return 0; }
+  TARGET_DB_URL="postgresql:///target_db"
+  CK="$tmp_restore/check.dump"
+  printf 'x' > "$CK"
+  printf 'x  %s\n' "$CK" > "$CK.sha256"
+  printf 'y\n' | restore_database local "$CK" local "$TARGET_DB_URL" > /dev/null
+  grep -q 'DROP SCHEMA public CASCADE' "$tmp_restore/calls.log"
+  grep -q 'CREATE SCHEMA public' "$tmp_restore/calls.log"
+  grep -q 'CREATE EXTENSION IF NOT EXISTS' "$tmp_restore/calls.log"
+  grep -q -- '--no-owner' "$tmp_restore/calls.log"
+  if grep -q -- '--clean' "$tmp_restore/calls.log"; then echo 'FAIL: restore still uses --clean'; exit 1; fi
+  rm -rf "$tmp_restore"
+)
 # Copy shortcuts route the source backup to the exact configured destination.
 (
   check_dependencies() { :; }

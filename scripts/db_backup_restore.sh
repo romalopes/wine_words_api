@@ -45,12 +45,23 @@ require_cmd() {
 # DEPENDENCY CHECKS
 # ============================================================================
 
+pg_client_major() {
+  local raw="$1"
+  local major=""
+  if [[ $raw =~ PostgreSQL\)\ ([0-9]+) ]]; then
+    major="${BASH_REMATCH[1]}"
+  else
+    major="$(printf '%s\n' "$raw" | grep -oE '[0-9]+' | head -n 1)"
+  fi
+  printf '%s\n' "$major"
+}
+
 postgres_clients_match() {
-  local client version
+  local client version major
   for client in pg_dump pg_restore psql; do
     version=$("$client" --version 2>/dev/null) || return 1
-    [[ "$version" =~ PostgreSQL\)\ ([0-9]+) ]] || return 1
-    [[ "${BASH_REMATCH[1]}" == "$PG_CLIENT_MAJOR" ]] || return 1
+    major="$(pg_client_major "$version")"
+    [[ "$major" == "$PG_CLIENT_MAJOR" ]] || return 1
   done
 }
 
@@ -66,8 +77,19 @@ select_postgres_clients() {
       fi
     fi
   fi
-  postgres_clients_match || die "PostgreSQL $PG_CLIENT_MAJOR clients required. Install with: brew install postgresql@$PG_CLIENT_MAJOR; or prepend the matching PostgreSQL bin directory to PATH."
-  log_info "Using $(pg_dump --version) from $(command -v pg_dump)"
+  if ! postgres_clients_match; then
+    local client version major
+    for client in pg_dump pg_restore psql; do
+      version=$("$client" --version 2>/dev/null) || die "Failed to get version for $client"
+      major="$(pg_client_major "$version")"
+      [ -n "$major" ] || die "Could not parse version for $client: $version"
+      if [[ "$major" != "$PG_CLIENT_MAJOR" ]]; then
+        die "PostgreSQL version mismatch: $client reports version $major (expected $PG_CLIENT_MAJOR). Found: $version"
+      fi
+    done
+    die "PostgreSQL $PG_CLIENT_MAJOR clients required. Install with: brew install postgresql@$PG_CLIENT_MAJOR; or prepend the matching PostgreSQL bin directory to PATH."
+  fi
+  log_info "Using pg_dump $(pg_dump --version), pg_restore $(pg_restore --version), psql $(psql --version)"
 }
 
 check_dependencies() {
@@ -312,6 +334,17 @@ check_restore_server_version() {
   [ "$server_major" -ge "$PG_CLIENT_MAJOR" ] || die "Target server is PostgreSQL $server_major, but restore uses PostgreSQL $PG_CLIENT_MAJOR. Restore into a PostgreSQL $PG_CLIENT_MAJOR or newer server; selecting newer client binaries does not upgrade the server. No restore changes made."
 }
 
+reset_public_schema() {
+  local target_url="$1"
+  log_warn "Dropping and recreating schema public on the target to avoid FK drop-ordering failures."
+  log_warn "This deletes ALL objects in public (tables, FKs such as wines->producers, views, functions in that schema)."
+  psql -X -v ON_ERROR_STOP=1 --dbname="$target_url" <<'RESET_SQL'
+DROP SCHEMA public CASCADE;
+CREATE SCHEMA public;
+RESET_SQL
+  psql -X -v ON_ERROR_STOP=1 --dbname="$target_url" -c 'CREATE EXTENSION IF NOT EXISTS "pg_trgm";'
+}
+
 restore_database() {
   local provider="$1"
   local backup_file="$2"
@@ -383,8 +416,10 @@ restore_database() {
     log_warn "No checksum file found. Skipping verification."
   fi
   
+  reset_public_schema "$target_url"
+
   log_info "Restoring database (this may take a while)..."
-  pg_restore --single-transaction --exit-on-error --clean --if-exists --no-owner --no-acl --dbname="$target_url" "$decrypted_dump"
+  pg_restore --single-transaction --exit-on-error --no-owner --no-acl --dbname="$target_url" "$decrypted_dump"
   log_success "Database restored successfully!"
   
   validate_restored_table_count "$decrypted_dump" "$target_url"

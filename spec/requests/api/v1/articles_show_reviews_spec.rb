@@ -41,6 +41,23 @@ RSpec.describe "Api::V1::Articles show reviews", type: :request do
   end
 
   describe "GET /api/v1/articles/:slug" do
+    it "reuses linked reviews and joined image metadata for image fallbacks" do
+      link_article_review
+      image = review.images.create!
+      image.file.attach(io: File.open(Rails.root.join("spec/fixtures/files/logo.png")), filename: "logo.png", content_type: "image/png")
+      queries = []
+      callback = ->(*args) { queries << args.last[:sql] unless args.last[:name] == "SCHEMA" }
+      ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
+        get "/api/v1/articles/#{article.slug}"
+      end
+      expect(response).to have_http_status(:ok)
+      body = JSON.parse(response.body)
+      expect(body["primary_image"]).to be_present
+      expect(body["primary_image"]).to eq(body["reviews"].sole["primary_image"])
+      expect(queries.grep(/FROM "reviews"/).size).to eq(1)
+      expect(queries.grep(/FROM "active_storage_(?:attachments|blobs)"/)).to be_empty
+    end
+
     it "returns the wine, vintage and drink window of each linked review" do
       link_article_review
 
