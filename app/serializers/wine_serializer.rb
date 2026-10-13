@@ -2,10 +2,11 @@ class WineSerializer
   include ImageAttributes
   include LikeAttributes
 
-  def initialize(wine, base_url = nil, liked_ids: nil)
+  def initialize(wine, base_url = nil, liked_ids: nil, review_counts: nil)
     @wine = wine
     @base_url = base_url
     @liked_ids = liked_ids
+    @review_counts = review_counts
   end
 
   def as_json
@@ -34,20 +35,28 @@ class WineSerializer
       regions: regions,
       parameters: parameters,
       **like_fields(@wine, @liked_ids),
-      vintages: @wine.vintages.order(year: :desc).map do |v|
+      vintages: ordered_vintages.map do |v|
         {
           id: v.id,
           year: v.year,
           prompt: v.prompt,
           price: v.price&.to_f,
           no_vintage: v.no_vintage,
-          reviews_count: v.reviews.size
+          reviews_count: @review_counts ? @review_counts.fetch(v.id, 0) : v.reviews.size
         }
       end
     }
   end
 
   private
+
+  def ordered_vintages
+    vintages = @wine.vintages
+    return vintages.order(year: :desc) unless vintages.loaded?
+
+    # PostgreSQL DESC puts NULL years first (the no-vintage entry).
+    vintages.sort_by { |vintage| [vintage.year.nil? ? 0 : 1, -vintage.year.to_i] }
+  end
 
   def producer
     return nil unless @wine.producer
@@ -87,7 +96,8 @@ end
   end
 
   def regions
-    @wine.regions.includes(:country).map do |region|
+    regions = @wine.regions
+    (regions.loaded? ? regions : regions.includes(:country)).map do |region|
       {
         id: region.id,
         slug: region.slug,

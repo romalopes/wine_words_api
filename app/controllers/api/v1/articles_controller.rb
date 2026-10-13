@@ -129,6 +129,19 @@ class Api::V1::ArticlesController < ApplicationController
       return render json: { error: "Not found" }, status: :not_found
     end
 
+    ActiveRecord::Associations::Preloader.new(
+      records: [@article],
+      associations: [ :tags, :producers, :categories, :article_reviews,
+                      { vintages: { wine: :regions } },
+                      { reviews: [ { user: :account }, { vintage: :wine } ] } ]
+    ).call
+    image_records = [@article] + @article.reviews.to_a +
+                    @article.reviews.filter_map { |review| review.vintage&.wine }
+    ActiveRecord::Associations::Preloader.new(
+      records: image_records.uniq, associations: :images,
+      scope: Image.eager_load(file_attachment: :blob)
+    ).call
+
     render json: ArticleSerializer.new(
       @article,
       request.base_url,
@@ -238,16 +251,10 @@ class Api::V1::ArticlesController < ApplicationController
     render json: { error: "Forbidden" }, status: :forbidden
   end
 
-  # Each linked review is serialized with its vintage -> wine and images, so both
-  # are preloaded here instead of being resolved per review while rendering.
+  # Keep lookup lightweight; show loads its associations after authorization.
   def set_article
-    @article = Article.includes({ user: :account }, :tags, :producers,
-                                 images: { file_attachment: :blob },
-                                 vintages: { wine: { images: { file_attachment: :blob } } },
-                                 article_reviews: { review: [ :vintage, { images: { file_attachment: :blob } },
-                                                              { vintage: { wine: { images: { file_attachment: :blob } } } } ] },
-                                 article_categories: :category)
-                       .find_by(slug: params[:id]) || Article.find(params[:id])
+    scope = Article.eager_load(user: :account)
+    @article = scope.find_by(slug: params[:id]) || scope.find(params[:id])
   rescue ActiveRecord::RecordNotFound
     render json: { error: "Article not found" }, status: :not_found
   end

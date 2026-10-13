@@ -60,6 +60,15 @@ class ArticleSerializer
     @article.producers.map { |p| { id: p.id, name: p.name, slug: p.slug } }
   end
 
+  def first_region_name(wine)
+    return nil unless wine
+
+    regions = wine.regions
+    return regions.min_by { |region| region.name.to_s }&.name if regions.loaded?
+
+    regions.order(:name).first&.name
+  end
+
   def vintages
     @article.vintages.map do |v|
       wine = v.wine
@@ -69,7 +78,7 @@ class ArticleSerializer
         name: [wine&.name, v.year].compact.join(" "),
         wine_name: wine&.name,
         wine_slug: wine&.slug,
-        region: wine&.regions&.order(:name)&.first&.name
+        region: first_region_name(wine)
       }
     end
   end
@@ -113,10 +122,11 @@ class ArticleSerializer
   # First linked review (published link preferred) that carries an image —
   # own image first, else its wine's image. Used as the article fallback.
   def linked_review_image
+    reviews_by_id = @article.reviews.index_by(&:id)
     published = @article.article_reviews.select { |l| l.status == "published" }
     ordered_links = published.presence || @article.article_reviews.to_a
     ordered_links.each do |link|
-      review = link.review
+      review = reviews_by_id[link.review_id]
       next if review.nil?
       own = primary_image(review)
       return own if own.present?

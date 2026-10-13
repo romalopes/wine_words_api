@@ -103,6 +103,29 @@ RSpec.describe "Api::V1::Wines", type: :request do
   end
 
   describe "GET /api/v1/wines/:id" do
+    it "batches review counts and image metadata while preserving vintage details" do
+      older = Vintage.create!(wine: wine_one, year: 2020)
+      newer = Vintage.create!(wine: wine_one, year: 2022)
+      Review.create!(vintage: older, user: wine_manager, title: "Vintage review", score: 90)
+      image = wine_one.images.create!
+      image.file.attach(io: File.open(Rails.root.join("spec/fixtures/files/logo.png")), filename: "logo.png", content_type: "image/png")
+      queries = []
+      capture = ->(*args) { queries << args.last[:sql] unless args.last[:name] == "SCHEMA" }
+      ActiveSupport::Notifications.subscribed(capture, "sql.active_record") do
+        get "/api/v1/wines/#{wine_one.slug}"
+      end
+      expect(response).to have_http_status(:ok)
+      body = JSON.parse(response.body)
+      expect(body["vintages"].map { |v| v["id"] }).to eq([newer.id, older.id])
+      expect(body["vintages"].map { |v| v["reviews_count"] }).to eq([0, 1])
+      expect(body["images"].size).to eq(1)
+      expect(body["image_details"].first["id"]).to eq(image.id)
+      expect(queries.grep(/FROM "vintages"/).size).to eq(1)
+      expect(queries.grep(/FROM "reviews"/).size).to eq(1)
+      expect(queries.grep(/FROM "images"/).size).to eq(1)
+      expect(queries.grep(/FROM "active_storage_(?:attachments|blobs)"/)).to be_empty
+    end
+
     it "returns a successful response for an existing wine" do
       get "/api/v1/wines/#{wine_one.slug}"
       expect(response).to have_http_status(:ok)

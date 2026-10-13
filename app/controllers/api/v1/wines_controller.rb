@@ -124,9 +124,17 @@ class Api::V1::WinesController < ApplicationController
   end
 
   def show
-    wine = Wine.includes(vintages: [], wine_taste_parameters: :taste_parameter, producer: [], grapes: [], regions: [:country]).find_by(slug: params[:id]) || Wine.find(params[:id])
+    scope = Wine.eager_load(producer: :address)
+                .preload(:vintages, :categories, :grapes, regions: :country,
+                         wine_taste_parameters: :taste_parameter)
+    wine = scope.find_by(slug: params[:id]) || scope.find(params[:id])
+    ActiveRecord::Associations::Preloader.new(
+      records: [wine], associations: :images,
+      scope: Image.eager_load(file_attachment: :blob)
+    ).call
+    review_counts = Review.where(vintage_id: wine.vintages.map(&:id)).group(:vintage_id).count
     liked_ids = Likes.liked_ids_for([wine], current_user)
-    render json: WineSerializer.new(wine, request.base_url, liked_ids: liked_ids).as_json
+    render json: WineSerializer.new(wine, request.base_url, liked_ids: liked_ids, review_counts: review_counts).as_json
   rescue ActiveRecord::RecordNotFound
     render json: { error: "Wine not found" }, status: :not_found
   end
