@@ -124,9 +124,9 @@ ActiveRecord::Base.transaction do
     vintage_year = vintage_year_match ? vintage_year_match[1].to_i : nil
 
     # ------------------------------------------------------------------
-    # 4️⃣  Wine name + grape(s)  (remove trailing year)
+    # 4️⃣  Wine name + grape(s) (keep trailing year in the title)
     # ------------------------------------------------------------------
-    wine_name_grape = wine_article.sub(/\s*\d{4}\s*$/, "").strip
+    wine_name_grape = wine_article.strip  # keep the vintage year in review/article titles; the year is parsed separately for the Vintage record
 
     # ------------------------------------------------------------------
     # 5️⃣  Detect grapes from the name (simple word‑match against list)
