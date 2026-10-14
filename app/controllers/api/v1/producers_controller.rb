@@ -23,7 +23,7 @@ class Api::V1::ProducersController < ApplicationController
     scope = scope.joins(:grapes).where(grapes: { id: params[:grape_id] }) if params[:grape_id].present?
     scope = scope.where(producer_type: params[:producer_type]) if params[:producer_type].present?
     scope = scope.where(active: ActiveModel::Type::Boolean.new.cast(params[:active])) if params[:active].present?
-    scope = scope.where("name ILIKE ?", "%#{params[:q]}%") if params[:q].present?
+    scope = scope.where("producers.name ILIKE ?", "%#{params[:q]}%") if params[:q].present?
     return if render_paginated(scope) { |items| producers_list_json(items) }
 
     render json: producers_list_json(scope)
@@ -36,7 +36,7 @@ class Api::V1::ProducersController < ApplicationController
       if query.blank?
         Producer.none
       else
-        Producer.includes(:country, :address).where("name ILIKE ?", "%#{query}%").order(:name).limit(20)
+        Producer.includes(:country, :address).where("producers.name ILIKE ?", "%#{query}%").order(:name).limit(20)
       end
 
     render json: producers.map { |producer| producer_search_json(producer) }
