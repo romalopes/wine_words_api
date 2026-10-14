@@ -16,7 +16,7 @@ API_DIR="$PROJECT_ROOT"
 # Default versions (match GitHub Actions workflows)
 PG_CLIENT_MAJOR="${PG_CLIENT_MAJOR:-18}"
 AGE_VERSION="1.3.2"
-SYSTEM_PREFIX="wine-words"
+SYSTEM_PREFIX="database_backup"
 ENCRYPTION_KEY_ID="v1"
 
 # Colors for output
@@ -166,37 +166,37 @@ backup_database() {
   local provider="$1"
   local output_dir="$2"
   local custom_name="${3:-}"
-  
+
   log_info "Starting backup for provider: $provider"
-  
+
   local db_url
   db_url=$(get_database_url "$provider")
   validate_database_url "$db_url"
-  
+
   local db_name
   db_name=$(get_database_name "$db_url")
   log_info "Source database: $db_name"
-  
+
   mkdir -p "$output_dir"
-  
+
   local timestamp
   timestamp=$(date -u +"%Y%m%dT%H%M%SZ")
   local suffix="${SYSTEM_PREFIX}_postgresql_${provider}_${timestamp}.dump"
   [ -n "$custom_name" ] && suffix="${custom_name}.dump"
-  
+
   local dump_file="$output_dir/$suffix"
   local encrypted_file="${dump_file}.age"
   local checksum_file="${dump_file}.sha256"
   local metadata_file="${dump_file}.json"
-  
+
   log_info "Creating PostgreSQL dump..."
   pg_dump --no-owner --no-acl --format=custom --dbname="$db_url" --file="$dump_file"
   log_success "Dump created: $dump_file"
-  
+
   log_info "Calculating SHA-256 checksum..."
   sha256sum "$dump_file" | awk '{print $1}' > "$checksum_file"
   log_success "Checksum saved: $checksum_file"
-  
+
   log_info "Creating metadata sidecar..."
   local server_version
   server_version=$(psql "$db_url" -Atc "SELECT version();" | head -1)
@@ -204,7 +204,7 @@ backup_database() {
   client_version=$(pg_dump --version)
   local dump_size
   dump_size=$(stat -c%s "$dump_file" 2>/dev/null || stat -f%z "$dump_file")
-  
+
   cat > "$metadata_file" <<META_EOF
 {
   "system": "$SYSTEM_PREFIX",
@@ -219,7 +219,7 @@ backup_database() {
 }
 META_EOF
   log_success "Metadata saved: $metadata_file"
-  
+
   log_info "Encrypting with age (key id: $ENCRYPTION_KEY_ID)..."
   local recipient="$(get_config_value BACKUP_ENCRYPTION_RECIPIENT)"
   if [ -z "$recipient" ]; then
@@ -229,21 +229,21 @@ META_EOF
     echo "$dump_file"
     return 0
   fi
-  
+
   age -r "$recipient" -e -o "$encrypted_file" "$dump_file"
   log_success "Encrypted backup: $encrypted_file"
-  
+
   if [ -f "$encrypted_file" ]; then
     local enc_size
     enc_size=$(stat -c%s "$encrypted_file" 2>/dev/null || stat -f%z "$encrypted_file")
     log_info "Encrypted size: $enc_size bytes"
-    
+
     shred -u "$dump_file" 2>/dev/null || rm -f "$dump_file"
     log_info "Plaintext dump securely deleted"
   fi
-  
+
   sha256sum "$encrypted_file" | awk '{print $1}' > "${encrypted_file}.sha256"
-  
+
   log_success "Backup completed successfully!"
   BACKUP_RESULT_FILE="$encrypted_file"
   echo "$encrypted_file"
@@ -352,12 +352,12 @@ restore_database() {
   local backup_file="$2"
   local target_provider="${3:-local}"
   local target_db_url="${4:-}"
-  
+
   log_info "Starting restore from: $backup_file"
   log_info "Source provider: $provider, Target provider: $target_provider"
-  
+
   [ -f "$backup_file" ] || die "Backup file not found: $backup_file"
-  
+
   local target_url
   if [ -n "$target_db_url" ]; then
     target_url="$target_db_url"
@@ -365,31 +365,31 @@ restore_database() {
     target_url=$(get_database_url "$target_provider")
   fi
   validate_database_url "$target_url"
-  
+
   local target_db_name
   target_db_name=$(get_database_name "$target_url")
-  
+
   if is_production_database "$target_db_name"; then
     die "SAFETY: Target database '$target_db_name' appears to be production. Aborting."
   fi
-  
+
   check_restore_server_version "$target_url"
   log_info "Target database: $target_db_name"
   log_warn "This will OVERWRITE the target database. Continue? (y/N)"
   read -r confirm
   [[ "$confirm" =~ ^[Yy]$ ]] || die "Restore cancelled by user"
-  
+
   local work_dir
-  work_dir=$(mktemp -d -t winewords-restore-XXXXXX)
+  work_dir=$(mktemp -d -t database_backup-restore-XXXXXX)
   trap "rm -rf '$work_dir'" EXIT
-  
+
   local decrypted_dump="$work_dir/backup.dump"
-  
+
   if [[ "$backup_file" == *.age ]]; then
     log_info "Decrypting age-encrypted backup..."
     local identity="$(get_config_value BACKUP_ENCRYPTION_IDENTITY)"
     [ -n "$identity" ] || die "BACKUP_ENCRYPTION_IDENTITY (private key) required for decryption. Set it in .env.development or your environment."
-    
+
     decrypt_backup -o "$decrypted_dump" "$backup_file"
     log_success "Decrypted to: $decrypted_dump"
   elif [[ "$backup_file" == *.dump ]]; then
@@ -398,14 +398,14 @@ restore_database() {
   else
     die "Unknown backup file format. Expected .dump or .dump.age"
   fi
-  
+
   local checksum_file
   if [[ "$backup_file" == *.age ]]; then
     checksum_file="${backup_file}.sha256"
   else
     checksum_file="${backup_file}.sha256"
   fi
-  
+
   if [ -f "$checksum_file" ]; then
     log_info "Verifying SHA-256 checksum..."
     local expected_checksum
@@ -417,13 +417,13 @@ restore_database() {
   else
     log_warn "No checksum file found. Skipping verification."
   fi
-  
+
   reset_public_schema "$target_url"
 
   log_info "Restoring database (this may take a while)..."
   pg_restore --single-transaction --exit-on-error --no-owner --no-acl --dbname="$target_url" "$decrypted_dump"
   log_success "Database restored successfully!"
-  
+
   validate_restored_table_count "$decrypted_dump" "$target_url"
 
   local relation row_count
@@ -517,24 +517,24 @@ verify_cloudflare_downloads() {
 
 list_r2_backups() {
   local provider="${1:-neon}"
-  
+
   log_info "Listing backups in Cloudflare R2 for provider: $provider"
-  
+
   require_cmd aws
-  
+
   local bucket="$(get_config_value BACKUP_R2_BUCKET)"
   local endpoint="$(get_config_value BACKUP_R2_ENDPOINT)"
   local access_key="$(get_config_value BACKUP_R2_ACCESS_KEY_ID)"
   local secret_key="$(get_config_value BACKUP_R2_SECRET_ACCESS_KEY)"
-  
+
   [ -n "$bucket" ] || die "BACKUP_R2_BUCKET not set in .env.development or environment"
   [ -n "$endpoint" ] || die "BACKUP_R2_ENDPOINT not set in .env.development or environment"
   [ -n "$access_key" ] || die "BACKUP_R2_ACCESS_KEY_ID not set in .env.development or environment"
   [ -n "$secret_key" ] || die "BACKUP_R2_SECRET_ACCESS_KEY not set in .env.development or environment"
-  
+
   export AWS_ACCESS_KEY_ID="$access_key"
   export AWS_SECRET_ACCESS_KEY="$secret_key"
-  
+
   aws s3 ls "s3://${bucket}/${SYSTEM_PREFIX}/postgresql/${provider}/" --endpoint-url "$endpoint" --human-readable --summarize
 }
 
@@ -542,28 +542,28 @@ download_from_r2() {
   local provider="$1"
   local backup_key="$2"
   local output_dir="$3"
-  
+
   log_info "Downloading backup from R2: $backup_key"
-  
+
   require_cmd aws
-  
+
   local bucket="$(get_config_value BACKUP_R2_BUCKET)"
   local endpoint="$(get_config_value BACKUP_R2_ENDPOINT)"
   local access_key="$(get_config_value BACKUP_R2_ACCESS_KEY_ID)"
   local secret_key="$(get_config_value BACKUP_R2_SECRET_ACCESS_KEY)"
-  
+
   [ -n "$bucket" ] || die "BACKUP_R2_BUCKET not set in .env.development or environment"
   [ -n "$endpoint" ] || die "BACKUP_R2_ENDPOINT not set in .env.development or environment"
   [ -n "$access_key" ] || die "BACKUP_R2_ACCESS_KEY_ID not set in .env.development or environment"
   [ -n "$secret_key" ] || die "BACKUP_R2_SECRET_ACCESS_KEY not set in .env.development or environment"
-  
+
   export AWS_ACCESS_KEY_ID="$access_key"
   export AWS_SECRET_ACCESS_KEY="$secret_key"
-  
+
   mkdir -p "$output_dir"
-  
+
   local prefix="${SYSTEM_PREFIX}/postgresql/${provider}/"
-  
+
   if [ "$backup_key" = "latest" ]; then
     log_info "Finding latest backup..."
     if ! backup_key=$(aws s3api list-objects-v2 \
@@ -577,7 +577,7 @@ download_from_r2() {
     [ -n "$backup_key" ] && [ "$backup_key" != "None" ] || die "No backups found for provider $provider"
     log_info "Latest backup: $backup_key"
   fi
-  
+
   [[ "$backup_key" == *.dump.age ]] || die "Expected an R2 .dump.age object key"
   local dump_file="$output_dir/$(basename "$backup_key")"
   aws s3 cp "s3://${bucket}/$backup_key" "$dump_file" --endpoint-url "$endpoint" || die "Failed to download backup: $backup_key"
@@ -705,7 +705,7 @@ USAGE_EOF
 main() {
   local command="${1:-}"
   shift || true
-  
+
   case "$command" in
     help|--help|-h)
       usage
