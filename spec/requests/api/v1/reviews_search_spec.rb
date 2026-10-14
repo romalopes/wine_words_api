@@ -29,8 +29,8 @@ RSpec.describe "Api::V1::Reviews search and sort", type: :request do
     Vintage.create!(wine: wine, year: year)
   end
 
-  def create_review(title, vintage:, comment: nil, score: 90, status: "published", created_at: nil)
-    review = Review.create!(vintage: vintage, user: author, title: title, comment: comment,
+  def create_review(title, vintage:, comment: nil, score: 90, status: "published", created_at: nil, user: self.author)
+    review = Review.create!(vintage: vintage, user: user, title: title, comment: comment,
                             score: score, status: status)
     ReviewCategory.create!(review: review, category: category)
     review.update_columns(created_at: created_at) if created_at
@@ -181,6 +181,100 @@ RSpec.describe "Api::V1::Reviews search and sort", type: :request do
 
     it "answers 200 and skips filtering for input that cannot be searched" do
       expect(grouped_titles(query: "<> & !")).to eq(index_titles(sort: "recent"))
+    end
+  end
+
+  # The Reviews page filters by lifecycle (All / Draft / Published) client-side
+  # today, which silently drops drafts that fall outside the grouped view's
+  # per-category cap. These pin the server-side status filter both endpoints now
+  # honour, so a manager's Draft tab returns the real drafts.
+  describe "status filter" do
+    let(:wine) { create_wine("Blefing Peak Shiraz", 2019) }
+    let(:manager) do
+      user = User.create!(first_name: "Manager", email: "status-manager@example.com",
+                          password: "password123")
+      user.roles << Role.find_or_create_by!(name: "Admin")
+      user
+    end
+
+    before do
+      create_review("Published one", vintage: wine, score: 90, created_at: 2.days.ago)
+      create_review("Draft one", vintage: wine, score: 91, status: "draft", created_at: 1.day.ago)
+      create_review("Archived one", vintage: wine, score: 92, status: "archived", created_at: 3.days.ago)
+    end
+
+    it "returns only drafts for the feed when a manager asks for status=draft" do
+      sign_in manager
+      expect(index_titles(status: "draft")).to eq(["Draft one"])
+    end
+
+    it "returns only drafts for the grouped view when a manager asks for status=draft" do
+      sign_in manager
+      expect(grouped_titles(status: "draft")).to eq(["Draft one"])
+    end
+
+    it "returns only published for status=published" do
+      sign_in manager
+      expect(index_titles(status: "published")).to eq(["Published one"])
+    end
+
+    it "ignores an unwhitelisted status value instead of trusting it" do
+      sign_in manager
+      # A garbage value must not filter (nor execute as SQL) — it behaves as if
+      # no status was sent, so the manager sees every review.
+      expect(index_titles(status: "draft OR 1=1"))
+        .to match_array(["Published one", "Draft one", "Archived one"])
+    end
+
+    it "still hides another user's drafts from a reader even when status=draft is requested" do
+      reader = User.create!(first_name: "Reader", email: "status-reader@example.com",
+                            password: "password123")
+      reader.roles << Role.find_or_create_by!(name: "Reader")
+      sign_in reader
+      expect(index_titles(status: "draft")).to eq([])
+    end
+  end
+
+  # The "My Reviews" tab renders through the same grouped / paginated endpoints as
+  # "All Reviews", scoped to the signed-in author via `scope=mine`. Previously it
+  # hit /reviews/my_reviews, which shipped the author's entire unpaginated library
+  # and was slower than "All Reviews".
+  describe "scope=mine" do
+    let(:wine) { create_wine("Blefing Peak Shiraz", 2019) }
+    let(:me) do
+      User.create!(first_name: "Me", email: "scope-me@example.com", password: "password123")
+    end
+    let(:someone_else) do
+      User.create!(first_name: "Other", email: "scope-other@example.com", password: "password123")
+    end
+
+    before do
+      create_review("Mine, published", vintage: wine, user: me, created_at: 2.days.ago)
+      create_review("Mine, draft", vintage: wine, user: me, status: "draft", created_at: 1.day.ago)
+      create_review("Theirs, published", vintage: wine, user: someone_else, created_at: 3.days.ago)
+    end
+
+    it "returns only the signed-in user's reviews for the feed" do
+      sign_in me
+      expect(index_titles(scope: "mine"))
+        .to match_array(["Mine, published", "Mine, draft"])
+    end
+
+    it "returns only the signed-in user's reviews for the grouped view, drafts included" do
+      sign_in me
+      expect(grouped_titles(scope: "mine"))
+        .to match_array(["Mine, published", "Mine, draft"])
+    end
+
+    it "combines scope=mine with the status filter" do
+      sign_in me
+      expect(index_titles(scope: "mine", status: "draft")).to eq(["Mine, draft"])
+    end
+
+    it "ignores scope=mine when nobody is signed in" do
+      # No current_user, so the guard skips the filter and the guest only sees
+      # published reviews (via visible_to) — never a 500 or a leaked draft.
+      expect(index_titles(scope: "mine")).to match_array(["Mine, published", "Theirs, published"])
     end
   end
 end

@@ -33,6 +33,13 @@ class Api::V1::ReviewsController < ApplicationController
         Review.all
       end
     reviews = reviews.visible_to(current_user) unless current_user&.wine_manager?
+    # "My reviews" scope: narrow to the signed-in user's own reviews (any status,
+    # including their drafts). `visible_to` already includes the user's own rows,
+    # so this only tightens the set — it never widens what they can see.
+    reviews = reviews.where(user: current_user) if params[:scope] == "mine" && current_user
+    # Lifecycle filter (draft/published/archived). Whitelisted so an arbitrary
+    # param can't inject SQL; blank/unknown values are ignored (no filter).
+    reviews = reviews.where(status: params[:status]) if Review::STATUSES.include?(params[:status])
     reviews = reviews.eager_load({ user: :account }, vintage: :wine)
                      .preload(:categories, images: { file_attachment: :blob },
                                vintage: { wine: { images: { file_attachment: :blob } } })
@@ -64,6 +71,14 @@ class Api::V1::ReviewsController < ApplicationController
 
     scope = Review.all
     scope = scope.visible_to(current_user) unless current_user&.wine_manager?
+    # "My reviews" scope: the signed-in user's own reviews (including their
+    # drafts), so the "My Reviews" tab renders through this same capped, grouped
+    # endpoint as "All Reviews" instead of shipping the author's entire,
+    # unpaginated library via #my_reviews.
+    scope = scope.where(user: current_user) if params[:scope] == "mine" && current_user
+    # Lifecycle filter, applied before the per-category window so the "N per
+    # category" cap and its counts reflect only the requested status.
+    scope = scope.where(status: params[:status]) if Review::STATUSES.include?(params[:status])
     # Same search scoping as #index, including the `rank` column when the term
     # is searchable — the window function below orders each category's rows by
     # it, so "N most relevant per category" agrees with the paginated feed.
@@ -132,11 +147,20 @@ class Api::V1::ReviewsController < ApplicationController
   end
 
   def my_reviews
+    # "My Reviews" list. Preload the associations the serializer reads
+    # (`categories`, `images`) alongside the wine/vintage/user chain, otherwise
+    # every review fires its own queries — an N+1 that dominated response time
+    # for prolific reviewers. Ships the lean list serializer rather than the
+    # full detail one: the toggle renders the same ReviewCard as the grouped and
+    # paginated feeds, which need neither the tasting note (`comment`) nor the
+    # per-image details. (`ReviewListSerializer` already emits wine_name,
+    # wine_slug and vintage_year, so no manual merge is required.)
     reviews = Review.where(user: current_user)
                     .by_recency
                     .includes({ user: :account }, vintage: :wine)
+                    .preload(:categories, images: { file_attachment: :blob })
     liked_ids = Likes.liked_ids_for(reviews, current_user)
-    render json: reviews.map { |r| ReviewSerializer.new(r, request.base_url, liked_ids: liked_ids).as_json.merge(wine_name: r.vintage.wine.name, wine_slug: r.vintage.wine.slug, vintage_year: r.vintage.year) }
+    render json: reviews.map { |r| ReviewListSerializer.new(r, request.base_url, liked_ids: liked_ids).as_json }
   end
 
   def show
