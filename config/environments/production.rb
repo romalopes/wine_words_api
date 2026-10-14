@@ -16,12 +16,16 @@ Rails.application.configure do
   # config.active_storage.service = :local
   config.active_storage.service = :cloudflare_r2
 
-  config.hosts << "api.wine-words.beachvolleyballhub.com"
+  # Allow specific hosts via ALLOWED_HOSTS environment variable
+  allowed_hosts = ENV.fetch('ALLOWED_HOSTS', '').split(',').map(&:strip)
+  allowed_hosts.each { |host| config.hosts << host if host.present? }
 
-  config.action_mailer.default_url_options = {
-    host: ENV.fetch("APP_HOST"),
-    protocol: "https"
-  }
+
+  # Allow local testing in production mode
+if ENV["ALLOW_LOCALHOST_IN_PRODUCTION"] == "true"
+  config.hosts << "localhost"
+  config.hosts << "127.0.0.1"
+end
 
   # Cache assets for far-future expiry since they are all digest stamped.
   config.public_file_server.headers = { "cache-control" => "public, max-age=#{1.year.to_i}" }
