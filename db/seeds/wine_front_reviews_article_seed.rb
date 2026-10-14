@@ -124,16 +124,22 @@ ActiveRecord::Base.transaction do
     vintage_year = vintage_year_match ? vintage_year_match[1].to_i : nil
 
     # ------------------------------------------------------------------
-    # 4️⃣  Wine name + grape(s) (keep trailing year in the title)
+    # 4️⃣  Wine name + grape(s)
+    #      - `wine_name_grape` KEEPS the trailing year; used for the
+    #        Review and Article titles (so they retain the vintage).
+    #      - `wine_name` STRIPS the trailing year; used for the Wine
+    #        record name (the vintage is stored separately on Vintage).
     # ------------------------------------------------------------------
-    wine_name_grape = wine_article.strip  # keep the vintage year in review/article titles; the year is parsed separately for the Vintage record
+    wine_name_grape = wine_article.strip   # keep the vintage year in review/article titles
+    wine_name       = wine_article.sub(/\s*\d{4}\s*$/, "").strip # remove the year for the Wine name
+    wine_name       = wine_name_grape if wine_name.blank?        # fall back if only a year was present
 
     # ------------------------------------------------------------------
     # 5️⃣  Detect grapes from the name (simple word‑match against list)
     # ------------------------------------------------------------------
     detected_grapes = GRAPE_VARIETIES.select do |g|
       # word‑boundary, case‑insensitive
-      wine_name_grape =~ /\b#{Regexp.escape(g)}\b/i
+      wine_name =~ /\b#{Regexp.escape(g)}\b/i
     end.map(&:titleize)   # normalise capitalisation
 
     # ------------------------------------------------------------------
@@ -144,7 +150,7 @@ ActiveRecord::Base.transaction do
     # ------------------------------------------------------------------
     # 6️⃣  Find / create Wine  (now holds alcohol, price, closure)
     # ------------------------------------------------------------------
-    wine = Wine.find_or_initialize_by(name: wine_name_grape)
+    wine = Wine.find_or_initialize_by(name: wine_name)
     wine.producer = producer if wine.new_record?
 
     # CSV "Image URLs" (col 19) -> attach to the Wine via ActiveStorage.

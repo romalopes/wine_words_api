@@ -3,6 +3,8 @@ class CreateAnalyticsEvents < ActiveRecord::Migration[8.1]
   CONTENT_TYPES = %w[Article Review Wine].freeze
 
   def change
+    return if table_exists?(:analytics_events)
+
     create_table :analytics_events do |t|
       # Polymorphic content reference (allowlisted)
       t.string :viewable_type, null: false, limit: 32

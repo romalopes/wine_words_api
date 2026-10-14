@@ -100,7 +100,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_11_000005) do
     t.index ["viewable_type", "viewable_id"], name: "idx_analytics_events_viewable"
     t.check_constraint "identity::text ~ '^(account:\\d+|visitor:([0-9a-f-]{36}|erased-[0-9a-f-]+))$'::text", name: "ck_analytics_events_identity_format"
     t.check_constraint "viewable_id > 0", name: "ck_analytics_events_viewable_id_positive"
-    t.check_constraint "viewable_type::text = ANY (ARRAY['Article'::character varying, 'Review'::character varying, 'Wine'::character varying]::text[])", name: "ck_analytics_events_viewable_type"
+    t.check_constraint "viewable_type::text = ANY (ARRAY['Article'::character varying::text, 'Review'::character varying::text, 'Wine'::character varying::text])", name: "ck_analytics_events_viewable_type"
   end
 
   create_table "app_settings", force: :cascade do |t|
