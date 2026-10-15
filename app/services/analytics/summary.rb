@@ -33,7 +33,9 @@ module Analytics
       comments    = comments_agg[:count]
       replies     = replies_agg[:count]
 
-      # Engagement rate = (likes + comments + replies) / views
+      # Engagement actions per 100 views = (likes + comments + replies) / views * 100.
+      # The compatibility field name is `engagement_rate`; clients must present
+      # it as actions per 100 views rather than as a conventional percentage.
       # Returns 0.0 with a flag when views == 0 to avoid NaN/Infinity.
       if views.positive?
         engagement_rate = ((likes + comments + replies).to_f / views * 100).round(2)

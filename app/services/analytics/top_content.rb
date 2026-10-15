@@ -65,14 +65,18 @@ module Analytics
       }
     end
 
-    # Load all authorized content with their metrics pre-aggregated.
-    # Returns an array of hashes, one per content item.
     def load_all_content(include_zero)
       content_items = []
-
       # Articles
+      article_objects = []
+      article_ids = []
       @scope.articles.find_each do |article|
-        metrics = content_metrics(article, "Article")
+        article_objects << article
+        article_ids << article.id
+      end
+      article_metrics = aggregate_content_metrics("Article", article_ids)
+      article_objects.each do |article|
+        metrics = article_metrics[article.id] || zero_metrics
         next if metrics[:views].zero? && !include_zero
         content_items << metrics.merge(
           content_id: article.id,
@@ -82,10 +86,16 @@ module Analytics
           author_name: article.user&.display_name,
         )
       end
-
       # Reviews
+      review_objects = []
+      review_ids = []
       @scope.reviews.find_each do |review|
-        metrics = content_metrics(review, "Review")
+        review_objects << review
+        review_ids << review.id
+      end
+      review_metrics = aggregate_content_metrics("Review", review_ids)
+      review_objects.each do |review|
+        metrics = review_metrics[review.id] || zero_metrics
         next if metrics[:views].zero? && !include_zero
         content_items << metrics.merge(
           content_id: review.id,
@@ -95,67 +105,50 @@ module Analytics
           author_name: review.user&.display_name,
         )
       end
-
       # Wines
+      wine_objects = []
+      wine_ids = []
       @scope.wines.find_each do |wine|
-        metrics = content_metrics(wine, "Wine")
+        wine_objects << wine
+        wine_ids << wine.id
+      end
+      wine_metrics = aggregate_content_metrics("Wine", wine_ids)
+      wine_objects.each do |wine|
+        metrics = wine_metrics[wine.id] || zero_metrics
         next if metrics[:views].zero? && !include_zero
         content_items << metrics.merge(
           content_id: wine.id,
           content_type: "wine",
           title: wine.name,
-          published_at: wine.published_at&.iso8601,
-          author_name: wine.user&.display_name,
+          published_at: wine.created_at&.iso8601,
+          author_name: nil,
         )
       end
-
       content_items
     end
 
-    # Pre-aggregate all metrics for a single content item.
-    # Returns a hash with views, unique_viewers, likes, comments, replies, engagement_rate.
-    def content_metrics(content, type)
-      ids = [content.id]
-
-      views = Analytics::Event.accepted
-        .where(viewable_type: type, viewable_id: ids)
-        .in_window(@period.start_at, @period.end_at)
-        .count
-
-      unique_viewers = Analytics::Event.accepted
-        .where(viewable_type: type, viewable_id: ids)
-        .in_window(@period.start_at, @period.end_at)
-        .distinct
-        .count(:identity)
-
-      likes = Like.where(likeable_type: type, likeable_id: ids)
-        .where(created_at: @period.start_at...@period.end_at)
-        .count
-
-      comments = Comment.visible.top_level
-        .where(commentable_type: type, commentable_id: ids)
-        .where(created_at: @period.start_at...@period.end_at)
-        .count
-
-      replies = Comment.visible.where.not(parent_id: nil)
-        .where(commentable_type: type, commentable_id: ids)
-        .where(created_at: @period.start_at...@period.end_at)
-        .count
-
-      engagement_rate = if views.positive?
-        ((likes + comments + replies).to_f / views * 100).round(2)
-      else
-        0.0
+    def aggregate_content_metrics(type, ids)
+      return {} if ids.empty?
+      views = Analytics::Event.accepted.where(viewable_type: type, viewable_id: ids).in_window(@period.start_at, @period.end_at).group(:viewable_id).count
+      unique_viewers = Analytics::Event.accepted.where(viewable_type: type, viewable_id: ids).in_window(@period.start_at, @period.end_at).group(:viewable_id).distinct.count(:identity)
+      likes = Like.where(likeable_type: type, likeable_id: ids).where(created_at: @period.start_at...@period.end_at).group(:likeable_id).count
+      comments = Comment.visible.top_level.where(commentable_type: type, commentable_id: ids).where(created_at: @period.start_at...@period.end_at).group(:commentable_id).count
+      replies = Comment.visible.where.not(parent_id: nil).where(commentable_type: type, commentable_id: ids).where(created_at: @period.start_at...@period.end_at).group(:commentable_id).count
+      map = {}
+      ids.each do |id|
+        map[id] = { views: views[id] || 0, unique_viewers: unique_viewers[id] || 0, likes: likes[id] || 0, comments: comments[id] || 0, replies: replies[id] || 0, engagement_rate: 0.0 }
       end
+      map.each do |id, m|
+        v = m[:views]
+        # Compatibility field name: this is engagement actions per 100 views,
+        # not a conventional percentage rate.
+        m[:engagement_rate] = v.positive? ? ((m[:likes] + m[:comments] + m[:replies]).to_f / v * 100).round(2) : 0.0
+      end
+      map
+    end
 
-      {
-        views: views,
-        unique_viewers: unique_viewers,
-        likes: likes,
-        comments: comments,
-        replies: replies,
-        engagement_rate: engagement_rate,
-      }
+    def zero_metrics
+      { views: 0, unique_viewers: 0, likes: 0, comments: 0, replies: 0, engagement_rate: 0.0 }
     end
 
     def sort_content(items, sort, dir)

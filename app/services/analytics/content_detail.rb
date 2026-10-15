@@ -82,6 +82,8 @@ module Analytics
         .where(created_at: @period.start_at...@period.end_at)
         .count
 
+      # Compatibility field name: this is engagement actions per 100 views,
+      # not a conventional percentage rate.
       engagement_rate = if views.positive?
         ((likes + comments + replies).to_f / views * 100).round(2)
       else

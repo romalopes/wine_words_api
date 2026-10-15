@@ -79,7 +79,7 @@ private
     wine_producers = Wine.where(id: wine_ids).pluck(:id, :producer_id).to_h
     producer_ids = wine_producers.values.uniq
 
-    producers = Producer.where(id: producer_ids).pluck(:id, :name, :slug).to_h
+    producers = Producer.where(id: producer_ids).pluck(:id, :name, :slug).index_by(&:first)
 
     producer_events = events.pluck(:viewable_id, :identity, :viewed_at).group_by do |wine_id, _identity, _viewed_at|
       wine_producers[wine_id]
@@ -110,7 +110,7 @@ private
     region_to_wines = wine_regions.group_by(&:last).transform_values { |arr| arr.map(&:first) }
     region_ids = region_to_wines.keys
 
-    regions = Region.where(id: region_ids).pluck(:id, :name, :slug).to_h
+    regions = Region.where(id: region_ids).pluck(:id, :name, :slug).index_by(&:first)
 
     groups = region_ids.map do |region_id|
       wine_ids_for_region = region_to_wines[region_id]
@@ -139,7 +139,7 @@ private
     grape_to_wines = wine_grapes.group_by(&:last).transform_values { |arr| arr.map(&:first) }
     grape_ids = grape_to_wines.keys
 
-    grapes = Grape.where(id: grape_ids).pluck(:id, :name, :slug, :color).to_h
+    grapes = Grape.where(id: grape_ids).pluck(:id, :name, :slug, :color).index_by(&:first)
 
     groups = grape_ids.map do |grape_id|
       wine_ids_for_grape = grape_to_wines[grape_id]

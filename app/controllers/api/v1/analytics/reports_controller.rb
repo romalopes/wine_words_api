@@ -94,8 +94,7 @@ module Api
           ::Analytics::Period.resolve(
             params,
             max_range_days: Rails.application.config.analytics[:max_custom_range_days],
-            history_from: ::Analytics::Event.accepted.minimum(:viewed_at),
-            history_to: ::Analytics::Event.accepted.maximum(:viewed_at)
+            history_from: ::Analytics::Event.accepted.minimum(:viewed_at)
           )
         end
 
