@@ -25,6 +25,7 @@ class ApplicationController < ActionController::Base
   # keep their existing RequireLogin / Devise protection.)
   include TestAccess
 
+  before_action :set_sentry_context
   def render_resource(resource)
     if resource.errors.empty?
       render json: resource
@@ -59,5 +60,19 @@ class ApplicationController < ActionController::Base
       code: "email_verification_pending",
       **EmailVerificationService.pending_payload(current_user)
     }, status: :forbidden
+  end
+  private
+
+  def set_sentry_context
+    if current_user.present?
+      Sentry.set_user(id: current_user.id)
+      tier = current_user.try(:account_tier) || current_user.try(:tier) || 'unknown'
+      Sentry.set_tags(user_id: current_user.id.to_s, account_tier: tier)
+    else
+      # sentry-ruby 7.x requires a Hash for set_user/set_tags; passing nil
+      # raises ArgumentError. Clear any stale context with empty hashes.
+      Sentry.set_user({})
+      Sentry.set_tags({})
+    end
   end
 end
