@@ -17,7 +17,7 @@ class ArticleListSerializer
       id: @article.id,
       slug: @article.slug,
       title: @article.title,
-      abstract: @article.abstract,
+      abstract: @article.abstract&.slice(0, 80),
       status: @article.status,
       author_name: @article.user&.display_name || @article.user&.email || "Unknown",
       user_id: @article.user_id,

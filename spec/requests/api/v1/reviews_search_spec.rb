@@ -54,6 +54,27 @@ RSpec.describe "Api::V1::Reviews search and sort", type: :request do
   end
 
   describe "GET /api/v1/reviews" do
+    it "includes tasting notes in feed and grouped card payloads" do
+      wine = create_wine("Preview Wine", 2022)
+      comment = "<p>Fresh lemon, straw and saline finish with white peach.</p>"
+      review = create_review(
+        "Preview review",
+        vintage: wine,
+        comment: comment
+      )
+
+      expect(index_reviews).to include(
+        a_hash_including("id" => review.id, "comment" => comment.slice(0, 50))
+      )
+
+      get "/api/v1/reviews/grouped"
+      expect(response).to have_http_status(:ok)
+      grouped_reviews = JSON.parse(response.body).flat_map { |group| group["reviews"] }
+      expect(grouped_reviews).to include(
+        a_hash_including("id" => review.id, "comment" => comment.slice(0, 50))
+      )
+    end
+
     it "searches the tasting note, the wine, the producer and the vintage year" do
       shiraz = create_wine("Blefing Peak Shiraz", 2019, producer: Producer.create!(name: "Blefing Peak"))
       chardo = create_wine("Cold Harvest Chardonnay", 2021, producer: Producer.create!(name: "Cold Harvest"))

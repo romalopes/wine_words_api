@@ -1,6 +1,6 @@
 # Lean serializer used by Api::V1::ReviewsController#index (list views) only.
-# Ships only the fields the list/table UIs render, avoiding the full detail
-# payload (images, comment, drink window, etc.) that dominates response size.
+# Ships the fields the list/table cards render, avoiding full-detail-only
+# payload such as per-image details and the drink window.
 class ReviewListSerializer
   include ImageAttributes
   include LikeAttributes
@@ -16,6 +16,7 @@ class ReviewListSerializer
       id: @review.id,
       slug: @review.slug,
       title: @review.title,
+      comment: @review.comment&.slice(0, 50),
       score: @review.score&.to_f,
       status: @review.status,
       reviewer_name: @review.user&.display_name || @review.user&.email || "Unknown",

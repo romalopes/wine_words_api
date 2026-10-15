@@ -152,8 +152,8 @@ class Api::V1::ReviewsController < ApplicationController
     # every review fires its own queries — an N+1 that dominated response time
     # for prolific reviewers. Ships the lean list serializer rather than the
     # full detail one: the toggle renders the same ReviewCard as the grouped and
-    # paginated feeds, which need neither the tasting note (`comment`) nor the
-    # per-image details. (`ReviewListSerializer` already emits wine_name,
+    # paginated feeds, which need the tasting note preview but not the per-image
+    # details. (`ReviewListSerializer` already emits wine_name,
     # wine_slug and vintage_year, so no manual merge is required.)
     reviews = Review.where(user: current_user)
                     .by_recency
