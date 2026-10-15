@@ -1,7 +1,7 @@
 # Wine Words Observability Implementation Plan
 
-**Scope:** Wine Words API and Wine Words React front end  
-**Status:** Implementation plan; no application code or provider configuration has been changed  
+**Scope:** Wine Words API and Wine Words React front end
+**Status:** Implementation plan; no application code or provider configuration has been changed
 **Primary repositories:** [`wine_words_api`](https://github.com/romalopes/wine_words_api) and [`wine_words_front_end`](https://github.com/romalopes/wine_words_front_end)
 
 ## 1. Purpose
@@ -17,6 +17,7 @@ This plan consolidates:
 - The attached [Sentry React and Rails guide](sentry_setup_ai_prompts_guide.md).
 - GitHub [issue #134: Master Observability Implementation Plan](https://github.com/romalopes/wine_words_api/issues/134).
 - GitHub [issue #138: implementation checkpoints and safety refinements](https://github.com/romalopes/wine_words_api/issues/138).
+- [Sentry Setup Ai Prompts guide](sentry_setup_ai_prompts_guide.md)
 - The earlier recommendation to begin with Sentry, Render, Neon and external uptime checks, then add OpenTelemetry/Grafana when the basic monitoring is working.
 
 Issue #134 proposes a larger stack: Sentry for error reporting; OpenTelemetry for telemetry collection; Grafana Cloud for storage, dashboards and alerts; structured logs; traces; business metrics; RUM; release tracking; and tests. Issue #138 adds phase checkpoints, operational thresholds, security reviews, and a requirement that the AI workflow stop after each phase.
@@ -35,24 +36,24 @@ This document applies that architecture to **Wine Words only**. The four-reposit
 
 ## 3. Target architecture
 
-| Component | Initial responsibility | Later responsibility |
-|---|---|---|
-| Sentry Rails project | API exceptions and basic performance | Release/regression alerts and API tracing as appropriate |
-| Sentry React project | Browser exceptions and React Error Boundary | Browser tracing/RUM, carefully sampled; source-map symbolication |
-| Render dashboard | API logs, CPU, memory, deploys and health | Keep as host-level operational view |
-| Neon console (if Neon is the active DB) | Database resource metrics and query history | Continue as database-native reference; avoid duplicate collection without a need |
-| External uptime monitor | Check public front-end and API reachability | Alert on outage from outside the hosting provider |
-| OpenTelemetry SDK in Rails | None in the first Sentry-only rollout | Rails, ActiveRecord and outbound HTTP traces; logs/metrics if supported and needed |
-| Grafana Cloud | None until the OTel phase | Receive OTLP signals, provide cross-service dashboards and alert rules |
+| Component                               | Initial responsibility                      | Later responsibility                                                               |
+| --------------------------------------- | ------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Sentry Rails project                    | API exceptions and basic performance        | Release/regression alerts and API tracing as appropriate                           |
+| Sentry React project                    | Browser exceptions and React Error Boundary | Browser tracing/RUM, carefully sampled; source-map symbolication                   |
+| Render dashboard                        | API logs, CPU, memory, deploys and health   | Keep as host-level operational view                                                |
+| Neon console (if Neon is the active DB) | Database resource metrics and query history | Continue as database-native reference; avoid duplicate collection without a need   |
+| External uptime monitor                 | Check public front-end and API reachability | Alert on outage from outside the hosting provider                                  |
+| OpenTelemetry SDK in Rails              | None in the first Sentry-only rollout       | Rails, ActiveRecord and outbound HTTP traces; logs/metrics if supported and needed |
+| Grafana Cloud                           | None until the OTel phase                   | Receive OTLP signals, provide cross-service dashboards and alert rules             |
 
 If the frontend is deployed as static assets on Cloudflare Pages, browser errors are still captured by Sentry; static hosting does not provide application request logs. If a Cloudflare Worker is running application code, use Cloudflare Worker observability for that runtime as an additional host-level view. Confirm which applies before adding configuration.
 
 ## 4. Repositories and service identity
 
-| App | Repository | Proposed service name | Environments |
-|---|---|---|---|
-| Wine Words API | [`romalopes/wine_words_api`](https://github.com/romalopes/wine_words_api) | `winewords-api` | `development`, `staging` if present, `production` |
-| Wine Words front end | [`romalopes/wine_words_front_end`](https://github.com/romalopes/wine_words_front_end) | `winewords-web` | `development`, `staging` if present, `production` |
+| App                  | Repository                                                                            | Proposed service name | Environments                                      |
+| -------------------- | ------------------------------------------------------------------------------------- | --------------------- | ------------------------------------------------- |
+| Wine Words API       | [`romalopes/wine_words_api`](https://github.com/romalopes/wine_words_api)             | `winewords-api`       | `development`, `staging` if present, `production` |
+| Wine Words front end | [`romalopes/wine_words_front_end`](https://github.com/romalopes/wine_words_front_end) | `winewords-web`       | `development`, `staging` if present, `production` |
 
 Use these names consistently in Sentry, OpenTelemetry, and dashboards. Do not merge repositories or share application code between them.
 
@@ -462,14 +463,9 @@ manual provider configuration.
 
 **Objective:** Add a few useful operational product counters without collecting content or personal data.
 
-**Candidate Wine Words metrics**
+**Candidate Beach Volleyball Hub metrics**
 
-| Metric | Event definition to agree before implementation | Suggested type |
-|---|---|---|
-| `reviews_created` | Increment once when a review is successfully persisted; define whether drafts count | Counter |
-| `wines_reviewed` | Increment once when a wine receives its first qualifying published review, or clarify if this is intended as a count of review events | Counter |
-| `packages_received` | Increment once when a wine package is marked received, not when a page is viewed | Counter |
-| `producer_logins` | Count successful producer logins only if the app has that actor/role and the metric is needed | Counter |
+To be defined.
 
 Use low-cardinality labels such as environment and operation. Do not use user ID, wine ID, email, producer name, review text or other unbounded values as metric labels. Avoid duplicate increments across retries or repeated callbacks.
 
