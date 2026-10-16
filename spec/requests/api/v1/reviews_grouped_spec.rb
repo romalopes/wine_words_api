@@ -58,6 +58,22 @@ RSpec.describe "Api::V1::Reviews grouped", type: :request do
       expect(titles).not_to include("Draft malbec")
     end
 
+    # Image URLs must point straight at the storage service (presigned R2 in
+    # prod, signed Disk path in test) instead of /blobs/redirect, so each image
+    # no longer costs a Rails request per page view.
+    it "serves review images as direct storage URLs, not blob redirects" do
+      review = Review.find_by!(title: "A lovely malbec")
+      image = Image.create!(imageable: review)
+      image.file.attach(io: StringIO.new("fake"), filename: "grouped.png", content_type: "image/png")
+
+      get "/api/v1/reviews/grouped"
+      expect(response).to have_http_status(:ok)
+
+      urls = JSON.parse(response.body).flat_map { |group| group["reviews"] }.flat_map { |item| item["images"] }
+      expect(urls).to be_present
+      urls.each { |url| expect(url).not_to include("/blobs/redirect") }
+    end
+
     it "shows drafts to an admin authenticated only by a bearer token" do
       token, = Warden::JWTAuth::UserEncoder.new.call(manager, :user, nil)
       get "/api/v1/reviews/grouped", headers: { "Authorization" => "Bearer #{token}" }

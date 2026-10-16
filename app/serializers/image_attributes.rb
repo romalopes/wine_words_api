@@ -55,9 +55,46 @@ module ImageAttributes
   end
 
   def blob_url(blob)
+    direct_url(blob)
+  end
+
+  # Direct, pre-signed storage URL (Cloudflare R2 / S3). The browser fetches
+  # the bytes straight from the bucket instead of bouncing through
+  # /rails/active_storage/blobs/redirect — which cost one Rails request per
+  # image per page view (blob lookup + 302). Presigned URLs expire after
+  # config.active_storage.service_urls_expire_in (default: 5 minutes).
+  # Falls back to the redirect URL whenever the service cannot pre-sign so
+  # responses never fail because of URL generation.
+  def direct_url(blob)
+    # Disk (dev/test) refuses to sign URLs without ActiveStorage::Current.url_options.
+    # When the request middleware hasn't set them, derive them from the request
+    # base URL. S3-compatible services (R2) ignore these and presign from the
+    # endpoint instead.
+    previous = ActiveStorage::Current.url_options
+    ActiveStorage::Current.url_options ||= storage_url_options
+
+    url = blob.url(disposition: :inline)
+    # S3-compatible services return absolute presigned URLs; Disk (dev/test)
+    # returns a signed path — absolutize it against the request base URL so
+    # browser-facing payloads stay absolute regardless of the service.
+    url.start_with?("http") ? url : "#{@base_url || 'localhost:3000'}#{url}"
+  rescue StandardError => e
+    Rails.logger.warn(
+      "[ImageAttributes] direct storage URL failed (#{e.class}: #{e.message}); " \
+      "falling back to redirect URL"
+    )
     Rails.application.routes.url_helpers.rails_blob_url(
       blob,
       host: @base_url || "localhost:3000"
     )
+  ensure
+    ActiveStorage::Current.url_options = previous
+  end
+
+  def storage_url_options
+    uri = URI.parse(@base_url || "http://localhost:3000")
+    options = { host: uri.host || "localhost", protocol: "#{uri.scheme}://" }
+    options[:port] = uri.port unless uri.default_port == uri.port
+    options
   end
 end

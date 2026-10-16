@@ -26,54 +26,20 @@ class Api::V1::CategoriesController < ApplicationController
     # Returns per-category counts for each item type, respecting the current
   # user's visibility scope.  Used by the React nav dropdown to show only
   # categories that have at least one linked item, along with the count.
+  #
+  # The whole payload is cached for 60s (split by manager scope) because it
+  # costs ~8 queries and barely changes: stale counts for up to a minute are
+  # acceptable for a nav dropdown, and each cached hit saves the full query
+  # storm on every page load. Writes invalidate naturally via the TTL.
   def counts
     is_manager = current_user&.wine_manager?
 
-    wine_counts = WineCategory
-      .joins(:wine)
-      .where(category_id: Category.where(for_wine: true).select(:id))
-      .group(:category_id)
-      .count
+    payload = Rails.cache.fetch(
+      "api/v1/categories/counts/v1/#{is_manager ? 'manager' : 'public'}",
+      expires_in: 60.minutes,
+    ) { build_counts_payload(is_manager) }
 
-    review_scope = is_manager ? Review.all : Review.published
-    review_counts = ReviewCategory
-      .joins(:review)
-      .merge(review_scope)
-      .where(category_id: Category.where(for_review: true).select(:id))
-      .group(:category_id)
-      .count
-
-    article_scope = is_manager ? Article.all : Article.published
-    article_counts = ArticleCategory
-      .joins(:article)
-      .merge(article_scope)
-      .where(category_id: Category.where(for_article: true).select(:id))
-      .group(:category_id)
-      .count
-
-    # Count uncategorised items (no join record)
-    uncategorised_wine = Wine.left_outer_joins(:wine_categories)
-                             .where(wine_categories: { id: nil }).count
-    uncategorised_review = review_scope.left_outer_joins(:review_categories)
-                               .where(review_categories: { id: nil }).count
-    uncategorised_article = article_scope.left_outer_joins(:article_categories)
-                                .where(article_categories: { id: nil }).count
-
-    render json: {
-      wine: wine_counts,
-      review: review_counts,
-      article: article_counts,
-      uncategorised: {
-        wine: uncategorised_wine,
-        review: uncategorised_review,
-        article: uncategorised_article,
-      },
-      totals: {
-        wine: Wine.count,
-        review: (is_manager ? Review.count : Review.published.count),
-        article: (is_manager ? Article.count : Article.published.count),
-      },
-    }
+    render json: payload
   end
 
   def index
@@ -243,6 +209,54 @@ class Api::V1::CategoriesController < ApplicationController
   end
 
   private
+
+  def build_counts_payload(is_manager)
+    wine_counts = WineCategory
+      .joins(:wine)
+      .where(category_id: Category.where(for_wine: true).select(:id))
+      .group(:category_id)
+      .count
+
+    review_scope = is_manager ? Review.all : Review.published
+    review_counts = ReviewCategory
+      .joins(:review)
+      .merge(review_scope)
+      .where(category_id: Category.where(for_review: true).select(:id))
+      .group(:category_id)
+      .count
+
+    article_scope = is_manager ? Article.all : Article.published
+    article_counts = ArticleCategory
+      .joins(:article)
+      .merge(article_scope)
+      .where(category_id: Category.where(for_article: true).select(:id))
+      .group(:category_id)
+      .count
+
+    # Count uncategorised items (no join record)
+    uncategorised_wine = Wine.left_outer_joins(:wine_categories)
+                             .where(wine_categories: { id: nil }).count
+    uncategorised_review = review_scope.left_outer_joins(:review_categories)
+                               .where(review_categories: { id: nil }).count
+    uncategorised_article = article_scope.left_outer_joins(:article_categories)
+                                .where(article_categories: { id: nil }).count
+
+    {
+      wine: wine_counts,
+      review: review_counts,
+      article: article_counts,
+      uncategorised: {
+        wine: uncategorised_wine,
+        review: uncategorised_review,
+        article: uncategorised_article,
+      },
+      totals: {
+        wine: Wine.count,
+        review: (is_manager ? Review.count : Review.published.count),
+        article: (is_manager ? Article.count : Article.published.count),
+      },
+    }
+  end
 
   # Resolve the category by slug (preferred) or numeric id, for backwards compat.
   def find_category
