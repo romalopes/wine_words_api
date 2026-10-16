@@ -19,11 +19,11 @@ RSpec.describe "Api::V1::Health", type: :request do
     it "is public (no auth required) and returns ok" do
       get "/api/v1/health"
       expect(response).to have_http_status(:ok)
-      expect(JSON.parse(response.body)).to eq({
-        "status" => "ok",
-        "database" => "ok",
-        "version" => AppVersion::VERSION
-      })
+      body = JSON.parse(response.body)
+      expect(body["status"]).to eq("ok")
+      expect(body["database"]).to eq("ok")
+      expect(body["version"]).to eq(AppVersion::VERSION)
+      expect(body["sentry"]).to eq({ "initialized" => false }) # assuming no DSN in test
     end
 
     it "includes the application version" do
@@ -36,18 +36,18 @@ RSpec.describe "Api::V1::Health", type: :request do
     it "does not leak environment or stack details" do
       get "/api/v1/health"
       body = JSON.parse(response.body)
-      expect(body.keys).to contain_exactly("status", "database", "version")
+      expect(body.keys).to contain_exactly("status", "database", "version", "sentry")
     end
 
     it "returns 503 when the database connection fails" do
       allow_any_instance_of(Api::V1::HealthController).to receive(:database_connected?).and_return(false)
       get "/api/v1/health"
       expect(response).to have_http_status(:service_unavailable)
-      expect(JSON.parse(response.body)).to eq({
-        "status" => "error",
-        "database" => "error",
-        "version" => AppVersion::VERSION
-      })
+      body = JSON.parse(response.body)
+      expect(body["status"]).to eq("error")
+      expect(body["database"]).to eq("error")
+      expect(body["version"]).to eq(AppVersion::VERSION)
+      expect(body["sentry"]).to eq({ "initialized" => false })
     end
   end
 

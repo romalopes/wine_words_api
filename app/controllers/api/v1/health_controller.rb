@@ -26,17 +26,45 @@ class Api::V1::HealthController < ApplicationController
   # GET /api/v1/health
   def index
     db_ok = database_connected?
+    sentry_initialized = defined?(Sentry) && Sentry.initialized?
     payload = {
       status: db_ok ? "ok" : "error",
       database: db_ok ? "ok" : "error",
-      version: AppVersion::VERSION
+      version: AppVersion::VERSION,
+      sentry: {
+        initialized: sentry_initialized
+      }
     }
     render json: payload, status: db_ok ? :ok : :service_unavailable
   end
 
   # GET /api/v1/health/detailed — admin-only diagnostic endpoint.
   def detailed
+    # For testing Sentry in non-production environments
+    if params[:sentry_test] == 'true' && Rails.env != 'production'
+      raise RuntimeError, "Sentry test error triggered by API Health endpoint"
+    end
+
     db_ok = database_connected?
+    # Sentry information
+    sentry_info = { initialized: false }
+    if defined?(Sentry) && Sentry.initialized?
+      begin
+        client = Sentry.get_current_client
+        sentry_info = {
+          initialized: true,
+          environment: client&.options&.dig(:environment) || Rails.env.to_s,
+          release: client&.options&.dig(:release) || (defined?(AppVersion) ? AppVersion::VERSION : nil)
+        }
+      rescue
+        sentry_info = {
+          initialized: true,
+          environment: Rails.env.to_s,
+          release: defined?(AppVersion) ? AppVersion::VERSION : nil
+        }
+      end
+    end
+
     payload = {
       status: db_ok ? "ok" : "error",
       service: "wine-api",
@@ -48,7 +76,8 @@ class Api::V1::HealthController < ApplicationController
       database_details: db_connection_info,
       storage_details: storage_info,
       server: server_info,
-      endpoint: endpoint_info
+      endpoint: endpoint_info,
+      sentry: sentry_info
     }
     render json: payload, status: db_ok ? :ok : :service_unavailable
   end

@@ -64,10 +64,13 @@ class ApplicationController < ActionController::Base
   private
 
   def set_sentry_context
+     puts "Sentry context: current_user=#{current_user.inspect}"
     if current_user.present?
       Sentry.set_user(id: current_user.id)
       tier = current_user.try(:account_tier) || current_user.try(:tier) || 'unknown'
       Sentry.set_tags(user_id: current_user.id.to_s, account_tier: tier)
+       scope = Sentry.get_current_scope
+       puts "Sentry context after set: user=#{scope.user.inspect if scope && scope.user}"
     else
       # sentry-ruby 7.x requires a Hash for set_user/set_tags; passing nil
       # raises ArgumentError. Clear any stale context with empty hashes.
