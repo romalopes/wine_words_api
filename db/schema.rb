@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_11_000005) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_16_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -253,6 +253,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_11_000005) do
     t.index ["searchable"], name: "index_articles_on_searchable", using: :gin
     t.index ["slug"], name: "index_articles_on_slug", unique: true
     t.index ["source"], name: "index_articles_on_source"
+    t.index ["status"], name: "index_articles_on_status"
     t.index ["user_id"], name: "index_articles_on_user_id"
   end
 
@@ -510,6 +511,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_11_000005) do
     t.index ["searchable"], name: "index_reviews_on_searchable", using: :gin
     t.index ["slug"], name: "index_reviews_on_slug", unique: true
     t.index ["source"], name: "index_reviews_on_source"
+    t.index ["status"], name: "index_reviews_on_status"
     t.index ["user_id"], name: "index_reviews_on_user_id"
     t.index ["vintage_id"], name: "index_reviews_on_vintage_id"
   end
