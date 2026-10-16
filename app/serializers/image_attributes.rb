@@ -9,6 +9,10 @@
 #                                      position, primary }
 #   * primary_image -> the primary (else first) image URL, or nil
 module ImageAttributes
+  # Per-process cache: using Rails.cache here would add a Solid Cache database
+  # round trip for every image. Entries expire before the storage signature.
+  SIGNED_URL_CACHE = ActiveSupport::Cache::MemoryStore.new(size: 16.megabytes)
+
   private
 
   def image_details(record)
@@ -55,6 +59,18 @@ module ImageAttributes
   end
 
   def blob_url(blob)
+    if blob.service_name == "cloudflare_r2"
+      base = ENV["CLOUD_FLARE_R2_PUBLIC_URL"].to_s.strip.delete_suffix("/")
+      if base.present?
+        uri = URI.parse(base)
+        if uri.is_a?(URI::HTTPS) && uri.host.present? && !uri.userinfo && !uri.query && !uri.fragment
+          key = blob.key.split("/").map { |part| ERB::Util.url_encode(part) }.join("/")
+          return "#{base}/#{key}"
+        end
+      end
+    end
+    direct_url(blob)
+  rescue URI::InvalidURIError
     direct_url(blob)
   end
 
@@ -73,7 +89,18 @@ module ImageAttributes
     previous = ActiveStorage::Current.url_options
     ActiveStorage::Current.url_options ||= storage_url_options
 
-    url = blob.url(disposition: :inline)
+    expiry = ActiveStorage.service_urls_expire_in.to_f
+    # Leave at least 20% (normally one minute) for clients to fetch the image.
+    ttl = expiry - [60, expiry * 0.2].max
+    url = if blob.service_name == "cloudflare_r2" && ttl.positive?
+      key = ["image-signed-url-v1", blob.service_name, blob.key,
+             blob.filename.to_s, blob.content_type, expiry]
+      SIGNED_URL_CACHE.fetch(key, expires_in: ttl) do
+        blob.url(disposition: :inline, expires_in: expiry)
+      end
+    else
+      blob.url(disposition: :inline)
+    end
     # S3-compatible services return absolute presigned URLs; Disk (dev/test)
     # returns a signed path — absolutize it against the request base URL so
     # browser-facing payloads stay absolute regardless of the service.
