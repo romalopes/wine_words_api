@@ -26,10 +26,13 @@ class Api::V1::RegionsController < ApplicationController
   end
 
   def show
-    # Load the region with its full hierarchy path and wines
-    region = Region.includes(:wines, country: :grapes, parent: :country)
+    # Load the region with its hierarchy path. Wines are NOT embedded: the
+    # client fetches them via GET /api/v1/wines?region_id=... (paginated, lean
+    # WineListSerializer), so embedding every wine with the full
+    # WineSerializer was pure N+1 overhead for data no client reads.
+    region = Region.includes(:country, parent: :country)
                     .where(slug: params[:id])
-                    .or(Region.includes(:wines, country: :grapes, parent: :country).where(id: params[:id]))
+                    .or(Region.includes(:country, parent: :country).where(id: params[:id]))
                     .first
     
     if region
@@ -57,8 +60,7 @@ class Api::V1::RegionsController < ApplicationController
       parent_name: region.parent_id ? region.parent&.name : nil,
       is_state: region.is_state,
       is_appellation: region.is_appellation,
-      full_path: path,
-      wines: wines_serialized(region)
+      full_path: path
     }
   end
 
@@ -106,15 +108,6 @@ class Api::V1::RegionsController < ApplicationController
   end
 
   private
-
-  def wines_serialized(region)
-    wines = region.wines.includes(
-      wine_taste_parameters: :taste_parameter, vintages: [], producer: [],
-      grapes: [], regions: [:country]
-    )
-    liked_ids = Likes.liked_ids_for(wines, current_user)
-    wines.map { |wine| WineSerializer.new(wine, request.base_url, liked_ids: liked_ids).as_json }
-  end
 
   def set_region
     @region = Region.includes(:country).find_by(slug: params[:id]) ||

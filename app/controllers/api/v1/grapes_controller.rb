@@ -97,14 +97,11 @@ class Api::V1::GrapesController < ApplicationController
     data = grape.as_json
     data["wines_count"] = grape.wines.size
     data["producers_count"] = grape.producers.size
-    if action_name == "show" || action_name == "link_wine"
-      wines = grape.wines.includes(
-        wine_taste_parameters: :taste_parameter, vintages: [], producer: [],
-        grapes: [], regions: [:country]
-      )
-      liked_ids = Likes.liked_ids_for(wines, current_user)
-      data["wines"] = wines.map { |wine| WineSerializer.new(wine, request.base_url, liked_ids: liked_ids).as_json }
-    end
+    # Wines are NOT embedded here. The React grape screens fetch them
+    # separately via GET /api/v1/wines?grape_id=... (paginated, lean
+    # WineListSerializer). Embedding every wine with the full WineSerializer
+    # used to cost one query per image/category/vintage-count (2195 queries
+    # and a 179 s response for chardonnay) for data no client reads.
     data
   end
 

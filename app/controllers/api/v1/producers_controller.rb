@@ -113,7 +113,11 @@ class Api::V1::ProducersController < ApplicationController
   end
 
   def set_producer
-    @producer = Producer.includes(:country, :regions, :grapes, address: :country).find_by!(slug: params[:id])
+    # Preload the logo and images (with attachment + blob) so producer_json's
+    # logo_url / images do not fire per-image attachment and blob queries.
+    @producer = Producer.includes(:country, :regions, :grapes, address: :country)
+                        .preload(logo_attachment: :blob, images: { file_attachment: :blob })
+                        .find_by!(slug: params[:id])
   end
 
   def producer_search_json(producer)
