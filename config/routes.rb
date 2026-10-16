@@ -268,7 +268,10 @@ Rails.application.routes.draw do
 
       # The signed-in user's own notifications (deadline reminders).
       resources :notifications, only: [:index] do
-        collection { patch :mark_all_read }
+        collection do
+          patch :mark_all_read
+          get :unread_count
+        end
         member { patch :mark_read }
       end
 

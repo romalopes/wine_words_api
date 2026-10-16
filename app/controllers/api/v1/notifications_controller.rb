@@ -34,6 +34,29 @@ class Api::V1::NotificationsController < ApplicationController
     render json: serialize_notifications(notifications)
   end
 
+  # GET /api/v1/notifications/unread_count
+  # Returns just the count of unread notifications for badge display
+  # Much lighter than fetching the full notification list
+  def unread_count
+    count = current_user.notifications
+                        .delivered
+                        .unread
+                        .count
+    
+    # Add caching headers for 30 seconds
+    response.headers["Cache-Control"] = "public, max-age=30"
+    response.headers["ETag"] = %("#{count}")
+    response.headers["Last-Modified"] = Time.now.httpdate
+    
+    # Check if client has fresh cache
+    if request.headers["If-None-Match"] == %("#{count}") ||
+       request.headers["If-Modified-Since"] == Time.now.httpdate
+      head :not_modified and return
+    end
+    
+    render json: { unread_count: count }
+  end
+
   # PATCH /api/v1/notifications/:id/mark_read
   def mark_read
     @notification.mark_read!
@@ -46,18 +69,35 @@ class Api::V1::NotificationsController < ApplicationController
   # so they surface as unread on their due date.
   def mark_all_read
     marked = current_user.notifications.unread.delivered.update_all(read_at: Time.current)
-
     render json: { marked: marked }
-  end
 
-  private
+  end
+private
 
   def serialize_notifications(notifications)
     notifications.map { |n| NotificationSerializer.new(n, request.base_url).as_json }
   end
 
-  # Same visibility as the index: an undelivered (queued) reminder is as
-  # invisible as another user's notification — a 404, never a 403.
+  # GET /api/v1/notifications/unread_count
+  # Returns just the count of unread notifications for badge display
+  # Much lighter than fetching the full notification list
+  def unread_count
+    count = current_user.notifications
+                    .delivered
+                    .unread
+                    .count
+    response.headers["Cache-Control"] = "public, max-age=30"
+    response.headers["ETag"] = %("#{count}")
+    response.headers["Last-Modified"] = Time.now.httpdate
+    
+    # Check if client has fresh cache
+    if request.headers["If-None-Match"] == %("#{count}") ||
+       request.headers["If-Modified-Since"] == Time.now.httpdate
+      head :not_modified and return
+    end
+    
+    render json: { unread_count: count }
+  end
   def set_notification
     @notification = current_user.notifications.delivered.find(params[:id])
   rescue ActiveRecord::RecordNotFound

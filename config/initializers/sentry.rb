@@ -6,7 +6,7 @@ if ENV['SENTRY_DSN'].present?
     config.release = AppVersion::VERSION rescue nil
 
     # Adjust traces sample rate for performance monitoring
-    config.traces_sample_rate = Rails.env.production? ? 0.05 : 1.0
+    config.traces_sample_rate = Rails.env.production? ? 0.2 : 1.0
 
     # Breadcrumbs logging
     config.breadcrumbs_logger = [:active_support_logger, :http_logger]
