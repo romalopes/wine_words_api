@@ -104,5 +104,35 @@ RSpec.describe "Api::V1::Grapes", type: :request do
       get "/api/v1/grapes"
       expect(response).to have_http_status(:ok)
     end
+
+    it "filters by name, synonym and origin country via ?q=" do
+      chardonnay = Grape.create!(name: "Chardonnay", origin_country: "France")
+      chardonnay.update!(synonyms: ["Chablis Blanc"])
+      Grape.create!(name: "Merlot", origin_country: "France")
+
+      get "/api/v1/grapes", params: { q: "chard", page: 1, per_page: 20 }
+      expect(response).to have_http_status(:ok)
+      expect(JSON.parse(response.body)["items"].map { |g| g["slug"] })
+        .to eq([chardonnay.slug])
+
+      # Synonym match (case-insensitive).
+      get "/api/v1/grapes", params: { q: "CHABLIS", page: 1, per_page: 20 }
+      expect(JSON.parse(response.body)["items"].map { |g| g["slug"] })
+        .to eq([chardonnay.slug])
+
+      # Origin-country match hits both French grapes.
+      get "/api/v1/grapes", params: { q: "france", page: 1, per_page: 20 }
+      expect(JSON.parse(response.body)["total_count"]).to eq(2)
+    end
+
+    it "treats % and _ in ?q= literally" do
+      Grape.create!(name: "Percent Grape")
+
+      get "/api/v1/grapes", params: { q: "%", page: 1, per_page: 20 }
+      expect(JSON.parse(response.body)["total_count"]).to eq(0)
+
+      get "/api/v1/grapes", params: { q: "_", page: 1, per_page: 20 }
+      expect(JSON.parse(response.body)["total_count"]).to eq(0)
+    end
   end
 end

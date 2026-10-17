@@ -25,6 +25,7 @@ class Api::V1::GrapesController < ApplicationController
 
   def index
     scope = sorted_scope
+    scope = apply_search_filter(scope)
     return if render_paginated(scope) { |items| grapes_list_json(items) }
 
     render json: grapes_list_json(scope)
@@ -36,7 +37,8 @@ class Api::V1::GrapesController < ApplicationController
       if query.blank?
         Grape.none
       else
-        Grape.where("name ILIKE ? OR array_to_string(synonyms, ',') ILIKE ?", "%#{query}%", "%#{query}%").order(:name).limit(20)
+        term = "%#{ActiveRecord::Base.sanitize_sql_like(query)}%"
+        Grape.where("name ILIKE ? OR array_to_string(synonyms, ',') ILIKE ?", term, term).order(:name).limit(20)
       end
     render json: grapes.map { |grape| { id: grape.id, name: grape.name, color: grape.color, synonyms: grape.synonyms } }
   end
@@ -114,6 +116,20 @@ class Api::V1::GrapesController < ApplicationController
     else
       Grape.relevance_order
     end
+  end
+
+  # `?q=` free-text filter for the /grapes list page (name, synonyms and
+  # origin country). Matches the producers index `?q=` behaviour; `%` / `_`
+  # in the term are escaped so they match literally.
+  def apply_search_filter(scope)
+    query = params[:q].to_s.strip
+    return scope if query.blank?
+
+    term = "%#{ActiveRecord::Base.sanitize_sql_like(query)}%"
+    scope.where(
+      "grapes.name ILIKE ? OR array_to_string(grapes.synonyms, ',') ILIKE ? OR grapes.origin_country ILIKE ?",
+      term, term, term,
+    )
   end
 
   # Bulk-serialize a whole (possibly paginated) list of grapes: two grouped
