@@ -54,6 +54,13 @@ class Api::V1::CategoriesController < ApplicationController
       cats = Category.all
     end
 
+    # User-independent and rarely changing: let the browser reuse the response
+    # for a minute instead of re-running the query and revalidating an ETag on
+    # every page load (this action skips authentication, so `public` is safe).
+    # The s-maxage directive lets a Cloudflare Cache Rule serve the path
+    # entirely from the edge without touching origin.
+    response.headers["Cache-Control"] = "public, max-age=60, s-maxage=60"
+
     render json: cats.order(:name).map do |c|
       { id: c.id, name: c.name, slug: c.slug,
         for_wine: c.for_wine, for_article: c.for_article, for_review: c.for_review,

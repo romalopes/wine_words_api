@@ -1,6 +1,11 @@
 class Api::V1::ReviewsController < ApplicationController
   audit_actions :create, :update, :destroy
 
+  # Lifetime of the cached #grouped payload (see the comment there): kept below
+  # the presigned-URL window — 5 min expiry, signed 4 min ahead in
+  # ImageAttributes — so cached responses never serve expired image URLs.
+  GROUPED_CACHE_TTL = 2.minutes
+
   def log_description
     "#{audit_verb} review for \"#{@review&.vintage&.wine&.name}\""
   end
@@ -69,6 +74,28 @@ class Api::V1::ReviewsController < ApplicationController
     per_group = 12 if per_group <= 0
     per_group = per_group.clamp(1, 50)
 
+    # Cold, this endpoint costs ~3.5s (window function over every review, eager
+    # loads, per-blob R2 URL signing, serialization), so the assembled payload
+    # is cached per viewer and per filter set. The viewer belongs in the key:
+    # `visible_to` visibility, drafts and the `liked` state are baked into the
+    # payload. The TTL stays below ImageAttributes' presigned-URL window so a
+    # cached response never hands out expired image URLs — listings and like
+    # state can lag by up to two minutes (the trade-off the categories #counts
+    # payload already makes there, over 60 minutes).
+    cache_key = [ "api/v1/reviews/grouped/v1", current_user&.id, per_group,
+                  params[:scope], params[:status], search_term, params[:sort],
+                  request.base_url ]
+    result = Rails.cache.fetch(cache_key, expires_in: GROUPED_CACHE_TTL) do
+      grouped_payload(per_group)
+    end
+
+    render json: result
+  end
+
+  # The uncached body of #grouped: visibility-scoped rows capped per category
+  # (with the window counts), eager-loaded once for the list serializer, and
+  # ordered by each category's sort. Extracted so Rails.cache.fetch can wrap it.
+  def grouped_payload(per_group)
     scope = Review.all
     scope = scope.visible_to(current_user) unless current_user&.wine_manager?
     # "My reviews" scope: the signed-in user's own reviews (including their
@@ -138,7 +165,7 @@ class Api::V1::ReviewsController < ApplicationController
       result << { category: "Uncategorised", count: uncategorised_count, reviews: groups[nil] }
     end
 
-    render json: result
+    result
   end
 
   def serialize_reviews(reviews)

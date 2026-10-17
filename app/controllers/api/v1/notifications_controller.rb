@@ -43,14 +43,16 @@ class Api::V1::NotificationsController < ApplicationController
                         .unread
                         .count
     
-    # Add caching headers for 30 seconds
-    response.headers["Cache-Control"] = "public, max-age=30"
+    # Browser-cache for 30 seconds. Per-user data, so `private` keeps shared
+    # caches (Cloudflare, proxies) from ever storing one user's badge count.
+    response.headers["Cache-Control"] = "private, max-age=30"
     response.headers["ETag"] = %("#{count}")
-    response.headers["Last-Modified"] = Time.now.httpdate
     
-    # Check if client has fresh cache
-    if request.headers["If-None-Match"] == %("#{count}") ||
-       request.headers["If-Modified-Since"] == Time.now.httpdate
+    # The count itself is the representation, so a matching ETag is enough to
+    # answer a revalidation without serializing a response body. Do not emit a
+    # dynamic Last-Modified value here: changing it on every request defeats
+    # conditional GETs.
+    if request.headers["If-None-Match"] == %("#{count}")
       head :not_modified and return
     end
     
@@ -78,26 +80,6 @@ private
     notifications.map { |n| NotificationSerializer.new(n, request.base_url).as_json }
   end
 
-  # GET /api/v1/notifications/unread_count
-  # Returns just the count of unread notifications for badge display
-  # Much lighter than fetching the full notification list
-  def unread_count
-    count = current_user.notifications
-                    .delivered
-                    .unread
-                    .count
-    response.headers["Cache-Control"] = "public, max-age=30"
-    response.headers["ETag"] = %("#{count}")
-    response.headers["Last-Modified"] = Time.now.httpdate
-    
-    # Check if client has fresh cache
-    if request.headers["If-None-Match"] == %("#{count}") ||
-       request.headers["If-Modified-Since"] == Time.now.httpdate
-      head :not_modified and return
-    end
-    
-    render json: { unread_count: count }
-  end
   def set_notification
     @notification = current_user.notifications.delivered.find(params[:id])
   rescue ActiveRecord::RecordNotFound

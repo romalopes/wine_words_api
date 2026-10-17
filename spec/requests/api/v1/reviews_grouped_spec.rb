@@ -154,5 +154,44 @@ RSpec.describe "Api::V1::Reviews grouped", type: :request do
         expect(titles).to contain_exactly("Draft malbec")
       end
     end
+
+    context "payload caching" do
+      # The test env cache store is :null_store, which never caches; swap in a
+      # MemoryStore so the caching behaviour itself can be asserted (the same
+      # approach as categories_counts_spec).
+      around do |example|
+        original_cache = Rails.cache
+        Rails.cache = ActiveSupport::Cache::MemoryStore.new
+        example.run
+        Rails.cache = original_cache
+      end
+
+      it "serves a repeat request for the same viewer from the cache" do
+        get "/api/v1/reviews/grouped"
+        expect(response).to have_http_status(:ok)
+
+        queries = []
+        callback = ->(*args) { queries << args.last[:sql] }
+        ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
+          get "/api/v1/reviews/grouped"
+        end
+
+        expect(response).to have_http_status(:ok)
+        expect(queries.grep(/FROM "reviews"/)).to be_empty
+      end
+
+      it "never serves one viewer's cached payload to another" do
+        # The guest's entry holds no drafts; the manager's entry must be built
+        # separately rather than reusing it.
+        get "/api/v1/reviews/grouped"
+        titles = JSON.parse(response.body).flat_map { |g| g["reviews"].map { |r| r["title"] } }
+        expect(titles).not_to include("Draft malbec")
+
+        sign_in manager
+        get "/api/v1/reviews/grouped"
+        titles = JSON.parse(response.body).flat_map { |g| g["reviews"].map { |r| r["title"] } }
+        expect(titles).to include("Draft malbec")
+      end
+    end
   end
 end

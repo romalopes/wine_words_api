@@ -46,8 +46,11 @@ pidfile ENV["PIDFILE"] if ENV["PIDFILE"]
 if RUBY_PLATFORM.include?("darwin") || ENV.fetch("RAILS_ENV", "development") == "development"
   workers 0
 else
-  workers Integer(ENV.fetch("WEB_CONCURRENCY", "0"))
-  # workers ENV.fetch("WEB_CONCURRENCY", 0)
+  # Cluster mode with a single worker is a Puma misconfiguration (it warns and
+  # wastes a master process), so WEB_CONCURRENCY=1 — a common dashboard
+  # default — runs single-process instead. 2+ still clusters as before.
+  web_concurrency = Integer(ENV.fetch("WEB_CONCURRENCY", "0"))
+  workers(web_concurrency > 1 ? web_concurrency : 0)
 end
 
 

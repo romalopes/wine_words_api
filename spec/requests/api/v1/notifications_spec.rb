@@ -156,4 +156,37 @@ RSpec.describe "Api::V1::Notifications", type: :request do
       expect(theirs.reload.read_at).to be_nil
     end
   end
+
+  describe "GET /api/v1/notifications/unread_count" do
+    it "returns just the unread count with a private cache header" do
+      notify(recipient: user, sent: true)
+      read = notify(recipient: user, date: Date.current + 1, message: "Read already", sent: true)
+      read.mark_read!
+
+      get "/api/v1/notifications/unread_count"
+
+      expect(response).to have_http_status(:ok)
+      expect(JSON.parse(response.body)).to eq("unread_count" => 1)
+      # Per-user data: never storeable by shared caches (Cloudflare, proxies).
+      expect(response.headers["Cache-Control"]).to include("private")
+      expect(response.headers["ETag"]).to be_present
+    end
+
+    it "answers 304 when the client already holds the current count" do
+      notify(recipient: user, sent: true)
+
+      get "/api/v1/notifications/unread_count"
+      etag = response.headers["ETag"]
+
+      get "/api/v1/notifications/unread_count", headers: { "If-None-Match" => etag }
+
+      expect(response).to have_http_status(:not_modified)
+    end
+
+    it "requires authentication" do
+      sign_out user
+      get "/api/v1/notifications/unread_count"
+      expect(response).to have_http_status(:unauthorized)
+    end
+  end
 end

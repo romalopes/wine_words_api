@@ -29,7 +29,7 @@ services:
     name: wine-prediction-api
     runtime: docker
     plan: starter # change to "free" for hobby, "standard" for production
-    region: oregon
+    region: singapore
     branch: main
     dockerfilePath: ./Dockerfile
     dockerContext: .
@@ -90,7 +90,7 @@ services:
     name: wine-prediction-worker
     runtime: docker
     plan: starter
-    region: oregon
+    region: singapore
     branch: main
     dockerfilePath: ./Dockerfile
     dockerContext: .
@@ -119,7 +119,7 @@ services:
 databases:
   - name: wine-prediction-db
     plan: starter # minimum paid Postgres; "free" is also fine for development
-    region: oregon
+    region: singapore
     databaseName: wine_words_api_production
     user: wine_words_api
     # Render provisions this database on first apply and exposes its
