@@ -1,6 +1,16 @@
 class Api::V1::GrapesController < ApplicationController
   audit_actions :create, :update, :destroy
 
+  # Server-side ordering for count sorts: correlated subqueries over the
+  # grape_id-indexed join tables. Kept GROUP BY-free on purpose —
+  # `render_paginated` counts via `scope.except(:select, :order).count`,
+  # which a grouped scope would break (hash instead of a scalar).
+  # `grapes.id ASC` breaks ties so page boundaries stay stable.
+  WINES_COUNT_ORDER =
+    "(SELECT COUNT(*) FROM wine_grapes WHERE wine_grapes.grape_id = grapes.id) DESC, grapes.id ASC".freeze
+  PRODUCERS_COUNT_ORDER =
+    "(SELECT COUNT(*) FROM producer_grapes WHERE producer_grapes.grape_id = grapes.id) DESC, grapes.id ASC".freeze
+
   def log_description
     "#{audit_verb} grape \"#{@grape.name}\""
   end
@@ -14,10 +24,10 @@ class Api::V1::GrapesController < ApplicationController
   before_action :set_grape, only: [:show, :update, :destroy, :link_wine]
 
   def index
-    scope = Grape.relevance_order.includes(:wine_grapes, :producer_grapes)
-    return if render_paginated(scope) { |items| items.map { |grape| grape_json(grape) } }
+    scope = sorted_scope
+    return if render_paginated(scope) { |items| grapes_list_json(items) }
 
-    render json: scope.map { |grape| grape_json(grape) }
+    render json: grapes_list_json(scope)
   end
 
   def search
@@ -93,10 +103,47 @@ class Api::V1::GrapesController < ApplicationController
     )
   end
 
-  def grape_json(grape)
+  # `?sort=wines_count` / `?sort=producers_count` order by the link counts;
+  # anything else (including blank) keeps the relevance default.
+  def sorted_scope
+    case params[:sort]
+    when "wines_count"
+      Grape.order(Arel.sql(WINES_COUNT_ORDER))
+    when "producers_count"
+      Grape.order(Arel.sql(PRODUCERS_COUNT_ORDER))
+    else
+      Grape.relevance_order
+    end
+  end
+
+  # Bulk-serialize a whole (possibly paginated) list of grapes: two grouped
+  # COUNT queries for the page's ids instead of one COUNT per record.
+  # `grape.wines.size` on an unloaded through-association fires its own query
+  # — 40 per page at per_page=20, which against the remote dev DB cost ~8 s
+  # per request (and ~40 s for the legacy no-param full list).
+  def grapes_list_json(scope)
+    grapes = scope.to_a
+    ids = grapes.map(&:id)
+    wine_counts = WineGrape.where(grape_id: ids).group(:grape_id).count
+    producer_counts = ProducerGrape.where(grape_id: ids).group(:grape_id).count
+    grapes.map do |grape|
+      grape_json(
+        grape,
+        wine_counts: wine_counts.fetch(grape.id, 0),
+        producer_counts: producer_counts.fetch(grape.id, 0),
+      )
+    end
+  end
+
+  def grape_json(grape, wine_counts: nil, producer_counts: nil)
     data = grape.as_json
-    data["wines_count"] = grape.wines.size
-    data["producers_count"] = grape.producers.size
+    # List paths pass bulk precomputed counts (2 queries total, see
+    # grapes_list_json); single-record paths (show/link_wine) fall back to
+    # `.size`. Unique [wine_id, grape_id] / [producer_id, grape_id] indexes
+    # and FKs keep the join-row counts identical to the through-association
+    # counts they replace.
+    data["wines_count"] = wine_counts || grape.wines.size
+    data["producers_count"] = producer_counts || grape.producers.size
     # Wines are NOT embedded here. The React grape screens fetch them
     # separately via GET /api/v1/wines?grape_id=... (paginated, lean
     # WineListSerializer). Embedding every wine with the full WineSerializer
