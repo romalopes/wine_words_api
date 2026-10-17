@@ -1,4 +1,5 @@
-# db/seeds/front_wine_seed.rb
+# Run with: bin/rails runner db/seeds/wine_front_reviews_article_seed.rb
+# db/seeds/wine_front_reviews_article_seed.rb
 # --------------------------------------------------------------
 # Seed script for Kasia's Wine Front reviews.
 # --------------------------------------------------------------
@@ -49,6 +50,7 @@ end
 def attach_wine_image!(wine, image_url_raw)
   return false if image_url_raw.blank?
   return false if wine.images.exists?
+  return if ENV.fetch("SEED_AVOID_IMAGES")
 
   url = full_size_image_url(image_url_raw.split.first)
   return false if url.blank?
@@ -150,7 +152,8 @@ ActiveRecord::Base.transaction do
     # ------------------------------------------------------------------
     # 6️⃣  Find / create Wine  (now holds alcohol, price, closure)
     # ------------------------------------------------------------------
-    wine = Wine.find_or_initialize_by(name: wine_name)
+    # Find wine case-insensitively to prevent duplicates due to casing differences
+    wine = Wine.where("LOWER(name) = LOWER(?)", wine_name).first || Wine.new(name: wine_name)
     wine.producer = producer if wine.new_record?
 
     # CSV "Image URLs" (col 19) -> attach to the Wine via ActiveStorage.
@@ -180,10 +183,11 @@ ActiveRecord::Base.transaction do
       end
     end
 
-    # associate grapes (has_and_belongs_to_many :grapes)
+    # associate grapes (has_and_belongs_to_many :grapes) – only existing grapes
     detected_grapes.each do |g_name|
-      grape = Grape.find_or_create_by!(name: g_name)
-      wine.grapes << grape unless wine.grapes.include?(grape)
+      # Find grape case-insensitively to prevent duplicates due to casing differences
+      grape = Grape.where("LOWER(name) = LOWER(?)", g_name).first
+      wine.grapes << grape if grape && !wine.grapes.include?(grape)
     end
 
     # ------------------------------------------------------------------
@@ -221,12 +225,12 @@ ActiveRecord::Base.transaction do
     if drink_from.present? && vintage_year.present? && drink_from < vintage_year
       drink_from = vintage_year
     end
-    
+
     # Ensure drink_to is not earlier than drink_from
     if drink_from.present? && drink_to.present? && drink_to < drink_from
       drink_to = drink_from
     end
-    
+
 
     # Natural key: same author + same vintage.
     # The CSV has one review per vintage, so (user, vintage) is unique.
@@ -274,7 +278,8 @@ ActiveRecord::Base.transaction do
     #      Skip if source is "substack" (imported from Substack seed).
     # ------------------------------------------------------------------
     if categories_raw =~ /articles/i
-      article = Article.find_by(user: author, title: wine_name_grape)
+      # Find article case-insensitively on title to prevent duplicates due to casing differences
+      article = Article.where(user: author).where("LOWER(title) = LOWER(?)", wine_name_grape).first
       if article.nil?
         article = Article.create!(
           title:        wine_name_grape,

@@ -26,6 +26,20 @@ class Grape < ApplicationRecord
     slug
   end
 
+  # Find a grape by exact name (case-insensitive) or by ILIKE search on name and synonyms.
+  # Returns the first matching grape or nil.
+  def self.find_by_name_or_synonym(name)
+    return nil if name.blank?
+    # Exact match (case-insensitive)
+    exact = where('lower(name) = ?', name.downcase).first
+    return exact if exact
+    # Fallback to ILIKE search on name and synonyms (same as used in /grapes search)
+    pattern = "%#{name}%"
+    where("name ILIKE ? OR array_to_string(synonyms, ',') ILIKE ?", pattern, pattern)
+      .order(:name)
+      .first
+  end
+
   private
 
   def generate_slug

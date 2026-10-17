@@ -1,4 +1,5 @@
-# db/seeds/substract_reviews_articles_seed.rb
+# Run with: bin/rails runner db/seeds/substack_reviews_articles_seed.rb
+# db/seeds/substack_reviews_articles_seed.rb
 # --------------------------------------------------------------
 # Seed that imports a *fixed* list of Substack posts (articles & reviews)
 # written by Kasia Sobiesiak.
@@ -68,6 +69,7 @@ end
 # Attach an image to any Imageable record (Article, Review, Wine, …)
 def attach_image(record, image_url)
   return if record.images.any? || image_url.blank?
+  ENV.fetch("SEED_AVOID_IMAGES", false) == "true" && return
 
   begin
     file = URI.open(image_url)
@@ -111,7 +113,7 @@ def parse_article_page(doc, url)
   abstract = (doc.at('meta[name="description"]') || doc.at('meta[property="og:description"]'))&.[]('content')&.strip
 
   body_el   = doc.at('.body.markup') || doc.at('.available-content .body') || doc.at('article .body')
-  
+
   # Remove Substack UI chrome (like/comment/share/save buttons) before extracting content
   if body_el
     # Remove by class patterns (CSS selectors)
@@ -122,7 +124,7 @@ def parse_article_page(doc, url)
       btn.remove if label.include?('like') || label.include?('comment') || label.include?('share') || label.include?('save')
     end
   end
-  
+
   body_html = body_el&.inner_html || ''
 
   # Convert HTML <a href="...">text</a> into Markdown links before extracting plain text
@@ -181,9 +183,10 @@ def parse_review_title(title)
     raw_name = m[1].strip
     year     = m[2].to_i
 
-    # Try to guess a grape – last word of the name that matches a Grape record
+    # Try to guess a grape – last word of the name; first exact match, then ILIKE search
     possible_grape_word = raw_name.split.last
-    grape = Grape.find_by('lower(name) = ?', possible_grape_word.downcase)
+    # Find grape case-insensitively to prevent duplicates due to casing differences
+    grape = Grape.where("LOWER(name) = LOWER(?)", possible_grape_word).first
 
     { wine_name: raw_name, vintage_year: year, grape: grape }
   else
@@ -317,20 +320,21 @@ URLS.each_with_index do |url, idx|
   review_title = data[:is_review] ? data[:title].sub(/^Review:\s*/i, '').strip : data[:title]
 
   klass = data[:is_review] ? Review : Article
-  slug  = unique_slug(review_title.parameterize, klass)
-  record = klass.find_by(slug: slug) || klass.new(slug: slug)
+  # Find existing record by user, source, and title (case-insensitive)
+  record = klass.where(user: user, source: 'substack').where("LOWER(title) = LOWER(?)", review_title).first
+  record ||= klass.new
 
   # -------------------------------------------------------------
   # Common attributes for both Article and Review
   # -------------------------------------------------------------
 
   common = {
-    title: review_title,
     status: 'draft',
     source: 'substack',
     published_at: data[:published_at],
     user: user
   }
+  common[:title] = review_title if record.new_record?
 
   if data[:is_review]
     # ------------------- REVIEW SPECIFIC -------------------------
