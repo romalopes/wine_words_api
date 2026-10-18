@@ -26,7 +26,7 @@
 
 services:
   - type: pserv # Render "Web Service"
-    name: wine-prediction-api
+    name: wine-words-api
     runtime: docker
     plan: starter # change to "free" for hobby, "standard" for production
     region: singapore
@@ -64,17 +64,19 @@ services:
       - key: TEST_ACCESS_TOKEN_EXPIRATION
         value: "7.days"
       - key: BREVO_API_KEY
-        sync: false            # set manually in the dashboard — Brevo HTTP API key
-                               # (Render free blocks outbound SMTP ports 25/465/587)
+        sync:
+          false # set manually in the dashboard — Brevo HTTP API key
+          # (Render free blocks outbound SMTP ports 25/465/587)
       - key: RESEND_API_KEY
-        sync: false            # optional alternative mail transport (Resend HTTP API;
-                               # requires a verified sending domain)
+        sync:
+          false # optional alternative mail transport (Resend HTTP API;
+          # requires a verified sending domain)
       - key: MAIL_TRANSPORT
-        value: "auto"          # auto (default) | brevo | resend | smtp | file
+        value: "auto" # auto (default) | brevo | resend | smtp | file
       - key: MAIL_FROM
-        sync: false            # optional — mail From (default kasia@mywineadviser.com.au)
+        sync: false # optional — mail From (default kasia@mywineadviser.com.au)
       - key: MAIL_REPLY_TO
-        sync: false            # optional — replies inbox (default romalopes@yahoo.com.br)
+        sync: false # optional — replies inbox (default romalopes@yahoo.com.br)
       - key: SOLID_QUEUE_IN_PUMA
         value: "false" # jobs run in the dedicated worker service, not in Puma
     # The release command runs once per deploy, after the build but

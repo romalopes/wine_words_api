@@ -183,10 +183,17 @@ def parse_review_title(title)
     raw_name = m[1].strip
     year     = m[2].to_i
 
-    # Try to guess a grape – last word of the name; first exact match, then ILIKE search
-    possible_grape_word = raw_name.split.last
-    # Find grape case-insensitively to prevent duplicates due to casing differences
-    grape = Grape.where("LOWER(name) = LOWER(?)", possible_grape_word).first
+    # Try to guess a grape – check for multi-word grape names from the end of the name
+    words = raw_name.split
+    grape = nil
+    # Try 2-word then 1-word combinations from the end (most grape varieties are 1-2 words)
+    [2, 1].each do |word_count|
+      if words.length >= word_count
+        candidate = words[-word_count..-1].join(' ')
+        grape = Grape.find_by_name_or_synonym(candidate)
+        break if grape
+      end
+    end
 
     { wine_name: raw_name, vintage_year: year, grape: grape }
   else

@@ -36,11 +36,11 @@ Cloudflare Workers at https://wine-words.romalopes.workers.dev/.
 
 Previously verified live:
 
-| What            | URL                                     | Verified status                                                                                                                                                           |
-| --------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Web app         | `https://wine-prediction-mu.vercel.app` | Live, title "Wine Words"; bundle embeds Render API URL                                                                                                                    |
-| API             | `https://wine-words-api.onrender.com`   | Live; `/api/v1/health` 200 `{"status":"ok","database":"ok","version":"0.0.21"}`; cold starts and boot windows return 502/503. Former `wine-prediction-api-mq4a` host: 503 |
-| Legacy frontend | `wine-prediction-app.vercel.app`        | Retired (`DEPLOYMENT_NOT_FOUND`); still listed in CORS — cleanup pending                                                                                                  |
+| What            | URL                                   | Verified status                                                                                                                                                      |
+| --------------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Web app         | `https://wine-words-mu.vercel.app`    | Live, title "Wine Words"; bundle embeds Render API URL                                                                                                               |
+| API             | `https://wine-words-api.onrender.com` | Live; `/api/v1/health` 200 `{"status":"ok","database":"ok","version":"0.0.21"}`; cold starts and boot windows return 502/503. Former `wine-words-api-mq4a` host: 503 |
+| Legacy frontend | `wine-words-app.vercel.app`           | Retired (`DEPLOYMENT_NOT_FOUND`); still listed in CORS — cleanup pending                                                                                             |
 
 Version: API `0.0.21` (`config/initializers/app_version.rb`).
 Status: active development, private-testing gate enabled in production.
@@ -352,8 +352,8 @@ access: `POST/GET /api/v1/test_access`. Web SSR: `/` dashboard, `quiz`,
 'include'`, `Authorization`-response capture, normalized errors, 401
 `test_access_required` redirect to `/test-access`. `VITE_API_BASE_URL` is
 baked at build time (deployed bundle points at the Render API). CORS
-allow-list: `localhost:5173`, `http(s)://wine-prediction-mu.vercel.app`,
-legacy `wine-prediction-app.vercel.app` (retired — remove).
+allow-list: `localhost:5173`, `http(s)://wine-words-mu.vercel.app`,
+legacy `wine-words-app.vercel.app` (retired — remove).
 
 ## 16. Database
 
@@ -377,16 +377,16 @@ check (Slack). See `docs/DATABASE_BACKUP_AND_RESTORE.md`.
 
 ## 18. Deployment and operations
 
-Frontend → Cloudflare Workers (https://wine-words.romalopes.workers.dev/) and Vercel (`vercel --prod`; project `wine-prediction`;
+Frontend → Cloudflare Workers (https://wine-words.romalopes.workers.dev/) and Vercel (`vercel --prod`; project `wine-words`;
 `vercel.json` SPA rewrite; set `VITE_API_BASE_URL` + public IDs at build).
-Backend → Render blueprint `render.yaml`: web `wine-prediction-api` (Docker
+Backend → Render blueprint `render.yaml`: web `wine-words-api` (Docker
 runtime; Dockerfile CMD runs Thruster :80 → Puma :3000, `releaseCommand:
 bin/rails db:prepare`, `autoDeploy`, branch `main`, `healthCheckPath: /up` →
 Rails' `rails/health#show` route, so "live" waits for Puma rather than just
-Thruster's port) + worker `wine-prediction-worker` (`bin/jobs`;
+Thruster's port) + worker `wine-words-worker` (`bin/jobs`;
 `SOLID_QUEUE_IN_PUMA=false`, `JOB_CONCURRENCY=3`) + Postgres
-`wine-prediction-db`. Live hostname is `wine-words-api.onrender.com`
-(`GET /api/v1/health` 200; the former `wine-prediction-api-mq4a` host now
+`wine-words-db`. Live hostname is `wine-words-api.onrender.com`
+(`GET /api/v1/health` 200; the former `wine-words-api-mq4a` host now
 returns 503). Env: `RAILS_MASTER_KEY` (sync false), `DATABASE_URL`,
 `FRONTEND_URL`, `BREVO_API_KEY` (mail transport), Stripe/provider secrets,
 plus `WEB_CONCURRENCY=2` /

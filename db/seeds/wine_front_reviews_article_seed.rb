@@ -185,8 +185,8 @@ ActiveRecord::Base.transaction do
 
     # associate grapes (has_and_belongs_to_many :grapes) – only existing grapes
     detected_grapes.each do |g_name|
-      # Find grape case-insensitively to prevent duplicates due to casing differences
-      grape = Grape.where("LOWER(name) = LOWER(?)", g_name).first
+      # Find grape by name (case-insensitive) or synonyms
+      grape = Grape.find_by_name_or_synonym(g_name)
       wine.grapes << grape if grape && !wine.grapes.include?(grape)
     end
 
