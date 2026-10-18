@@ -94,6 +94,9 @@ $front_seed_created_articles = 0
 $front_seed_updated_articles = 0
 $front_seed_attached_images = 0
 $front_seed_pending_images = [] # [wine_id, image_url] — attached AFTER commit
+
+# Pre-fetch all region names for efficient region detection
+region_names = Region.pluck(:name)
 ActiveRecord::Base.transaction do
   CSV.foreach(csv_path, headers: true, encoding: "bom|utf-8") do |row|
     # ------------------------------------------------------------------
@@ -188,6 +191,20 @@ ActiveRecord::Base.transaction do
       # Find grape by name (case-insensitive) or synonyms
       grape = Grape.find_by_name_or_synonym(g_name)
       wine.grapes << grape if grape && !wine.grapes.include?(grape)
+    end
+
+    # associate regions (has_many :regions through :wine_regions) – only existing regions
+    detected_regions = region_names.select do |region_name|
+      # word‑boundary, case‑insensitive match
+      wine_name =~ /\b#{Regexp.escape(region_name)}\b/i
+    end
+    detected_regions.each do |region_name|
+      region = Region.find_by('lower(name) = ?', region_name.downcase)
+      wine.regions << region if region && !wine.regions.include?(region)
+    end
+    if detected_regions.any?
+      wine.save!
+      puts "   🏷️  linked regions: #{detected_regions.join(', ')}"
     end
 
     # ------------------------------------------------------------------

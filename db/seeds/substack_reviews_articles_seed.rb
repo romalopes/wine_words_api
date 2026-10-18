@@ -311,6 +311,9 @@ URLS = [
 user = fallback_user
 created = updated = failed = 0
 
+# Pre-fetch all region names for efficient region detection
+region_names = Region.pluck(:name)
+
 URLS.each_with_index do |url, idx|
   print "[#{idx + 1}/#{URLS.size}] #{url} … "
   doc = fetch_and_parse(url)
@@ -373,6 +376,20 @@ URLS.each_with_index do |url, idx|
       wine.grapes << parsed[:grape] unless wine.grapes.include?(parsed[:grape])
       wine.save!
       puts "   🍇 linked grape “#{parsed[:grape].name}”"
+    end
+
+    # ---- Region (if we could guess one or more) ----------------
+    detected_regions = region_names.select do |region_name|
+      # word‑boundary, case‑insensitive match
+      parsed[:wine_name] =~ /\b#{Regexp.escape(region_name)}\b/i
+    end
+    detected_regions.each do |region_name|
+      region = Region.find_by('lower(name) = ?', region_name.downcase)
+      wine.regions << region if region && !wine.regions.include?(region)
+    end
+    if detected_regions.any?
+      wine.save!
+      puts "   🏷️  linked regions: #{detected_regions.join(', ')}"
     end
 
     # ---- Vintage -----------------------------------------------
