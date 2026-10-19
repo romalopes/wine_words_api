@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_16_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_18_044542) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -967,6 +967,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_000001) do
     t.index ["reviewer_id"], name: "index_wine_packages_on_reviewer_id"
     t.index ["status"], name: "index_wine_packages_on_status"
     t.index ["tracking_number"], name: "index_wine_packages_on_tracking_number"
+  end
+
+  create_table "wine_profile_grapes", id: false, force: :cascade do |t|
+    t.bigint "grape_id", null: false
+    t.bigint "wine_profile_id", null: false
+    t.index ["grape_id"], name: "index_wine_profile_grapes_on_grape_id"
+    t.index ["wine_profile_id", "grape_id"], name: "index_wine_profile_grapes_on_wine_profile_id_and_grape_id", unique: true
+  end
+
+  create_table "wine_profile_regions", id: false, force: :cascade do |t|
+    t.bigint "region_id", null: false
+    t.bigint "wine_profile_id", null: false
+    t.index ["region_id"], name: "index_wine_profile_regions_on_region_id"
+    t.index ["wine_profile_id", "region_id"], name: "index_wine_profile_regions_on_wine_profile_id_and_region_id", unique: true
   end
 
   create_table "wine_profile_taste_parameters", force: :cascade do |t|

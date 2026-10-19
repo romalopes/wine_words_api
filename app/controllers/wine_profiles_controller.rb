@@ -3,11 +3,11 @@ class WineProfilesController < ActionController::Base
   helper :wine_profiles
 
   def index
-    @wine_profiles = WineProfile.includes(wine_profile_taste_parameters: :taste_parameter).order(:name)
+    @wine_profiles = WineProfile.includes(:profile_grapes, :profile_regions, wine_profile_taste_parameters: :taste_parameter).order(:name)
   end
 
   def show
-    @wine_profile = WineProfile.includes(wine_profile_taste_parameters: :taste_parameter).find_by!(slug: params[:id])
+    @wine_profile = WineProfile.includes(:profile_grapes, :profile_regions, wine_profile_taste_parameters: :taste_parameter).find_by!(slug: params[:id])
   end
 
   def new

@@ -19,7 +19,7 @@ module Web
         @selected[param.slug] = value ? value.to_i : 3
       end
 
-      profiles = WineProfile.includes(wine_profile_taste_parameters: :taste_parameter)
+      profiles = WineProfile.includes(:profile_grapes, :profile_regions, wine_profile_taste_parameters: :taste_parameter)
       profiles = profiles.where(color: @color) unless @color == "All"
       profiles = profiles.all
 

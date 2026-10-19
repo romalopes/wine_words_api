@@ -1,4 +1,5 @@
 class Api::V1::WineProfilesController < ApplicationController
+  include Api::Paginatable
   audit_actions :create, :update, :destroy
 
   def log_description
@@ -11,8 +12,13 @@ class Api::V1::WineProfilesController < ApplicationController
 
   skip_before_action :authenticate_user!, only: [:index, :show, :search]
   def index
-    wine_profiles = WineProfile.includes(wine_profile_taste_parameters: :taste_parameter)
-    render json: wine_profiles.map { |wine_profile| WineProfileSerializer.new(wine_profile).as_json }
+    scope = WineProfile.includes(:profile_grapes, :profile_regions, wine_profile_taste_parameters: :taste_parameter)
+    if render_paginated(scope) { |wines| wines.map { |wine| WineProfileSerializer.new(wine).as_json } }
+      # rendered by render_paginated
+    else
+      # Fallback for legacy clients that don't send page param
+      render json: scope.map { |wine| WineProfileSerializer.new(wine).as_json }
+    end
   end
 
   def show
@@ -21,8 +27,9 @@ class Api::V1::WineProfilesController < ApplicationController
   end
 
   def create
-    @wine_profile = WineProfile.new(wine_profile_params)
+    @wine_profile = WineProfile.new(wine_profile_params.except(:grapes, :regions))
     if @wine_profile.save
+      assign_grapes_and_regions
       render json: @wine_profile, status: :created
     else
       render json: @wine_profile.errors, status: :unprocessable_entity
@@ -31,7 +38,8 @@ class Api::V1::WineProfilesController < ApplicationController
 
   def update
     @wine_profile = WineProfile.find_by!(slug: params[:id])
-    if @wine_profile.update(wine_profile_params)
+    if @wine_profile.update(wine_profile_params.except(:grapes, :regions))
+      assign_grapes_and_regions
       render json: @wine_profile
     else
       render json: @wine_profile.errors, status: :unprocessable_entity
@@ -77,7 +85,8 @@ class Api::V1::WineProfilesController < ApplicationController
       wine_values.concat([term, sim_threshold, term, sim_threshold, term, word_sim_threshold])
 
       # wine_profiles: match by name or regions (JSON text)
-      profile_conditions << "(similarity(wine_profiles.name, ?) > ? OR strict_word_similarity(?, wine_profiles.name) > ? OR word_similarity(?, wine_profiles.name) > ? OR similarity(COALESCE(wine_profiles.regions::text, ''), ?) > ? OR strict_word_similarity(?, COALESCE(wine_profiles.regions::text, '')) > ? OR word_similarity(?, COALESCE(wine_profiles.regions::text, '')) > ?)"
+
+      profile_conditions << "(similarity(wine_profiles.name, ?) > ? OR strict_word_similarity(?, wine_profiles.name) > ? OR word_similarity(?, wine_profiles.name) > ? OR EXISTS (SELECT 1 FROM wine_profile_regions wpr JOIN regions r ON r.id = wpr.region_id WHERE wpr.wine_profile_id = wine_profiles.id AND (similarity(r.name, ?) > ? OR strict_word_similarity(?, r.name) > ? OR word_similarity(?, r.name) > ?)))"
       profile_values.concat([term, sim_threshold, term, sim_threshold, term, word_sim_threshold,
                               term, sim_threshold, term, sim_threshold, term, word_sim_threshold])
     end
@@ -105,7 +114,7 @@ class Api::V1::WineProfilesController < ApplicationController
                 .order(Arel.sql("GREATEST(#{wine_order_expr}) DESC"))
                 .limit(limit)
 
-    wine_profiles = WineProfile.includes(wine_profile_taste_parameters: :taste_parameter)
+    wine_profiles = WineProfile.includes(:profile_grapes, :profile_regions, wine_profile_taste_parameters: :taste_parameter)
                                .where(profile_conditions.join(" OR "), *profile_values)
                                .order(Arel.sql("GREATEST(#{profile_order_expr}) DESC"))
                                .limit(limit)
@@ -154,9 +163,9 @@ class Api::V1::WineProfilesController < ApplicationController
                 .limit(limit)
 
     # Search wine_profiles by name AND regions (JSON text)
-    wine_profiles = WineProfile.includes(wine_profile_taste_parameters: :taste_parameter)
+    wine_profiles = WineProfile.includes(:profile_grapes, :profile_regions, wine_profile_taste_parameters: :taste_parameter)
                                .where(
-                                 "(similarity(wine_profiles.name, ?) > ? OR strict_word_similarity(?, wine_profiles.name) > ? OR word_similarity(?, wine_profiles.name) > ?) OR (similarity(COALESCE(wine_profiles.regions::text, ''), ?) > ? OR strict_word_similarity(?, COALESCE(wine_profiles.regions::text, '')) > ? OR word_similarity(?, COALESCE(wine_profiles.regions::text, '')) > ?)",
+                                 "(similarity(wine_profiles.name, ?) > ? OR strict_word_similarity(?, wine_profiles.name) > ? OR word_similarity(?, wine_profiles.name) > ?) OR (EXISTS (SELECT 1 FROM wine_profile_regions wpr JOIN regions r ON r.id = wpr.region_id WHERE wpr.wine_profile_id = wine_profiles.id AND (similarity(r.name, ?) > ? OR strict_word_similarity(?, r.name) > ? OR word_similarity(?, r.name) > ?)))",
                                  query, sim_threshold,
                                  query, sim_threshold,
                                  query, word_sim_threshold,
@@ -169,9 +178,12 @@ class Api::V1::WineProfilesController < ApplicationController
                                    similarity(wine_profiles.name, #{quoted_query}),
                                    strict_word_similarity(#{quoted_query}, wine_profiles.name),
                                    word_similarity(#{quoted_query}, wine_profiles.name) * 0.8,
-                                   similarity(COALESCE(wine_profiles.regions::text, ''), #{quoted_query}) * 0.7,
-                                   strict_word_similarity(#{quoted_query}, COALESCE(wine_profiles.regions::text, '')) * 0.7,
-                                   word_similarity(#{quoted_query}, COALESCE(wine_profiles.regions::text, '')) * 0.6
+
+
+                                    COALESCE((SELECT MAX(word_similarity(#{quoted_query}, regions.name))
+                                              FROM wine_profile_regions
+                                              INNER JOIN regions ON regions.id = wine_profile_regions.region_id
+                                              WHERE wine_profile_regions.wine_profile_id = wine_profiles.id), 0) * 0.6
                                  ) DESC")
                                )
                                .limit(limit)
@@ -189,10 +201,21 @@ class Api::V1::WineProfilesController < ApplicationController
 
   private
 
+  PERMITTED_PARAMS = [:name, :color, :notes, :serving, {grapes: []}, {regions: []}, :parameters].freeze
+
   def wine_profile_params
-    params.require(:wine_profile).permit(:name, :color, :grapes, :regions, :notes, :serving, :parameters)
+    params.require(:wine_profile).permit(PERMITTED_PARAMS)
+  end
+
+  def assign_grapes_and_regions
+    grape_names = params[:wine_profile][:grapes] || []
+    region_names = params[:wine_profile][:regions] || []
+
+    grapes = Grape.where(name: grape_names)
+    regions = Region.where(name: region_names)
+
+    @wine_profile.profile_grapes = grapes
+    @wine_profile.profile_regions = regions
   end
 end
-# end
-
 

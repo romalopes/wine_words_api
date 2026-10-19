@@ -9,14 +9,21 @@ require 'rails_helper'
 RSpec.describe "Api::V1::WineProfiles", type: :request do
   let(:taste_acidity) { TasteParameter.create!(slug: "acidity", label: "Acidity", low: "Soft", high: "Sharp", help: "Brightness on the palate.") }
   let(:taste_body)    { TasteParameter.create!(slug: "body",    label: "Body",    low: "Light", high: "Full", help: "Weight of the wine.") }
+  let!(:pinot_noir) { Grape.create!(name: "Pinot Noir") }
+  let!(:chardonnay_grape) { Grape.create!(name: "Chardonnay") }
+  let!(:tempranillo_grape) { Grape.create!(name: "Tempranillo") }
+  let!(:france) { Country.create!(name: "France", code: "FR") }
+  let!(:united_states) { Country.create!(name: "United States", code: "US") }
+  let!(:spain) { Country.create!(name: "Spain", code: "ES") }
+  let!(:burgundy) { Region.create!(name: "Burgundy", country: france) }
+  let!(:oregon) { Region.create!(name: "Oregon", country: united_states) }
+  let!(:rioja) { Region.create!(name: "Rioja", country: spain) }
 
   let!(:profile_one) do
     WineProfile.create!(
       slug: "pinot-noir",
       name: "Pinot Noir",
       color: "Red",
-      grapes: ['["Pinot Noir"]'],
-      regions: ['["Burgundy", "Oregon"]'],
       notes: ['["cherry", "raspberry"]'],
       serving: "Pairs with roast chicken.",
     )
@@ -27,14 +34,16 @@ RSpec.describe "Api::V1::WineProfiles", type: :request do
       slug: "chardonnay",
       name: "Chardonnay",
       color: "White",
-      grapes: ['["Chardonnay"]'],
-      regions: ['["Burgundy"]'],
       notes: ['["apple", "citrus"]'],
       serving: "Pairs with creamy pasta.",
     )
   end
 
   before do
+    profile_one.profile_grapes << pinot_noir
+    profile_one.profile_regions << [burgundy, oregon]
+    profile_two.profile_grapes << chardonnay_grape
+    profile_two.profile_regions << burgundy
     WineProfileTasteParameter.create!(wine_profile: profile_one, taste_parameter: taste_acidity, score: 4)
     WineProfileTasteParameter.create!(wine_profile: profile_one, taste_parameter: taste_body,    score: 2)
     WineProfileTasteParameter.create!(wine_profile: profile_two, taste_parameter: taste_acidity, score: 3)
@@ -74,6 +83,8 @@ RSpec.describe "Api::V1::WineProfiles", type: :request do
       expect(first).to have_key("regions")
       expect(first["grapes"]).not_to be_nil
       expect(first["regions"]).not_to be_nil
+      expect(first["grapes"]).to eq(["Pinot Noir"])
+      expect(first["regions"]).to match_array(["Burgundy", "Oregon"])
     end
   end
 
@@ -99,8 +110,8 @@ RSpec.describe "Api::V1::WineProfiles", type: :request do
           slug: "tempranillo",
           name: "Tempranillo",
           color: "Red",
-          grapes: '["Tempranillo"]',
-          regions: '["Rioja"]',
+          grapes: ["Tempranillo"],
+          regions: ["Rioja"],
           notes: '["cherry", "leather"]',
           serving: "Pairs with grilled lamb.",
         },
@@ -119,6 +130,8 @@ RSpec.describe "Api::V1::WineProfiles", type: :request do
       profile = WineProfile.find_by!(slug: "tempranillo")
       expect(profile.name).to eq("Tempranillo")
       expect(profile.color).to eq("Red")
+      expect(profile.profile_grapes).to contain_exactly(tempranillo_grape)
+      expect(profile.profile_regions).to contain_exactly(rioja)
     end
 
     it "ignores an attempted client-supplied slug and auto-generates a unique one" do

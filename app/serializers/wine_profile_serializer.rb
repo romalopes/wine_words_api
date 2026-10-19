@@ -7,8 +7,8 @@ class WineProfileSerializer
     {
       slug: @wine_profile.slug,
       name: @wine_profile.name,
-      grapes: @wine_profile.grapes,
-      regions: @wine_profile.regions,
+      grapes: @wine_profile.profile_grapes.map(&:name),
+      regions: @wine_profile.profile_regions.map(&:name),
       color: @wine_profile.color,
       notes: @wine_profile.notes,
       serving: @wine_profile.serving,

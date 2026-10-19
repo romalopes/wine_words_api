@@ -2,10 +2,10 @@
 <article class="wine-profile-page">
   <%= link_to "← All wine profiles", wine_profiles_path, class: "back-link" %>
   <h1><%= @wine_profile.name %></h1>
-  <p class="lede"><%= [@wine_profile.regions, @wine_profile.color].compact.join(" · ") %></p>
+  <p class="lede"><%= [@wine_profile.profile_regions.map(&:name).join(", ").presence, @wine_profile.color].compact.join(" · ") %></p>
   <ul class="facts" aria-label="Wine profile details">
-    <% if @wine_profile.grapes.present? %>
-      <li><strong>Grapes:</strong> <%= @wine_profile.grapes %></li>
+    <% if @wine_profile.profile_grapes.present? %>
+      <li><strong>Grapes:</strong> <%= @wine_profile.profile_grapes.map(&:name).join(", ") %></li>
     <% end %>
     <% if @wine_profile.serving.present? %>
       <li><strong>Serving:</strong> <%= @wine_profile.serving %></li>

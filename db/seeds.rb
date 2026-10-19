@@ -1,33 +1,33 @@
 # # # db/seeds.rb
 # # # Seed data for wine_prediction API
 
-Wine.destroy_all
+# Wine.destroy_all
 WineProfile.destroy_all
 TasteParameter.destroy_all
 WineProfileTasteParameter.destroy_all
 WineTasteParameter.destroy_all
-Vintage.destroy_all
-User.destroy_all
-Review.destroy_all
-Article.destroy_all
-Role.destroy_all
+# Vintage.destroy_all
+# User.destroy_all
+# Review.destroy_all
+# Article.destroy_all
+# Role.destroy_all
 
-ActiveRecord::Base.connection.reset_pk_sequence!("wines")
+# ActiveRecord::Base.connection.reset_pk_sequence!("wines")
 ActiveRecord::Base.connection.reset_pk_sequence!("wine_profiles")
 ActiveRecord::Base.connection.reset_pk_sequence!("taste_parameters")
 ActiveRecord::Base.connection.reset_pk_sequence!("wine_profile_taste_parameters")
 ActiveRecord::Base.connection.reset_pk_sequence!("wine_taste_parameters")
-ActiveRecord::Base.connection.reset_pk_sequence!("vintages")
-ActiveRecord::Base.connection.reset_pk_sequence!("articles")
-ActiveRecord::Base.connection.reset_pk_sequence!("reviews")
-ActiveRecord::Base.connection.reset_pk_sequence!("roles")
+# ActiveRecord::Base.connection.reset_pk_sequence!("vintages")
+# ActiveRecord::Base.connection.reset_pk_sequence!("articles")
+# ActiveRecord::Base.connection.reset_pk_sequence!("reviews")
+# ActiveRecord::Base.connection.reset_pk_sequence!("roles")
 
 # # --- Roles (instance rows in the DB: name + id) ---
-Role.find_or_create_by!(name: "Admin")
-Role.find_or_create_by!(name: "Editor")
-Role.find_or_create_by!(name: "Reviewer")
-Role.find_or_create_by!(name: "Reader")
-Role.find_or_create_by!(name: "Guest")
+# Role.find_or_create_by!(name: "Admin")
+# Role.find_or_create_by!(name: "Editor")
+# Role.find_or_create_by!(name: "Reviewer")
+# Role.find_or_create_by!(name: "Reader")
+# Role.find_or_create_by!(name: "Guest")
 
 
 # # Create taste parameters
@@ -86,52 +86,52 @@ p = {
 }
 
 # Packaging details per wine slug
-wine_details = {
-  "pinot-noir" => { closure: "Cork", alcohol_percentage: 13.5, volume_ml: 750 },
-  "cabernet-sauvignon" => { closure: "Cork", alcohol_percentage: 14.5, volume_ml: 750 },
-  "merlot" => { closure: "Cork", alcohol_percentage: 14.0, volume_ml: 750 },
-  "syrah-shiraz" => { closure: "Screw cap", alcohol_percentage: 14.5, volume_ml: 750 },
-  "sangiovese" => { closure: "Cork", alcohol_percentage: 13.5, volume_ml: 750 },
-  "chardonnay" => { closure: "Cork", alcohol_percentage: 13.5, volume_ml: 750 },
-  "sauvignon-blanc" => { closure: "Screw cap", alcohol_percentage: 12.5, volume_ml: 750 },
-  "riesling" => { closure: "Screw cap", alcohol_percentage: 12.0, volume_ml: 750 },
-  "prosecco" => { closure: "Cork", alcohol_percentage: 11.5, volume_ml: 750 },
-  "rose" => { closure: "Cork", alcohol_percentage: 12.5, volume_ml: 750 },
-  "tempranillo" => { closure: "Cork", alcohol_percentage: 14.0, volume_ml: 750 },
-  "malbec" => { closure: "Cork", alcohol_percentage: 14.0, volume_ml: 750 },
-  "zinfandel" => { closure: "Cork", alcohol_percentage: 14.5, volume_ml: 750 },
-  "nebbiolo" => { closure: "Cork", alcohol_percentage: 14.0, volume_ml: 750 },
-  "gamay" => { closure: "Cork", alcohol_percentage: 12.5, volume_ml: 750 },
-  "pinot-grigio" => { closure: "Cork", alcohol_percentage: 12.5, volume_ml: 750 },
-  "pinot-gris" => { closure: "Cork", alcohol_percentage: 13.5, volume_ml: 750 },
-  "viognier" => { closure: "Screw cap", alcohol_percentage: 13.5, volume_ml: 750 },
-  "gewurztraminer" => { closure: "Cork", alcohol_percentage: 13.5, volume_ml: 750 },
-  "chenin-blanc" => { closure: "Cork", alcohol_percentage: 12.5, volume_ml: 750 },
-  "semillon" => { closure: "Screw cap", alcohol_percentage: 11.5, volume_ml: 750 },
-  "gruner-veltliner" => { closure: "Screw cap", alcohol_percentage: 12.5, volume_ml: 750 },
-  "albarino" => { closure: "Cork", alcohol_percentage: 12.5, volume_ml: 750 },
-  "verdejo" => { closure: "Cork", alcohol_percentage: 13.0, volume_ml: 750 },
-  "champagne" => { closure: "Cork", alcohol_percentage: 12.5, volume_ml: 750 },
-  "cava" => { closure: "Cork", alcohol_percentage: 11.5, volume_ml: 750 },
-  "franciacorta" => { closure: "Cork", alcohol_percentage: 12.5, volume_ml: 750 },
-  "moscato-d-asti" => { closure: "Cork", alcohol_percentage: 5.5, volume_ml: 750 },
-  "sauternes" => { closure: "Cork", alcohol_percentage: 14.0, volume_ml: 375 },
-  "port-tawny" => { closure: "Cork", alcohol_percentage: 19.5, volume_ml: 750 },
-  "sherry-oloroso" => { closure: "Cork", alcohol_percentage: 18.0, volume_ml: 750 },
-  "pinotage" => { closure: "Screw cap", alcohol_percentage: 14.0, volume_ml: 750 },
-  "torrontes" => { closure: "Cork", alcohol_percentage: 13.0, volume_ml: 750 },
-  "sangiovese-blend-super-tuscan" => { closure: "Cork", alcohol_percentage: 14.5, volume_ml: 750 },
-  "penfolds-bin-389" => { closure: "Screw cap", alcohol_percentage: 14.5, volume_ml: 750 },
-  "henschke-hill-of-grace" => { closure: "Cork", alcohol_percentage: 14.5, volume_ml: 750 },
-  "leeuwin-estate-art-series" => { closure: "Screw cap", alcohol_percentage: 13.5, volume_ml: 750 },
-  "grosset-polish-hill" => { closure: "Screw cap", alcohol_percentage: 12.5, volume_ml: 750 },
-  "tyrrells-vat-1-semillon" => { closure: "Screw cap", alcohol_percentage: 10.5, volume_ml: 750 },
-  "giaconda-chardonnay" => { closure: "Cork", alcohol_percentage: 13.5, volume_ml: 750 },
-  "yalumba-signature" => { closure: "Screw cap", alcohol_percentage: 14.5, volume_ml: 750 },
-  "tolpuddle-pinot-noir" => { closure: "Cork", alcohol_percentage: 13.0, volume_ml: 750 },
-  "de-bortoli-noble-one" => { closure: "Screw cap", alcohol_percentage: 10.5, volume_ml: 375 },
-  "rockford-basket-press" => { closure: "Cork", alcohol_percentage: 14.5, volume_ml: 750 },
-}
+# wine_details = {
+#   "pinot-noir" => { closure: "Cork", alcohol_percentage: 13.5, volume_ml: 750 },
+#   "cabernet-sauvignon" => { closure: "Cork", alcohol_percentage: 14.5, volume_ml: 750 },
+#   "merlot" => { closure: "Cork", alcohol_percentage: 14.0, volume_ml: 750 },
+#   "syrah-shiraz" => { closure: "Screw cap", alcohol_percentage: 14.5, volume_ml: 750 },
+#   "sangiovese" => { closure: "Cork", alcohol_percentage: 13.5, volume_ml: 750 },
+#   "chardonnay" => { closure: "Cork", alcohol_percentage: 13.5, volume_ml: 750 },
+#   "sauvignon-blanc" => { closure: "Screw cap", alcohol_percentage: 12.5, volume_ml: 750 },
+#   "riesling" => { closure: "Screw cap", alcohol_percentage: 12.0, volume_ml: 750 },
+#   "prosecco" => { closure: "Cork", alcohol_percentage: 11.5, volume_ml: 750 },
+#   "rose" => { closure: "Cork", alcohol_percentage: 12.5, volume_ml: 750 },
+#   "tempranillo" => { closure: "Cork", alcohol_percentage: 14.0, volume_ml: 750 },
+#   "malbec" => { closure: "Cork", alcohol_percentage: 14.0, volume_ml: 750 },
+#   "zinfandel" => { closure: "Cork", alcohol_percentage: 14.5, volume_ml: 750 },
+#   "nebbiolo" => { closure: "Cork", alcohol_percentage: 14.0, volume_ml: 750 },
+#   "gamay" => { closure: "Cork", alcohol_percentage: 12.5, volume_ml: 750 },
+#   "pinot-grigio" => { closure: "Cork", alcohol_percentage: 12.5, volume_ml: 750 },
+#   "pinot-gris" => { closure: "Cork", alcohol_percentage: 13.5, volume_ml: 750 },
+#   "viognier" => { closure: "Screw cap", alcohol_percentage: 13.5, volume_ml: 750 },
+#   "gewurztraminer" => { closure: "Cork", alcohol_percentage: 13.5, volume_ml: 750 },
+#   "chenin-blanc" => { closure: "Cork", alcohol_percentage: 12.5, volume_ml: 750 },
+#   "semillon" => { closure: "Screw cap", alcohol_percentage: 11.5, volume_ml: 750 },
+#   "gruner-veltliner" => { closure: "Screw cap", alcohol_percentage: 12.5, volume_ml: 750 },
+#   "albarino" => { closure: "Cork", alcohol_percentage: 12.5, volume_ml: 750 },
+#   "verdejo" => { closure: "Cork", alcohol_percentage: 13.0, volume_ml: 750 },
+#   "champagne" => { closure: "Cork", alcohol_percentage: 12.5, volume_ml: 750 },
+#   "cava" => { closure: "Cork", alcohol_percentage: 11.5, volume_ml: 750 },
+#   "franciacorta" => { closure: "Cork", alcohol_percentage: 12.5, volume_ml: 750 },
+#   "moscato-d-asti" => { closure: "Cork", alcohol_percentage: 5.5, volume_ml: 750 },
+#   "sauternes" => { closure: "Cork", alcohol_percentage: 14.0, volume_ml: 375 },
+#   "port-tawny" => { closure: "Cork", alcohol_percentage: 19.5, volume_ml: 750 },
+#   "sherry-oloroso" => { closure: "Cork", alcohol_percentage: 18.0, volume_ml: 750 },
+#   "pinotage" => { closure: "Screw cap", alcohol_percentage: 14.0, volume_ml: 750 },
+#   "torrontes" => { closure: "Cork", alcohol_percentage: 13.0, volume_ml: 750 },
+#   "sangiovese-blend-super-tuscan" => { closure: "Cork", alcohol_percentage: 14.5, volume_ml: 750 },
+#   "penfolds-bin-389" => { closure: "Screw cap", alcohol_percentage: 14.5, volume_ml: 750 },
+#   "henschke-hill-of-grace" => { closure: "Cork", alcohol_percentage: 14.5, volume_ml: 750 },
+#   "leeuwin-estate-art-series" => { closure: "Screw cap", alcohol_percentage: 13.5, volume_ml: 750 },
+#   "grosset-polish-hill" => { closure: "Screw cap", alcohol_percentage: 12.5, volume_ml: 750 },
+#   "tyrrells-vat-1-semillon" => { closure: "Screw cap", alcohol_percentage: 10.5, volume_ml: 750 },
+#   "giaconda-chardonnay" => { closure: "Cork", alcohol_percentage: 13.5, volume_ml: 750 },
+#   "yalumba-signature" => { closure: "Screw cap", alcohol_percentage: 14.5, volume_ml: 750 },
+#   "tolpuddle-pinot-noir" => { closure: "Cork", alcohol_percentage: 13.0, volume_ml: 750 },
+#   "de-bortoli-noble-one" => { closure: "Screw cap", alcohol_percentage: 10.5, volume_ml: 375 },
+#   "rockford-basket-press" => { closure: "Cork", alcohol_percentage: 14.5, volume_ml: 750 },
+# }
 
 # # # Vintage data for wine profiles
 # # vintage_library = {
@@ -437,6 +437,7 @@ end
 # #   end
 # # end
 
+require_relative 'wine_profiles'
 puts "Seeds created successfully!"
 puts "  - #{TasteParameter.count} taste parameters"
 puts "  - #{WineProfile.count} wine profiles"

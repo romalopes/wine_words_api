@@ -20,8 +20,6 @@ RSpec.describe WineProfile, type: :model do
         profile = WineProfile.create!(
           name: "Pinot Noir",
           color: "Red",
-          grapes: '["Pinot Noir"]',
-          regions: '["Burgundy"]',
           notes: '["cherry"]',
           serving: "x",
         )
@@ -32,8 +30,6 @@ RSpec.describe WineProfile, type: :model do
         profile = WineProfile.create!(
           name: "Müller-Thurgau!",
           color: "White",
-          grapes: "[]",
-          regions: "[]",
           notes: "[]",
           serving: "x",
         )
@@ -47,8 +43,6 @@ RSpec.describe WineProfile, type: :model do
           slug: "my-pinot",
           name: "Pinot Noir",
           color: "Red",
-          grapes: "[]",
-          regions: "[]",
           notes: "[]",
           serving: "x",
         )
@@ -58,21 +52,21 @@ RSpec.describe WineProfile, type: :model do
 
     context "when the desired slug is already taken" do
       it "appends a numeric suffix" do
-        WineProfile.create!(slug: "taken", name: "First", color: "Red", grapes: "[]", regions: "[]", notes: "[]", serving: "x")
-        second = WineProfile.create!(name: "Taken", color: "Red", grapes: "[]", regions: "[]", notes: "[]", serving: "x")
+        WineProfile.create!(slug: "taken", name: "First", color: "Red", notes: "[]", serving: "x")
+        second = WineProfile.create!(name: "Taken", color: "Red", notes: "[]", serving: "x")
         expect(second.slug).to eq("taken-2")
       end
 
       it "increments the suffix past existing -2, -3, -4..." do
-        WineProfile.create!(slug: "full", name: "A", color: "Red", grapes: "[]", regions: "[]", notes: "[]", serving: "x")
-        WineProfile.create!(slug: "full-2", name: "B", color: "Red", grapes: "[]", regions: "[]", notes: "[]", serving: "x")
-        WineProfile.create!(slug: "full-3", name: "C", color: "Red", grapes: "[]", regions: "[]", notes: "[]", serving: "x")
-        fourth = WineProfile.create!(name: "Full", color: "Red", grapes: "[]", regions: "[]", notes: "[]", serving: "x")
+        WineProfile.create!(slug: "full", name: "A", color: "Red", notes: "[]", serving: "x")
+        WineProfile.create!(slug: "full-2", name: "B", color: "Red", notes: "[]", serving: "x")
+        WineProfile.create!(slug: "full-3", name: "C", color: "Red", notes: "[]", serving: "x")
+        fourth = WineProfile.create!(name: "Full", color: "Red", notes: "[]", serving: "x")
         expect(fourth.slug).to eq("full-4")
       end
 
       it "does not collide with the same record being updated" do
-        profile = WineProfile.create!(name: "Identity", color: "Red", grapes: "[]", regions: "[]", notes: "[]", serving: "x")
+        profile = WineProfile.create!(name: "Identity", color: "Red", notes: "[]", serving: "x")
         expect(profile.slug).to eq("identity")
         profile.update!(serving: "updated serving")
         expect(profile.reload.slug).to eq("identity")
@@ -81,7 +75,7 @@ RSpec.describe WineProfile, type: :model do
 
     context "on update" do
       it "does not regenerate the slug when the name changes" do
-        profile = WineProfile.create!(name: "Original", color: "Red", grapes: "[]", regions: "[]", notes: "[]", serving: "x")
+        profile = WineProfile.create!(name: "Original", color: "Red", notes: "[]", serving: "x")
         original_slug = profile.slug
         profile.update!(name: "Renamed")
         expect(profile.reload.slug).to eq(original_slug)
