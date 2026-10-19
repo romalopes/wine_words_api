@@ -137,9 +137,9 @@ halfway through a sign-in:
 
 Values take effect differently in each process:
 
-* **Rails** (dotenv-rails): edit `wine_prediction_api/.env.development`, then
+* **Rails** (dotenv-rails): edit `wine_words_api/.env.development`, then
   **restart the server** (`bin/rails server`).
-* **Vite**: edit `wine_prediction/.env.development`, then **restart
+* **Vite**: edit `wine_words/.env.development`, then **restart
   `npm run dev`** (Vite reads `import.meta.env` when the dev server starts and
   bakes the values into production builds).
 
@@ -218,20 +218,20 @@ origins on one app) and never use production secrets locally.
 4. Copy the **client ID** and put it in both places:
 
    ```
-   # wine_prediction_api/.env.development
+   # wine_words_api/.env.development
    GOOGLE_CLIENT_ID=xxxx.apps.googleusercontent.com
    ```
 
    ```
-   # wine_prediction/.env.development
+   # wine_words/.env.development
    VITE_GOOGLE_CLIENT_ID=xxxx.apps.googleusercontent.com
    ```
 
 5. Restart the Rails server and the Vite dev server.
 
 No client secret is needed anywhere — the Rails verifier checks the ID token
-against Google's published JWKS, and that token (`google.accounts.id.prompt`
-in `socialProviders.js`) never leaves the sign-in call.
+against Google's published JWKS. The frontend uses `google.accounts.id.renderButton`
+in `socialProviders.ts`; its credential is sent to the Rails sign-in endpoint.
 
 #### Apple
 
@@ -245,12 +245,12 @@ in `socialProviders.js`) never leaves the sign-in call.
 2. Use the **Services ID** for both variables:
 
    ```
-   # wine_prediction_api/.env.development
+   # wine_words_api/.env.development
    APPLE_CLIENT_ID=com.wineprediction.web
    ```
 
    ```
-   # wine_prediction/.env.development
+   # wine_words/.env.development
    VITE_APPLE_CLIENT_ID=com.wineprediction.web
    ```
 
@@ -296,13 +296,13 @@ Production needs no workaround: the Vercel URL is already HTTPS.
    into both places:
 
    ```
-   # wine_prediction_api/.env.development
+   # wine_words_api/.env.development
    MICROSOFT_CLIENT_ID=00000000-0000-0000-0000-000000000000
    MICROSOFT_TENANT_ID=common
    ```
 
    ```
-   # wine_prediction/.env.development
+   # wine_words/.env.development
    VITE_MICROSOFT_CLIENT_ID=00000000-0000-0000-0000-000000000000
    VITE_MICROSOFT_TENANT_ID=common
    ```
@@ -328,14 +328,14 @@ Production needs no workaround: the Vercel URL is already HTTPS.
 2. Copy the **App ID** and **App secret** from **Settings → Basic**:
 
    ```
-   # wine_prediction_api/.env.development
+   # wine_words_api/.env.development
    FACEBOOK_APP_ID=123456789012345
    FACEBOOK_APP_SECRET=your-app-secret-here
    # FACEBOOK_GRAPH_VERSION=v21.0   # optional — v21.0 is the default
    ```
 
    ```
-   # wine_prediction/.env.development
+   # wine_words/.env.development
    VITE_FACEBOOK_APP_ID=123456789012345
    # VITE_FACEBOOK_GRAPH_VERSION=v21.0   # optional — v21.0 is the default
    ```
@@ -350,8 +350,8 @@ Production needs no workaround: the Vercel URL is already HTTPS.
 ### Verifying the setup
 
 1. Restarted both servers? Check the exact place values are read:
-   Rails — `wine_prediction_api/.env.development` via dotenv-rails;
-   Vite — `wine_prediction/.env.development` via `import.meta.env`.
+   Rails — `wine_words_api/.env.development` via dotenv-rails;
+   Vite — `wine_words/.env.development` via `import.meta.env`.
 2. Ask the API directly which providers are usable:
 
    ```
@@ -568,3 +568,47 @@ Invitations: Wine Prediction has no invitation system at present, so none is
 integrated. The design keeps `UserIdentity` separate from invitation logic, so a
 future email-based invitation flow can hook into Case 2/3 resolution by email
 without provider-specific changes.
+
+
+## Local setup checklist (October 2026)
+
+The app already implements all four providers. IDs and provider-console settings
+must be supplied separately; blank IDs intentionally hide their buttons.
+
+| Provider | Frontend `.env.development` | API `.env.development` | Console configuration |
+|---|---|---|---|
+| Google | `VITE_GOOGLE_CLIENT_ID` | `GOOGLE_CLIENT_ID` (same value) | Web application OAuth client; authorized JavaScript origins `http://localhost:5173` and `https://wine-words.beachvolleyballhub.com` |
+| Microsoft | `VITE_MICROSOFT_CLIENT_ID`, `VITE_MICROSOFT_TENANT_ID=common` | `MICROSOFT_CLIENT_ID`, `MICROSOFT_TENANT_ID=common` | SPA registration; personal + organizational account support for `common`; register the exact frontend origin as the redirect URI |
+| Apple | `VITE_APPLE_CLIENT_ID`, `VITE_APPLE_REDIRECT_URI` | `APPLE_CLIENT_ID` | Services ID linked to a Sign in with Apple App ID; register the domain and exact HTTPS return URL; use an HTTPS development domain rather than localhost |
+| Facebook | `VITE_FACEBOOK_APP_ID`, `VITE_FACEBOOK_GRAPH_VERSION` | `FACEBOOK_APP_ID`, `FACEBOOK_APP_SECRET`, `FACEBOOK_GRAPH_VERSION` | Facebook Login app with website domain and OAuth settings; use authorized app testers during development and complete provider requirements before public rollout |
+
+For deployed frontend builds, set the `VITE_*` variables on the frontend host
+before building. Render's Rails environment does not configure the Vite bundle.
+Restart both local servers after environment changes; rebuild the production
+frontend after changing its variables. Never put the Facebook secret in Vite.
+
+### Google troubleshooting
+
+- A blank `VITE_GOOGLE_CLIENT_ID` in `.env.development` overrides a nonblank
+  value in `.env`. Check the mode-specific file, not just the shared file.
+- The custom Continue with Google control opens a native dialog containing
+  Google's official button. Click that button to open the account chooser.
+  Cancel or Escape closes the dialog. This avoids One Tap cooldowns and
+  browser suppression; no One Tap prompt is needed.
+- `origin_mismatch` / `unregistered_origin`: register the actual browser origin
+  in Google Cloud (scheme, hostname and port; no path). `localhost` and
+  `127.0.0.1` are distinct origins.
+- A Google token followed by a Rails `401` suggests audience/configuration or
+  token validation failure; a `503 provider_not_configured` means the API lacks
+  its client ID. Check the request to `/api/v1/auth/google`.
+- A `403` from this application's private test-access gate requires unlocking
+  that gate first; it is independent of Google authentication.
+- Provider-console configuration and a real user sign-in cannot be verified
+  by mocked SDK tests. Test the account chooser and resulting API response in
+  the actual deployed browser origin before treating rollout as complete.
+
+References:
+- https://developers.google.com/identity/gsi/web/guides/display-button
+- https://developer.apple.com/help/account/capabilities/configure-sign-in-with-apple-for-the-web
+- https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-single-page-app-sign-in
+- https://developers.facebook.com/docs/facebook-login/web
