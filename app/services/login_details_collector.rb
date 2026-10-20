@@ -63,7 +63,9 @@ class LoginDetailsCollector
 
   # Uses the existing `useragent` gem. All accessors degrade to UNKNOWN on any
   # parsing error so a malformed header can never raise out of the login flow.
+  # All methods return "Unknown" if the UA header was missing or parsing failed.
   def browser
+    return UNKNOWN unless agent
     agent.browser.presence || UNKNOWN
   rescue StandardError => e
     log_degradation("browser", e)
@@ -71,6 +73,7 @@ class LoginDetailsCollector
   end
 
   def browser_version
+    return UNKNOWN unless agent
     agent.version.presence || UNKNOWN
   rescue StandardError => e
     log_degradation("browser_version", e)
@@ -78,14 +81,24 @@ class LoginDetailsCollector
   end
 
   def os
+    return UNKNOWN unless agent
     agent.os.presence || UNKNOWN
   rescue StandardError => e
     log_degradation("os", e)
     UNKNOWN
   end
 
+  # The `useragent` gem has no `device` accessor, so the device class is
+  # derived from the platform and the mobile flag (iOS/Android => Mobile,
+  # everything else => Desktop). Never raises.
   def device
-    agent.device.presence || UNKNOWN
+    return UNKNOWN unless agent
+
+    if agent.mobile?
+      agent.platform.presence || "Mobile"
+    else
+      "Desktop"
+    end
   rescue StandardError => e
     log_degradation("device", e)
     UNKNOWN

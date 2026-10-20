@@ -108,6 +108,11 @@ end
     return_path: ENV.fetch("MAIL_FROM", "from@example.com")
     }
 
+  # Trust proxy headers for accurate client IP detection behind load balancers/proxies
+  # Configure based on your deployment platform (Render, AWS, etc.)
+  config.action_dispatch.trusted_proxies = ['10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16'] # RFC 1918 private networks
+  config.action_dispatch.ip_spoofing_check = true
+
   # Use the in‑process async queue for Active Job (zero extra infrastructure)
   config.active_job.queue_adapter = :async
 

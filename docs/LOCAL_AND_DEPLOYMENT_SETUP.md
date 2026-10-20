@@ -227,6 +227,13 @@ CLOUD_FLARE_R2_ACCESS_KEY_ID=your-production-media-access-key-id
 CLOUD_FLARE_R2_ACCESS_KEY=your-production-media-secret-access-key
 CLOUD_FLARE_R2_BUCKET=your-production-media-bucket
 CLOUD_FLARE_R2_ENDPOINT=https://YOUR_ACCOUNT_ID.r2.cloudflarestorage.com
+# --- Geolocation: IP2Location ----------------------------------------------
+# IP2Location API key for geolocation lookups (server-side only)
+IP2LOCATION_API_KEY=your-ip2location-api-key-here
+# IP2Location API URL (defaults to official service)
+IP2LOCATION_API_URL=https://api.ip2location.io/v2/
+# Geolocation provider to use: ip2location or null (for testing/development)
+GEOLOCATION_PROVIDER=ip2location
 ```
 
 Alternatively set `MAIL_TRANSPORT=resend` and `RESEND_API_KEY` instead of Brevo.
