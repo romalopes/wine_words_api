@@ -30,6 +30,7 @@ class Api::V1::SocialAuthController < ApplicationController
 
   include Auditable
   include UserSessionPayload
+  include LoginNotifier
 
   # Stored action name for the audit trail (descriptions are provider-specific,
   # see log_description).
@@ -47,6 +48,11 @@ class Api::V1::SocialAuthController < ApplicationController
     # path (config/initializers/devise.rb) and puts the usual JWT in the
     # Authorization response header.
     sign_in(:user, @user)
+
+    # Successful social sign-in: notify the account owner in the background.
+    # The provider name (e.g. "google") distinguishes social from password
+    # sign-ins in the notification email. This never raises.
+    notify_login!(user: @user, login_method: provider)
 
     render_user_session(@user, status: :ok)
   rescue Authentication::Error => e

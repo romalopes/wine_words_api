@@ -1,0 +1,29 @@
+<%# @user, @details, @reset_password_url are set by the mailer %>
+<p>Hi <%= @user.display_name %>,</p>
+
+<p>Your Wine Words account was just accessed from a new sign-in. Here are the details:</p>
+
+<table>
+  <tr><td><strong>Time</strong></td><td><%= @details.logged_in_at %></td></tr>
+  <tr><td><strong>Location</strong></td><td><%= @details.location %></td></tr>
+  <tr><td><strong>IP address</strong></td><td><%= @details.ip_address %></td></tr>
+  <tr><td><strong>Device</strong></td><td><%= @details.device %></td></tr>
+  <tr><td><strong>Operating system</strong></td><td><%= @details.os %></td></tr>
+  <tr><td><strong>Browser</strong></td><td><%= @details.browser %> <%= @details.browser_version %></td></tr>
+  <tr><td><strong>Sign-in method</strong></td><td><%= @details.login_method %></td></tr>
+</table>
+
+<p>
+  If this was you, you can safely ignore this email.
+</p>
+
+<p>
+  <strong>If you don't recognise this sign-in,</strong> someone may have accessed
+  your account. Please secure it immediately by resetting your password:
+</p>
+
+<p>
+  <a href="<%= @reset_password_url %>">Reset my password</a>
+</p>
+
+<p>— Wine Words Security Team</p>

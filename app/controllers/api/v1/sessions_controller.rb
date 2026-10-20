@@ -3,6 +3,7 @@ class Api::V1::SessionsController < Devise::SessionsController
 
   include Auditable
   include UserSessionPayload
+  include LoginNotifier
   # Private test-access gate (this controller inherits Devise, not
   # ApplicationController, so the concern is included directly).
   include TestAccess
@@ -43,6 +44,10 @@ class Api::V1::SessionsController < Devise::SessionsController
         }, status: :forbidden
         return
       end
+
+      # Successful sign-in: notify the account owner in the background. This
+      # never raises — a notification failure cannot fail the login response.
+      notify_login!(user: current_user, login_method: "password")
 
       render_user_session(current_user, status: :ok)
     else
