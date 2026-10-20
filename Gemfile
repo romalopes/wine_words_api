@@ -45,6 +45,8 @@ gem "rack-attack"
 
 gem "devise"
 gem "devise-jwt"
+# Parses the User-Agent header for new-login security notifications.
+gem "useragent", "~> 0.16.11"
 # Social sign-in providers (Google / Apple / Microsoft) publish their signing
 # keys as a JWKS; used directly to verify provider ID tokens server-side.
 gem "jwt"

@@ -11,6 +11,8 @@
 #
 # Never raises: any extraction failure degrades the field to "Unknown" so a
 # transient user-agent or geolocation problem can never break a login response.
+require "useragent"
+
 class LoginDetailsCollector
   UNKNOWN = LoginDetails::UNKNOWN
 
@@ -127,6 +129,8 @@ class LoginDetailsCollector
   end
 
   def agent
+    return nil if raw_user_agent == UNKNOWN
+
     @agent ||= UserAgent.parse(raw_user_agent)
   end
 

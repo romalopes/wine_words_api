@@ -482,6 +482,7 @@ DEPENDENCIES
   thruster
   turbo-rails
   tzinfo-data
+  useragent (~> 0.16.11)
 
 BUNDLED WITH
    2.7.2

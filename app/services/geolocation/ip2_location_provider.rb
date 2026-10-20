@@ -18,11 +18,12 @@
 #   }
 module Geolocation
   class Ip2LocationProvider
-    API_URL = ENV.fetch("IP2LOCATION_API_URL", "https://api.ip2location.io/v2/")
+    API_URL = ENV.fetch("IP2LOCATION_API_URL", "https://api.ip2location.io/")
     TIMEOUT = 5
 
     def resolve(ip)
       return nil if ip.blank?
+      return nil unless publicly_routable_ip?(ip)
       return nil if ENV["IP2LOCATION_API_KEY"].blank?
 
       uri = URI.parse(API_URL)
@@ -34,10 +35,16 @@ module Geolocation
       http.read_timeout = TIMEOUT
 
       response = http.request(Net::HTTP::Get.new(uri.request_uri))
-      return nil unless response.is_a?(Net::HTTPSuccess)
+      unless response.is_a?(Net::HTTPSuccess)
+        Rails.logger.warn("[geolocation] ip2location lookup failed: HTTP #{response.code}")
+        return nil
+      end
 
       body = JSON.parse(response.body.to_s)
-      return nil unless body.is_a?(Hash) && body["ip"].present?
+      unless body.is_a?(Hash) && body["ip"].present?
+        Rails.logger.warn("[geolocation] ip2location lookup failed: invalid response")
+        return nil
+      end
 
       {
         city: body["city_name"].presence,
@@ -46,8 +53,20 @@ module Geolocation
       }
     rescue StandardError => e
       # Never raise: a geolocation outage must not break login notifications.
-      Rails.logger.warn("[geolocation] ip2location lookup failed: #{e.class}")
+      Rails.logger.warn("[geolocation] ip2location lookup failed: #{e.class}: #{e.message}")
       nil
+    end
+
+    private
+
+    # Loopback, private, link-local, and otherwise non-public addresses cannot
+    # identify a visitor's public location. Skipping them avoids needless API
+    # calls during local development and makes the expected `Unknown` explicit.
+    def publicly_routable_ip?(ip)
+      address = IPAddr.new(ip)
+      !(address.loopback? || address.private? || address.link_local?)
+    rescue IPAddr::InvalidAddressError
+      false
     end
   end
 end
