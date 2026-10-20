@@ -15,13 +15,13 @@ For model relationships and workflows, start with the
 
 ## How the system fits together
 
-| Component | Responsibility | Local / hosted runtime |
-|---|---|---|
-| React + TypeScript + Vite frontend | Browser interface for readers, reviewers, producers, and administrators | Sibling `wine_prediction/` directory on port 5173 / Vercel and Cloudflare Workers |
-| Rails 8.1 backend | JSON API under `/api/v1`, authentication, permissions, and business workflows; also includes Rails-rendered pages | This repository on port 3000 / Docker on Render |
-| PostgreSQL | Application records and search data, including the `pg_trgm` extension | Dedicated development database / hosted PostgreSQL |
-| Active Storage + Cloudflare R2 | Images and other uploaded files | R2 is currently selected in both development and production |
-| Mail delivery | Password resets, verification, and workflow notifications | Local files / configured transactional email provider |
+| Component                          | Responsibility                                                                                                    | Local / hosted runtime                                                            |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| React + TypeScript + Vite frontend | Browser interface for readers, reviewers, producers, and administrators                                           | Sibling `wine_prediction/` directory on port 5173 / Vercel and Cloudflare Workers |
+| Rails 8.1 backend                  | JSON API under `/api/v1`, authentication, permissions, and business workflows; also includes Rails-rendered pages | This repository on port 3000 / Docker on Render                                   |
+| PostgreSQL                         | Application records and search data, including the `pg_trgm` extension                                            | Dedicated development database / hosted PostgreSQL                                |
+| Active Storage + Cloudflare R2     | Images and other uploaded files                                                                                   | R2 is currently selected in both development and production                       |
+| Mail delivery                      | Password resets, verification, and workflow notifications                                                         | Local files / configured transactional email provider                             |
 
 The frontend calls Rails over HTTP with JWT authentication for authenticated API
 requests. Rails reads and writes PostgreSQL records and stores uploaded media
@@ -57,7 +57,7 @@ workspace. If you cloned only the API repository, run backend commands from that
 repository's root; the frontend is a separate application.
 
 ```bash
-cd wine_prediction_api
+cd wine_words_api
 bundle install
 ```
 
@@ -182,21 +182,21 @@ alone does not configure CORS.
 
 ## Documentation map
 
-| Guide | What to use it for |
-|---|---|
-| [Local development and deployment setup](docs/LOCAL_AND_DEPLOYMENT_SETUP.md) | Complete local startup, Vercel/Cloudflare Workers/Render configuration, environment variables, and troubleshooting |
-| [Architecture and model lifecycles](docs/architecture/architecture.md) | Domain models, relationships, publication, planning, and end-to-end workflows |
-| [System and feature reference](WINE_WORDS_README.md) | Detailed architecture, domain features, API behaviour, and repository layout; consult the setup guide for current runtime configuration |
-| [Operational dashboard links](docs/general_info.md) | GitHub, Render, Vercel, Cloudflare, and monitoring dashboards |
-| [Database seed scripts](docs/DATABASE_SEEDS.md) | Each seed file, run commands, dependency order, and destructive/rerun behaviour |
-| [Database backup and restore](docs/DATABASE_BACKUP_AND_RESTORE.md) | Backup workflows, recovery, and restoring development data; database backups do not include uploaded media |
-| [Database backup script](docs/DATABASE_BACKUP_SCRIPT.md) | Standalone CLI script for backup/restore/verify/list/download with Cloudflare R2 compatibility |
-| [Domain setup](docs/wine_words_domain_setup.md) | Custom domains and DNS configuration |
-| [Cloudflare, Render, and email setup](docs/webcentral_cloudflare_render_email_setup.md) | Domain and transactional email infrastructure configuration |
-| [Email infrastructure migration](docs/email-infrastructure-migration.md) | Email migration context and procedures |
-| [Social authentication](docs/social_authentication.md) | Provider setup for Google, Apple, Microsoft, and Facebook login |
-| [User account identity](docs/user-account-identity.md) | Account identity and authentication behaviour |
-| [Wine packages](docs/architecture/wine_packages.md) | Producer/reviewer package workflow, tracking, and reminders |
+| Guide                                                                                   | What to use it for                                                                                                                      |
+| --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| [Local development and deployment setup](docs/LOCAL_AND_DEPLOYMENT_SETUP.md)            | Complete local startup, Vercel/Cloudflare Workers/Render configuration, environment variables, and troubleshooting                      |
+| [Architecture and model lifecycles](docs/architecture/architecture.md)                  | Domain models, relationships, publication, planning, and end-to-end workflows                                                           |
+| [System and feature reference](WINE_WORDS_README.md)                                    | Detailed architecture, domain features, API behaviour, and repository layout; consult the setup guide for current runtime configuration |
+| [Operational dashboard links](docs/general_info.md)                                     | GitHub, Render, Vercel, Cloudflare, and monitoring dashboards                                                                           |
+| [Database seed scripts](docs/DATABASE_SEEDS.md)                                         | Each seed file, run commands, dependency order, and destructive/rerun behaviour                                                         |
+| [Database backup and restore](docs/DATABASE_BACKUP_AND_RESTORE.md)                      | Backup workflows, recovery, and restoring development data; database backups do not include uploaded media                              |
+| [Database backup script](docs/DATABASE_BACKUP_SCRIPT.md)                                | Standalone CLI script for backup/restore/verify/list/download with Cloudflare R2 compatibility                                          |
+| [Domain setup](docs/wine_words_domain_setup.md)                                         | Custom domains and DNS configuration                                                                                                    |
+| [Cloudflare, Render, and email setup](docs/webcentral_cloudflare_render_email_setup.md) | Domain and transactional email infrastructure configuration                                                                             |
+| [Email infrastructure migration](docs/email-infrastructure-migration.md)                | Email migration context and procedures                                                                                                  |
+| [Social authentication](docs/social_authentication.md)                                  | Provider setup for Google, Apple, Microsoft, and Facebook login                                                                         |
+| [User account identity](docs/user-account-identity.md)                                  | Account identity and authentication behaviour                                                                                           |
+| [Wine packages](docs/architecture/wine_packages.md)                                     | Producer/reviewer package workflow, tracking, and reminders                                                                             |
 
 ### Database copy shortcuts
 
