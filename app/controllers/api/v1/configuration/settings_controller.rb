@@ -7,7 +7,7 @@ module Api::V1::Configuration
     before_action :authenticate_admin!
     before_action :find_setting, only: [:update, :destroy]
 
-    RESERVED_KEYS = %w[logs_enabled use_test_email test_email].freeze
+    RESERVED_KEYS = %w[logs_enabled use_test_email test_email mail_transport].freeze
 
     # GET /api/v1/configuration/settings
     def index

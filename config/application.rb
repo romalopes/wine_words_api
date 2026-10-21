@@ -7,7 +7,7 @@ require "rails/all"
 Bundler.require(*Rails.groups)
 
 # Load the mail transport adapters eagerly. They are referenced by the
-# "email_delivery.brevo" initializer below, which runs before Zeitwerk
+# "email_delivery.dynamic" initializer below, which runs before Zeitwerk
 # autoloading is set up during boot, so lib/ cannot autoload them at that
 # point. (Zeitwerk dedups by file path, so these explicit requires do not
 # conflict with config.autoload_lib managing lib/ later in the boot.)
@@ -15,6 +15,7 @@ require_relative "../lib/http_mail_delivery"
 require_relative "../lib/brevo_delivery"
 require_relative "../lib/resend_delivery"
 require_relative "../lib/mail_transport"
+require_relative "../lib/dynamic_delivery"
 require_relative "../lib/mail_sender"
 
 module WinePredictionApi
@@ -51,62 +52,54 @@ module WinePredictionApi
     # config/environments/* settings), so precedence is deterministic and
     # identical in development and production:
     #
-    #   0. MAIL_TRANSPORT=brevo|resend|smtp|file -> explicit override ("auto" =
-    #                               the automatic selection below). Handy for
-    #                               switching providers without editing the
-    #                               other variables.
-    #   1. BREVO_API_KEY present -> Brevo HTTP API (HTTPS/443 — the only mail
+    #   0. AppSetting.mail_transport (runtime override, "auto" = automatic)
+    #   1. MAIL_TRANSPORT=brevo|resend|smtp|file -> explicit env override
+    #   2. BREVO_API_KEY present -> Brevo HTTP API (HTTPS/443 — the only mail
     #                               transport allowed on Render's free plan,
     #                               which blocks outbound SMTP ports
     #                               25/465/587 since Sep 2025)
-    #   1b. RESEND_API_KEY present -> Resend HTTP API (same HTTPS rationale;
+    #   2b. RESEND_API_KEY present -> Resend HTTP API (same HTTPS rationale;
     #                               requires a verified sending domain)
-    #   2. otherwise             -> whatever the environment file chose:
-    #                               :smtp when SMTP_ADDRESS is set (kept as a
-    #                               local/paid-plan fallback), else :file
+    #   3. otherwise             -> SMTP when SMTP_ADDRESS is set, else file
     #                               (tmp/mails)
     #
-    # The rules live in MailTransport (lib/mail_transport.rb) so they are
-    # unit-tested; an override without its credentials warns and falls back
-    # rather than breaking boot or silently stopping mail.
+    # The selection rules live in MailTransport (lib/mail_transport.rb) so they
+    # are unit-tested; an override without its credentials warns and falls
+    # back rather than breaking boot or silently stopping mail.
     #
-    # Controllers, Devise and mailers stay provider-agnostic: they only build
-    # a Mail::Message and call deliver_later. Swapping Brevo for Gmail SMTP,
-    # SendGrid, Resend, etc. is a config change here + in the environment
-    # files — no application code changes.
-    initializer "email_delivery.brevo", after: "action_mailer.set_configs" do
+    # Instead of pinning ONE provider per process (the old boot-time case
+    # statement), the app registers DynamicDelivery as the process-wide
+    # delivery method. DynamicDelivery resolves the actual provider on EVERY
+    # delivery using the same MailTransport precedence, so an admin can flip
+    # the "Delivery method" setting on the Configuration page and the next
+    # e-mail already goes out through the new provider — no restart, no
+    # redeploy. API keys are read from ENV first and from the app_settings
+    # table second (see lib/dynamic_delivery.rb).
+    #
+    # The test environment keeps the :test delivery method so request specs
+    # keep using ActionMailer::Base.deliveries; the initializer's provider
+    # registrations below still run there.
+    initializer "email_delivery.dynamic", after: "action_mailer.set_configs" do
       ActionMailer::Base.add_delivery_method(:brevo, BrevoDelivery,
                                              open_timeout: 10,
                                              read_timeout: 10)
       ActionMailer::Base.add_delivery_method(:resend, ResendDelivery,
                                              open_timeout: 10,
                                              read_timeout: 10)
+      ActionMailer::Base.add_delivery_method(:dynamic, DynamicDelivery)
 
       next if Rails.env.test?
 
-      case MailTransport.resolve(ENV, logger: Rails.logger)
-      when "brevo"
-        ActionMailer::Base.delivery_method = :brevo
-        ActionMailer::Base.brevo_settings = {
-          api_key: ENV["BREVO_API_KEY"],
-          open_timeout: 10,
-          read_timeout: 10
-        }
-      when "resend"
-        ActionMailer::Base.delivery_method = :resend
-        ActionMailer::Base.resend_settings = {
-          api_key: ENV["RESEND_API_KEY"],
-          open_timeout: 10,
-          read_timeout: 10
-        }
-      when "smtp"
-        # SMTP settings come from the environment file's SMTP block; SMTP_ADDRESS
-        # is guaranteed to be present when MailTransport selects this transport.
-        ActionMailer::Base.delivery_method = :smtp
-      when "file"
-        ActionMailer::Base.delivery_method = :file
-        ActionMailer::Base.file_settings = { location: Rails.root.join("tmp/mails") }
-      end
+      ActionMailer::Base.delivery_method = :dynamic
+
+      # Log the boot-time resolution for observability. This is only a
+      # snapshot — DynamicDelivery re-resolves on every delivery, so a later
+      # runtime change (AppSetting.mail_transport) takes effect immediately
+      # without a restart.
+      Rails.logger.info(
+        "[email_delivery] DynamicDelivery active; boot-time transport: " \
+        "#{MailTransport.resolve(ENV, logger: Rails.logger)}"
+      )
     end
   end
 end

@@ -10,6 +10,7 @@ class AppSetting < ApplicationRecord
     "logs_enabled" => true,
     "use_test_email" => false,
     "test_email" => ENV["MAIL_REPLY_TO"],
+    "mail_transport" => "auto",
     "analytics_diagnostics_enabled" => false
   }.freeze
 
@@ -17,7 +18,7 @@ class AppSetting < ApplicationRecord
 
   # Keys managed directly by the API and the Configuration page controls; they
   # must not be created/updated/deleted through the custom-settings CRUD.
-  RESERVED_KEYS = %w[logs_enabled use_test_email test_email].freeze
+  RESERVED_KEYS = %w[logs_enabled use_test_email test_email mail_transport].freeze
 
   # Audit-trail master switch: when false, the Auditable concern skips
   # persisting Log/LogObject rows entirely (file logs are unaffected).
@@ -29,6 +30,58 @@ class AppSetting < ApplicationRecord
   # (to/cc/bcc) to the configured test address instead of real recipients.
   def self.use_test_email?
     boolean("use_test_email")
+  end
+
+  def self.mail_transport
+    string("mail_transport") || "auto"
+  end
+
+  def self.brevo_api_key
+    string("brevo_api_key")
+  end
+
+  def self.resend_api_key
+    string("resend_api_key")
+  end
+
+  def self.analytics_diagnostics_enabled?
+    boolean("analytics_diagnostics_enabled")
+  end
+
+  def self.analytics_diagnostics_email
+    string("analytics_diagnostics_email")
+  end
+
+  def self.analytics_diagnostics_frequency
+    string("analytics_diagnostics_frequency")
+  end
+
+  def self.analytics_diagnostics_last_sent_at
+    string("analytics_diagnostics_last_sent_at")
+  end
+
+  def self.analytics_diagnostics_next_send_at
+    string("analytics_diagnostics_next_send_at")
+  end
+
+  def self.analytics_diagnostics_last_error
+    string("analytics_diagnostics_last_error")
+  end
+
+  def self.analytics_diagnostics_last_successful_send_at
+    string("analytics_diagnostics_last_successful_send_at")
+  end
+
+  def self.analytics_diagnostics_last_successful_send_count
+    string("analytics_diagnostics_last_successful_send_count")
+  end
+
+  def self.analytics_diagnostics_last_successful_send_duration
+    string("analytics_diagnostics_last_successful_send_duration")
+  end
+
+  def self.analytics_diagnostics_last_successful_send_size
+    string("analytics_diagnostics_last_successful_send_size")
   end
 
   def self.test_email
@@ -47,23 +100,23 @@ class AppSetting < ApplicationRecord
   # the default rather than nil (nil would read as "disabled").
   def self.boolean(key)
     raw = find_by(key: key.to_s)&.value
-    return DEFAULTS.fetch(key.to_s) if raw.nil?
+    return DEFAULTS.fetch(key.to_s, nil) if raw.nil?
     return raw unless raw.is_a?(String)
 
     ActiveModel::Type::Boolean.new.cast(raw)
   rescue ActiveRecord::StatementInvalid
     # Table may not exist yet (e.g. mid-migration boot); default safely.
-    DEFAULTS[key.to_s]
+    DEFAULTS.fetch(key.to_s, nil)
   end
 
   # Like boolean, for string-valued settings: a missing row falls back to the
   # default rather than nil.
   def self.string(key)
     raw = find_by(key: key.to_s)&.value
-    return DEFAULTS.fetch(key.to_s) if raw.nil?
+    return DEFAULTS.fetch(key.to_s, nil) if raw.nil?
     raw
   rescue ActiveRecord::StatementInvalid
-    DEFAULTS[key.to_s]
+    DEFAULTS.fetch(key.to_s, nil)
   end
 
   # Generic getter that returns the value with default fallback.

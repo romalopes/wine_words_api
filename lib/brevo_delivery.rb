@@ -25,8 +25,9 @@ class BrevoDelivery
   # Raised for missing configuration, transport failures (e.g. timeouts) and
   # non-2xx API responses. With config.action_mailer.raise_delivery_errors = true
   # the message surfaces in the job log (Render's log stream) instead of being
-  # swallowed, matching how the old SMTP failures were reported.
-  class Error < StandardError; end
+  # swallowed, matching how the old SMTP failures were reported. Inherits from
+  # HttpMailDelivery::DeliveryError so DynamicDelivery re-raises it unwrapped.
+  class Error < HttpMailDelivery::DeliveryError; end
 
   ENDPOINT = URI("https://api.brevo.com/v3/smtp/email")
   PROVIDER = "Brevo"

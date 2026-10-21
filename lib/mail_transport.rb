@@ -16,8 +16,12 @@
 class MailTransport
   SUPPORTED = %w[ brevo resend smtp file ].freeze
 
-  def self.resolve(env, logger: nil)
-    new(env, logger: logger).resolve
+  # `override` lets a runtime source (the `mail_transport` app setting) take
+  # precedence over the boot-time ENV["MAIL_TRANSPORT"]. It is only consulted
+  # when it names a supported transport; anything else falls back to ENV and
+  # then to the automatic selection.
+  def self.resolve(env, logger: nil, override: nil)
+    new(env, logger: logger, override: override).resolve
   end
 
   # The transport name to surface in diagnostics.
@@ -31,20 +35,22 @@ class MailTransport
   #
   # Otherwise this resolves the transport name the operator requested, just
   # like {.resolve}.
-  def self.effective_transport_name(env, logger: nil)
+  def self.effective_transport_name(env, logger: nil, override: nil)
     return "test" if Rails.env.test?
 
-    resolve(env, logger: logger)
+    resolve(env, logger: logger, override: override)
   end
 
-  def initialize(env, logger: nil)
+  def initialize(env, logger: nil, override: nil)
     @env = env
     @logger = logger
+    @override = override
   end
 
   def resolve
     automatic = automatic_transport
-    requested = @env["MAIL_TRANSPORT"].to_s.strip.downcase
+    requested = requested_transport
+
     if requested.empty? || requested == "auto"
       warn_multiple_keys(automatic)
       return automatic
@@ -69,11 +75,22 @@ class MailTransport
       warn_about("MAIL_TRANSPORT=smtp requires SMTP_ADDRESS", automatic)
       return automatic
     end
-
     requested
   end
 
   private
+
+  # The explicitly requested transport: the runtime override first, then the
+  # boot-time ENV variable. An override that is blank or "auto" means "no
+  # explicit choice" and lets ENV decide; this keeps the setting's default of
+  # "auto" from masking a MAIL_TRANSPORT set in the environment.
+  def requested_transport
+    override = @override.to_s.strip.downcase
+    return override unless override.empty? || override == "auto"
+
+    @env["MAIL_TRANSPORT"].to_s.strip.downcase
+    # AppSetting.mail_transport
+  end
 
   def automatic_transport
     return "brevo" if present?(@env["BREVO_API_KEY"])

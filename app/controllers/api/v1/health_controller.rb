@@ -162,7 +162,7 @@ class Api::V1::HealthController < ApplicationController
     if Rails.env.test?
       # In the test environment, we use the effective transport name for logging and
       # build a note similar to the original logic.
-      requested_transport = ENV["MAIL_TRANSPORT"]
+      requested_transport = AppSetting.mail_transport # || ENV["MAIL_TRANSPORT"]
       configured_transport = MailTransport.resolve(ENV, logger: Rails.logger)
       transport_note =
         if requested_transport.present? && requested_transport != "auto"
@@ -197,8 +197,9 @@ class Api::V1::HealthController < ApplicationController
       used_transport = transport_to_use
     else
       # In non-test environments, we try transports in order until one succeeds.
-      requested_transport = ENV["MAIL_TRANSPORT"]
+      requested_transport = AppSetting.mail_transport # || ENV["MAIL_TRANSPORT"]
       configured_transport = MailTransport.resolve(ENV, logger: Rails.logger)
+
 
       # Build an ordered list of transports to try (without duplicates)
       transports_to_try = []

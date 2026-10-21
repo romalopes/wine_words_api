@@ -16,7 +16,7 @@ RSpec.describe "Api::V1::Configurations", type: :request do
 
   after do
     # Restore the global defaults so other specs are not affected by the toggles.
-    AppSetting.where(key: %w[logs_enabled use_test_email test_email]).destroy_all
+    AppSetting.where(key: %w[logs_enabled use_test_email test_email mail_transport]).destroy_all
   end
 
   describe "GET /api/v1/configuration" do
@@ -38,7 +38,9 @@ RSpec.describe "Api::V1::Configurations", type: :request do
       expect(JSON.parse(response.body)).to eq({
         "logs_saved_to_database" => true,
         "use_test_email" => false,
-        "test_email" => "romalopes@yahoo.com.br",
+        # Falls back to the MAIL_REPLY_TO env var, which is unset in CI.
+        "test_email" => ENV["MAIL_REPLY_TO"],
+        "mail_transport" => "auto",
         "settings" => []
       })
     end
@@ -91,6 +93,37 @@ RSpec.describe "Api::V1::Configurations", type: :request do
       expect(JSON.parse(response.body)["test_email"]).to eq("tester@example.com")
       expect(AppSetting.use_test_email?).to be(true)
       expect(AppSetting.test_email).to eq("tester@example.com")
+    end
+
+    it "persists the mail transport setting and echoes it back" do
+      sign_in admin
+      patch "/api/v1/configuration", params: { mail_transport: "smtp" }, as: :json
+
+      expect(response).to have_http_status(:ok)
+      expect(JSON.parse(response.body)["mail_transport"]).to eq("smtp")
+      expect(AppSetting.mail_transport).to eq("smtp")
+
+      patch "/api/v1/configuration", params: { mail_transport: "auto" }, as: :json
+      expect(JSON.parse(response.body)["mail_transport"]).to eq("auto")
+      expect(AppSetting.mail_transport).to eq("auto")
+    end
+
+    it "accepts mail_transport nested under configuration" do
+      sign_in admin
+      allow(Rails.logger).to receive(:warn)
+      patch "/api/v1/configuration",
+            params: { configuration: { mail_transport: "brevo" } }, as: :json
+
+      expect(response).to have_http_status(:ok)
+      expect(JSON.parse(response.body)["mail_transport"]).to eq("brevo")
+      expect(AppSetting.mail_transport).to eq("brevo")
+      expect(Rails.logger).not_to have_received(:warn).with(a_string_including("Unpermitted parameter"))
+    end
+
+    it "leaves mail_transport untouched when absent" do
+      sign_in admin
+      patch "/api/v1/configuration", params: { logs_saved_to_database: false }, as: :json
+      expect(AppSetting.mail_transport).to eq("auto") # default, never set
     end
 
     it "persists email test settings sent nested under configuration" do

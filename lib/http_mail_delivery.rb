@@ -20,6 +20,14 @@ require "uri"
 module HttpMailDelivery
   DEFAULT_TIMEOUT = 10
 
+  # Base class for the delivery layer's errors. Provider adapters raise their
+  # own subclass (BrevoDelivery::Error, ResendDelivery::Error, ...) so the job
+  # log keeps the provider-specific message and error class. DynamicDelivery
+  # re-raises every DeliveryError unwrapped and only wraps unexpected errors
+  # (DNS failures, bugs, ...) with the transport name — see
+  # lib/dynamic_delivery.rb.
+  class DeliveryError < StandardError; end
+
   # Mail::Address for a raw header value ("Wine Words <a@b.com>"), or nil when
   # the value is blank or carries no address part.
   def parse_address(raw)

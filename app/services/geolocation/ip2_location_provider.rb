@@ -18,7 +18,7 @@
 #   }
 module Geolocation
   class Ip2LocationProvider
-    API_URL = ENV.fetch("IP2LOCATION_API_URL", "https://api.ip2location.io/")
+    API_URL = ENV.fetch("IP2LOCATION_API_URL", "https://api.ip2location.io/v2/")
     TIMEOUT = 5
 
     def resolve(ip)

@@ -19,8 +19,9 @@ class ResendDelivery
 
   # Raised for missing configuration, transport failures (e.g. timeouts) and
   # non-2xx API responses; surfaced in the job log by
-  # config.action_mailer.raise_delivery_errors = true.
-  class Error < StandardError; end
+  # config.action_mailer.raise_delivery_errors = true. Inherits from
+  # HttpMailDelivery::DeliveryError so DynamicDelivery re-raises it unwrapped.
+  class Error < HttpMailDelivery::DeliveryError; end
 
   ENDPOINT = URI("https://api.resend.com/emails")
   PROVIDER = "Resend"
