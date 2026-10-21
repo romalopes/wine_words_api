@@ -31,6 +31,7 @@ class ReviewListSerializer
       overdue: @review.overdue?,
       days_until_deadline: @review.days_until_deadline,
       created_at: @review.created_at&.iso8601,
+      updated_at: @review.updated_at&.iso8601,
       **like_fields(@review, @liked_ids),
       images: image_urls(@review),
       wine_image: wine_image_url

@@ -28,6 +28,7 @@ class ArticleListSerializer
       overdue: @article.overdue?,
       days_until_deadline: @article.days_until_deadline,
       created_at: @article.created_at&.iso8601,
+      updated_at: @article.updated_at&.iso8601,
       **like_fields(@article, @liked_ids),
       images: image_urls(@article)
     }

@@ -27,6 +27,7 @@ class Api::V1::ArticlesController < ApplicationController
     articles = articles.joins(:article_categories).where(article_categories: { category_id: params[:category_id] }).distinct if params[:category_id].present?
     articles = articles.left_outer_joins(:article_categories).where(article_categories: { id: nil }) if params[:uncategorised] == "true"
     articles = articles.where(source: params[:source]) if params[:source].present?
+    articles = apply_management_filters(articles)
     # Full-text search (title, abstract, body, tags, category, author) plus the
     # requested ordering. `ordered_for_search` replaces `recent` instead of
     # appending to it, otherwise recency wins and relevance is silently ignored.
@@ -228,6 +229,27 @@ class Api::V1::ArticlesController < ApplicationController
   end
 
   private
+
+  # Management-list filters run after the existing visibility scope. They can
+  # only narrow the set of records a caller can already see, never reveal
+  # another author's drafts to an ordinary account.
+  def apply_management_filters(scope)
+    scope = scope.where(user: current_user) if params[:scope] == "mine" && current_user
+    scope = scope.where(status: params[:status]) if Article::STATUSES.include?(params[:status])
+
+    case params[:deadline]
+    when "overdue"
+      scope.where(status: "draft").where("deadline < ?", Date.current)
+    when "due_soon"
+      scope.where(status: "draft", deadline: Date.current..(Date.current + 7))
+    when "none"
+      scope.where(deadline: nil)
+    when "has"
+      scope.where.not(deadline: nil)
+    else
+      scope
+    end
+  end
 
   # The listing's single search term. `search` is the deprecated spelling of
   # `query`: the two parameters used to run different code — `query` did a

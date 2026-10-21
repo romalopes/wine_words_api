@@ -72,7 +72,17 @@ class Article < ApplicationRecord
   SORT_ORDERS = {
     "relevance" => ->(columns, rank) { "#{rank} DESC NULLS LAST, #{columns}id DESC" },
     "recent" => ->(columns, _rank) { "#{columns}created_at DESC, #{columns}id DESC" },
-    "oldest" => ->(columns, _rank) { "#{columns}created_at ASC, #{columns}id ASC" }
+    "oldest" => ->(columns, _rank) { "#{columns}created_at ASC, #{columns}id ASC" },
+    "created_asc" => ->(columns, _rank) { "#{columns}created_at ASC, #{columns}id ASC" },
+    "created_desc" => ->(columns, _rank) { "#{columns}created_at DESC, #{columns}id DESC" },
+    "updated_asc" => ->(columns, _rank) { "#{columns}updated_at ASC, #{columns}id ASC" },
+    "updated_desc" => ->(columns, _rank) { "#{columns}updated_at DESC, #{columns}id DESC" },
+    "deadline_asc" => ->(columns, _rank) { "#{columns}deadline ASC NULLS LAST, #{columns}id ASC" },
+    "deadline_desc" => ->(columns, _rank) { "#{columns}deadline DESC NULLS LAST, #{columns}id DESC" },
+    "title_asc" => ->(columns, _rank) { "#{columns}title ASC, #{columns}id ASC" },
+    "title_desc" => ->(columns, _rank) { "#{columns}title DESC, #{columns}id DESC" },
+    "published_asc" => ->(columns, _rank) { "#{columns}published_at ASC NULLS LAST, #{columns}id ASC" },
+    "published_desc" => ->(columns, _rank) { "#{columns}published_at DESC NULLS LAST, #{columns}id DESC" }
   }.freeze
 
   # Reviews shown at the bottom of the article page.

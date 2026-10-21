@@ -213,7 +213,7 @@ loading/error/empty states, and tests. Reuse existing design components.
 
 **Tasks**
 
-1. Show resource-specific columns and search labels.
+1. Show resource-specific columns and search labels.(reuse the existing components)
 2. Link rows to existing edit/detail pages.
 3. Show deadline badges and author ownership indicators.
 4. Validate differences between Article and Review models.
@@ -312,3 +312,102 @@ changed files, and a manual QA checklist. Update relevant project docs.
 - Should article and review management include deletion or only archival?
 
 **Recommendation:** Deliver the core lists first, then add lifecycle and bulk actions once existing authorization and state transitions are confirmed.
+
+## 11. Implementation record — completed 2026-10-21
+
+### Phase 1 — Repository audit ✅
+
+- Confirmed frontend routes: `/settings/reviews` and `/settings/articles`.
+- Confirmed `Review` and `Article` both use `draft`, `published`, and
+  `archived` statuses and have a nullable, date-only `deadline` column. No
+  migration was required.
+- Confirmed `Deadlineable` uses `Date.current`: today is due today rather than
+  overdue; only drafts can be overdue; published and archived records are never
+  operationally overdue.
+- Confirmed ownership is `user_id`; existing API visibility and update actions
+  remain server-authorized. The management UI is gated by the existing
+  Admin/Editor/Reviewer (`wine_manager`) role check.
+- Confirmed Reviews require a wine/vintage creation path and Articles have no
+  standalone `/articles/new` route. The MVP therefore exposes the existing
+  supported view, edit, publish, unpublish, and archive workflows rather than
+  unsupported “New” buttons.
+
+### Phase 2 — Backend list contract and tests ✅
+
+- Extended the existing `GET /api/v1/reviews` and `GET /api/v1/articles`
+  endpoints without changing their legacy unpaginated behavior.
+- Added conjunctive, server-side management filters:
+  - `scope=mine`
+  - `status=draft|published|archived`
+  - `deadline=overdue|due_soon|none|has`
+- `overdue` means draft plus `deadline < Date.current`; `due_soon` means draft
+  plus a deadline from today through seven calendar days ahead. This excludes
+  published/archived records by design.
+- Added allowlisted sort values: `created_asc`, `created_desc`, `updated_asc`,
+  `updated_desc`, `deadline_asc`, `deadline_desc`, `title_asc`, `title_desc`,
+  `published_asc`, and `published_desc`. Deadline and published sorts place
+  nulls last and include `id` as a deterministic tie-breaker.
+- Added `updated_at` to both lean list serializers.
+- Added request coverage for combined Mine/status/deadline/search filtering,
+  today versus overdue behavior, published/archived exclusion, legacy null
+  deadlines, and deadline sorting. Existing content-search coverage remains
+  green.
+
+### Phase 3 — Shared management UI and navigation ✅
+
+- Added shared `ContentManagementList` React infrastructure used by the two
+  dedicated management pages.
+- Added permission-aware **Reviews** and **Articles** entries to the existing
+  Settings dropdown and routes in `AppRoutes`.
+- Pages use the existing management table, pagination, loading, empty, error,
+  and responsive overflow conventions, with title/wine/vintage/author/status/
+  deadline/timestamp columns based on the actual serializers.
+
+### Phase 4 — URL state, filtering, and pagination ✅
+
+- Search is debounced by 300 ms; status, deadline, Mine, sort, search, and page
+  state live in the URL.
+- Filter changes remove `page`, returning the list to page 1; pagination uses
+  the existing server-side pagination envelope.
+- Opening view/edit appends the complete originating management URL as
+  `returnTo`, preserving list context. Added `/reviews/:slug/edit` to match the
+  existing review detail/form workflow and the pre-existing article edit route.
+
+### Phase 5 — Lifecycle actions ✅
+
+- Each row exposes only existing lifecycle transitions: Publish, Unpublish, and
+  Archive. The shared list calls the existing authorized PATCH endpoints rather
+  than duplicating workflow logic.
+- API failures are surfaced in the page. No bulk actions, restore action,
+  deletion action, or new status was introduced.
+
+### Phase 6 — QA and validation ✅
+
+- Rails: `bundle exec rspec spec/requests/api/v1/content_management_filters_spec.rb spec/requests/api/v1/reviews_search_spec.rb spec/requests/api/v1/articles_search_spec.rb`
+  — **45 examples, 0 failures**.
+- Frontend: `npm test -- --run src/components/ContentManagementList.test.tsx src/components/DeadlineBadge.test.tsx`
+  — **9 tests passed**.
+- Frontend: `npm run typecheck` — passed.
+- Frontend: `npm run lint` — passed with six pre-existing warnings unrelated to
+  this feature.
+- Frontend: `npm run build` — passed. Vite reports existing Sentry named-export
+  warnings and a large-bundle advisory; neither stopped the build.
+- `git diff --check` passed in both repositories.
+
+### Final routes and query parameters
+
+- Pages: `/settings/reviews` and `/settings/articles`.
+- API: existing `/api/v1/reviews` and `/api/v1/articles` indexes.
+- Query parameters: `page`, `per_page`, `query`, `scope=mine`, `status`,
+  `deadline=overdue|due_soon|none|has`, and the allowlisted `sort` values above.
+
+### Manual QA checklist
+
+- Verify the Settings entries appear for Admin, Editor, and Reviewer accounts
+  and remain absent for Reader/Guest accounts.
+- Combine Mine + Draft + Overdue, change sort, paginate, open View/Edit, and
+  return to confirm the full URL state is retained.
+- Verify a deadline equal to today appears as due today and appears in Due Soon,
+  not Overdue.
+- Check narrow-screen horizontal table scrolling and keyboard access to every
+  filter and row action.
