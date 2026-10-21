@@ -84,6 +84,18 @@
     <%= form.file_field :images, multiple: true, accept: "image/*" %>
   </div>
 
+  <div class="field">
+    <%= form.label :deadline, "Deadline" %>
+    <%= form.date_field :deadline %>
+    <p class="deadline-field-note">
+      <% if article.persisted? && article.deadline.present? %>
+        Currently <%= deadline_label(article) %>. Published and archived articles keep the date but are never flagged overdue.
+      <% else %>
+        Defaults to 14 days from today unless you pick a date. Drafts past their deadline show as overdue.
+      <% end %>
+    </p>
+  </div>
+
   <div class="page-actions">
     <%= form.hidden_field :status, value: article.status || "draft", id: "article_status_hidden" %>
     <button type="submit" class="btn"

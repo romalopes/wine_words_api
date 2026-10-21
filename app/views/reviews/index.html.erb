@@ -64,6 +64,7 @@
                 <% if can_manage_wines? %>
                   <span class="tag"><%= review.status %></span>
                 <% end %>
+                <%= deadline_badge(review) %>
               </div>
             </div>
           <% end %>

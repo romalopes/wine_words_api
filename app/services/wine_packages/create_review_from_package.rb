@@ -30,6 +30,13 @@ module WinePackages
       raise WinePackages::Error, "A review needs a reviewer." if user.nil?
 
       review = Review.new(attributes.merge(vintage: item.vintage, user: user))
+      # Issue #185: inherit the package's review deadline unless the caller
+      # supplied an explicit one. Applied BEFORE save so the model's 14-day
+      # fallback never wins over a real package deadline. Copying the date is a
+      # creation-time decision: later edits to the package never cascade.
+      if review.deadline.nil? && item.wine_package&.review_deadline.present?
+        review.deadline = item.wine_package.review_deadline
+      end
       review.save!
       item.update!(review: review)
 

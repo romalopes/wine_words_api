@@ -122,3 +122,50 @@ Inspect models, schema, migrations, status enums, WinePackage deadline, Review�
 3. Confirm whether legacy draft records should be backfilled or left null.
 4. Confirm whether overdue filtering/sorting belongs in this issue or the separate Settings list-management issue.
 5. Confirm whether a manual deadline is editable after publication (it is historically retained but no longer operational).
+
+## Implementation status (completed 2026-10-21)
+
+Full change log, file list and test output:
+[`ISSUE_185_IMPLEMENTATION_REPORT.md`](./ISSUE_185_IMPLEMENTATION_REPORT.md).
+
+### Decisions applied to the open questions
+
+| # | Decision |
+|---|---|
+| 1 | Articles **do** default to creation + 14 days |
+| 2 | **WinePackage** deadline beats the Article deadline |
+| 3 | Legacy drafts are **left null** (no backfill); they read as "No deadline" |
+| 4 | Overdue filtering/sorting is **deferred** to the future Settings issue |
+| 5 | The deadline stays **editable after publication**, but is no longer operational |
+
+### Phase status
+
+| Phase | Status | What shipped |
+|---|---|---|
+| 0 — Audit | ✅ Done | Models, schema, associations, creation paths, authorization and serializers mapped. Found no existing Article/Review deadline column. Found **no Article→Review creation path** (Article inheritance implemented as a resolver + specs). |
+| 1 — Database & model | ✅ Done | Two reversible migrations; new `Deadlineable` concern (14-day fallback, draft-only `overdue?`, signed day count); `Article`/`Review` include it; `Review#inherited_deadline` (WinePackage → Article); `CreateReviewFromPackage` copies the package deadline before save. |
+| 2 — API & authorization | ✅ Done | `:deadline` permitted in all four controllers; `deadline`, `overdue`, `days_until_deadline` added to the four serializers; existing ownership rules unchanged (unrelated users still get `403`). |
+| 3 — Editor forms | ✅ Done | Rails ERB `date_field` with contextual notes; React `date` inputs wired into the JSON and `FormData` payloads; date-only `YYYY-MM-DD` to avoid timezone shifts. |
+| 4 — List/detail UX | ✅ Done | Shared `DeadlineBadge` (React) and `deadlines_helper` (Rails). Drafts show "Due 21 Oct 2026" / "Due today" / "Overdue by N days" as text + icon; published/archived never render a warning. **No filtering/sorting** (decision #4). |
+| 5 — Tests & verification | ✅ Done | 32 new RSpec examples, 0 failures; 6 new Vitest cases, 0 failures; `tsc -b --noEmit` and ESLint clean. 57 backend and 3 frontend failures are pre-existing/environmental and unrelated (documented in the report). |
+
+### Verification commands run
+
+```bash
+# backend
+bin/rails db:migrate
+bundle exec rspec spec/models/deadlineable_spec.rb spec/requests/api/v1/deadlines_spec.rb spec/requests/web_deadlines_spec.rb
+bundle exec rubocop <new/changed files>
+
+# frontend
+npx tsc -b --noEmit
+npx eslint src/components/DeadlineBadge.tsx ...
+npx vitest run
+```
+
+### Deliberately out of scope
+
+- Overdue filter and deadline sorting (decision #4).
+- Backfilling legacy drafts (decision #3).
+- Any notification, auto-publish or auto-archive behaviour.
+- New authorization rules — deadline edits reuse the record's existing policy.

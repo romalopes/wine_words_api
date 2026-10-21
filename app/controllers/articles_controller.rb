@@ -160,7 +160,7 @@ class ArticlesController < ActionController::Base
 
   def article_params
     permitted = params.require(:article).permit(
-      :title, :abstract, :body, :status, :published_at,
+      :title, :abstract, :body, :status, :published_at, :deadline,
       :tag_names, vintage_ids: [], review_ids: [], producer_ids: [],
       category_ids: []
     )

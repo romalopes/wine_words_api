@@ -3,6 +3,9 @@ class Article < ApplicationRecord
   include Likeable
   include Commentable
   include TextSearchable
+  # Issue #185: publication deadlines. Articles default to creation + 14 days
+  # (confirmed product decision); drafts can be overdue, published cannot.
+  include Deadlineable
 
   belongs_to :user
   has_one :article_project, dependent: :nullify

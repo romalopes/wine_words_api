@@ -92,6 +92,17 @@
     <%= f.datetime_field :published_at %>
   </div>
   <div>
+    <%= f.label :deadline %><br>
+    <%= f.date_field :deadline %>
+    <p class="deadline-field-note">
+      <% if review.persisted? && review.deadline.present? %>
+        Currently <%= deadline_label(review) %>. Published and archived reviews keep the date but are never flagged overdue.
+      <% else %>
+        Defaults to 14 days from today unless you pick a date. A review started from a wine package inherits that package's deadline.
+      <% end %>
+    </p>
+  </div>
+  <div>
     <%= f.label :images, "Images" %>
     <%= f.file_field :images, multiple: true, direct_upload: false %>
   </div>

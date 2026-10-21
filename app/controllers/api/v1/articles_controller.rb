@@ -273,7 +273,7 @@ class Api::V1::ArticlesController < ApplicationController
 
   def article_params
     permitted = params.require(:article).permit(
-      :title, :abstract, :body, :status, :published_at, :source,
+      :title, :abstract, :body, :status, :published_at, :source, :deadline,
       :tag_names, vintage_ids: [], review_ids: [], producer_ids: [],
       category_ids: []
     )

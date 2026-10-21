@@ -27,6 +27,11 @@ class ArticleSerializer
       author_name: @article.user&.display_name || @article.user&.email || "Unknown",
       source: @article.source,
       published_at: @article.published_at&.iso8601,
+      # Issue #185: deadline is a date-only value; overdue is computed the same
+      # way in list and detail payloads so the two can never disagree.
+      deadline: @article.deadline&.iso8601,
+      overdue: @article.overdue?,
+      days_until_deadline: @article.days_until_deadline,
       created_at: @article.created_at&.iso8601,
       updated_at: @article.updated_at&.iso8601,
       tags: @article.tags.map(&:name),

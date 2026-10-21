@@ -59,6 +59,7 @@
                 <% if can_manage_wines? %>
                   <span class="tag"><%= article.status %></span>
                 <% end %>
+                <%= deadline_badge(article) %>
                 <% article.tags.limit(3).each do |tag| %>
                   <span class="tag"><%= tag.name %></span>
                 <% end %>

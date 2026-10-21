@@ -24,6 +24,9 @@ class ArticleListSerializer
       category: @article.categories.map(&:name).join(", ").presence,
       categories: @article.categories.map { |c| { id: c.id, name: c.name, slug: c.slug } },
       published_at: @article.published_at&.iso8601,
+      deadline: @article.deadline&.iso8601,
+      overdue: @article.overdue?,
+      days_until_deadline: @article.days_until_deadline,
       created_at: @article.created_at&.iso8601,
       **like_fields(@article, @liked_ids),
       images: image_urls(@article)

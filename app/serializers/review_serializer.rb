@@ -33,6 +33,10 @@ class ReviewSerializer
       categories: categories,
       category_ids: @review.categories.map(&:id),
       source: @review.source,
+      # Issue #185: draft-only deadline/overdue state, mirroring WinePackage.
+      deadline: @review.deadline&.iso8601,
+      overdue: @review.overdue?,
+      days_until_deadline: @review.days_until_deadline,
       images: image_urls(@review),
       image_ids: image_ids(@review),
       image_details: image_details(@review),

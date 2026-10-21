@@ -9,6 +9,7 @@
       · <%= @review.vintage.no_vintage? ? "NV" : @review.vintage.year %>
     <% end %>
     <%= " · #{review_score(@review)}" if @review.vintage&.wine %>
+    <%= deadline_badge(@review) %>
   </p>
 
   <% if user_signed_in? && @review.user_id == current_user.id %>

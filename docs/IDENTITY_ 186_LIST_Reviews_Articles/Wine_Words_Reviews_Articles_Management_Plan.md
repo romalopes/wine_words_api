@@ -1,7 +1,8 @@
 # Wine Words — Reviews & Articles Management Implementation Plan
 
-**Date:** 2026-10-21  
+**Date:** 2026-10-21
 **Repositories:**
+
 - API: https://github.com/romalopes/wine_words_api
 - Frontend: https://github.com/romalopes/wine_words_frontend
 
@@ -57,6 +58,7 @@ Do not introduce new database columns merely to support a filter if equivalent f
 ### Shared layout
 
 - Heading: **Manage Reviews** or **Manage Articles**.
+- Use ReviewTable and ArticleTable components
 - **New Review / New Article** action, shown only if authorized.
 - Text search input with debounce.
 - Status dropdown: All, Draft, Published, Archived.
@@ -92,16 +94,16 @@ Use compact status labels and visually distinguish overdue deadlines. Keep sorti
 
 ## 5. Filter semantics
 
-| Filter | Definition |
-|---|---|
-| Draft | Current unpublished draft state in existing schema |
-| Published | Existing published state |
-| Archived | Existing archived state, if supported; otherwise document migration/workflow requirement |
-| Mine | Authored/owned by the current authenticated account according to existing ownership model |
-| Overdue | Deadline earlier than today **and** not published/archived, unless existing business rules specify otherwise |
-| Due Soon | Deadline today through seven calendar days ahead and not published/archived |
-| No Deadline | Deadline is null |
-| Has Deadline | Deadline is not null |
+| Filter       | Definition                                                                                                   |
+| ------------ | ------------------------------------------------------------------------------------------------------------ |
+| Draft        | Current unpublished draft state in existing schema                                                           |
+| Published    | Existing published state                                                                                     |
+| Archived     | Existing archived state, if supported; otherwise document migration/workflow requirement                     |
+| Mine         | Authored/owned by the current authenticated account according to existing ownership model                    |
+| Overdue      | Deadline earlier than today **and** not published/archived, unless existing business rules specify otherwise |
+| Due Soon     | Deadline today through seven calendar days ahead and not published/archived                                  |
+| No Deadline  | Deadline is null                                                                                             |
+| Has Deadline | Deadline is not null                                                                                         |
 
 **Date handling:** Choose the application's configured business timezone and define calendar-day boundaries consistently on the server. A deadline equal to today is **not overdue**. Avoid client/server timezone disagreement.
 
@@ -134,6 +136,7 @@ Return list fields and pagination metadata using the project's current serialize
 ### Phase 1 — Audit the repositories
 
 **Tasks**
+
 1. Locate Settings navigation, routes, Producers list, list APIs, query patterns, and tests.
 2. Inspect Review/Article models, relationships, status fields, deadline fields, and ownership rules.
 3. Inspect current editor pages and publish/archive actions.
@@ -158,6 +161,7 @@ contract. Do not change code or invent schema fields in this phase.
 ### Phase 2 — Backend management listings
 
 **Tasks**
+
 1. Implement authorized listing/query logic for both resources.
 2. Add status, mine, deadline, search and sorting parameters.
 3. Add pagination metadata and deterministic ordering.
@@ -183,6 +187,7 @@ changed and explain any migration proposed before applying it.
 ### Phase 3 — Shared frontend components and Settings navigation
 
 **Tasks**
+
 1. Add Reviews and Articles entries under Settings.
 2. Build reusable management table/filter toolbar components, borrowing Producers patterns.
 3. Implement URL-synchronized filter, sort and page state.
@@ -207,6 +212,7 @@ loading/error/empty states, and tests. Reuse existing design components.
 ### Phase 4 — Review-specific and Article-specific behavior
 
 **Tasks**
+
 1. Show resource-specific columns and search labels.
 2. Link rows to existing edit/detail pages.
 3. Show deadline badges and author ownership indicators.
@@ -228,6 +234,7 @@ Preserve list URL state when returning from edit pages. Add tests for each page.
 ### Phase 5 — Lifecycle actions (after verifying existing workflows)
 
 **Tasks**
+
 1. Reuse existing publish/unpublish/archive/restore services if available.
 2. Add row actions and confirmation for destructive/state-changing operations.
 3. Refresh list and counts after successful actions.
@@ -250,6 +257,7 @@ and integration tests. Do not silently introduce new statuses.
 ### Phase 6 — QA, performance and documentation
 
 **Tasks**
+
 1. Add backend request tests and frontend unit/integration tests.
 2. Add Playwright E2E scenarios if the project already uses Playwright.
 3. Test mobile layout, keyboard navigation, permissions, pagination and timezone boundaries.

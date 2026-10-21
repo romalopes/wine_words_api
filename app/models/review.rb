@@ -3,12 +3,19 @@ class Review < ApplicationRecord
   include Likeable
   include Commentable
   include TextSearchable
+  # Issue #185: publication deadlines. Standalone reviews default to creation +
+  # 14 days; reviews started from a WinePackage inherit that package's date.
+  include Deadlineable
 
   belongs_to :vintage
   belongs_to :user
   belongs_to :category, optional: true
   has_many :review_categories, dependent: :destroy
   has_many :categories, through: :review_categories
+  # Articles this review is linked to. The link (and its per-article status)
+  # lives on article_reviews, so the reviews table is untouched.
+  has_many :article_reviews, dependent: :destroy
+  has_many :articles, through: :article_reviews
   # Package items this review fulfilled. The link is stored once, on
   # wine_package_items.review_id, so the reviews table is untouched and every
   # existing review stays valid. Nullify (not destroy) on deletion.
@@ -25,6 +32,31 @@ class Review < ApplicationRecord
   validates :source, presence: true, inclusion: { in: SOURCES }
 
   validate :drink_window_is_consistent
+
+  # --- Deadline inheritance (issue #185) ---------------------------------
+  #
+  # Confirmed priority: explicit > WinePackage > Article > creation + 14 days.
+  # The 14-day fallback lives in Deadlineable; these helpers supply the two
+  # inherited sources so create paths (and tests) can resolve them before save.
+  # The date is copied at creation only — later edits to the package/article
+  # never cascade to an existing review.
+
+  # The deadline this review would inherit from its linked sources, in
+  # confirmed priority order. Nil when no source carries a date.
+  def inherited_deadline
+    wine_package_deadline || article_deadline
+  end
+
+  # Earliest deadline across the packages this review fulfilled, if any.
+  def wine_package_deadline
+    wine_package_items.filter_map { |item| item.wine_package&.review_deadline }.min
+  end
+
+  # Deadline of the first linked article that carries one.
+  def article_deadline
+    article_reviews.filter_map { |link| link.article&.deadline }.first
+  end
+
 
   # Analytics lifecycle: hard-delete events on destroy, soft-exclude on archive.
   after_destroy :purge_analytics_events

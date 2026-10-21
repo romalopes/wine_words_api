@@ -180,6 +180,14 @@
       .region, .details, .vintages, .back-link { color: #6b5855; font: .9rem/1.5 system-ui, sans-serif; }
       .details { margin: .7rem 0; }
       .tag { display: inline-block; background: #f3e9e3; border-radius: 99px; color: #6b2834; font: .78rem system-ui, sans-serif; margin: .15rem .25rem 0 0; padding: .22rem .5rem; }
+      /* Issue #185: deadline badges. Text + icon carry the meaning; colour is
+         only a supporting cue. Published/archived content never renders one. */
+      .deadline-badge { display: inline-flex; align-items: center; gap: .3rem; border-radius: 99px; font: .78rem system-ui, sans-serif; font-weight: 600; margin: .15rem .25rem 0 0; padding: .22rem .55rem; }
+      .deadline-badge--upcoming { background: #eef4ea; color: #33502a; }
+      .deadline-badge--today { background: #fdf3d8; color: #7a5a13; }
+      .deadline-badge--overdue { background: #fbe4e4; color: #8a1f1f; }
+      .deadline-badge--none { background: #f3e9e3; color: #6b5855; font-weight: 400; }
+      .deadline-field-note { color: #6b5855; font: .85rem system-ui, sans-serif; }
       .wine-page { max-width: 48rem; }
       .back-link { display: inline-block; margin-bottom: 1.5rem; }
       .facts { display: flex; flex-wrap: wrap; gap: .75rem; list-style: none; margin: 1.5rem 0 2rem; padding: 0; }
