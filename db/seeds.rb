@@ -48,7 +48,7 @@ TasteParameter.create(taste_params_data.map { |tp| {
   help: tp[:help]
 } })
 
-p = {
+wine_profile_taste_parameter = {
   pinotNoir: { acidity: 4, body: 2, tannin: 2, sweetness: 1, alcohol: 2, fruit: 3 },
   cab: { acidity: 3, body: 5, tannin: 5, sweetness: 1, alcohol: 4, fruit: 4 },
   merlot: { acidity: 3, body: 4, tannin: 3, sweetness: 1, alcohol: 3, fruit: 4 },
@@ -359,7 +359,6 @@ wine_profiles_data = [
 ]
 
 wine_profiles = WineProfile.create(wine_profiles_data.map { |wp|
-  # details = wine_details[wp[:slug]] || {}
   {
     slug: wp[:slug],
     name: wp[:name],
@@ -374,7 +373,7 @@ wine_profiles = WineProfile.create(wine_profiles_data.map { |wp|
 # # Create wine profile taste parameters
 wine_profiles.each do |wine_profile|
   line = wine_profiles_data.find { |item| item[:slug] == wine_profile.slug }
-  p[line[:params_key]].each do |slug, score|
+  wine_profile_taste_parameter[line[:params_key]].each do |slug, score|
     taste_parameter = TasteParameter.find_by(slug: slug.to_s)
     WineProfileTasteParameter.create(
       wine_profile: wine_profile,

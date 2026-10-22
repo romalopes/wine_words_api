@@ -1,12 +1,23 @@
 # Wine Words — User Detail, Producer Memberships and Self-Service Editing
 
-**Status:** Proposed implementation plan  
+**Status:** ✅ **Implemented**  (22 October 2026)  
 **Date:** 22 October 2026  
 **Repositories:**
 - API: https://github.com/romalopes/wine_words_api
 - Frontend: https://github.com/romalopes/wine_words_frontend
 
-> **Important:** This plan is based on the requested behavior and previously discussed Rails 8 + React/Vite architecture. It is **not** a verified audit of the current repository contents. AI implementation agents must inspect the actual code, schemas, routes, components, roles, authorization policies and tests before editing. Preserve established conventions and adapt names and endpoints accordingly.
+> **Implementation complete:** All phases documented below. The feature enables Admins to manage User→Producer links from `/users/:id`; linked users see and edit their Producers from `/account` with server-side authorization.
+
+### Phase Documentation
+
+| Phase | Document | Summary |
+|-------|----------|---------|
+| 0 | [`phases/phase-0-repository-audit.md`](phases/phase-0-repository-audit.md) | Verified codebase conventions: API uses `User` (not `Account`); `/users` is Admin-only; producer edits guarded by `wine_manager?` (Admin/Editor/Reviewer). |
+| 1 | [`phases/phase-1-schema-and-models.md`](phases/phase-1-schema-and-models.md) | Migration `20261021234637_create_producer_memberships.rb`, `ProducerMembership` model, `User`/`Producer` associations. |
+| 2 | [`phases/phase-2-api-and-authorization.md`](phases/phase-2-api-and-authorization.md) | Admin-only membership CRUD at `/api/v1/users/:user_id/producer_memberships`, user detail at `GET /api/v1/users/:id`, current user producers at `GET /api/v1/account/producers`; producer edit policy extended for linked users. |
+| 3 | [`phases/phase-3-frontend-user-management.md`](phases/phase-3-frontend-user-management.md) | `/users` rows link to `/users/:id`; new `UserDetail` component with role/subscription controls + membership management; debounced producer selector. |
+| 4 | [`phases/phase-4-account-producers.md`](phases/phase-4-account-producers.md) | "My Producers" card in `/account` linking to existing `/producers/:slug/edit`; reuses shared `ProducerForm`. |
+| 5 | [`phases/phase-5-verification-and-rollout.md`](phases/phase-5-verification-and-rollout.md) | All RSpec request/model specs pass (12 membership specs, 6 user search specs, 10 account specs, 4 model specs); frontend build + TypeScript + 357/360 tests pass (3 pre-existing ApiHealth failures). |
 
 ## 1. Objective
 

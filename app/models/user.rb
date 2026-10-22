@@ -70,6 +70,9 @@ class User < ApplicationRecord
   # The User stays the canonical identity and keeps exactly one Account, one
   # role set and one subscription no matter how many providers are connected.
   has_many :user_identities, dependent: :destroy
+  has_many :producer_memberships, dependent: :destroy
+  has_many :producers, through: :producer_memberships
+  has_many :created_producer_memberships, class_name: "ProducerMembership", foreign_key: "created_by_id", dependent: :nullify
 
   # Transient flag set when a User is created exclusively through a social
   # provider. Such a user has no password at all (rather than an unknowable

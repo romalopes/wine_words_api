@@ -61,6 +61,12 @@ class Api::V1::AccountsController < ApplicationController
     render json: { analytics_opt_out: current_user.analytics_opt_out }
   end
 
+  # GET /api/v1/account/producers — current user's linked producers.
+  def my_producers
+    producers = current_user.producers.includes(:country)
+    render json: producers.map { |p| producer_summary_json(p) }
+  end
+
   private
 
   def account_params
@@ -90,6 +96,18 @@ class Api::V1::AccountsController < ApplicationController
       phone: account.phone,
       date_of_birth: account.date_of_birth,
       address: address
+    }
+  end
+
+  def producer_summary_json(producer)
+    {
+      id: producer.id,
+      name: producer.name,
+      slug: producer.slug,
+      country: producer.country&.name,
+      email: producer.email,
+      producer_type: producer.producer_type,
+      founded_year: producer.founded_year
     }
   end
 end

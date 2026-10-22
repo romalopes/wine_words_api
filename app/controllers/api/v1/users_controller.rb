@@ -53,7 +53,7 @@ class Api::V1::UsersController < ApplicationController
   # a page param the legacy plain-array response (limit 20) is kept for
   # compatibility.
   def search
-    return head(:forbidden) unless real_current_user&.admin?
+    return head(:forbidden) unless real_current_user&.catalogue_manager?
 
     query = params[:q].to_s.strip
     users = User.search_by_name_or_email(query)
@@ -64,10 +64,20 @@ class Api::V1::UsersController < ApplicationController
 
   # GET /api/v1/roles - the full role list (id + human name), for role pickers.
   def roles
+    return head(:forbidden) unless real_current_user&.catalogue_manager?
     render json: Role.order(:id).map { |r| { id: r.id, name: Role.names[r.name.to_s] || r.name.to_s } }
   end
 
+  # GET /api/v1/users/:id - detailed user info including producer memberships
+  def show
+    return head(:forbidden) unless real_current_user&.catalogue_manager?
+
+    user = User.includes(:roles, :subscription, :producer_memberships, producers: :country).find(params[:id])
+    render json: user_detail_json(user)
+  end
+
   # PATCH /api/v1/users/:id/roles   body: { role_ids: [1,3] }
+  # Admin only.
   def assign_roles
     return head(:forbidden) unless real_current_user&.admin?
 
@@ -130,5 +140,24 @@ class Api::V1::UsersController < ApplicationController
       roles: user.role_names,
       subscription: user.subscription ? { id: user.subscription.id, name: user.subscription.name } : nil
     }
+  end
+
+  def user_detail_json(user)
+    user_json(user).merge(
+      analytics_opt_out: user.analytics_opt_out,
+      producer_memberships: user.producer_memberships.map do |pm|
+        {
+          id: pm.id,
+          producer: {
+            id: pm.producer.id,
+            name: pm.producer.name,
+            slug: pm.producer.slug,
+            country: pm.producer.country&.name
+          },
+          created_by: pm.created_by ? { id: pm.created_by.id, display_name: pm.created_by.display_name } : nil,
+          created_at: pm.created_at
+        }
+      end
+    )
   end
 end

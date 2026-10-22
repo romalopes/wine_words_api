@@ -140,6 +140,7 @@ Rails.application.routes.draw do
           delete :logo, action: :remove_logo
           post :link_wine
           post :link_producer
+          get :memberships, to: "producer_memberships#index_for_producer"
         end
       end
       resources :wines do
@@ -327,7 +328,14 @@ Rails.application.routes.draw do
 
       resources :users, only: [] do
         collection { get :search }
-        member { patch :assign_roles; patch :assign_subscription }
+        member do
+          patch :assign_roles
+          patch :assign_subscription
+          get :show
+        end
+        get :producer_memberships, to: 'producer_memberships#index'
+        post :producer_memberships, to: 'producer_memberships#create'
+        delete 'producer_memberships/:id', to: 'producer_memberships#destroy'
       end
       get "roles", to: "users#roles"
 
@@ -350,7 +358,7 @@ Rails.application.routes.draw do
       patch "account", to: "accounts#update"
       patch "account/password", to: "accounts#update_password"
       patch "account/analytics_opt_out", to: "accounts#update_analytics_opt_out"
-
+      get "account/producers", to: "accounts#my_producers"
       resources :subscriptions, only: [:index, :show, :create, :update, :destroy]
     end
   end

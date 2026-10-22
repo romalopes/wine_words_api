@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_21_071642) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_21_234637) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -433,6 +433,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_21_071642) do
     t.index ["grape_id"], name: "index_producer_grapes_on_grape_id"
     t.index ["producer_id", "grape_id"], name: "index_producer_grapes_on_producer_id_and_grape_id", unique: true
     t.index ["producer_id"], name: "index_producer_grapes_on_producer_id"
+  end
+
+  create_table "producer_memberships", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "created_by_id"
+    t.bigint "producer_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["created_by_id"], name: "index_producer_memberships_on_created_by_id"
+    t.index ["producer_id"], name: "index_producer_memberships_on_producer_id"
+    t.index ["user_id", "producer_id"], name: "index_producer_memberships_on_user_id_and_producer_id", unique: true
+    t.index ["user_id"], name: "index_producer_memberships_on_user_id"
   end
 
   create_table "producer_regions", force: :cascade do |t|
@@ -1095,6 +1107,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_21_071642) do
   add_foreign_key "notifications", "wine_packages"
   add_foreign_key "producer_grapes", "grapes"
   add_foreign_key "producer_grapes", "producers"
+  add_foreign_key "producer_memberships", "producers"
+  add_foreign_key "producer_memberships", "users"
+  add_foreign_key "producer_memberships", "users", column: "created_by_id"
   add_foreign_key "producer_regions", "producers"
   add_foreign_key "producer_regions", "regions"
   add_foreign_key "regions", "countries"

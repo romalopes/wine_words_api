@@ -109,6 +109,9 @@ class Api::V1::ProducersController < ApplicationController
   def ensure_wine_manager!
     return if current_user&.wine_manager?
 
+    # Allow linked users to update their associated producers
+    return if @producer && current_user&.producers&.exists?(@producer.id)
+
     render json: { error: "Forbidden" }, status: :forbidden
   end
 

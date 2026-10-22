@@ -23,6 +23,9 @@ class Producer < ApplicationRecord
   has_many :producer_grapes, dependent: :destroy
   has_many :grapes, through: :producer_grapes
 
+  has_many :producer_memberships, dependent: :destroy
+  has_many :users, through: :producer_memberships
+
   enum :producer_type, {
     winery: 0,
     negociant: 1,
