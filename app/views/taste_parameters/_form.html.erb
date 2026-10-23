@@ -3,14 +3,12 @@
     <%= f.label :label %><br>
     <%= f.text_field :label %>
   </div>
-  <div>
-    <%= f.label :low %><br>
-    <%= f.text_field :low %>
-  </div>
-  <div>
-    <%= f.label :high %><br>
-    <%= f.text_field :high %>
-  </div>
+  <% TasteParameter::LABEL_LEVELS.each do |level| %>
+    <div>
+      <%= f.label "label_#{level}", "Level #{level} label" %><br>
+      <%= f.text_field "label_#{level}" %>
+    </div>
+  <% end %>
   <div>
     <%= f.label :help %><br>
     <%= f.text_area :help %>

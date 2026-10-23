@@ -18,7 +18,7 @@ export default class extends Controller {
   ];
 
   static values = {
-    params: String, // JSON: [{slug,label,low,high,help}]
+    params: String, // JSON: [{slug,label,labels:{1..5},help}]
   };
 
   connect() {
@@ -139,13 +139,13 @@ renderResults(profiles) {
           <label class="wine-slider">
             <span class="wine-slider__top">
               <strong>${this.escape(param.label)}</strong>
-              <output data-slug="${param.slug}">${this.testTaste[param.slug]}</output>
+              <output data-slug="${param.slug}">${this.outputText(param, this.testTaste[param.slug])}</output>
             </span>
             <input type="range" min="1" max="5" value="${this.testTaste[param.slug]}"
                    data-action="input->quiz#changeTaste" data-slug="${param.slug}">
             <span class="wine-slider__scale">
-              <small>${this.escape(param.low)}</small>
-              <small>${this.escape(param.high)}</small>
+              <small>${this.escape(param.labels?.[1] || "1")}</small>
+              <small>${this.escape(param.labels?.[5] || "5")}</small>
             </span>
             ${param.help ? `<em>${this.escape(param.help)}</em>` : ""}
           </label>`,
@@ -157,11 +157,16 @@ renderResults(profiles) {
   changeTaste(event) {
     const slug = event.currentTarget.dataset.slug;
     this.testTaste[slug] = Number(event.currentTarget.value);
+    const parameter = this.tasteParams.find((item) => item.slug === slug);
     this.outputs
       .find((out) => out.dataset.slug === slug)
-      .textContent = event.currentTarget.value;
+      .textContent = this.outputText(parameter, this.testTaste[slug]);
     this.submitted = false;
     this.resetResult();
+  }
+
+  outputText(parameter, score) {
+    return `${score} / 5 — ${parameter?.labels?.[score] || score}`;
   }
 
   checkAccuracy() {

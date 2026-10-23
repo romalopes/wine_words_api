@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_21_234637) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_23_170000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -830,9 +830,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_21_234637) do
   create_table "taste_parameters", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "help"
-    t.string "high"
     t.string "label"
-    t.string "low"
+    t.string "label_1", null: false
+    t.string "label_2", null: false
+    t.string "label_3", null: false
+    t.string "label_4", null: false
+    t.string "label_5", null: false
     t.string "slug"
     t.datetime "updated_at", null: false
     t.index ["slug"], name: "index_taste_parameters_on_slug", unique: true

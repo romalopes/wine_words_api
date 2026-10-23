@@ -6,12 +6,25 @@ require 'rails_helper'
 # finder (acidity, body, tannin, sweetness, alcohol, fruit). These
 # specs cover the JSON CRUD surface and the TasteParameterSerializer.
 RSpec.describe "Api::V1::TasteParameters", type: :request do
+  include Devise::Test::IntegrationHelpers
+
+  let(:wine_manager) do
+    User.create!(first_name: "Manager", email: "taste-manager@example.com", password: "password123")
+  end
+
+  before do
+    sign_in wine_manager
+  end
+
   let!(:acidity) do
     TasteParameter.create!(
       slug: "acidity",
       label: "Acidity",
-      low: "Soft",
-      high: "Sharp",
+      label_1: "Low",
+      label_2: "Medium (-)",
+      label_3: "Medium",
+      label_4: "Medium (+)",
+      label_5: "High",
       help: "How bright, fresh, or mouth-watering the wine feels.",
     )
   end
@@ -20,8 +33,11 @@ RSpec.describe "Api::V1::TasteParameters", type: :request do
     TasteParameter.create!(
       slug: "body",
       label: "Body",
-      low: "Light",
-      high: "Full",
+      label_1: "Light",
+      label_2: "Medium (-)",
+      label_3: "Medium",
+      label_4: "Medium (+)",
+      label_5: "Full",
       help: "The weight and richness of the wine on your palate.",
     )
   end
@@ -46,8 +62,9 @@ RSpec.describe "Api::V1::TasteParameters", type: :request do
       expect(first).to include(
         "slug"    => "acidity",
         "label" => "Acidity",
-        "low"   => "Soft",
-        "high"  => "Sharp",
+        "labels" => { "1" => "Low", "2" => "Medium (-)", "3" => "Medium", "4" => "Medium (+)", "5" => "High" },
+        "low"   => "Low",
+        "high"  => "High",
         "help"  => "How bright, fresh, or mouth-watering the wine feels.",
       )
     end
@@ -73,8 +90,11 @@ RSpec.describe "Api::V1::TasteParameters", type: :request do
         taste_parameter: {
           slug: "tannin",
           label: "Tannin",
-          low: "Silky",
-          high: "Grippy",
+          label_1: "Low",
+          label_2: "Medium (-)",
+          label_3: "Medium",
+          label_4: "Medium (+)",
+          label_5: "High",
           help: "The drying texture, common in red wines.",
         },
       }
@@ -91,15 +111,15 @@ RSpec.describe "Api::V1::TasteParameters", type: :request do
       post "/api/v1/taste_parameters", params: valid_params, as: :json
       tp = TasteParameter.find_by!(slug: "tannin")
       expect(tp.label).to eq("Tannin")
-      expect(tp.low).to eq("Silky")
-      expect(tp.high).to eq("Grippy")
+      expect(tp.label_for(1)).to eq("Low")
+      expect(tp.label_for(5)).to eq("High")
     end
 
     it "rejects a duplicate label with 422" do
       # The model has a `validates :label, uniqueness: true` rule, so
       # posting a duplicate label should produce a 422.
       post "/api/v1/taste_parameters",
-           params: { taste_parameter: { slug: "tannin-2", label: acidity.label, low: "x", high: "y" } },
+            params: { taste_parameter: { slug: "tannin-2", label: acidity.label, label_1: "Low", label_2: "Medium (-)", label_3: "Medium", label_4: "Medium (+)", label_5: "High" } },
            as: :json
       expect(response).to have_http_status(:unprocessable_entity)
     end

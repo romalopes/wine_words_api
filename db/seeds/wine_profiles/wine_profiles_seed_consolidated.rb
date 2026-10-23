@@ -9,15 +9,15 @@
 # Tannin: low, medium(-), medium, medium(+), high
 # Alcohol: low, medium(-), medium, medium(+), high
 # Body: light, medium(-), medium, medium(+), full
-# Flavour: light, medium(-), medium, medium(+), pronounced
+# Fruit intensity: light, medium(-), medium, medium(+), pronounced
 
 PARAMETER_ATTRIBUTES = {
-  sweetness: { label: 'Sweetness', low: 'Dry', high: 'Sweet', help: 'How much sugar or ripe sweetness you perceive.' },
-  acidity: { label: 'Acidity', low: 'Soft', high: 'Sharp', help: 'How bright, fresh, or mouth-watering the wine feels.' },
-  tannin: { label: 'Tannin', low: 'Silky', high: 'Grippy', help: 'The drying texture, common in red wines.' },
-  alcohol: { label: 'Alcohol warmth', low: 'Cool', high: 'Warm', help: 'The heat or weight from alcohol.' },
-  body: { label: 'Body', low: 'Light', high: 'Full', help: 'The weight and richness of the wine on your palate.' },
-  flavour: { label: 'Flavour intensity', low: 'Subtle', high: 'Expressive', help: 'How strongly fruit aromas and flavors stand out.' }
+  sweetness: { label: 'Sweetness', label_1: 'Dry', label_2: 'Off-dry', label_3: 'Medium-dry', label_4: 'Medium-sweet', label_5: 'Sweet', help: 'How much sugar or ripe sweetness you perceive.' },
+  acidity: { label: 'Acidity', label_1: 'Low', label_2: 'Medium (-)', label_3: 'Medium', label_4: 'Medium (+)', label_5: 'High', help: 'How bright, fresh, or mouth-watering the wine feels.' },
+  tannin: { label: 'Tannin', label_1: 'Low', label_2: 'Medium (-)', label_3: 'Medium', label_4: 'Medium (+)', label_5: 'High', help: 'The drying texture, common in red wines.' },
+  alcohol: { label: 'Alcohol warmth', label_1: 'Low', label_2: 'Medium (-)', label_3: 'Medium', label_4: 'Medium (+)', label_5: 'High', help: 'The heat or weight from alcohol.' },
+  body: { label: 'Body', label_1: 'Light', label_2: 'Medium (-)', label_3: 'Medium', label_4: 'Medium (+)', label_5: 'Full', help: 'The weight and richness of the wine on your palate.' },
+  fruit: { label: 'Fruit intensity', label_1: 'Light', label_2: 'Medium (-)', label_3: 'Medium', label_4: 'Medium (+)', label_5: 'Pronounced', help: 'How strongly fruit aromas and flavors stand out.' }
 }.freeze
 PARAMETERS = PARAMETER_ATTRIBUTES.keys.freeze
 # slug | name | color | grapes | regions | notes | serving | scores in PARAMETERS order

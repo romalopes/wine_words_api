@@ -3,11 +3,8 @@
   <%= link_to "← All taste parameters", taste_parameters_path, class: "back-link" %>
   <h1><%= @taste_parameter.label %></h1>
   <ul class="facts" aria-label="Taste parameter details">
-    <% if @taste_parameter.low.present? %>
-      <li><strong>Low:</strong> <%= @taste_parameter.low %></li>
-    <% end %>
-    <% if @taste_parameter.high.present? %>
-      <li><strong>High:</strong> <%= @taste_parameter.high %></li>
+    <% TasteParameter::LABEL_LEVELS.each do |level| %>
+      <li><strong><%= level %>:</strong> <%= @taste_parameter.label_for(level) %></li>
     <% end %>
     <% if @taste_parameter.help.present? %>
       <li><strong>Help:</strong> <%= @taste_parameter.help %></li>

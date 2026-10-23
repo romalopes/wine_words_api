@@ -43,8 +43,8 @@ class TasteParametersController < ActionController::Base
   end
 
   private
-    # :slug, :label, :low, :high, :help
+    # :slug, :label, :label_1, :label_2, :label_3, :label_4, :label_5, :help
     def taste_parameter_params
-      params.require(:taste_parameter).permit(:slug, :label, :low, :high, :help)
+      params.require(:taste_parameter).permit(:slug, :label, :label_1, :label_2, :label_3, :label_4, :label_5, :help)
     end
 end

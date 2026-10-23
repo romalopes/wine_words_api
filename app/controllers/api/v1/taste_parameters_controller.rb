@@ -39,6 +39,6 @@ class Api::V1::TasteParametersController < ApplicationController
   private
 
   def taste_parameter_params
-    params.require(:taste_parameter).permit(:id, :label, :low, :high, :help)
+      params.require(:taste_parameter).permit(:id, :slug, :label, :label_1, :label_2, :label_3, :label_4, :label_5, :help)
   end
 end

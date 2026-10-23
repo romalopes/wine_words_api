@@ -7,8 +7,18 @@ require 'rails_helper'
 # serializer (which collapses the wine_profile_taste_parameters join
 # rows into a slug -> score hash), and nested attributes behaviour.
 RSpec.describe "Api::V1::WineProfiles", type: :request do
-  let(:taste_acidity) { TasteParameter.create!(slug: "acidity", label: "Acidity", low: "Soft", high: "Sharp", help: "Brightness on the palate.") }
-  let(:taste_body)    { TasteParameter.create!(slug: "body",    label: "Body",    low: "Light", high: "Full", help: "Weight of the wine.") }
+  include Devise::Test::IntegrationHelpers
+
+  let(:wine_manager) do
+    User.create!(first_name: "Manager", email: "profile-manager@example.com", password: "password123")
+  end
+
+  before do
+    sign_in wine_manager
+  end
+
+  let(:taste_acidity) { TasteParameter.create!(slug: "acidity", label: "Acidity", label_1: "Low", label_2: "Medium (-)", label_3: "Medium", label_4: "Medium (+)", label_5: "High", help: "Brightness on the palate.") }
+  let(:taste_body)    { TasteParameter.create!(slug: "body",    label: "Body",    label_1: "Light", label_2: "Medium (-)", label_3: "Medium", label_4: "Medium (+)", label_5: "Full", help: "Weight of the wine.") }
   let!(:pinot_noir) { Grape.create!(name: "Pinot Noir") }
   let!(:chardonnay_grape) { Grape.create!(name: "Chardonnay") }
   let!(:tempranillo_grape) { Grape.create!(name: "Tempranillo") }

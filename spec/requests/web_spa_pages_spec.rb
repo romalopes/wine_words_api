@@ -13,7 +13,7 @@ RSpec.describe "Web SPA pages", type: :request do
 
   describe "GET /quiz" do
     before do
-      TasteParameter.create!(slug: "acidity", label: "Acidity", low: "Soft", high: "Sharp")
+      TasteParameter.create!(slug: "acidity", label: "Acidity", label_1: "Low", label_2: "Medium (-)", label_3: "Medium", label_4: "Medium (+)", label_5: "High")
     end
 
     it "renders the quiz and its taste parameters" do
@@ -33,7 +33,7 @@ RSpec.describe "Web SPA pages", type: :request do
     end
 
     it "finds a matching wine profile" do
-      acidity = TasteParameter.create!(slug: "acidity", label: "Acidity", low: "Soft", high: "Sharp")
+      acidity = TasteParameter.create!(slug: "acidity", label: "Acidity", label_1: "Low", label_2: "Medium (-)", label_3: "Medium", label_4: "Medium (+)", label_5: "High")
       profile = WineProfile.create!(name: "Shiraz Special", color: "Red", regions: "Barossa Valley")
       profile.wine_profile_taste_parameters.create!(taste_parameter: acidity, score: 4)
 
@@ -86,7 +86,7 @@ RSpec.describe "Web SPA pages", type: :request do
 
   describe "GET /finder" do
     before do
-      TasteParameter.create!(slug: "acidity", label: "Acidity", low: "Soft", high: "Sharp")
+      TasteParameter.create!(slug: "acidity", label: "Acidity", label_1: "Low", label_2: "Medium (-)", label_3: "Medium", label_4: "Medium (+)", label_5: "High")
     end
 
     it "renders the finder with sliders" do
@@ -99,7 +99,7 @@ RSpec.describe "Web SPA pages", type: :request do
 
   describe "GET /finder/matches" do
     before do
-      acidity = TasteParameter.create!(slug: "acidity", label: "Acidity", low: "Soft", high: "Sharp")
+      acidity = TasteParameter.create!(slug: "acidity", label: "Acidity", label_1: "Low", label_2: "Medium (-)", label_3: "Medium", label_4: "Medium (+)", label_5: "High")
       profile = WineProfile.create!(name: "Bright White", color: "White", grapes: "Sauvignon Blanc", regions: "Marlborough")
       profile.wine_profile_taste_parameters.create!(taste_parameter: acidity, score: 1)
     end

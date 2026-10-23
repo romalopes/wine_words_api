@@ -5,8 +5,8 @@ module TasteParametersHelper
 
   def taste_parameter_details(parameter)
     [
-      ("Low: #{parameter.low}" if parameter.low.present?),
-      ("High: #{parameter.high}" if parameter.high.present?),
+      ("1: #{parameter.label_1}" if parameter.label_1.present?),
+      ("5: #{parameter.label_5}" if parameter.label_5.present?),
       ("Help: #{parameter.help}" if parameter.help.present?)
     ].compact.join(" · ")
   end

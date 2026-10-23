@@ -4,7 +4,7 @@
 
 <div class="wine-test"
      data-controller="quiz"
-     data-quiz-params-value="<%= @taste_parameters.map { |p| { slug: p.slug, label: p.label, low: p.low, high: p.high, help: p.help } }.to_json %>">
+     data-quiz-params-value="<%= @taste_parameters.map { |p| { slug: p.slug, label: p.label, labels: p.labels, help: p.help } }.to_json %>">
 
   <div class="wine-test__search" data-quiz-target="searchWrap">
     <label class="wine-test__search-label" for="quiz-query">Find a wine profile</label>

@@ -18,8 +18,8 @@ RSpec.describe "Api::V1::Wines", type: :request do
     wine_manager.roles << Role.find_or_create_by!(name: "Admin")
   end
 
-  let(:taste_acidity) { TasteParameter.create!(slug: "acidity", label: "Acidity", low: "Soft", high: "Sharp", help: "Brightness on the palate.") }
-  let(:taste_body)    { TasteParameter.create!(slug: "body",    label: "Body",    low: "Light", high: "Full", help: "Weight of the wine.") }
+  let(:taste_acidity) { TasteParameter.create!(slug: "acidity", label: "Acidity", label_1: "Low", label_2: "Medium (-)", label_3: "Medium", label_4: "Medium (+)", label_5: "High", help: "Brightness on the palate.") }
+  let(:taste_body)    { TasteParameter.create!(slug: "body",    label: "Body",    label_1: "Light", label_2: "Medium (-)", label_3: "Medium", label_4: "Medium (+)", label_5: "Full", help: "Weight of the wine.") }
 
   let!(:wine_one) do
     Wine.create!(
