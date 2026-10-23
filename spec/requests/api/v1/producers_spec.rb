@@ -289,6 +289,29 @@ RSpec.describe "Api::V1::Producers", type: :request do
     end
   end
 
+  describe "POST /api/v1/producers/:id/link_wine" do
+    let!(:producer) { Producer.create!(producer_attributes.except(:region_ids, :grape_ids)) }
+    let!(:previous_producer) { Producer.create!(name: "Previous Producer") }
+    let!(:wine) { Wine.create!(name: "Reassignable Linkable Wine", color: "Red", producer: previous_producer) }
+
+    before { sign_in admin }
+
+    it "links a wine when the producer is identified by its numeric ID" do
+      post "/api/v1/producers/#{producer.id}/link_wine", params: { wine_id: wine.slug }, as: :json
+
+      expect(response).to have_http_status(:ok)
+      expect(wine.reload.producer).to eq(producer)
+      expect(JSON.parse(response.body)).to include("id" => producer.id, "slug" => producer.slug)
+    end
+
+    it "continues to link a wine when the producer is identified by its slug" do
+      post "/api/v1/producers/#{producer.slug}/link_wine", params: { wine_id: wine.id }, as: :json
+
+      expect(response).to have_http_status(:ok)
+      expect(wine.reload.producer).to eq(producer)
+    end
+  end
+
   describe "PATCH /api/v1/producers/:id" do
     let!(:producer) do
       Producer.create!(producer_attributes.except(:region_ids, :grape_ids)).tap do |p|

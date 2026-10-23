@@ -118,9 +118,15 @@ class Api::V1::ProducersController < ApplicationController
   def set_producer
     # Preload the logo and images (with attachment + blob) so producer_json's
     # logo_url / images do not fire per-image attachment and blob queries.
-    @producer = Producer.includes(:country, :regions, :grapes, address: :country)
-                        .preload(logo_attachment: :blob, images: { file_attachment: :blob })
-                        .find_by!(slug: params[:id])
+    scope = Producer.includes(:country, :regions, :grapes, address: :country)
+                    .preload(logo_attachment: :blob, images: { file_attachment: :blob })
+    identifier = params[:id].to_s
+
+    # Producer detail URLs use slugs, but the shared React link dialog sends
+    # catalog entity IDs. Accept both identifiers for member actions.
+    @producer = scope.find_by(slug: identifier)
+    @producer ||= scope.find_by(id: identifier) if identifier.match?(/\A\d+\z/)
+    raise ActiveRecord::RecordNotFound, "Couldn't find Producer" unless @producer
   end
 
   def producer_search_json(producer)
