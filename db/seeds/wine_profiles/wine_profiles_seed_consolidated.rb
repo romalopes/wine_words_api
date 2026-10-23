@@ -164,8 +164,10 @@ ActiveRecord::Base.transaction do
   ROWS.each do |slug, name, color, grapes, regions, notes, serving, scores|
     raise "Invalid scores for #{slug}" unless scores.length == PARAMETERS.length && scores.all? { |n| (1..5).cover?(n) }
     profile = WineProfile.find_or_initialize_by(slug: slug.to_s.strip.downcase)
-    profile.assign_attributes(name: name, color: color, grapes: grapes.split('|').to_json,
-                              regions: regions.split('|').to_json, notes: notes.split('|').to_json,
+    # profile.assign_attributes(name: name, color: color, grapes: grapes.split('|').to_json,
+    #                           regions: regions.split('|').to_json, notes: notes.split('|').to_json,
+    #                           serving: serving)
+    profile.assign_attributes(name: name, color: color, notes: notes.split('|').to_json,
                               serving: serving)
     puts "Seeding wine profile: #{slug} (#{name})"
 

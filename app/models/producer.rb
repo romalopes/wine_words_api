@@ -35,7 +35,7 @@ class Producer < ApplicationRecord
   }, default: :winery, validate: true
 
   validates :name, presence: true, uniqueness: true
-  validates :email, presence: true
+  # validates :email, presence: true
   validates :email, format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :producer_type, presence: true, inclusion: { in: producer_types.keys }
   validates :founded_year,

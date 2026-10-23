@@ -1015,17 +1015,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_23_170000) do
   create_table "wine_profiles", force: :cascade do |t|
     t.string "color"
     t.datetime "created_at", null: false
-    t.text "grapes"
     t.string "name"
     t.text "notes"
     t.text "parameters"
-    t.text "regions"
     t.text "serving"
     t.string "slug"
     t.datetime "updated_at", null: false
-    t.index ["grapes"], name: "index_wine_profiles_on_grapes_trgm", opclass: :gin_trgm_ops, using: :gin
     t.index ["name"], name: "index_wine_profiles_on_name_trgm", opclass: :gin_trgm_ops, using: :gin
-    t.index ["regions"], name: "index_wine_profiles_on_regions_trgm", opclass: :gin_trgm_ops, using: :gin
     t.index ["slug"], name: "index_wine_profiles_on_slug", unique: true
   end
 

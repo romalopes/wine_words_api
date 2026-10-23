@@ -55,7 +55,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -72,7 +72,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -88,7 +88,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -104,7 +104,7 @@ ALL_PRODUCERS = [
     state: "Tasmania",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -120,7 +120,7 @@ ALL_PRODUCERS = [
     state: "Tasmania",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -136,7 +136,7 @@ ALL_PRODUCERS = [
     state: "Victoria",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -152,7 +152,7 @@ ALL_PRODUCERS = [
     state: "Victoria",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -168,7 +168,7 @@ ALL_PRODUCERS = [
     state: "Victoria",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -184,7 +184,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -200,7 +200,7 @@ ALL_PRODUCERS = [
     state: "Western Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -218,7 +218,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -235,7 +235,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -252,7 +252,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -268,7 +268,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -284,7 +284,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -300,7 +300,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -316,7 +316,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -332,7 +332,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -348,7 +348,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -364,7 +364,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -380,7 +380,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -397,7 +397,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -413,7 +413,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -429,7 +429,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -445,7 +445,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -461,7 +461,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -477,7 +477,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -493,7 +493,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -509,7 +509,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -525,7 +525,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -541,7 +541,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -558,7 +558,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -574,7 +574,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -590,7 +590,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -606,7 +606,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -622,7 +622,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -638,7 +638,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -654,7 +654,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -670,7 +670,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -686,7 +686,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -702,7 +702,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -718,7 +718,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -735,7 +735,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -751,7 +751,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -767,7 +767,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -783,7 +783,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -800,7 +800,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -816,7 +816,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -832,7 +832,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -848,7 +848,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -864,7 +864,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -880,7 +880,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -896,7 +896,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -912,7 +912,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -928,7 +928,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -944,7 +944,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -960,7 +960,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -976,7 +976,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -992,7 +992,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1008,7 +1008,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1024,7 +1024,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1040,7 +1040,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1056,7 +1056,7 @@ ALL_PRODUCERS = [
     state: "Western Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1072,7 +1072,7 @@ ALL_PRODUCERS = [
     state: "Western Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1088,7 +1088,7 @@ ALL_PRODUCERS = [
     state: "Western Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1104,7 +1104,7 @@ ALL_PRODUCERS = [
     state: "Western Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1120,7 +1120,7 @@ ALL_PRODUCERS = [
     state: "Western Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1136,7 +1136,7 @@ ALL_PRODUCERS = [
     state: "Western Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1152,7 +1152,7 @@ ALL_PRODUCERS = [
     state: "Western Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1168,7 +1168,7 @@ ALL_PRODUCERS = [
     state: "Western Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1184,7 +1184,7 @@ ALL_PRODUCERS = [
     state: "Western Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1200,7 +1200,7 @@ ALL_PRODUCERS = [
     state: "Western Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1216,7 +1216,7 @@ ALL_PRODUCERS = [
     state: "Western Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1232,7 +1232,7 @@ ALL_PRODUCERS = [
     state: "Western Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1248,7 +1248,7 @@ ALL_PRODUCERS = [
     state: "Western Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1264,7 +1264,7 @@ ALL_PRODUCERS = [
     state: "Victoria",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1280,7 +1280,7 @@ ALL_PRODUCERS = [
     state: "Victoria",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1296,7 +1296,7 @@ ALL_PRODUCERS = [
     state: "Victoria",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1312,7 +1312,7 @@ ALL_PRODUCERS = [
     state: "Victoria",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1329,7 +1329,7 @@ ALL_PRODUCERS = [
     state: "Victoria / New South Wales",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1345,7 +1345,7 @@ ALL_PRODUCERS = [
     state: "Victoria",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1361,7 +1361,7 @@ ALL_PRODUCERS = [
     state: "Victoria",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1377,7 +1377,7 @@ ALL_PRODUCERS = [
     state: "Victoria",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1393,7 +1393,7 @@ ALL_PRODUCERS = [
     state: "Victoria",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1409,7 +1409,7 @@ ALL_PRODUCERS = [
     state: "Victoria",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1425,7 +1425,7 @@ ALL_PRODUCERS = [
     state: "Victoria",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1441,7 +1441,7 @@ ALL_PRODUCERS = [
     state: "Victoria",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1457,7 +1457,7 @@ ALL_PRODUCERS = [
     state: "Victoria",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1474,7 +1474,7 @@ ALL_PRODUCERS = [
     state: "Victoria",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1490,7 +1490,7 @@ ALL_PRODUCERS = [
     state: "Victoria",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1506,7 +1506,7 @@ ALL_PRODUCERS = [
     state: "Victoria",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1522,7 +1522,7 @@ ALL_PRODUCERS = [
     state: "Victoria",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1538,7 +1538,7 @@ ALL_PRODUCERS = [
     state: "Victoria",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1554,7 +1554,7 @@ ALL_PRODUCERS = [
     state: "Victoria",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1570,7 +1570,7 @@ ALL_PRODUCERS = [
     state: "Victoria",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1586,7 +1586,7 @@ ALL_PRODUCERS = [
     state: "Victoria",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1602,7 +1602,7 @@ ALL_PRODUCERS = [
     state: "Victoria",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1618,7 +1618,7 @@ ALL_PRODUCERS = [
     state: "Victoria",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1634,7 +1634,7 @@ ALL_PRODUCERS = [
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1650,7 +1650,7 @@ ALL_PRODUCERS = [
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1667,7 +1667,7 @@ ALL_PRODUCERS = [
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1683,7 +1683,7 @@ ALL_PRODUCERS = [
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1699,7 +1699,7 @@ ALL_PRODUCERS = [
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1715,7 +1715,7 @@ ALL_PRODUCERS = [
     state: "New South Wales / ACT",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1731,7 +1731,7 @@ ALL_PRODUCERS = [
     state: "Australian Capital Territory",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1747,7 +1747,7 @@ ALL_PRODUCERS = [
     state: "Tasmania",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1763,7 +1763,7 @@ ALL_PRODUCERS = [
     state: "Tasmania",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1779,7 +1779,7 @@ ALL_PRODUCERS = [
     state: "Tasmania",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1795,7 +1795,7 @@ ALL_PRODUCERS = [
     state: "Tasmania",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1811,7 +1811,7 @@ ALL_PRODUCERS = [
     state: "Tasmania",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1827,7 +1827,7 @@ ALL_PRODUCERS = [
     state: "Tasmania",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1843,7 +1843,7 @@ ALL_PRODUCERS = [
     state: "Tasmania",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1859,7 +1859,7 @@ ALL_PRODUCERS = [
     state: "Victoria",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1875,7 +1875,7 @@ ALL_PRODUCERS = [
     state: "Victoria",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1891,7 +1891,7 @@ ALL_PRODUCERS = [
     state: "Victoria",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1907,7 +1907,7 @@ ALL_PRODUCERS = [
     state: "Victoria",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1923,7 +1923,7 @@ ALL_PRODUCERS = [
     state: "Victoria",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1939,7 +1939,7 @@ ALL_PRODUCERS = [
     state: "Victoria",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1955,7 +1955,7 @@ ALL_PRODUCERS = [
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1971,7 +1971,7 @@ ALL_PRODUCERS = [
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -1987,7 +1987,7 @@ ALL_PRODUCERS = [
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -2003,7 +2003,7 @@ ALL_PRODUCERS = [
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -2019,7 +2019,7 @@ ALL_PRODUCERS = [
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -2035,7 +2035,7 @@ ALL_PRODUCERS = [
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -2051,7 +2051,7 @@ ALL_PRODUCERS = [
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -2067,7 +2067,7 @@ ALL_PRODUCERS = [
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -2083,7 +2083,7 @@ ALL_PRODUCERS = [
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -2099,7 +2099,7 @@ ALL_PRODUCERS = [
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -2115,7 +2115,7 @@ ALL_PRODUCERS = [
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -2131,7 +2131,7 @@ ALL_PRODUCERS = [
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -2147,7 +2147,7 @@ ALL_PRODUCERS = [
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -2163,7 +2163,7 @@ ALL_PRODUCERS = [
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -2179,7 +2179,7 @@ ALL_PRODUCERS = [
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -2195,7 +2195,7 @@ ALL_PRODUCERS = [
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -2211,7 +2211,7 @@ ALL_PRODUCERS = [
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -2227,7 +2227,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -2243,7 +2243,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -2259,7 +2259,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -2275,7 +2275,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -2291,7 +2291,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -2307,7 +2307,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -2323,7 +2323,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -2339,7 +2339,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -2355,7 +2355,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -2371,7 +2371,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -2387,7 +2387,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -2403,7 +2403,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -2419,7 +2419,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -2435,7 +2435,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -2451,7 +2451,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -2467,7 +2467,7 @@ ALL_PRODUCERS = [
     state: "South Australia",
     country_id: "Australia",
     address: nil,
-    email: nil,
+
     phone: nil,
     instagram: nil,
     facebook: nil,
@@ -2533,6 +2533,7 @@ ALL_PRODUCERS.each_with_index do |attrs, index|
     puts "  - Linking regions for producer: #{attrs[:regions]}"
     regions.each do |region_name|
       region = Region.where(name: region_name).first
+      puts "  - region: #{region.inspect} \n producer.country: #{producer.country.inspect}"
       producer.regions << region if region && !producer.regions.include?(region)
     end
   end

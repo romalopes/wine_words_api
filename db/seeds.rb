@@ -3,16 +3,21 @@
 # Canonical, non-destructive Wine Words seed entry point.
 # rails db:seed
 #
-#
 
 # bundle exec rails runner db/seeds/destroy_all.rb
-load Rails.root.join('db', 'seeds', 'destroy_all').to_s
+#  CONFIRM=DESTROY bin/rails runner db/seeds/destroy_all.rb
+# load Rails.root.join('db', 'seeds', 'destroy_all.rb').to_s
 
 # bundle exec rails runner db/seeds/reset_pk_sequences.rb
-load Rails.root.join('db', 'seeds', 'reset_pk_sequences').to_s
+load Rails.root.join('db', 'seeds', 'reset_pk_sequences.rb').to_s
 
 # bundle exec rails runner db/seeds/roles.rb
-load Rails.root.join('db', 'seeds', 'roles').to_s
+load Rails.root.join('db', 'seeds', 'roles.rb').to_s
+
+# bundle exec rails runner db/seeds/subscriptions.rb
+load Rails.root.join('db', 'seeds', 'subscriptions.rb').to_s
+puts "  - #{Subscription.count} subscriptions"
+
 
 # bundle exec rails runner db/seeds/create_three_basic_users.rb
 load Rails.root.join('db', 'seeds', 'create_three_basic_users.rb').to_s
@@ -30,14 +35,6 @@ puts "  - #{Region.count} regions"
 load Rails.root.join('db', 'seeds', 'grapes.rb').to_s
 puts "  - #{Grape.count} grapes"
 
-# bundle exec rails runner db/seeds/producers.rb
-load Rails.root.join('db', 'seeds', 'producers.rb').to_s
-puts "  - #{Producer.count} producers"
-
-# bundle exec rails runner db/seeds/producers.rb
-load Rails.root.join('db', 'seeds', 'subscriptions.rb').to_s
-puts "  - #{Subscription.count} subscriptions"
-
 # Wine profiles and their taste scores are maintained in one consolidated,
 # idempotent source. It also upserts the six taste parameters, including their
 # server-authoritative five-level labels. Legacy profile seed variants remain
@@ -50,7 +47,17 @@ puts "  - #{WineProfile.count} wine profiles"
 puts "  - #{WineProfileTasteParameter.count} profile taste parameters"
 puts "  - #{WineTasteParameter.count} wine taste parameters"
 
-load Rails.root.join('db', 'seeds', 'substack_reviews_articles.rb').to_s
+
+# bundle exec rails runner db/seeds/producers.rb
+load Rails.root.join('db', 'seeds', 'producers.rb').to_s
+puts "  - #{Producer.count} producers"
+
+#  bundle exec rails runner db/seeds/producers_ray_jordan.rb
+load Rails.root.join('db', 'seeds', 'producers_ray_jordan.rb').to_s
+puts "  - #{Producer.count} producers"
+
+#  bundle exec rails runner db/seeds/substack_reviews_articles_seed.rb
+load Rails.root.join('db', 'seeds', 'substack_reviews_articles_seed.rb').to_s
 puts "  - #{Review.count} reviews"
 puts "  - #{Article.count} articles"
 puts "  - #{Wine.count} articles"
