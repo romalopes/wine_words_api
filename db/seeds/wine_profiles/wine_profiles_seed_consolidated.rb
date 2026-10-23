@@ -4,13 +4,20 @@
 # Preserves the original 69 profile slugs and their six scores; adds core varieties.
 # Scores are editorial 1-5 style estimates, not measurements of individual bottles.
 
+# Sweetness: dry, off-dry, medium-dry, medium-sweet, sweet
+# Acidity: low, medium(-), medium, medium(+), high
+# Tannin: low, medium(-), medium, medium(+), high
+# Alcohol: low, medium(-), medium, medium(+), high
+# Body: light, medium(-), medium, medium(+), full
+# Flavour: light, medium(-), medium, medium(+), pronounced
+
 PARAMETER_ATTRIBUTES = {
-  acidity: { label: 'Acidity', low: 'Soft', high: 'Sharp', help: 'How bright, fresh, or mouth-watering the wine feels.' },
-  body: { label: 'Body', low: 'Light', high: 'Full', help: 'The weight and richness of the wine on your palate.' },
-  tannin: { label: 'Tannin', low: 'Silky', high: 'Grippy', help: 'The drying texture, common in red wines.' },
   sweetness: { label: 'Sweetness', low: 'Dry', high: 'Sweet', help: 'How much sugar or ripe sweetness you perceive.' },
+  acidity: { label: 'Acidity', low: 'Soft', high: 'Sharp', help: 'How bright, fresh, or mouth-watering the wine feels.' },
+  tannin: { label: 'Tannin', low: 'Silky', high: 'Grippy', help: 'The drying texture, common in red wines.' },
   alcohol: { label: 'Alcohol warmth', low: 'Cool', high: 'Warm', help: 'The heat or weight from alcohol.' },
-  fruit: { label: 'Fruit intensity', low: 'Subtle', high: 'Expressive', help: 'How strongly fruit aromas and flavors stand out.' }
+  body: { label: 'Body', low: 'Light', high: 'Full', help: 'The weight and richness of the wine on your palate.' },
+  flavour: { label: 'Flavour intensity', low: 'Subtle', high: 'Expressive', help: 'How strongly fruit aromas and flavors stand out.' }
 }.freeze
 PARAMETERS = PARAMETER_ATTRIBUTES.keys.freeze
 # slug | name | color | grapes | regions | notes | serving | scores in PARAMETERS order
@@ -170,9 +177,10 @@ ActiveRecord::Base.transaction do
 
     puts "  - Regions: #{regions}"
     regions.split('|').each do |region|
-      current_region = Region.find_or_create_by!(name: region.strip) do |new_region|
-        new_region.country = unknown_country
-      end
+      normalized = region.strip
+      current_region = Region.where("name ILIKE ?", normalized).first ||
+                       Region.where("name ILIKE ?", "%#{normalized}%").order(:name).first ||
+                       Region.create!(name: normalized, country: unknown_country)
       profile.profile_regions << current_region unless profile.profile_regions.include?(current_region)
     end
 
