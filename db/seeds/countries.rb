@@ -181,7 +181,11 @@ other_countries_data = [
 
   # Oceania
   { name: "Papua New Guinea",           code: "PG", continent: "Oceania", flag_emoji: "🇵🇬", is_wine_country: false },
+
+  # No Continent
+  { name: "Unknown Country",            code: "UN", continent: "No Continent", flag_emoji: "🇺🇳", is_wine_country: false },
 ]
+
 
 countries_data = wine_countries_data + other_countries_data
 
