@@ -61,10 +61,13 @@ class Api::V1::AccountsController < ApplicationController
     render json: { analytics_opt_out: current_user.analytics_opt_out }
   end
 
-  # GET /api/v1/account/producers — current user's linked producers.
+  # GET /api/v1/account/producers — current user's linked producers, with the
+  # membership type and the server-derived edit capability (issue #191).
   def my_producers
-    producers = current_user.producers.includes(:country)
-    render json: producers.map { |p| producer_summary_json(p) }
+    memberships = current_user.producer_memberships
+                              .includes(producer: :country)
+                              .order(:id)
+    render json: memberships.map { |membership| producer_summary_json(membership) }
   end
 
   private
@@ -99,7 +102,8 @@ class Api::V1::AccountsController < ApplicationController
     }
   end
 
-  def producer_summary_json(producer)
+  def producer_summary_json(membership)
+    producer = membership.producer
     {
       id: producer.id,
       name: producer.name,
@@ -107,7 +111,12 @@ class Api::V1::AccountsController < ApplicationController
       country: producer.country&.name,
       email: producer.email,
       producer_type: producer.producer_type,
-      founded_year: producer.founded_year
+      founded_year: producer.founded_year,
+      membership_id: membership.id,
+      membership_type: membership.membership_type,
+      # Owners/Managers may edit; Contributors may only view, even though
+      # catalogue staff keep their global rights.
+      can_edit: membership.can_edit_producer? || current_user.wine_manager?
     }
   end
 end

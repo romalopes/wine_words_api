@@ -10,9 +10,16 @@ class Api::V1::ProducersController < ApplicationController
   end
 
   skip_before_action :authenticate_user!, only: [:index, :show, :search]
-  # Only Admins and Editors may add, edit or delete producers.
-  before_action :ensure_wine_manager!, only: [:create, :update, :destroy, :attach_logo, :remove_logo]
+
+  # `set_producer` must run before the producer-aware gates: they inspect
+  # @producer to resolve membership-based edit rights (issue #191).
   before_action :set_producer, only: [:show, :update, :destroy, :attach_logo, :remove_logo, :link_wine]
+  # Creating and deleting producers stays a catalogue-manager action: Admins,
+  # Editors and Reviewers may create, but only Admins/Editors may delete.
+  before_action :ensure_wine_manager!, only: [:create]
+  before_action :ensure_catalogue_manager!, only: [:destroy]
+  # Owners and managers may edit their own producer; contributors are read-only.
+  before_action :ensure_producer_editor!, only: [:update, :attach_logo, :remove_logo]
 
   def index
     scope = Producer.eager_load(:country, :address)
@@ -107,11 +114,45 @@ class Api::V1::ProducersController < ApplicationController
   private
 
   def ensure_wine_manager!
-    return if current_user&.wine_manager?
+    return if real_current_user&.wine_manager?
 
-    # Allow linked users to update their associated producers
-    return if @producer && current_user&.producers&.exists?(@producer.id)
+    render_forbidden
+  end
 
+  def ensure_catalogue_manager!
+    return if real_current_user&.catalogue_manager?
+
+    render_forbidden
+  end
+
+  # Global Admins/Editors/Reviewers keep their existing producer-edit rights.
+  # Otherwise only an owner or manager membership grants access; contributors
+  # and unrelated users are read-only.
+  def ensure_producer_editor!
+    return if real_current_user&.wine_manager?
+    return if editable_membership_for(real_current_user, @producer)
+
+    render_forbidden
+  end
+
+  def editable_membership_for(user, producer)
+    return false unless user && producer
+
+    user.producer_memberships
+        .where(producer_id: producer.id, membership_type: ProducerMembership::EDITABLE_TYPES)
+        .exists?
+  end
+
+  # Server-derived capability exposed to the UI as `can_edit`; the before_action
+  # gates above remain the authoritative check.
+  def can_edit_producer?(producer)
+    user = real_current_user
+    return false unless user
+
+    user.wine_manager? || editable_membership_for(user, producer)
+  end
+
+  def render_forbidden
     render json: { error: "Forbidden" }, status: :forbidden
   end
 
@@ -196,6 +237,9 @@ class Api::V1::ProducersController < ApplicationController
       phone: producer.phone,
       founded_year: producer.founded_year,
       active: producer.active,
+      # Server-derived: Owners/Managers of this producer and global catalogue
+      # staff may edit it. Contributors and the public see false (issue #191).
+      can_edit: can_edit_producer?(producer),
       country: country_json(producer.country),
       regions: ordered_by_name(producer.regions).map do |region|
         { id: region.id, name: region.name, country_name: region.country&.name }

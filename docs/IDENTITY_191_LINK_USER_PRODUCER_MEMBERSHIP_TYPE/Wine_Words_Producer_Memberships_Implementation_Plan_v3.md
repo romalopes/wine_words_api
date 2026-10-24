@@ -10,6 +10,43 @@
 
 > **Repository verification:** This is an implementation specification, not a verified audit of the latest repository code. The AI assistant implementing it must inspect existing models, migrations, controllers, policies, routes, serializers, tests, React routes, and components first. Adapt naming and API paths to actual conventions rather than blindly introducing duplicates.
 
+## Implementation status — 24 October 2026
+
+**Status: implemented in both repositories.** Phases 0–8 are complete and documented under [`phases/`](phases/).
+
+| Phase | Deliverable | Status | Document |
+|---|---|---|---|
+| 0 | Repository audit and design alignment | Complete | [phase-0](phases/phase-0-repository-audit-and-design.md) |
+| 1 | Forward migration + typed model | Complete | [phase-1](phases/phase-1-schema-and-model.md) |
+| 2 | Producer authorization hardening + `can_edit` | Complete | [phase-2](phases/phase-2-producer-authorization.md) |
+| 3 | Membership administration API (create/update, 409, server-derived actor) | Complete | [phase-3](phases/phase-3-membership-api.md) |
+| 4 | `/api/v1/account/producers` payload | Complete | [phase-4](phases/phase-4-my-producers-payload.md) |
+| 5 | Frontend UserDetail membership administration | Complete | [phase-5](phases/phase-5-frontend-user-detail.md) |
+| 6 | Frontend `/account`, Producer detail, delete gating | Complete | [phase-6](phases/phase-6-frontend-account-and-producer-detail.md) |
+| 7 | Tests and validation | Complete | [phase-7](phases/phase-7-tests-and-validation.md) |
+| 8 | Rollout, rollback, risks, follow-ups | Documented (deploy actions pending) | [phase-8](phases/phase-8-rollout-and-risks.md) |
+
+### What shipped
+
+- `producer_memberships.membership_type` (`owner` / `manager` / `contributor`), `NOT NULL` plus a database check constraint, added by a forward migration (`20261024000000`). The already-applied create migration was not edited.
+- Legacy untyped rows are **never** mapped automatically: the migration aborts with instructions and accepts an explicit, whitelisted `PRODUCER_MEMBERSHIP_LEGACY_TYPE=manager|contributor` mapping.
+- Owners and managers may edit their producer; contributors are read-only; unrelated users are denied; global Admin/Editor/Reviewer rights are preserved for editing. **Producer deletion is Admin/Editor only.**
+- `PATCH /api/v1/users/:user_id/producer_memberships/:id` was added; create/update accept `membership_type`; `created_by` is always server-derived; duplicates return `409`.
+- `can_edit` is returned by `GET /api/v1/producers/:id` and `/api/v1/account/producers`; the React app uses it only for affordances, never as the authorization boundary.
+
+### Validation
+
+- Backend: new specs 60/60 green (13 model + 30 membership API + 17 producer authorization). Full suite 1420 examples / 45 failures, all confirmed pre-existing on `main`.
+- Frontend: `tsc` clean, ESLint 0 errors, 380/383 vitest tests pass; the 3 failures reproduce on unmodified `main`.
+- Brakeman: no warnings in files touched by this issue. `zeitwerk:check`: clean.
+
+### Known deviations
+
+1. Reviewer/owner/manager **cannot delete** a producer (issue #191 restricts deletion to Admin/Editor).
+2. Owners and managers have identical capabilities in this release.
+3. No `ProducerSearchSelect` extraction; the existing debounced search control was reused.
+4. `/account/producers` was enhanced rather than replaced.
+
 ## 1. Goals and non-goals
 
 ### Goals

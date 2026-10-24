@@ -335,6 +335,7 @@ Rails.application.routes.draw do
         end
         get :producer_memberships, to: 'producer_memberships#index'
         post :producer_memberships, to: 'producer_memberships#create'
+        patch 'producer_memberships/:id', to: 'producer_memberships#update'
         delete 'producer_memberships/:id', to: 'producer_memberships#destroy'
       end
       get "roles", to: "users#roles"

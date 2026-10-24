@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_23_170000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_24_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -438,6 +438,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_23_170000) do
   create_table "producer_memberships", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.bigint "created_by_id"
+    t.string "membership_type", null: false
     t.bigint "producer_id", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
@@ -445,6 +446,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_23_170000) do
     t.index ["producer_id"], name: "index_producer_memberships_on_producer_id"
     t.index ["user_id", "producer_id"], name: "index_producer_memberships_on_user_id_and_producer_id", unique: true
     t.index ["user_id"], name: "index_producer_memberships_on_user_id"
+    t.check_constraint "membership_type::text = ANY (ARRAY['owner'::character varying, 'manager'::character varying, 'contributor'::character varying]::text[])", name: "chk_membership_type"
   end
 
   create_table "producer_regions", force: :cascade do |t|
