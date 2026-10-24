@@ -50,7 +50,7 @@ end
 def attach_wine_image!(wine, image_url_raw)
   return false if image_url_raw.blank?
   return false if wine.images.exists?
-  return if ENV.fetch("SEED_AVOID_IMAGES")
+  ENV.fetch("SEED_AVOID_IMAGES", false) == "true" && return
 
   url = full_size_image_url(image_url_raw.split.first)
   return false if url.blank?

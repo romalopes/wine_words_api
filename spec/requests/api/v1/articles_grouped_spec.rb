@@ -92,6 +92,17 @@ RSpec.describe "Api::V1::Articles grouped", type: :request do
       expect(JSON.parse(response.body)).to eq([])
     end
 
+    it "filters the grouped view by status" do
+      create_article("Archived barrel sample", status: "archived")
+
+      sign_in manager
+      get "/api/v1/articles/grouped", params: { status: "archived" }
+
+      expect(response).to have_http_status(:ok)
+      titles = JSON.parse(response.body).flat_map { |g| g["articles"].map { |a| a["title"] } }
+      expect(titles).to contain_exactly("Archived barrel sample")
+    end
+
     it "caps each group at per_group but keeps the true count" do
       3.times { |i| create_article("Extra note #{i}") }
 

@@ -56,6 +56,10 @@ class Api::V1::ArticlesController < ApplicationController
 
     scope = Article.all
     scope = scope.visible_to(current_user) unless current_user&.wine_manager?
+    # Lifecycle filter (draft/published/archived), applied before the
+    # per-category window so the "N per category" cap and its counts reflect
+    # only the requested status.
+    scope = scope.where(status: params[:status]) if Article::STATUSES.include?(params[:status])
     # Same search scoping as #index, including the `rank` column when the term
     # is searchable — the window function below orders each category's rows by
     # it, so "N most relevant per category" agrees with the paginated feed.
