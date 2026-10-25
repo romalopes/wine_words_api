@@ -39,6 +39,7 @@ module CommentableActions
     )
 
     if comment.save
+      publish_comment_event(commentable, comment)
       render json: CommentSerializer.new(comment, permission, replies: []).as_json,
              status: :created
     else
@@ -47,6 +48,32 @@ module CommentableActions
   end
 
   private
+
+  # Follow notifications (issue #192): comments and replies on published
+  # Reviews and Articles notify that content's followers. Wine comments are
+  # excluded (issue #192 scope), and drafts have no ordinary followers.
+  def publish_comment_event(commentable, comment)
+    event_type =
+      case commentable
+      when Review then "review.comment_created"
+      when Article then "article.comment_created"
+      else return
+      end
+    return unless commentable.status == "published"
+
+    Notifications::EventPublisher.publish!(
+      event_type: event_type,
+      subject: commentable,
+      actor: comment.user,
+      idempotency_key: "#{event_type}.#{commentable.class.name}.#{commentable.id}.comment.#{comment.id}",
+      metadata: {
+        comment_id: comment.id,
+        reply: comment.parent_id.present?,
+        subject_label: commentable.title,
+        subject_slug: commentable.slug
+      }
+    )
+  end
 
   # Each including controller defines how its commentable is resolved
   # (slug-aware + visibility-scoped where applicable) and returns nil after

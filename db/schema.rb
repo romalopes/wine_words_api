@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_24_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_25_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -324,6 +324,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_24_000000) do
     t.index ["slug"], name: "index_countries_on_slug", unique: true
   end
 
+  create_table "follows", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "followable_id", null: false
+    t.string "followable_type", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["followable_type", "followable_id", "user_id"], name: "index_follows_on_followable_and_user"
+    t.index ["user_id", "followable_type", "followable_id"], name: "index_follows_on_user_and_followable", unique: true
+    t.index ["user_id"], name: "index_follows_on_user_id"
+    t.check_constraint "followable_type::text = ANY (ARRAY['Producer'::character varying::text, 'Wine'::character varying::text, 'Review'::character varying::text, 'Article'::character varying::text])", name: "follows_followable_type_check"
+  end
+
   create_table "grapes", force: :cascade do |t|
     t.string "color"
     t.bigint "country_id"
@@ -406,19 +418,64 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_24_000000) do
     t.index ["user_id"], name: "index_logs_on_user_id"
   end
 
-  create_table "notifications", force: :cascade do |t|
+  create_table "notification_events", force: :cascade do |t|
+    t.bigint "actor_id"
+    t.jsonb "affected_targets", default: [], null: false
+    t.integer "attempts", default: 0, null: false
     t.datetime "created_at", null: false
+    t.string "event_type", null: false
+    t.datetime "failed_at"
+    t.string "idempotency_key", null: false
+    t.text "last_error"
+    t.jsonb "metadata", default: {}, null: false
+    t.datetime "occurred_at", null: false
+    t.datetime "processed_at"
+    t.datetime "processing_started_at"
+    t.bigint "subject_id", null: false
+    t.string "subject_type", null: false
+    t.datetime "updated_at", null: false
+    t.index ["idempotency_key"], name: "index_notification_events_on_idempotency_key", unique: true
+    t.index ["processed_at"], name: "index_notification_events_pending", where: "((processed_at IS NULL) AND (failed_at IS NULL))"
+    t.index ["subject_type", "subject_id"], name: "index_notification_events_on_subject_type_and_subject_id"
+  end
+
+  create_table "notification_preferences", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "digest_cadence", default: "none", null: false
+    t.text "digest_last_error"
+    t.datetime "digest_last_error_at"
+    t.datetime "digest_last_sent_at"
+    t.boolean "follow_email", default: false, null: false
+    t.boolean "follow_in_app", default: true, null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id"], name: "index_notification_preferences_on_user_id", unique: true
+    t.check_constraint "digest_cadence::text = ANY (ARRAY['none'::character varying::text, 'daily'::character varying::text, 'weekly'::character varying::text])", name: "notification_preferences_digest_cadence_check"
+  end
+
+  create_table "notifications", force: :cascade do |t|
+    t.bigint "actor_id"
+    t.datetime "created_at", null: false
+    t.datetime "delivered_at"
+    t.datetime "failed_at"
     t.text "message"
     t.bigint "notifiable_id"
     t.string "notifiable_type"
+    t.bigint "notification_event_id"
     t.string "notification_type", limit: 64, null: false
     t.datetime "read_at"
     t.bigint "recipient_id", null: false
     t.date "scheduled_date"
     t.datetime "sent_at"
+    t.string "target_label"
+    t.string "target_path"
     t.datetime "updated_at", null: false
     t.bigint "wine_package_id"
+    t.index ["actor_id"], name: "index_notifications_on_actor_id"
+    t.index ["failed_at"], name: "index_notifications_on_failed_at"
     t.index ["notifiable_type", "notifiable_id"], name: "index_notifications_on_notifiable_type_and_notifiable_id"
+    t.index ["notification_event_id"], name: "index_notifications_on_notification_event_id"
+    t.index ["recipient_id", "notification_event_id"], name: "index_notifications_on_recipient_and_event", unique: true, where: "(notification_event_id IS NOT NULL)"
     t.index ["recipient_id", "read_at"], name: "index_notifications_on_recipient_id_and_read_at"
     t.index ["recipient_id"], name: "index_notifications_on_recipient_id"
     t.index ["wine_package_id", "notification_type", "scheduled_date"], name: "index_notifications_on_package_type_and_scheduled_date", unique: true
@@ -446,7 +503,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_24_000000) do
     t.index ["producer_id"], name: "index_producer_memberships_on_producer_id"
     t.index ["user_id", "producer_id"], name: "index_producer_memberships_on_user_id_and_producer_id", unique: true
     t.index ["user_id"], name: "index_producer_memberships_on_user_id"
-    t.check_constraint "membership_type::text = ANY (ARRAY['owner'::character varying, 'manager'::character varying, 'contributor'::character varying]::text[])", name: "chk_membership_type"
+    t.check_constraint "membership_type::text = ANY (ARRAY['owner'::character varying::text, 'manager'::character varying::text, 'contributor'::character varying::text])", name: "chk_membership_type"
   end
 
   create_table "producer_regions", force: :cascade do |t|
@@ -1099,11 +1156,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_24_000000) do
   add_foreign_key "billing_customers", "users"
   add_foreign_key "comments", "comments", column: "parent_id"
   add_foreign_key "comments", "users"
+  add_foreign_key "follows", "users", on_delete: :cascade
   add_foreign_key "grapes", "countries"
   add_foreign_key "likes", "users"
   add_foreign_key "log_objects", "logs"
   add_foreign_key "logs", "users"
   add_foreign_key "logs", "users", column: "impersonated_user_id"
+  add_foreign_key "notification_events", "users", column: "actor_id", on_delete: :nullify
+  add_foreign_key "notification_preferences", "users", on_delete: :cascade
+  add_foreign_key "notifications", "notification_events", on_delete: :nullify
+  add_foreign_key "notifications", "users", column: "actor_id", on_delete: :nullify
   add_foreign_key "notifications", "users", column: "recipient_id"
   add_foreign_key "notifications", "wine_packages"
   add_foreign_key "producer_grapes", "grapes"

@@ -22,7 +22,8 @@ class Api::V1::NotificationsController < ApplicationController
   def index
     notifications = current_user.notifications
                                 .delivered
-                                .includes(wine_package: :producer)
+                                .includes(wine_package: :producer,
+                                          notification_event: :actor)
                                 .by_recency
 
     notifications = notifications.unread if params[:unread] == "true"

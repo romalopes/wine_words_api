@@ -70,7 +70,34 @@ class Api::V1::AccountsController < ApplicationController
     render json: memberships.map { |membership| producer_summary_json(membership) }
   end
 
+  # GET /api/v1/account/notification_preferences — how the user receives
+  # follow-based notifications (issue #192 phase 8). Always returns a row
+  # (created lazily with the defaults).
+  def show_notification_preferences
+    render json: NotificationPreference.for(current_user).as_json
+  end
+
+  # PATCH /api/v1/account/notification_preferences
+  # Body: { follow_in_app: true|false, follow_email: true|false,
+  #         digest_cadence: "none"|"daily"|"weekly" }
+  def update_notification_preferences
+    preference = NotificationPreference.for(current_user)
+
+    if preference.update(preference_params)
+      render json: preference.as_json
+    else
+      render json: { errors: preference.errors.full_messages }, status: :unprocessable_entity
+    end
+  end
+
   private
+
+  def preference_params
+    permitted = params.permit(:follow_in_app, :follow_email, :digest_cadence).to_h
+    permitted[:follow_in_app] = ActiveModel::Type::Boolean.new.cast(permitted[:follow_in_app]) if permitted.key?(:follow_in_app)
+    permitted[:follow_email] = ActiveModel::Type::Boolean.new.cast(permitted[:follow_email]) if permitted.key?(:follow_email)
+    permitted
+  end
 
   def account_params
     permitted = params.permit(

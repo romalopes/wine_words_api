@@ -19,6 +19,8 @@ class Wine < ApplicationRecord
   has_many :regions, through: :wine_regions, source: :region
   has_many :wine_categories, dependent: :destroy
   has_many :categories, through: :wine_categories
+  has_many :follows, as: :followable, dependent: :destroy
+  has_many :followers, through: :follows, source: :user
 
   accepts_nested_attributes_for :vintages, allow_destroy: true, reject_if: :all_blank
   accepts_nested_attributes_for :wine_taste_parameters, allow_destroy: true, reject_if: :all_blank

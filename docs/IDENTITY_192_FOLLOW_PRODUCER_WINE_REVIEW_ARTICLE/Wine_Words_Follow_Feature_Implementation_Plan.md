@@ -1,11 +1,31 @@
 # Wine Words — Follow & Notification Propagation Implementation Plan
 
-**Status:** Proposed / implementation-ready after repository audit
-**Date:** 2026-10-23
+**Status:** Implemented — all phases complete (Phases 0–8)  
+**Date:** 2026-10-23 (plan) · 2026-10-25 (implementation)  
 **Repositories:** [Rails API](https://github.com/romalopes/wine_words_api) · [React frontend](https://github.com/romalopes/wine_words_frontend)
-**Suggested repository location:** `docs/IDENTITY_192_FOLLOW_PRODUCER_WINE_REVIEW_ARTICLE/Wine_Words_Follow_Implementation_Plan.md` in the API repository.
 
-> **Verification note:** This plan is based on the established Wine Words Rails/React architecture and requirements, not a live audit of the latest repository state. Phase 0 is mandatory: adapt model names, associations, API conventions, authorization, notification infrastructure, and tests to the actual code before implementation.
+> **Implementation note:** Phase 0 audited the live repositories and corrected the
+> original assumptions (Review belongs to exactly one Vintage → Wine → Producer;
+> Articles also link direct Producers; wine comments are excluded per issue #192;
+> the production queue adapter was silently overridden to `:async`). The approved
+> design and every phase's outcome are documented under `phases/`:
+>
+> | Phase | Document | State |
+> |---|---|---|
+> | 0 — Audit & approved design | `phases/phase-0-repository-audit-and-design.md` | ✅ |
+> | 1 — Follow schema & model | `phases/phase-1-follow-schema-and-model.md` | ✅ |
+> | 2 — Follow API & authorization | `phases/phase-2-follow-api-and-authorization.md` | ✅ |
+> | 3 — Event schema, publishing & reliability | `phases/phase-3-notification-events-and-reliability.md` | ✅ |
+> | 4 — Recipient resolution & delivery | `phases/phase-4-recipient-resolution-and-delivery.md` | ✅ |
+> | 5 — React Follow UI & Following page | `phases/phase-5-react-follow-ui-and-following-page.md` | ✅ |
+> | 6 — Generalized notification UI | `phases/phase-6-notification-ui-and-end-to-end-flows.md` | ✅ |
+> | 7 — Performance, rollout & operations | `phases/phase-7-performance-rollout-and-operations.md` | ✅ |
+> | 8 — Preferences & email digests | `phases/phase-8-notification-preferences-and-digests.md` | ✅ (included per user request despite the original "deferred" note) |
+
+**Validation summary:** full API suite regression diff vs the `main` baseline shows zero
+new failures (44 pre-existing failures unchanged); the React suite shows zero new
+failures (4 pre-existing); `tsc -b`, `eslint`, `vite build`, `zeitwerk` conventions and
+all 240+ new specs pass.
 
 ## 1. Objective and scope
 

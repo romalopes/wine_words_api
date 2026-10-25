@@ -65,6 +65,12 @@ class User < ApplicationRecord
   has_many :created_article_projects, class_name: "ArticleProject", foreign_key: :created_by_id,
                                        dependent: :nullify
   has_many :notifications, foreign_key: :recipient_id, dependent: :destroy
+  has_one :notification_preference, class_name: "NotificationPreference", dependent: :destroy
+  has_many :follows, dependent: :destroy
+  has_many :followed_producers, through: :follows, source: :followable, source_type: "Producer"
+  has_many :followed_wines, through: :follows, source: :followable, source_type: "Wine"
+  has_many :followed_reviews, through: :follows, source: :followable, source_type: "Review"
+  has_many :followed_articles, through: :follows, source: :followable, source_type: "Article"
 
   # External authentication identities (Google / Apple / Microsoft / Facebook).
   # The User stays the canonical identity and keeps exactly one Account, one

@@ -42,6 +42,7 @@ class WinePackages::SendReviewDeadlineNotificationsJob < ApplicationJob
                 .find_each do |notification|
       deliver(notification)
     rescue StandardError => e
+      notification&.mark_failed!
       Rails.logger.error(
         "[WinePackages] delivering notification #{notification&.id} failed: #{e.class}: #{e.message}"
       )

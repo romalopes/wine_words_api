@@ -64,6 +64,28 @@ RSpec.describe WinePackages::SendReviewDeadlineNotificationsJob, type: :job do
       expect(mail.body.encoded).to include("Penfolds")
     end
 
+    it "records a failed delivery and clears it after a successful retry" do
+      package = build_package(arrived_at: 1.month.ago, review_deadline: Date.current)
+      notification = Notification.notify!(recipient: reviewer, type: "wine_package_deadline",
+                                          notifiable: package, wine_package: package,
+                                          scheduled_date: Date.current, message: "due")
+      allow(WinePackagesMailer).to receive(:review_deadline_notification)
+        .and_raise(StandardError, "provider unavailable")
+      allow_any_instance_of(described_class).to receive(:sleep)
+
+      described_class.perform_now(Date.current)
+
+      expect(notification.reload.failed_at).to be_present
+      expect(notification.sent_at).to be_nil
+      expect(Notification.undelivered).to include(notification)
+
+      allow(WinePackagesMailer).to receive(:review_deadline_notification).and_call_original
+      described_class.perform_now(Date.current)
+
+      expect(notification.reload.sent_at).to be_present
+      expect(notification.failed_at).to be_nil
+    end
+
     it "leaves future reminders undelivered" do
       build_package(arrived_at: Time.current, review_deadline: Date.current + 30)
 

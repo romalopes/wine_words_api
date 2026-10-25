@@ -25,6 +25,8 @@ class Producer < ApplicationRecord
 
   has_many :producer_memberships, dependent: :destroy
   has_many :users, through: :producer_memberships
+  has_many :follows, as: :followable, dependent: :destroy
+  has_many :followers, through: :follows, source: :user
 
   enum :producer_type, {
     winery: 0,

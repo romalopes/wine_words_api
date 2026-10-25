@@ -244,6 +244,7 @@ class Api::V1::ReviewsController < ApplicationController
     end
 
     if review.save
+      publish_review_events(review)
       render json: ReviewSerializer.new(review, request.base_url, liked_ids: Likes.liked_ids_for([review], current_user)).as_json, status: :created
     else
       render json: { errors: review.errors.full_messages }, status: :unprocessable_entity
@@ -256,6 +257,7 @@ class Api::V1::ReviewsController < ApplicationController
     end
 
     if @review.update(review_params)
+      publish_review_events(@review)
       if request.headers["Prefer"] == "return=minimal"
         response.set_header("Preference-Applied", "return=minimal")
         return head :no_content
@@ -319,6 +321,23 @@ class Api::V1::ReviewsController < ApplicationController
     return if current_user&.wine_manager?
 
     render json: { error: "Forbidden" }, status: :forbidden
+  end
+
+  # Follow notifications (issue #192): first publication and meaningful edits
+  # of a published review are events. A draft→published transition is the
+  # publication event even when other fields changed too (no double notify);
+  # draft edits, deadline-only changes and status-only unpublish never notify.
+  def publish_review_events(review)
+    if review.saved_change_to_status? && review.status == "published"
+      Notifications::EventPublisher.publish!(
+        event_type: "review.published", subject: review, actor: current_user
+      )
+    elsif review.status == "published" &&
+          Notifications::MeaningfulChangeDetector.meaningful_update?(review)
+      Notifications::EventPublisher.publish!(
+        event_type: "review.updated", subject: review, actor: current_user
+      )
+    end
   end
 
   def set_vintage

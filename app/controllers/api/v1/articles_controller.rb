@@ -195,6 +195,7 @@ class Api::V1::ArticlesController < ApplicationController
         return render json: { errors: image_errors }, status: :unprocessable_entity
       end
 
+      publish_article_events(@article)
       render json: ArticleSerializer.new(@article, request.base_url, liked_ids: Likes.liked_ids_for([@article], current_user)).as_json, status: :created
     else
       render json: { errors: @article.errors.full_messages }, status: :unprocessable_entity
@@ -212,6 +213,7 @@ class Api::V1::ArticlesController < ApplicationController
         return render json: { errors: image_errors }, status: :unprocessable_entity
       end
 
+      publish_article_events(@article)
       if request.headers["Prefer"] == "return=minimal"
         response.set_header("Preference-Applied", "return=minimal")
         return head :no_content
@@ -294,6 +296,23 @@ class Api::V1::ArticlesController < ApplicationController
       img.file.attach(file)
       img.save
       img.errors.full_messages
+    end
+  end
+
+  # Follow notifications (issue #192): first publication and meaningful edits
+  # of a published article are events. A draft→published transition is the
+  # publication event even when other fields changed too (no double notify);
+  # draft edits, deadline-only changes and status-only unpublish never notify.
+  def publish_article_events(article)
+    if article.saved_change_to_status? && article.status == "published"
+      Notifications::EventPublisher.publish!(
+        event_type: "article.published", subject: article, actor: current_user
+      )
+    elsif article.status == "published" &&
+          Notifications::MeaningfulChangeDetector.meaningful_update?(article)
+      Notifications::EventPublisher.publish!(
+        event_type: "article.updated", subject: article, actor: current_user
+      )
     end
   end
 

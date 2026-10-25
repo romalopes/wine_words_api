@@ -1,0 +1,26 @@
+<h1>Wine Words activity digest</h1>
+
+<p>
+  Hi <%= @user.display_name %>,
+</p>
+
+<p>
+  Here is what happened on the producers, wines, reviews and articles you
+  follow — <%= @notifications.size %> update<%= "s" if @notifications.size != 1 %>:
+</p>
+
+<ul>
+  <% @notifications.each do |notification| %>
+    <li>
+      <strong><%= notification.target_label || notification.notifiable_type %></strong> —
+      <%= notification.message %>
+      <% if notification.target_path && @base_url.present? %>
+        (<a href="<%= @base_url %><%= notification.target_path %>">view</a>)
+      <% end %>
+    </li>
+  <% end %>
+</ul>
+
+<p>
+  Open Wine Words to catch up on everything else.
+</p>

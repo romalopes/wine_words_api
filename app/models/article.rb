@@ -28,6 +28,9 @@ class Article < ApplicationRecord
   has_many :article_reviews, dependent: :destroy
   has_many :reviews, through: :article_reviews
 
+  has_many :follows, as: :followable, dependent: :destroy
+  has_many :followers, through: :follows, source: :user
+
   SOURCES = %w[manual substack wine_front].freeze
   STATUSES = %w[draft published archived].freeze
 

@@ -1,0 +1,9 @@
+Hi <%= @user.display_name %>,
+
+Here is what happened on the producers, wines, reviews and articles you follow — <%= @notifications.size %> update(s):
+
+<% @notifications.each do |notification| -%>
+* <%= notification.target_label || notification.notifiable_type %> - <%= notification.message %><% if notification.target_path && @base_url.present? %> (<%= @base_url %><%= notification.target_path %>)<% end %>
+<% end -%>
+
+Open Wine Words to catch up on everything else.

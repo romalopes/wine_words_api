@@ -20,6 +20,8 @@ class Review < ApplicationRecord
   # wine_package_items.review_id, so the reviews table is untouched and every
   # existing review stays valid. Nullify (not destroy) on deletion.
   has_many :wine_package_items, dependent: :nullify
+  has_many :follows, as: :followable, dependent: :destroy
+  has_many :followers, through: :follows, source: :user
 
   STATUSES = %w[draft published archived].freeze
   SOURCES = %w[manual substack wine_front].freeze

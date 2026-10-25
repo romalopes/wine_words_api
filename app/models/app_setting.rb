@@ -11,7 +11,11 @@ class AppSetting < ApplicationRecord
     "use_test_email" => false,
     "test_email" => ENV["MAIL_REPLY_TO"],
     "mail_transport" => "auto",
-    "analytics_diagnostics_enabled" => false
+    "analytics_diagnostics_enabled" => false,
+    # Follow notifications (issue #192): master switch. Event publishing stops
+    # when off — Follow rows and already-delivered notifications are preserved,
+    # so toggling back on resumes exactly where it stopped.
+    "follow_notifications_enabled" => true
   }.freeze
 
   validates :key, presence: true, uniqueness: true
@@ -46,6 +50,11 @@ class AppSetting < ApplicationRecord
 
   def self.analytics_diagnostics_enabled?
     boolean("analytics_diagnostics_enabled")
+  end
+
+  # Follow notifications master switch (issue #192). See DEFAULTS above.
+  def self.follow_notifications_enabled?
+    boolean("follow_notifications_enabled")
   end
 
   def self.analytics_diagnostics_email

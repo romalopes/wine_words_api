@@ -75,6 +75,12 @@ class Api::V1::ProducersController < ApplicationController
 
   def update
     if @producer.update(producer_params)
+      # Follow notifications (issue #192): meaningful public edits only.
+      if Notifications::MeaningfulChangeDetector.meaningful_update?(@producer)
+        Notifications::EventPublisher.publish!(
+          event_type: "producer.updated", subject: @producer, actor: current_user
+        )
+      end
       render json: producer_json(@producer)
     else
       render json: { errors: @producer.errors.full_messages }, status: :unprocessable_entity

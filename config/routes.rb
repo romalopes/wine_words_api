@@ -276,6 +276,17 @@ Rails.application.routes.draw do
         member { patch :mark_read }
       end
 
+      # --- Follows (issue #192) -------------------------------------------- #
+      # The signed-in user's subscriptions to Producers / Wines / Reviews /
+      # Articles. `status` answers "am I following this target?" for detail
+      # pages; `statuses` batch-answers it for list pages.
+      resources :follows, only: [:index, :create, :destroy] do
+        collection do
+          get :status
+          get :statuses
+        end
+      end
+
       # Billing — checkout session and customer portal (authenticated).
       post "billing/checkout", to: "billing#checkout"
       post "billing/portal", to: "billing#portal"
@@ -360,6 +371,8 @@ Rails.application.routes.draw do
       patch "account/password", to: "accounts#update_password"
       patch "account/analytics_opt_out", to: "accounts#update_analytics_opt_out"
       get "account/producers", to: "accounts#my_producers"
+      get "account/notification_preferences", to: "accounts#show_notification_preferences"
+      patch "account/notification_preferences", to: "accounts#update_notification_preferences"
       resources :subscriptions, only: [:index, :show, :create, :update, :destroy]
     end
   end

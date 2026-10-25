@@ -165,7 +165,7 @@ RSpec.describe Notification, type: :model do
     end
   end
 
-  describe "#mark_read! and #mark_sent!" do
+  describe "delivery state" do
     it "stamps read_at once" do
       notification = notify
       first_read = Time.zone.local(2026, 3, 1, 9, 0)
@@ -187,6 +187,26 @@ RSpec.describe Notification, type: :model do
       notification.mark_sent!(at: first_sent + 1.day)
       expect(notification.reload.sent_at).to be_within(1.second).of(first_sent)
     end
+
+    it "records a delivery failure" do
+      notification = notify
+      failed_at = Time.zone.local(2026, 3, 1, 8, 0)
+
+      notification.mark_failed!(at: failed_at)
+
+      expect(notification).to be_failed
+      expect(notification.failed_at).to be_within(1.second).of(failed_at)
+    end
+
+    it "clears a previous failure when delivery succeeds" do
+      notification = notify
+      notification.mark_failed!(at: 1.hour.ago)
+
+      notification.mark_sent!(at: Time.current)
+
+      expect(notification).to be_sent
+      expect(notification.failed_at).to be_nil
+    end
   end
 
   describe "scopes" do
@@ -206,6 +226,13 @@ RSpec.describe Notification, type: :model do
 
       expect(described_class.undelivered).to contain_exactly(undelivered)
       expect(described_class.delivered).to contain_exactly(delivered)
+    end
+
+    it "keeps failed notifications undelivered" do
+      notification = notify
+      notification.mark_failed!
+
+      expect(described_class.undelivered).to include(notification)
     end
 
     it "filters by scheduled date" do

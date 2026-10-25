@@ -142,6 +142,10 @@ class Api::V1::WinesController < ApplicationController
   def create
     @wine = Wine.new(wine_params)
     if @wine.save
+      # Follow notifications (issue #192): a new wine notifies its producer's followers.
+      Notifications::EventPublisher.publish!(
+        event_type: "wine.created", subject: @wine, actor: current_user
+      )
       render json: WineSerializer.new(@wine, request.base_url, liked_ids: Likes.liked_ids_for([@wine], current_user)).as_json, status: :created
     else
       render json: { errors: @wine.errors.full_messages }, status: :unprocessable_entity
@@ -151,6 +155,12 @@ class Api::V1::WinesController < ApplicationController
   def update
     @wine = Wine.find_by!(slug: params[:id])
     if @wine.update(wine_params)
+      # Follow notifications (issue #192): meaningful public edits only.
+      if Notifications::MeaningfulChangeDetector.meaningful_update?(@wine)
+        Notifications::EventPublisher.publish!(
+          event_type: "wine.updated", subject: @wine, actor: current_user
+        )
+      end
       render json: WineSerializer.new(@wine, request.base_url, liked_ids: Likes.liked_ids_for([@wine], current_user)).as_json
     else
       render json: { errors: @wine.errors.full_messages }, status: :unprocessable_entity

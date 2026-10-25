@@ -26,3 +26,23 @@ production:
     class: WinePackages::SendReviewDeadlineNotificationsJob
     queue: background
     schedule: at 7am every day
+  # Follow-notification outbox sweeper (issue #192): re-enqueues events that
+  # were recorded but never processed (lost enqueue or worker crash).
+  notifications_recovery:
+    class: Notifications::RecoveryJob
+    queue: background
+    schedule: every hour at minute 47
+  # Follow-event digests (issue #192 phase 8): one email per user per period,
+  # grouped by content. Daily run covers daily cadence; the Monday run covers
+  # weekly. Idempotent: rows are stamped sent_at after a successful send, so a
+  # repeated run never emails the same notification twice.
+  notifications_daily_digest:
+    class: Notifications::DigestJob
+    queue: background
+    args: [ "daily" ]
+    schedule: every day at 8am
+  notifications_weekly_digest:
+    class: Notifications::DigestJob
+    queue: background
+    args: [ "weekly" ]
+    schedule: every monday at 8am

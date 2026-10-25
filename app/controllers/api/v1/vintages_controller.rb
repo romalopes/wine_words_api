@@ -20,6 +20,11 @@ class Api::V1::VintagesController < ApplicationController
     @vintage_record = vintage
 
     if vintage.save
+      # Follow notifications (issue #192): a new vintage notifies the wine's
+      # followers (and through it the producer's followers).
+      Notifications::EventPublisher.publish!(
+        event_type: "vintage.created", subject: vintage, actor: current_user
+      )
       render json: { id: vintage.id, year: vintage.year, prompt: vintage.prompt,
                      price: vintage.price&.to_f, no_vintage: vintage.no_vintage },
              status: :created
