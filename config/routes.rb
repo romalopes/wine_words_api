@@ -342,6 +342,7 @@ Rails.application.routes.draw do
         member do
           patch :assign_roles
           patch :assign_subscription
+          patch :account, action: :update_account
           get :show
         end
         get :producer_memberships, to: 'producer_memberships#index'

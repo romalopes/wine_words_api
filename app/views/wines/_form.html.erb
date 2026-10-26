@@ -258,14 +258,16 @@
     <label><strong>Taste Parameters</strong></label>
     <% (@taste_parameters || TasteParameter.sorted_by_label).each do |tp| %>
       <% existing = @wine&.wine_taste_parameters&.find { |wtp| wtp.taste_parameter_id == tp.id } %>
-      <div class="wine-taste-param" style="display:grid; grid-template-columns: 9rem 1fr 2.5rem; align-items:center; gap:.75rem; margin-bottom:.4rem">
+      <div class="wine-taste-param" style="display:grid; grid-template-columns: 9rem 1fr 2.5rem; align-items:center; gap:.75rem; margin-bottom:.4rem"
+           data-taste-row data-touched="<%= existing ? 'true' : 'false' %>">
         <span style="font-size:.92rem"><%= tp.label %></span>
         <input type="range"
                min="1" max="5" step="1"
                value="<%= existing&.score || 3 %>"
-               name="wine[wine_taste_parameters_attributes][][score]"
-               oninput="this.nextElementSibling.textContent = this.value">
+               data-taste-field="score"
+               oninput="if (this.closest('[data-taste-row]').dataset.touched !== 'true') { this.closest('[data-taste-row]').dataset.touched = 'true'; } this.nextElementSibling.textContent = this.value;">
         <output style="font-weight:700; text-align:center"><%= existing&.score || 3 %></output>
+        <input type="hidden" name="wine[wine_taste_parameters_attributes][][score]" data-taste-field="score" value="<%= existing&.score || 3 %>">
         <input type="hidden" name="wine[wine_taste_parameters_attributes][][taste_parameter_id]" value="<%= tp.id %>">
         <% if existing %>
           <input type="hidden" name="wine[wine_taste_parameters_attributes][][id]" value="<%= existing.id %>">
@@ -386,5 +388,15 @@
     addBtn.addEventListener("click", function () { addRow(null); });
 
     existing.forEach(function (v) { addRow(v); });
+
+    // New wines start with every taste slider untouched, so remove the submitted
+    // names: the server then auto-selects the closest profile (name -> grapes)
+    // and copies its taste parameters. Editing rows are marked touched above.
+    var form = document.querySelector("form");
+    form.addEventListener("submit", function () {
+      form.querySelectorAll("[data-taste-row][data-touched='false'] input").forEach(function (input) {
+        input.removeAttribute("name");
+      });
+    });
   })();
 </script>

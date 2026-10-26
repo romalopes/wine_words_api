@@ -79,6 +79,7 @@ RSpec.describe "Api::V1::WineProfiles", type: :request do
 
       first = body.find { |p| p["slug"] == "pinot-noir" }
       expect(first).to include(
+        "id" => profile_one.id,
         "slug"   => "pinot-noir",
         "name" => "Pinot Noir",
         "color" => "Red",

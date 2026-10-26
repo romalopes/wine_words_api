@@ -314,6 +314,7 @@ class Api::V1::WinesController < ApplicationController
   def wine_params
     permitted = params.require(:wine).permit(
       :name, :color, :sparkling, :prompt, :closure, :alcohol_percentage, :volume_ml, :producer_id, :designation_name,
+      :wine_profile_id,
       images: [],
       grape_ids: [],
       region_ids: [],

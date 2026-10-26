@@ -5,6 +5,7 @@ class WineProfileSerializer
 
   def as_json
     {
+      id: @wine_profile.id,
       slug: @wine_profile.slug,
       name: @wine_profile.name,
       grapes: @wine_profile.profile_grapes.map(&:name),

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_25_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_26_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -333,7 +333,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_25_000000) do
     t.index ["followable_type", "followable_id", "user_id"], name: "index_follows_on_followable_and_user"
     t.index ["user_id", "followable_type", "followable_id"], name: "index_follows_on_user_and_followable", unique: true
     t.index ["user_id"], name: "index_follows_on_user_id"
-    t.check_constraint "followable_type::text = ANY (ARRAY['Producer'::character varying::text, 'Wine'::character varying::text, 'Review'::character varying::text, 'Article'::character varying::text])", name: "follows_followable_type_check"
+    t.check_constraint "followable_type::text = ANY (ARRAY['Producer'::character varying, 'Wine'::character varying, 'Review'::character varying, 'Article'::character varying]::text[])", name: "follows_followable_type_check"
   end
 
   create_table "grapes", force: :cascade do |t|
@@ -450,7 +450,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_25_000000) do
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["user_id"], name: "index_notification_preferences_on_user_id", unique: true
-    t.check_constraint "digest_cadence::text = ANY (ARRAY['none'::character varying::text, 'daily'::character varying::text, 'weekly'::character varying::text])", name: "notification_preferences_digest_cadence_check"
+    t.check_constraint "digest_cadence::text = ANY (ARRAY['none'::character varying, 'daily'::character varying, 'weekly'::character varying]::text[])", name: "notification_preferences_digest_cadence_check"
   end
 
   create_table "notifications", force: :cascade do |t|
@@ -503,7 +503,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_25_000000) do
     t.index ["producer_id"], name: "index_producer_memberships_on_producer_id"
     t.index ["user_id", "producer_id"], name: "index_producer_memberships_on_user_id_and_producer_id", unique: true
     t.index ["user_id"], name: "index_producer_memberships_on_user_id"
-    t.check_constraint "membership_type::text = ANY (ARRAY['owner'::character varying::text, 'manager'::character varying::text, 'contributor'::character varying::text])", name: "chk_membership_type"
+    t.check_constraint "membership_type::text = ANY (ARRAY['owner'::character varying, 'manager'::character varying, 'contributor'::character varying]::text[])", name: "chk_membership_type"
   end
 
   create_table "producer_regions", force: :cascade do |t|
@@ -1119,10 +1119,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_25_000000) do
     t.boolean "sparkling", default: false, null: false
     t.datetime "updated_at", null: false
     t.integer "volume_ml"
+    t.bigint "wine_profile_id"
     t.index ["category_id"], name: "index_wines_on_category_id"
     t.index ["name"], name: "index_wines_on_name_trgm", opclass: :gin_trgm_ops, using: :gin
     t.index ["producer_id"], name: "index_wines_on_producer_id"
     t.index ["slug"], name: "index_wines_on_slug", unique: true
+    t.index ["wine_profile_id"], name: "index_wines_on_wine_profile_id"
   end
 
   add_foreign_key "account_addresses", "accounts"
@@ -1224,4 +1226,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_25_000000) do
   add_foreign_key "wine_taste_parameters", "wines"
   add_foreign_key "wines", "categories"
   add_foreign_key "wines", "producers"
+  add_foreign_key "wines", "wine_profiles", on_delete: :nullify
 end

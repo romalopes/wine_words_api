@@ -31,6 +31,8 @@ class WineSerializer
       category: @wine.categories.map(&:name).join(", ").presence,
       category_id: @wine.category_id,
       categories: categories_list(@wine),
+      wine_profile_id: @wine.wine_profile_id,
+      wine_profile: wine_profile_summary,
       grapes: grapes,
       regions: regions,
       parameters: parameters,
@@ -119,5 +121,13 @@ end
     wine.categories.map do |cat|
       { id: cat.id, name: cat.name, slug: cat.slug }
     end
+  end
+
+  private
+
+  def wine_profile_summary
+    return nil unless @wine.wine_profile
+
+    { id: @wine.wine_profile.id, slug: @wine.wine_profile.slug, name: @wine.wine_profile.name }
   end
 end

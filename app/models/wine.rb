@@ -9,6 +9,7 @@ class Wine < ApplicationRecord
 
   belongs_to :producer
   belongs_to :category, optional: true
+  belongs_to :wine_profile, optional: true
 
   has_many :wine_taste_parameters, dependent: :destroy
   has_many :taste_parameters, through: :wine_taste_parameters
@@ -36,9 +37,18 @@ class Wine < ApplicationRecord
   # after_initialize callback below, so the field is never empty.
   validates :volume_ml, inclusion: { in: ->(_) { Wine.volume_values } }
 
+  validates :wine_profile, presence: true, if: -> { wine_profile_id.present? }
+
   after_initialize :set_defaults, if: :new_record?
 
   before_validation :generate_slug, on: :create
+
+  # When the user/seed provided no taste parameters, pick the closest WineProfile
+  # (explicit wine_profile_id first, then name, then grapes), link it, and copy
+  # that profile's taste parameters into the wine. Seeds rely on this path since
+  # they never submit taste scores.
+  before_validation :assign_closest_wine_profile, on: :create,
+                     if: -> { wine_taste_parameters.empty? }
 
   COLORS = %w[Red White Rosé Dessert].freeze
   DEFAULT_COLOR = "White"
@@ -326,5 +336,13 @@ class Wine < ApplicationRecord
   # Reviews index this wine's name and its regions/grapes.
   def search_reindex_targets
     { "Review" => self.class.review_ids_for_wines(Wine.where(id: id)) }
+  end
+
+  public
+
+  # Auto-assign the closest profile and copy taste parameters when the wine has
+  # no taste parameters (see the callback registered above).
+  def assign_closest_wine_profile
+    WineProfiles::AutoAssign.call(self)
   end
 end

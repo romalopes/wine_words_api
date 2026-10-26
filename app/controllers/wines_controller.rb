@@ -153,9 +153,13 @@ class WinesController < ActionController::Base
   # Removes any taste-parameter rows whose taste_parameter_id was not part of
   # the submitted set, keeping the wine in sync with the form sliders.
   def prune_wine_taste_parameters
+    return if params.dig(:wine, :wine_taste_parameters_attributes).blank?
+
     submitted_ids = Array(params[:wine][:wine_taste_parameters_attributes])
                       .map { |attrs| attrs[:taste_parameter_id].to_i }
                       .reject(&:zero?)
+
+    return if submitted_ids.empty?
 
     @wine.wine_taste_parameters
          .where.not(taste_parameter_id: submitted_ids)
@@ -167,6 +171,7 @@ class WinesController < ActionController::Base
   def wine_params
     params.require(:wine).permit(
       :name, :color, :prompt, :closure, :alcohol_percentage, :volume_ml, :producer_id, :sparkling, :fortified, :designation_name,
+      :wine_profile_id,
       grape_ids: [],
       region_ids: [],
       category_ids: [],

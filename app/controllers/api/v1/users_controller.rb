@@ -1,9 +1,11 @@
 class Api::V1::UsersController < ApplicationController
-  audit_actions assign_roles: "role_change", assign_subscription: "subscription_change"
+  audit_actions assign_roles: "role_change", assign_subscription: "subscription_change", update_account: "account_update"
 
   def log_description
     if action_name == "assign_roles"
       %(Changed roles for user "#{@target_user&.display_name}"#{audit_roles_diff})
+    elsif action_name == "update_account"
+      %(Updated account settings for user "#{@target_user&.display_name}")
     else
       target = @assigned_subscription ? %( to "#{@assigned_subscription.name}") : ""
       %(Changed subscription for user "#{@target_user&.display_name}"#{target})
@@ -11,7 +13,7 @@ class Api::V1::UsersController < ApplicationController
   end
 
   def log_objects
-    [current_user, @target_user, @assigned_subscription].compact
+    [current_user, @target_user, @target_user&.account, @assigned_subscription].compact
   end
 
   def me
@@ -119,6 +121,25 @@ class Api::V1::UsersController < ApplicationController
     render json: { error: e.message }, status: :unprocessable_entity
   end
 
+  # PATCH /api/v1/users/:id/account — admin update of another user's personal
+  # information and address. Passwords and authentication identities are kept
+  # out of this endpoint intentionally.
+  def update_account
+    return head(:forbidden) unless real_current_user&.admin?
+
+    @target_user = User.find(params[:id])
+    account = Account.build_default(@target_user)
+
+    Account.transaction do
+      account.assign_attributes(account_params)
+      account.save!(context: :profile)
+    end
+
+    render json: account_json(account.reload)
+  rescue ActiveRecord::RecordInvalid => e
+    render json: { errors: e.record.errors.to_hash(true) }, status: :unprocessable_entity
+  end
+
   private
 
   def audit_roles_diff
@@ -127,6 +148,33 @@ class Api::V1::UsersController < ApplicationController
     return "" if from.blank? || from == to
 
     " (from #{from} to #{to})"
+  end
+
+  def account_params
+    permitted = params.permit(
+      :first_name, :last_name, :phone, :date_of_birth,
+      address: [:street_address, :city, :state, :postal_code, :country_id]
+    ).to_h
+    permitted[:account_address_attributes] = permitted.delete(:address) if permitted[:address]
+    permitted
+  end
+
+  def account_json(account)
+    address = account.account_address && {
+      street_address: account.account_address.street_address,
+      city: account.account_address.city,
+      state: account.account_address.state,
+      postal_code: account.account_address.postal_code,
+      country_id: account.account_address.country_id
+    }
+
+    {
+      first_name: account.first_name,
+      last_name: account.last_name,
+      phone: account.phone,
+      date_of_birth: account.date_of_birth,
+      address: address
+    }
   end
 
   def user_json(user)
@@ -143,7 +191,7 @@ class Api::V1::UsersController < ApplicationController
   end
 
   def user_detail_json(user)
-    user_json(user).merge(
+    detail = user_json(user).merge(
       analytics_opt_out: user.analytics_opt_out,
       producer_memberships: user.producer_memberships.map do |pm|
         {
@@ -162,5 +210,7 @@ class Api::V1::UsersController < ApplicationController
         }
       end
     )
+    detail[:account] = account_json(Account.build_default(user)) if real_current_user&.admin?
+    detail
   end
 end

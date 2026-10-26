@@ -18,7 +18,6 @@ load Rails.root.join('db', 'seeds', 'roles.rb').to_s
 load Rails.root.join('db', 'seeds', 'subscriptions.rb').to_s
 puts "  - #{Subscription.count} subscriptions"
 
-
 # bundle exec rails runner db/seeds/create_three_basic_users.rb
 load Rails.root.join('db', 'seeds', 'create_three_basic_users.rb').to_s
 puts "  - #{User.count} users"
@@ -50,17 +49,29 @@ puts "  - #{WineTasteParameter.count} wine taste parameters"
 
 # bundle exec rails runner db/seeds/producers.rb
 load Rails.root.join('db', 'seeds', 'producers.rb').to_s
-puts "  - #{Producer.count} producers"
+# puts "  - #{Producer.count} producers"
+
+# bundle exec rails runner db/seeds/wines.rb
+load Rails.root.join('db', 'seeds', 'wines.rb').to_s
+# puts "  - #{Wine.count} wines"
+
 
 #  bundle exec rails runner db/seeds/producers_ray_jordan.rb
-load Rails.root.join('db', 'seeds', 'producers_ray_jordan.rb').to_s
-puts "  - #{Producer.count} producers"
+# load Rails.root.join('db', 'seeds', 'producers_ray_jordan.rb').to_s
+# puts "  - #{Producer.count} producers"
 
 #  bundle exec rails runner db/seeds/substack_reviews_articles_seed.rb
-load Rails.root.join('db', 'seeds', 'substack_reviews_articles_seed.rb').to_s
-puts "  - #{Review.count} reviews"
-puts "  - #{Article.count} articles"
-puts "  - #{Wine.count} articles"
+# load Rails.root.join('db', 'seeds', 'substack_reviews_articles_seed.rb').to_s
+# puts "  - #{Review.count} reviews"
+# puts "  - #{Article.count} articles"
+# puts "  - #{Wine.count} articles"
+
+#  bundle exec rails runner db/seeds/wine_front_reviews_article_seed.rb
+# load Rails.root.join('db', 'seeds', 'wine_front_reviews_article_seed.rb').to_s
+# puts "  - #{Review.count} reviews"
+# puts "  - #{Article.count} articles"
+# puts "  - #{Wine.count} articles"
+
 
 puts "\n\n\n\n\n\nSeeds created successfully!"
 
