@@ -19,6 +19,7 @@ class ReviewListSerializer
       comment: @review.comment&.slice(0, 50),
       score: @review.score&.to_f,
       status: @review.status,
+      source: @review.source,
       reviewer_name: @review.user&.display_name || @review.user&.email || "Unknown",
       wine_name: @review.vintage&.wine&.name,
       wine_slug: @review.vintage&.wine&.slug,

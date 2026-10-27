@@ -19,6 +19,7 @@ class ArticleListSerializer
       title: @article.title,
       abstract: @article.abstract&.slice(0, 80),
       status: @article.status,
+      source: @article.source,
       author_name: @article.user&.display_name || @article.user&.email || "Unknown",
       user_id: @article.user_id,
       category: @article.categories.map(&:name).join(", ").presence,
