@@ -1,8 +1,11 @@
 class Api::V1::UsersController < ApplicationController
-  audit_actions assign_roles: "role_change", assign_subscription: "subscription_change", update_account: "account_update"
+  audit_actions create: "account_created", assign_roles: "role_change", assign_subscription: "subscription_change",
+                update_account: "account_update", invitation_email: "invitation_email_updated"
 
   def log_description
-    if action_name == "assign_roles"
+    if action_name == "create"
+      %(Created unclaimed account for "#{@target_user&.display_name}")
+    elsif action_name == "assign_roles"
       %(Changed roles for user "#{@target_user&.display_name}"#{audit_roles_diff})
     elsif action_name == "update_account"
       %(Updated account settings for user "#{@target_user&.display_name}")
@@ -12,8 +15,38 @@ class Api::V1::UsersController < ApplicationController
     end
   end
 
+  # POST /api/v1/users
+  # Creates a passwordless, unclaimed account. Admins may assign any non-admin
+  # role; Editors are restricted to Reader/Reviewer. Producer memberships are
+  # created in the same transaction and always attribute the authenticated actor.
+  def create
+    return head(:forbidden) unless real_current_user&.catalogue_manager?
+
+    result = PrivilegedAccountCreation.call(actor: real_current_user, attributes: create_user_params.to_h)
+    @target_user = result.user
+
+    if result.success?
+      render json: user_detail_json(result.user), status: :created
+    else
+      render json: { errors: result.errors }, status: result.forbidden? ? :forbidden : :unprocessable_entity
+    end
+  end
+
+  def invitation_email
+    return head(:forbidden) unless real_current_user&.catalogue_manager?
+
+    @target_user = User.find(params[:id])
+    return render json: { error: "Only unclaimed accounts can change invitation email" }, status: :unprocessable_entity unless @target_user.unclaimed?
+    return head(:forbidden) if !real_current_user.admin? && @target_user.roles.where(name: %w[Admin Editor]).exists?
+
+    @target_user.update!(email: params.require(:user).permit(:email)[:email])
+    render json: user_detail_json(@target_user.reload)
+  rescue ActiveRecord::RecordInvalid => e
+    render json: { errors: e.record.errors.full_messages }, status: :unprocessable_entity
+  end
+
   def log_objects
-    [current_user, @target_user, @target_user&.account, @assigned_subscription].compact
+    [ current_user, @target_user, @target_user&.account, @assigned_subscription ].compact
   end
 
   def me
@@ -197,6 +230,14 @@ class Api::V1::UsersController < ApplicationController
 
   private
 
+  def create_user_params
+    params.require(:user).permit(
+      :first_name, :last_name, :email,
+      role_ids: [],
+      producer_memberships: [ :producer_id, :membership_type ]
+    )
+  end
+
   def audit_roles_diff
     from = Array(@role_change_from).join(", ")
     to = Array(@role_change_to).join(", ")
@@ -208,7 +249,7 @@ class Api::V1::UsersController < ApplicationController
   def account_params
     permitted = params.permit(
       :first_name, :last_name, :phone, :date_of_birth,
-      address: [:street_address, :city, :state, :postal_code, :country_id]
+      address: [ :street_address, :city, :state, :postal_code, :country_id ]
     ).to_h
     permitted[:account_address_attributes] = permitted.delete(:address) if permitted[:address]
     permitted
@@ -241,7 +282,8 @@ class Api::V1::UsersController < ApplicationController
       last_name: user.last_name,
       role_ids: user.role_ids,
       roles: user.role_names,
-      subscription: user.subscription ? { id: user.subscription.id, name: user.subscription.name } : nil
+      subscription: user.subscription ? { id: user.subscription.id, name: user.subscription.name } : nil,
+      account_status: user.account_status
     }
   end
 
@@ -249,6 +291,7 @@ class Api::V1::UsersController < ApplicationController
     detail = user_json(user).merge(
       analytics_opt_out: user.analytics_opt_out,
       deleted_at: user.deleted_at,
+      invitation_summary: invitation_summary_json(user),
       producer_memberships: user.producer_memberships.map do |pm|
         {
           id: pm.id,
@@ -268,5 +311,28 @@ class Api::V1::UsersController < ApplicationController
     )
     detail[:account] = account_json(Account.build_default(user)) if real_current_user&.admin?
     detail
+  end
+
+  def invitation_summary_json(user)
+    latest = user.account_invitations.order(created_at: :desc).first
+    return { count: 0, latest: nil } unless latest
+
+    { count: user.account_invitations.size, latest: invitation_json(latest) }
+  end
+
+  def invitation_json(invitation)
+    {
+      id: invitation.id,
+      email: invitation.email,
+      status: invitation.status,
+      usable: invitation.usable?,
+      expires_at: invitation.expires_at,
+      sent_at: invitation.sent_at,
+      accepted_at: invitation.accepted_at,
+      revoked_at: invitation.revoked_at,
+      delivery_status: invitation.delivery_status,
+      delivery_error_code: invitation.delivery_error_code,
+      created_at: invitation.created_at
+    }
   end
 end

@@ -11,6 +11,7 @@ class DeletionPolicy
     producer_memberships
     subscription_changes
     billing_customers
+    account_invitations
   ].freeze
 
   DISPOSABLE_ASSOCIATIONS = %i[
@@ -80,6 +81,12 @@ class DeletionPolicy
     if billing_count.positive?
       reasons << { code: "billing_customers", count: billing_count,
                    message: "#{billing_count} billing record#{billing_count == 1 ? '' : 's'}" }
+    end
+
+    invitation_count = @user.account_invitations.count
+    if invitation_count.positive?
+      reasons << { code: "account_invitations", count: invitation_count,
+                   message: "#{invitation_count} account invitation audit record#{invitation_count == 1 ? '' : 's'}" }
     end
 
     # Last active administrator protection: deleting the final admin would lock

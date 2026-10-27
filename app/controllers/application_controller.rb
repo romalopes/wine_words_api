@@ -73,18 +73,27 @@ class ApplicationController < ActionController::Base
 
     sign_out(current_user) # revokes the JWT via JwtDenylist
     render json: {
-      error: "Verify your email address before using the application. " \
-             "We sent a verification link to #{current_user.email}.",
+      error: email_verification_error_message(current_user),
       code: "email_verification_pending",
       **EmailVerificationService.pending_payload(current_user)
     }, status: :forbidden
   end
   private
 
+  def email_verification_error_message(user)
+    if user.email_verification_expired?
+      "Your verification window has expired, so this account is locked. " \
+        "Request a new verification email, then click the link to sign in."
+    else
+      "Verify your email address before using the application. " \
+        "We sent a verification link to #{user.email}."
+    end
+  end
+
   def set_sentry_context
     if current_user.present?
       Sentry.set_user(id: current_user.id)
-      tier = current_user.try(:account_tier) || current_user.try(:tier) || 'unknown'
+      tier = current_user.try(:account_tier) || current_user.try(:tier) || "unknown"
       Sentry.set_tags(user_id: current_user.id.to_s, account_tier: tier)
     else
       # sentry-ruby 7.x requires a Hash for set_user/set_tags; passing nil

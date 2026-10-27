@@ -15,6 +15,10 @@ class Rack::Attack
     end
   end
 
+  throttle("invitations/public/ip", limit: 30, period: 1.minute) do |req|
+    req.ip if req.path.start_with?("/api/v1/invitations/") && req.post?
+  end
+
   # Cache store defaults to memory; Solid Cache (SQL-backed) works too.
   # Configure explicitly so throttles share state across processes.
   Rack::Attack.cache.store = ActiveSupport::Cache::MemoryStore.new

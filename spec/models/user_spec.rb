@@ -63,6 +63,44 @@ RSpec.describe User, type: :model do
     end
   end
 
+  describe "account invitation lifecycle" do
+    it "keeps existing and newly registered users active by default" do
+      user = create_user
+
+      expect(user).to be_active
+      expect(user.active_for_authentication?).to be true
+    end
+
+    it "allows an unclaimed account without email or password" do
+      user = User.create!(account_status: :unclaimed)
+
+      expect(user.email).to be_nil
+      expect(user.encrypted_password).to be_blank
+      expect(user.active_for_authentication?).to be false
+      expect(user.inactive_message).to eq(:unclaimed)
+    end
+
+    it "normalizes and enforces case-insensitive email uniqueness" do
+      create_user(email: "person@example.com")
+      duplicate = User.new(email: " PERSON@EXAMPLE.COM ", password: "password123")
+
+      expect(duplicate).not_to be_valid
+      expect(duplicate.errors[:email]).to be_present
+    end
+
+    it "allows multiple unclaimed users with null email addresses" do
+      expect { 2.times { User.create!(account_status: :unclaimed) } }.to change(User, :count).by(2)
+    end
+
+    it "does not allow an active account without an email or password" do
+      user = User.new(account_status: :active)
+
+      expect(user).not_to be_valid
+      expect(user.errors[:email]).to be_present
+      expect(user.errors[:password]).to be_present
+    end
+  end
+
   describe "#admin?" do
     it "is true for users with the Admin role" do
       expect(admin.admin?).to be true

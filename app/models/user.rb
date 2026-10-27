@@ -9,6 +9,12 @@ class User < ApplicationRecord
          :recoverable, :rememberable, :validatable,
          :jwt_authenticatable, jwt_revocation_strategy: JwtDenylist
 
+  enum :account_status, {
+    unclaimed: "unclaimed",
+    active: "active",
+    suspended: "suspended"
+  }, default: :active
+
   # Send Devise e‑mails asynchronously via Active Job
   def send_devise_notification(notification, *args)
     devise_mailer.send(notification, self, *args).deliver_later
@@ -19,6 +25,15 @@ class User < ApplicationRecord
   has_many :comments, dependent: :destroy
   has_many :user_roles, dependent: :destroy
   has_many :roles, through: :user_roles
+  has_many :account_invitations, dependent: :restrict_with_error
+  has_many :sent_account_invitations, class_name: "AccountInvitation",
+                                        foreign_key: :invited_by_id,
+                                        dependent: :nullify,
+                                        inverse_of: :invited_by
+  has_many :revoked_account_invitations, class_name: "AccountInvitation",
+                                           foreign_key: :revoked_by_id,
+                                           dependent: :nullify,
+                                           inverse_of: :revoked_by
   has_many :billing_customers, dependent: :destroy
   has_many :subscription_changes, dependent: :restrict_with_error
   belongs_to :subscription, optional: true
@@ -43,7 +58,19 @@ class User < ApplicationRecord
   end
 
   def display_name
-    [first_name, last_name].compact_blank.join(" ").presence || email
+    [ first_name, last_name ].compact_blank.join(" ").presence || email
+  end
+
+  # Unclaimed accounts are deliberately created without credentials and must not
+  # authenticate until invitation acceptance activates them.
+  def active_for_authentication?
+    super && active?
+  end
+
+  def inactive_message
+    return :unclaimed if unclaimed?
+    return :suspended if suspended?
+    super
   end
 
   def self.search_by_name_or_email(query)
@@ -96,7 +123,7 @@ class User < ApplicationRecord
   #   any paid subscription -> "Reader"
   # Privileged roles (Reviewer, Admin, Editor) are independent of the
   # subscription and are NEVER touched by subscription changes.
-  BASE_ROLES = ["Guest", "Reader"].freeze
+  BASE_ROLES = [ "Guest", "Reader" ].freeze
 
   def role?(key)
     roles.exists?(name: Role.names[key] || key)
@@ -401,6 +428,16 @@ class User < ApplicationRecord
   end
 
   private
+
+  def email_required?
+    !unclaimed?
+  end
+
+  def password_required?
+    return false if unclaimed? && encrypted_password.blank?
+
+    super
+  end
 
   def ensure_account
     account || build_account

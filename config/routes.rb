@@ -337,12 +337,13 @@ Rails.application.routes.draw do
         get "diagnostics/exclusion_reasons", to: "diagnostics#exclusion_reasons"
       end
 
-      resources :users, only: [] do
+      resources :users, only: [ :create ] do
         collection { get :search }
         member do
           patch :assign_roles
           patch :assign_subscription
           patch :account, action: :update_account
+          patch :invitation_email
           get :show
           delete :soft_delete
           delete :hard_delete
@@ -352,8 +353,17 @@ Rails.application.routes.draw do
         post :producer_memberships, to: 'producer_memberships#create'
         patch 'producer_memberships/:id', to: 'producer_memberships#update'
         delete 'producer_memberships/:id', to: 'producer_memberships#destroy'
+        resources :invitations, controller: "account_invitations", only: [ :index, :create ] do
+          collection do
+            post :resend
+            post :revoke
+          end
+        end
       end
       get "roles", to: "users#roles"
+
+      post "invitations/validate", to: "invitations#validate"
+      post "invitations/accept", to: "invitations#accept"
 
       # User impersonation (admin only): start, stop, and status check.
       # A single resource gives us create (POST /impersonations),
