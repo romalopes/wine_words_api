@@ -364,6 +364,42 @@ class User < ApplicationRecord
     Rails.logger.info "[User] apply_subscription! completed: user #{id} now on subscription #{new_subscription.id}"
   end
 
+  # --- Account lifecycle (issue #195) ----------------------------------------
+  # Soft deletion keeps every row and only stamps `deleted_at`; hard deletion
+  # is handled by AccountDeletionService. Scopes are explicit — no default_scope.
+
+  scope :not_deleted, -> { where(deleted_at: nil) }
+  scope :deleted, -> { where.not(deleted_at: nil) }
+
+  def deleted?
+    deleted_at.present?
+  end
+
+  # Soft-delete: stamp deleted_at and revoke active sessions. Idempotent.
+  def soft_delete!
+    return false if deleted?
+
+    transaction do
+      lock!
+      return false if deleted?
+      update!(deleted_at: Time.current)
+      revoke_sessions!
+    end
+    true
+  end
+
+  # Reactivate a soft-deleted account. Idempotent.
+  def reactivate!
+    return false unless deleted?
+
+    transaction do
+      lock!
+      return false unless deleted?
+      update!(deleted_at: nil)
+    end
+    true
+  end
+
   private
 
   def ensure_account
@@ -393,5 +429,13 @@ class User < ApplicationRecord
   # Both vectors index their author's display name.
   def search_reindex_targets
     { "Review" => Review.where(user_id: id).pluck(:id), "Article" => Article.where(user_id: id).pluck(:id) }
+  end
+
+  def revoke_sessions!
+    # Revoke the JWT that was used for this request (the denylist matches on
+    # exact jti). Broader server-side enforcement of deleted accounts happens
+    # in ApplicationController#reject_deleted_user!.
+    jti = jwt_claims["jti"] if respond_to?(:jwt_claims) && jwt_claims
+    JwtDenylist.create!(jti:, exp: Time.current + 1.week) if jti
   end
 end

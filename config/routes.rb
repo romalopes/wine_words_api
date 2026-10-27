@@ -344,6 +344,9 @@ Rails.application.routes.draw do
           patch :assign_subscription
           patch :account, action: :update_account
           get :show
+          delete :soft_delete
+          delete :hard_delete
+          post :reactivate
         end
         get :producer_memberships, to: 'producer_memberships#index'
         post :producer_memberships, to: 'producer_memberships#create'

@@ -124,6 +124,61 @@ class Api::V1::UsersController < ApplicationController
   # PATCH /api/v1/users/:id/account — admin update of another user's personal
   # information and address. Passwords and authentication identities are kept
   # out of this endpoint intentionally.
+  # DELETE /api/v1/users/:id — soft delete (admin only)
+  def soft_delete
+    return head(:forbidden) unless real_current_user&.admin?
+
+    @target_user = User.find(params[:id])
+
+    result = AccountDeletionService.soft_delete(@target_user, actor: real_current_user)
+
+    if result.success?
+      render json: { status: "soft_deleted", user_id: @target_user.id }, status: :ok
+    else
+      render json: { error: result.error || "soft_delete_failed" }, status: :unprocessable_entity
+    end
+  end
+
+  # DELETE /api/v1/users/:id/hard — hard delete (admin only, behind feature flag)
+  def hard_delete
+    return head(:forbidden) unless real_current_user&.admin?
+
+    unless AppSetting.hard_delete_enabled?
+      return render json: { error: "hard_delete_disabled" }, status: :forbidden
+    end
+
+    @target_user = User.find(params[:id])
+
+    result = AccountDeletionService.hard_delete(@target_user, actor: real_current_user)
+
+    if result.success?
+      render json: { status: "hard_deleted", user_id: @target_user.id }, status: :ok
+    else
+      status =
+        case result.error
+        when "blocked" then :conflict
+        when "already_deleted" then :gone
+        else :unprocessable_entity
+        end
+      render json: { error: result.error, blocking_reasons: result.blocking_reasons }, status: status
+    end
+  end
+
+  # POST /api/v1/users/:id/reactivate — reactivate soft‑deleted user (admin only)
+  def reactivate
+    return head(:forbidden) unless real_current_user&.admin?
+
+    @target_user = User.find(params[:id])
+
+    result = AccountDeletionService.reactivate(@target_user, actor: real_current_user)
+
+    if result.success?
+      render json: { status: "reactivated", user_id: @target_user.id }, status: :ok
+    else
+      render json: { error: result.error || "reactivate_failed" }, status: :unprocessable_entity
+    end
+  end
+
   def update_account
     return head(:forbidden) unless real_current_user&.admin?
 
@@ -193,6 +248,7 @@ class Api::V1::UsersController < ApplicationController
   def user_detail_json(user)
     detail = user_json(user).merge(
       analytics_opt_out: user.analytics_opt_out,
+      deleted_at: user.deleted_at,
       producer_memberships: user.producer_memberships.map do |pm|
         {
           id: pm.id,

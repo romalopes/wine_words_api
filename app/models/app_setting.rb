@@ -15,7 +15,9 @@ class AppSetting < ApplicationRecord
     # Follow notifications (issue #192): master switch. Event publishing stops
     # when off — Follow rows and already-delivered notifications are preserved,
     # so toggling back on resumes exactly where it stopped.
-    "follow_notifications_enabled" => true
+    "follow_notifications_enabled" => true,
+    # Hard account deletion master switch (issue #195). Disabled by default.
+    "hard_delete_enabled" => false
   }.freeze
 
   validates :key, presence: true, uniqueness: true
@@ -55,6 +57,16 @@ class AppSetting < ApplicationRecord
   # Follow notifications master switch (issue #192). See DEFAULTS above.
   def self.follow_notifications_enabled?
     boolean("follow_notifications_enabled")
+  end
+
+  # Hard account deletion master switch (issue #195). Disabled by default.
+  def self.hard_delete_enabled?
+    boolean("hard_delete_enabled")
+  end
+
+  # Hard account deletion master switch (issue #195). Disabled by default.
+  def self.hard_delete_enabled?
+    boolean("hard_delete_enabled")
   end
 
   def self.analytics_diagnostics_email

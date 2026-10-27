@@ -12,6 +12,11 @@ class ApplicationController < ActionController::Base
   skip_forgery_protection
 
   before_action :authenticate_user!
+  # Soft-deleted accounts (issue #195) are rejected on every authenticated
+  # request regardless of token freshness — the denylist only covers the token
+  # present at deletion time, so this guard is the authoritative server-side
+  # enforcement of the deletion lifecycle.
+  before_action :reject_deleted_user!
   # Email-verification lock (feature on only): a user with an unconsumed
   # verification token is locked out of every authenticated endpoint. Once the
   # verification window has passed the lock is absolute until they click a
@@ -46,6 +51,19 @@ class ApplicationController < ActionController::Base
     return if real_current_user&.admin?
 
     render json: { error: "Forbidden" }, status: :forbidden
+  end
+
+  # Soft-deleted accounts (issue #195): any authenticated request from a user
+  # with a deleted_at stamp is refused. sign_out also revokes the presented
+  # JWT via JwtDenylist, so the client must re-authenticate (which fails,
+  # because Devise lookups happen through User scope and deleted users are
+  # filtered from authentication).
+  def reject_deleted_user!
+    return unless current_user&.deleted?
+
+    sign_out(current_user) # revokes the JWT via JwtDenylist
+    render json: { error: "This account has been deleted.", code: "account_deleted" },
+           status: :forbidden
   end
 
   # See the before_action comment above.
