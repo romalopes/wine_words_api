@@ -46,31 +46,31 @@ puts "  - #{WineProfile.count} wine profiles"
 puts "  - #{WineProfileTasteParameter.count} profile taste parameters"
 puts "  - #{WineTasteParameter.count} wine taste parameters"
 
-# bundle exec rails runner db/seeds/producers.rb
-load Rails.root.join('db', 'seeds', 'producers.rb').to_s
-# puts "  - #{Producer.count} producers"
+# # bundle exec rails runner db/seeds/producers.rb
+# load Rails.root.join('db', 'seeds', 'producers.rb').to_s
+# # puts "  - #{Producer.count} producers"
 
-# bundle exec rails runner db/seeds/wines.rb
-load Rails.root.join('db', 'seeds', 'wines.rb').to_s
-# puts "  - #{Wine.count} wines"
-
-
-#  bundle exec rails runner db/seeds/producers_ray_jordan.rb
-# load Rails.root.join('db', 'seeds', 'producers_ray_jordan.rb').to_s
-# puts "  - #{Producer.count} producers"
-
-#  bundle exec rails runner db/seeds/substack_reviews_articles_seed.rb
-# load Rails.root.join('db', 'seeds', 'substack_reviews_articles_seed.rb').to_s
-# puts "  - #{Review.count} reviews"
-# puts "  - #{Article.count} articles"
-# puts "  - #{Wine.count} articles"
-
-#  bundle exec rails runner db/seeds/wine_front_reviews_article_seed.rb
-# load Rails.root.join('db', 'seeds', 'wine_front_reviews_article_seed.rb').to_s
-# puts "  - #{Review.count} reviews"
-# puts "  - #{Article.count} articles"
-# puts "  - #{Wine.count} articles"
+# # bundle exec rails runner db/seeds/wines.rb
+# load Rails.root.join('db', 'seeds', 'wines.rb').to_s
+# # puts "  - #{Wine.count} wines"
 
 
-puts "\n\n\n\n\n\nSeeds created successfully!"
+# #  bundle exec rails runner db/seeds/producers_ray_jordan.rb
+# # load Rails.root.join('db', 'seeds', 'producers_ray_jordan.rb').to_s
+# # puts "  - #{Producer.count} producers"
+
+# #  bundle exec rails runner db/seeds/substack_reviews_articles_seed.rb
+# # load Rails.root.join('db', 'seeds', 'substack_reviews_articles_seed.rb').to_s
+# # puts "  - #{Review.count} reviews"
+# # puts "  - #{Article.count} articles"
+# # puts "  - #{Wine.count} articles"
+
+# #  bundle exec rails runner db/seeds/wine_front_reviews_article_seed.rb
+# # load Rails.root.join('db', 'seeds', 'wine_front_reviews_article_seed.rb').to_s
+# # puts "  - #{Review.count} reviews"
+# # puts "  - #{Article.count} articles"
+# # puts "  - #{Wine.count} articles"
+
+
+# puts "\n\n\n\n\n\nSeeds created successfully!"
 

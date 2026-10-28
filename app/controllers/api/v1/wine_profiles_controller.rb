@@ -216,6 +216,11 @@ class Api::V1::WineProfilesController < ApplicationController
 
     @wine_profile.profile_grapes = grapes
     @wine_profile.profile_regions = regions
+
+    # Keep the denormalized array columns in sync with the associations.
+    @wine_profile.grapes = grapes.map(&:name)
+    @wine_profile.regions = regions.map(&:name)
+    @wine_profile.save! if @wine_profile.changed?
   end
 end
 

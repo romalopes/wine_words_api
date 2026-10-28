@@ -96,6 +96,13 @@ RSpec.describe "Api::V1::WineProfiles", type: :request do
       expect(first["regions"]).not_to be_nil
       expect(first["grapes"]).to eq(["Pinot Noir"])
       expect(first["regions"]).to match_array(["Burgundy", "Oregon"])
+
+      # `profile_grapes` / `profile_regions` are link objects for /grapes/:slug and /regions/:slug.
+      expect(first["profile_grapes"]).to contain_exactly(
+        a_hash_including("slug" => "pinot-noir", "name" => "Pinot Noir")
+      )
+      expect(first["profile_regions"].map { |r| r["slug"] }).to match_array(["burgundy", "oregon"])
+      expect(first["profile_regions"].map { |r| r["name"] }).to match_array(["Burgundy", "Oregon"])
     end
   end
 
