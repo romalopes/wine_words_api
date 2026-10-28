@@ -46,7 +46,6 @@ puts "  - #{WineProfile.count} wine profiles"
 puts "  - #{WineProfileTasteParameter.count} profile taste parameters"
 puts "  - #{WineTasteParameter.count} wine taste parameters"
 
-
 # bundle exec rails runner db/seeds/producers.rb
 load Rails.root.join('db', 'seeds', 'producers.rb').to_s
 # puts "  - #{Producer.count} producers"

@@ -173,7 +173,8 @@ ActiveRecord::Base.transaction do
 
     puts "  - Grapes: #{grapes}"
     grapes.split('|').each do |grape|
-      current_grape = Grape.find_or_create_by!(name: grape.strip)
+      current_grape = Grape.find_by_name_or_synonym(grape.strip)
+      current_grape = Grape.create!(name: grape.strip) unless current_grape
       profile.profile_grapes << current_grape unless profile.profile_grapes.include?(current_grape)
     end
 
