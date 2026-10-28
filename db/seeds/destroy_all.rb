@@ -137,6 +137,7 @@ TABLES_IN_DESTRUCTION_ORDER = [
   "producers",                     # -> (referenced by addresses, wines, packages, joins)
 
   # -- 13. Users, subscriptions & roles --------------------------------------
+  "account_invitations",           # -> users
   "users",                         # -> subscriptions (and referenced by 13+ tables above)
   "subscriptions",                 # -> (referenced by users, user_subscriptions, prices, features)
   "subscription_features",         # -> (referenced by subscription_subscription_features)
