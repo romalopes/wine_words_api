@@ -61,11 +61,11 @@ grapes_data = [
     relevance: 88,
   },
   {
-    name: "Syrah",
+    name: "Shiraz",
     color: "red",
     origin_country: "France",
     main_regions: ["Northern Rhône", "Barossa Valley", "McLaren Vale", "Hunter Valley", "Washington State", "Central Coast"],
-    synonyms: ["Shiraz", "Hermitage", "Marsanne Noire"],
+    synonyms: ["Syrah", "Hermitage", "Marsanne Noire"],
     is_blending_grape: true,
     notes: ["blackberry", "black plum", "black pepper", "violet", "smoke", "olive", "spice"],
     serving: "Great with barbecue, grilled lamb, beef stew, sausages, roasted vegetables, and spicy food.",
@@ -1221,6 +1221,7 @@ puts "Seeding grapes..."
 grapes_data.each do |grape_data|
   Grape.find_or_create_by!(name: grape_data[:name]) do |g|
     g.assign_attributes(grape_data)
+    g.save!
   end
 end
 puts "Done! Created #{Grape.count} grapes."
