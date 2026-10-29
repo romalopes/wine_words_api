@@ -24,11 +24,11 @@ class WineProfileSerializer
   # Prefer the denormalized array columns; fall back to the associations when
   # the columns have not been populated (legacy rows).
   def grapes
-    @wine_profile.grapes.presence || @wine_profile.profile_grapes.map(&:name)
+    @wine_profile.grapes.presence #|| @wine_profile.profile_grapes.map(&:name)
   end
 
   def regions
-    @wine_profile.regions.presence || @wine_profile.profile_regions.map(&:name)
+    @wine_profile.regions.presence #|| @wine_profile.profile_regions.map(&:name)
   end
 
   # Link objects for client-side navigation to /grapes/:slug and /regions/:slug.
