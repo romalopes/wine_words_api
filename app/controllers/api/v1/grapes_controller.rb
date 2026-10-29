@@ -93,7 +93,8 @@ class Api::V1::GrapesController < ApplicationController
   private
 
   def set_grape
-    @grape = Grape.find_by(slug: params[:id]) || Grape.find(params[:id])
+    relation = Grape.preload(:regions)
+    @grape = relation.find_by(slug: params[:id]) || relation.find(params[:id])
   rescue ActiveRecord::RecordNotFound
     render json: { error: "Grape not found" }, status: :not_found
   end
@@ -115,7 +116,7 @@ class Api::V1::GrapesController < ApplicationController
       Grape.order(Arel.sql(PRODUCERS_COUNT_ORDER))
     else
       Grape.relevance_order
-    end
+    end.preload(:regions)
   end
 
   # `?q=` free-text filter for the /grapes list page (name, synonyms and
@@ -160,6 +161,9 @@ class Api::V1::GrapesController < ApplicationController
     # counts they replace.
     data["wines_count"] = wine_counts || grape.wines.size
     data["producers_count"] = producer_counts || grape.producers.size
+    data["regions"] = grape.regions.order(:name).map do |region|
+      { id: region.id, name: region.name, slug: region.slug }
+    end
     # Wines are NOT embedded here. The React grape screens fetch them
     # separately via GET /api/v1/wines?grape_id=... (paginated, lean
     # WineListSerializer). Embedding every wine with the full WineSerializer

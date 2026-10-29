@@ -1418,7 +1418,26 @@ grapes_data = [
 puts "Seeding grapes..."
 grapes_data.each do |grape_data|
   grape = Grape.find_or_initialize_by(name: grape_data[:name])
-  grape.assign_attributes(grape_data)
+  grape.assign_attributes(grape_data.except(:main_regions))
+
+  grape.country = Country.find_by(name: grape_data[:origin_country])
+
+
+  # Link the grape to the Region records matching its main_regions (keeps the
+  # main_regions column intact while adding a real grape <-> region relationship).
+  main_regions_array = []
+  grape_data[:main_regions].each do |region_name|
+    normalized = region_name.strip
+    current_region = Region.where("name ILIKE ?", normalized).first ||
+                     Region.where("name ILIKE ?", "%#{normalized}%").order(:name).first
+    if current_region
+      grape.regions << current_region unless grape.regions.include?(current_region)
+    else
+      puts "  - Region \"#{region_name}\" not found for grape \"#{grape.name}\". Skipping association."
+      main_regions_array << region_name
+    end
+  end
+  grape.main_regions = main_regions_array unless main_regions_array.empty?
   grape.save!
 end
 puts "Done! Created #{Grape.count} grapes."

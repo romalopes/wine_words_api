@@ -9,6 +9,8 @@ class Region < ApplicationRecord
 
   has_many :wine_regions, dependent: :destroy
   has_many :wines, through: :wine_regions
+  has_many :grape_regions, dependent: :destroy
+  has_many :grapes, through: :grape_regions
 
   validates :name, presence: true
   validates :name, uniqueness: { scope: :parent_id }

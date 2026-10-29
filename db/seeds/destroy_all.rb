@@ -148,12 +148,16 @@ TABLES_IN_DESTRUCTION_ORDER = [
   "categories",                    # -> (referenced by articles, reviews, wine_categories, joins)
   "taste_parameters",              # -> (referenced by wine taste parameter joins)
 
-  # -- 15. Geography & grapes -------------------------------------------------
+  # -- 15. Grape Regions ---------------------------------------------------------
+  "grape_regions",                          # -> (referenced by grape_regions)
+
+
+  # -- 16. Geography & grapes -------------------------------------------------
   "grapes",                        # -> countries (and referenced by wine_grapes, producer_grapes)
   "regions",                       # -> countries, regions (self)
   "countries",                     # -> (referenced by account_addresses, addresses, grapes, regions)
 
-  # -- 16. Auth bookkeeping, images & blobs -----------------------------------
+  # -- 17. Auth bookkeeping, images & blobs -----------------------------------
   "jwt_denylists",                 # no FK dependencies
   "images",                        # polymorphic (no declared FK)
   "active_storage_blobs"           # -> (referenced by variant_records & attachments)

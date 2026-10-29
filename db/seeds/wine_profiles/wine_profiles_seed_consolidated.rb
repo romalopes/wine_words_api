@@ -164,9 +164,6 @@ ActiveRecord::Base.transaction do
   ROWS.each do |slug, name, color, grapes, regions, notes, serving, scores|
     raise "Invalid scores for #{slug}" unless scores.length == PARAMETERS.length && scores.all? { |n| (1..5).cover?(n) }
     profile = WineProfile.find_or_initialize_by(slug: slug.to_s.strip.downcase)
-    # profile.assign_attributes(name: name, color: color, grapes: grapes.split('|'),
-    #                           regions: regions.split('|'), notes: notes.split('|').to_json,
-    #                           serving: serving)
     profile.assign_attributes(name: name, color: color, notes: notes.split('|').to_json,
                               serving: serving)
     puts "Seeding wine profile: #{slug} (#{name})"
@@ -191,7 +188,6 @@ ActiveRecord::Base.transaction do
       normalized = region.strip
       current_region = Region.where("name ILIKE ?", normalized).first ||
                        Region.where("name ILIKE ?", "%#{normalized}%").order(:name).first
-                      #  || Region.create!(name: normalized, country: unknown_country)
       if current_region
         profile.profile_regions << current_region unless profile.profile_regions.include?(current_region)
       else
@@ -199,11 +195,7 @@ ActiveRecord::Base.transaction do
         regions_array << region
       end
     end
-
-    # Keep the array columns in sync with the canonical association names
-    # (the loops above may resolve synonyms to canonical grape names).
-    # profile.grapes = profile.profile_grapes.map(&:name)
-    # profile.regions = profile.profile_regions.map(&:name)
+    # Keep the array columns to save the non canonical names
     profile.grapes = grapes_array unless grapes_array.empty?
     profile.regions = regions_array unless regions_array.empty?
 

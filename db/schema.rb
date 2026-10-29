@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_28_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_29_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -360,6 +360,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_28_120000) do
     t.index ["user_id", "followable_type", "followable_id"], name: "index_follows_on_user_and_followable", unique: true
     t.index ["user_id"], name: "index_follows_on_user_id"
     t.check_constraint "followable_type::text = ANY (ARRAY['Producer'::character varying, 'Wine'::character varying, 'Review'::character varying, 'Article'::character varying]::text[])", name: "follows_followable_type_check"
+  end
+
+  create_table "grape_regions", force: :cascade do |t|
+    t.bigint "grape_id", null: false
+    t.bigint "region_id", null: false
+    t.index ["grape_id", "region_id"], name: "index_grape_regions_on_grape_id_and_region_id", unique: true
+    t.index ["region_id"], name: "index_grape_regions_on_region_id"
   end
 
   create_table "grapes", force: :cascade do |t|
@@ -1195,6 +1202,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_28_120000) do
   add_foreign_key "comments", "comments", column: "parent_id"
   add_foreign_key "comments", "users"
   add_foreign_key "follows", "users", on_delete: :cascade
+  add_foreign_key "grape_regions", "grapes"
+  add_foreign_key "grape_regions", "regions"
   add_foreign_key "grapes", "countries"
   add_foreign_key "likes", "users"
   add_foreign_key "log_objects", "logs"

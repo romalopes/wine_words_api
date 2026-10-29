@@ -7,6 +7,8 @@ class Grape < ApplicationRecord
   has_many :wines, through: :wine_grapes
   has_many :producer_grapes, dependent: :destroy
   has_many :producers, through: :producer_grapes
+  has_many :grape_regions, dependent: :destroy
+  has_many :regions, through: :grape_regions
   belongs_to :country, optional: true
 
   validates :name, presence: true, uniqueness: { case_sensitive: false }
