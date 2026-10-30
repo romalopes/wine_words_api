@@ -3,7 +3,7 @@
 Wine Words is a wine discovery, review, and publishing platform. This repository
 contains its Ruby on Rails backend, which manages the wine catalogue, accounts,
 reviews, articles, uploads, and producer-to-reviewer wine packages. The directory
-name `wine_prediction_api` is retained from the project's earlier name.
+name `wine_words_api` is retained from the project's earlier name.
 
 **Start here:** [Local development and deployment setup](docs/LOCAL_AND_DEPLOYMENT_SETUP.md)
 contains the full installation steps, environment variable reference, deployment
@@ -13,15 +13,20 @@ short local startup path.
 For model relationships and workflows, start with the
 [architecture documentation](docs/architecture/architecture.md).
 
+For full-stack browser testing, see
+[the isolated Playwright API environment](docs/PLAYWRIGHT_E2E_BACKEND.md). The
+guarded reset command is `RAILS_ENV=e2e bin/rails e2e:prepare`; it only accepts
+the dedicated `wine_words_api_e2e` database by default.
+
 ## How the system fits together
 
-| Component                          | Responsibility                                                                                                    | Local / hosted runtime                                                            |
-| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| React + TypeScript + Vite frontend | Browser interface for readers, reviewers, producers, and administrators                                           | Sibling `wine_prediction/` directory on port 5173 / Vercel and Cloudflare Workers |
-| Rails 8.1 backend                  | JSON API under `/api/v1`, authentication, permissions, and business workflows; also includes Rails-rendered pages | This repository on port 3000 / Docker on Render                                   |
-| PostgreSQL                         | Application records and search data, including the `pg_trgm` extension                                            | Dedicated development database / hosted PostgreSQL                                |
-| Active Storage + Cloudflare R2     | Images and other uploaded files                                                                                   | R2 is currently selected in both development and production                       |
-| Mail delivery                      | Password resets, verification, and workflow notifications                                                         | Local files / configured transactional email provider                             |
+| Component                          | Responsibility                                                                                                    | Local / hosted runtime                                                       |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| React + TypeScript + Vite frontend | Browser interface for readers, reviewers, producers, and administrators                                           | Sibling `wine_words/` directory on port 5173 / Vercel and Cloudflare Workers |
+| Rails 8.1 backend                  | JSON API under `/api/v1`, authentication, permissions, and business workflows; also includes Rails-rendered pages | This repository on port 3000 / Docker on Render                              |
+| PostgreSQL                         | Application records and search data, including the `pg_trgm` extension                                            | Dedicated development database / hosted PostgreSQL                           |
+| Active Storage + Cloudflare R2     | Images and other uploaded files                                                                                   | R2 is currently selected in both development and production                  |
+| Mail delivery                      | Password resets, verification, and workflow notifications                                                         | Local files / configured transactional email provider                        |
 
 The frontend calls Rails over HTTP with JWT authentication for authenticated API
 requests. Rails reads and writes PostgreSQL records and stores uploaded media
@@ -133,7 +138,7 @@ execution order, and commands.
 In a second terminal, from the workspace root:
 
 ```bash
-cd wine_prediction
+cd wine_words
 npm ci
 ```
 

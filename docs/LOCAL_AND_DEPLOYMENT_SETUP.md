@@ -1,18 +1,18 @@
 # Local development and deployment configuration
 
 Checked against the repository on 8 October 2026. This guide covers the React/Vite
-frontend in `wine_prediction/` and Rails API in `wine_prediction_api/`, with Vercel
+frontend in `wine_words/` and Rails API in `wine_words_api/`, with Vercel
 and Cloudflare Workers hosting the frontend, Render hosting the API, PostgreSQL storing data, and Cloudflare
 R2 storing Active Storage uploads. Examples contain placeholders, never live secrets.
 
 ## Where configuration belongs
 
-| Component | Local configuration | Hosted configuration |
-|---|---|---|
-| React/Vite | `wine_prediction/.env.development.local` | Vercel project → Settings → Environment Variables; Cloudflare Workers frontend build environment |
-| Rails | `wine_prediction_api/.env.development.local` | Render API service → Environment |
-| Background worker, if enabled | Rails configuration | Its own Render environment, or a shared environment group |
-| Database backup workflows | Not required to run the app | GitHub Actions secrets; see [backup guide](DATABASE_BACKUP_AND_RESTORE.md) |
+| Component                     | Local configuration                     | Hosted configuration                                                                             |
+| ----------------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| React/Vite                    | `wine_words/.env.development.local`     | Vercel project → Settings → Environment Variables; Cloudflare Workers frontend build environment |
+| Rails                         | `wine_words_api/.env.development.local` | Render API service → Environment                                                                 |
+| Background worker, if enabled | Rails configuration                     | Its own Render environment, or a shared environment group                                        |
+| Database backup workflows     | Not required to run the app             | GitHub Actions secrets; see [backup guide](DATABASE_BACKUP_AND_RESTORE.md)                       |
 
 Use app-directory files, not the workspace-root `.env.local`. Vite exposes `VITE_*`
 values to browser code and embeds them at build time: put no passwords, database
@@ -59,7 +59,7 @@ libyaml development headers, and libvips packages.
 From the workspace root:
 
 ```bash
-cd wine_prediction_api
+cd wine_words_api
 bundle install
 ```
 
@@ -138,11 +138,11 @@ is needed for the default local setup.
 In a second terminal, from the workspace root:
 
 ```bash
-cd wine_prediction
+cd wine_words
 npm ci
 ```
 
-Create/merge `wine_prediction/.env.development.local`:
+Create/merge `wine_words/.env.development.local`:
 
 ```dotenv
 VITE_API_BASE_URL=http://localhost:3000/api/v1
@@ -169,7 +169,7 @@ lsof -i :5173
 
 Check the browser Network tab: API calls should target `localhost:3000/api/v1`.
 Test an upload and download, a password reset (inspect `tmp/mails`), and search.
-Frontend checks run from `wine_prediction/`:
+Frontend checks run from `wine_words/`:
 
 ```bash
 npm run build
@@ -186,7 +186,7 @@ on every checkout. Never run tests with a production database connection.
    or create a **public Web Service** from the API repository with Docker runtime.
 2. Select the directory containing the API Dockerfile. For the standalone
    `wine_words_api` repository this is the repository root; for a combined repository
-   set the root directory to `wine_prediction_api` and adjust build paths accordingly.
+   set the root directory to `wine_words_api` and adjust build paths accordingly.
 3. Provision a separate production PostgreSQL database or use your intended hosted
    PostgreSQL provider. Set `DATABASE_URL` to its connection string. Render's internal
    URL is appropriate for compatible services in the same Render network; local tools
@@ -264,8 +264,8 @@ sets it to `false`. None of these code/blueprint discrepancies is repaired by th
 
 ## 3. Configure the frontend on Vercel
 
-1. Open the [Vercel project](https://vercel.com/romalopes-projects/wine-prediction).
-2. Select the actual Vite application directory: `wine_prediction` in a combined
+1. Open the [Vercel project](https://vercel.com/romalopes-projects/wine-words).
+2. Select the actual Vite application directory: `wine_words` in a combined
    repository, or `.` when that frontend is the repository root. Do not select the
    separate `react-router/` directory.
 3. Set framework to **Vite**, install command `npm ci`, build command `npm run build`,
@@ -305,38 +305,38 @@ credentials only in production; keep test/sandbox keys and resources separate.
 
 ### Frontend: local Vite, Vercel, and Cloudflare Workers
 
-| Variable | Local / Vercel / Cloudflare Workers value and purpose |
-|---|---|
-| `VITE_API_BASE_URL` | Local `http://localhost:3000/api/v1`; Vercel and Cloudflare Workers `https://YOUR_API_HOST/api/v1`. Include `/api/v1`. |
-| `VITE_GOOGLE_CLIENT_ID` | Optional Google web OAuth client ID; must match Rails `GOOGLE_CLIENT_ID`. |
-| `VITE_APPLE_CLIENT_ID` | Optional Apple Services ID; matches Rails `APPLE_CLIENT_ID`. |
-| `VITE_APPLE_REDIRECT_URI` | Optional registered Apple return URL; defaults to browser origin. Use a provider-accepted HTTPS URL; follow the social-auth guide for local testing. |
-| `VITE_MICROSOFT_CLIENT_ID` | Optional Microsoft app/client ID; matches Rails value. |
-| `VITE_MICROSOFT_TENANT_ID` | Optional tenant ID or `common` (default); align with Rails/provider registration. |
-| `VITE_FACEBOOK_APP_ID` | Optional public Facebook app ID; matches Rails value. |
-| `VITE_FACEBOOK_GRAPH_VERSION` | Optional; code default `v21.0`. Use a version supported by the configured app and match Rails. |
-| `VITE_NEON_AUTH_URL`, `VITE_NEON_AUTH_URL_PRODUCTION` | Present in env templates but not read by current frontend source; not required for current Rails authentication. |
-| `VITE_USE_FAKE_AUTH` | Present in existing env files but not consumed by current frontend source. Does not enable a supported fake-login mode. |
+| Variable                                              | Local / Vercel / Cloudflare Workers value and purpose                                                                                                |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `VITE_API_BASE_URL`                                   | Local `http://localhost:3000/api/v1`; Vercel and Cloudflare Workers `https://YOUR_API_HOST/api/v1`. Include `/api/v1`.                               |
+| `VITE_GOOGLE_CLIENT_ID`                               | Optional Google web OAuth client ID; must match Rails `GOOGLE_CLIENT_ID`.                                                                            |
+| `VITE_APPLE_CLIENT_ID`                                | Optional Apple Services ID; matches Rails `APPLE_CLIENT_ID`.                                                                                         |
+| `VITE_APPLE_REDIRECT_URI`                             | Optional registered Apple return URL; defaults to browser origin. Use a provider-accepted HTTPS URL; follow the social-auth guide for local testing. |
+| `VITE_MICROSOFT_CLIENT_ID`                            | Optional Microsoft app/client ID; matches Rails value.                                                                                               |
+| `VITE_MICROSOFT_TENANT_ID`                            | Optional tenant ID or `common` (default); align with Rails/provider registration.                                                                    |
+| `VITE_FACEBOOK_APP_ID`                                | Optional public Facebook app ID; matches Rails value.                                                                                                |
+| `VITE_FACEBOOK_GRAPH_VERSION`                         | Optional; code default `v21.0`. Use a version supported by the configured app and match Rails.                                                       |
+| `VITE_NEON_AUTH_URL`, `VITE_NEON_AUTH_URL_PRODUCTION` | Present in env templates but not read by current frontend source; not required for current Rails authentication.                                     |
+| `VITE_USE_FAKE_AUTH`                                  | Present in existing env files but not consumed by current frontend source. Does not enable a supported fake-login mode.                              |
 
 ### Rails core, URLs, and runtime
 
-| Variable | Local | Render / behavior |
-|---|---|---|
-| `DATABASE_URL` | Dedicated local PostgreSQL URL | Actual production URL; the only active database selector in `database.yml`. Secret. |
-| `RAILS_ENV` | Defaults to development | `production`; Dockerfile already sets it. |
-| `RAILS_MASTER_KEY` | Existing key if encrypted credentials are needed | Key for the deployed encrypted credentials; obtain securely, do not regenerate blindly. |
-| `SECRET_KEY_BASE` | Usually Rails development default | Stable random secret from secure credentials or env; generate with `bin/rails secret` if explicitly configuring it. JWT uses this secret too; rotation invalidates tokens. |
-| `FRONTEND_URL` | `http://localhost:5173` | Frontend HTTPS origin, used for email/reset/verification/checkout links; no `/api/v1`. |
-| `APP_HOST` | Usually unnecessary | API hostname only (no scheme/path), for Rails mailer URL generation. Default `example.com` is not usable deployment configuration. |
-| `DISABLE_FORCE_SSL` | Not needed in development | Leave absent or `false`; only literal `true` disables production force-SSL. |
-| `RAILS_LOG_LEVEL` | `debug` | Prefer `info`; code currently defaults to `debug`. |
-| `RAILS_MAX_THREADS` | `5` is a reasonable starting value | Controls Puma threads and configured DB connection limit. Size with worker count and DB capacity. |
-| `WEB_CONCURRENCY` | `0` for single-process development | Start at `1`, adjust for RAM/DB capacity; code default 1, blueprint says 2. |
-| `PORT` | `3000` by default, or `-p` argument | Platform/Thruster managed; do not blindly copy local port settings. |
-| `PIDFILE` | Optional alternate Puma PID file | Usually unset. |
-| `SOLID_QUEUE_IN_PUMA` | Leave absent | Leave absent for no embedded worker; even `false` is truthy in the current check. |
-| `JOB_CONCURRENCY` | Not used by async queue | Solid Queue worker process count (default 1) only after configuring that adapter. |
-| `RAILS_SERVE_STATIC_FILES`, `RAILS_LOG_TO_STDOUT` | Usually unnecessary | Blueprint sets `true`; no explicit env reader for these toggles was found in current app configuration. Verify actual Rails behavior rather than relying on these flags. |
+| Variable                                          | Local                                            | Render / behavior                                                                                                                                                          |
+| ------------------------------------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`                                    | Dedicated local PostgreSQL URL                   | Actual production URL; the only active database selector in `database.yml`. Secret.                                                                                        |
+| `RAILS_ENV`                                       | Defaults to development                          | `production`; Dockerfile already sets it.                                                                                                                                  |
+| `RAILS_MASTER_KEY`                                | Existing key if encrypted credentials are needed | Key for the deployed encrypted credentials; obtain securely, do not regenerate blindly.                                                                                    |
+| `SECRET_KEY_BASE`                                 | Usually Rails development default                | Stable random secret from secure credentials or env; generate with `bin/rails secret` if explicitly configuring it. JWT uses this secret too; rotation invalidates tokens. |
+| `FRONTEND_URL`                                    | `http://localhost:5173`                          | Frontend HTTPS origin, used for email/reset/verification/checkout links; no `/api/v1`.                                                                                     |
+| `APP_HOST`                                        | Usually unnecessary                              | API hostname only (no scheme/path), for Rails mailer URL generation. Default `example.com` is not usable deployment configuration.                                         |
+| `DISABLE_FORCE_SSL`                               | Not needed in development                        | Leave absent or `false`; only literal `true` disables production force-SSL.                                                                                                |
+| `RAILS_LOG_LEVEL`                                 | `debug`                                          | Prefer `info`; code currently defaults to `debug`.                                                                                                                         |
+| `RAILS_MAX_THREADS`                               | `5` is a reasonable starting value               | Controls Puma threads and configured DB connection limit. Size with worker count and DB capacity.                                                                          |
+| `WEB_CONCURRENCY`                                 | `0` for single-process development               | Start at `1`, adjust for RAM/DB capacity; code default 1, blueprint says 2.                                                                                                |
+| `PORT`                                            | `3000` by default, or `-p` argument              | Platform/Thruster managed; do not blindly copy local port settings.                                                                                                        |
+| `PIDFILE`                                         | Optional alternate Puma PID file                 | Usually unset.                                                                                                                                                             |
+| `SOLID_QUEUE_IN_PUMA`                             | Leave absent                                     | Leave absent for no embedded worker; even `false` is truthy in the current check.                                                                                          |
+| `JOB_CONCURRENCY`                                 | Not used by async queue                          | Solid Queue worker process count (default 1) only after configuring that adapter.                                                                                          |
+| `RAILS_SERVE_STATIC_FILES`, `RAILS_LOG_TO_STDOUT` | Usually unnecessary                              | Blueprint sets `true`; no explicit env reader for these toggles was found in current app configuration. Verify actual Rails behavior rather than relying on these flags.   |
 
 `RAILS_MASTER_KEY` and `SECRET_KEY_BASE` serve different purposes: decryption and
 application signing respectively. A signing secret does not decrypt credentials.
@@ -345,14 +345,14 @@ application signing respectively. A signing secret does not decrypt credentials.
 
 Both development and production currently select `:cloudflare_r2`.
 
-| Variable | Configuration |
-|---|---|
-| `CLOUD_FLARE_R2_ACCESS_KEY_ID` | R2 S3 access key ID for the media bucket. Backend only. |
-| `CLOUD_FLARE_R2_ACCESS_KEY` | Matching secret access key. Backend secret. |
-| `CLOUD_FLARE_R2_BUCKET` | Exact media bucket name; use separate development/production buckets. |
-| `CLOUD_FLARE_R2_ENDPOINT` | Full S3 endpoint copied from Cloudflare, typically `https://ACCOUNT_ID.r2.cloudflarestorage.com`; not a dashboard/public CDN URL. |
-| `CLOUD_FLARE_R2_REF` | Account ID for the endpoint fallback when `CLOUD_FLARE_R2_ENDPOINT` is absent. An empty endpoint string overrides the fallback, so remove it rather than leaving it blank. |
-| `ACTIVE_STORAGE_PUBLIC` | Used by a health-report check only; does not configure bucket public access or change the storage service. Usually omit. |
+| Variable                       | Configuration                                                                                                                                                              |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CLOUD_FLARE_R2_ACCESS_KEY_ID` | R2 S3 access key ID for the media bucket. Backend only.                                                                                                                    |
+| `CLOUD_FLARE_R2_ACCESS_KEY`    | Matching secret access key. Backend secret.                                                                                                                                |
+| `CLOUD_FLARE_R2_BUCKET`        | Exact media bucket name; use separate development/production buckets.                                                                                                      |
+| `CLOUD_FLARE_R2_ENDPOINT`      | Full S3 endpoint copied from Cloudflare, typically `https://ACCOUNT_ID.r2.cloudflarestorage.com`; not a dashboard/public CDN URL.                                          |
+| `CLOUD_FLARE_R2_REF`           | Account ID for the endpoint fallback when `CLOUD_FLARE_R2_ENDPOINT` is absent. An empty endpoint string overrides the fallback, so remove it rather than leaving it blank. |
+| `ACTIVE_STORAGE_PUBLIC`        | Used by a health-report check only; does not configure bucket public access or change the storage service. Usually omit.                                                   |
 
 Region `auto`, path-style addressing, and checksum options are set in `storage.yml`.
 Allow object operations required for upload/read/delete. Browser-to-R2 direct uploads,
@@ -361,23 +361,23 @@ Database backups in `database-backups` do not include these media objects.
 
 ### Mail and email verification
 
-| Variable | Configuration |
-|---|---|
-| `MAIL_TRANSPORT` | Local `file`; production `brevo` or `resend`; also supports `smtp` and `auto`. |
-| `BREVO_API_KEY` | Brevo transactional API key when using Brevo. Backend secret. |
-| `RESEND_API_KEY` | Resend API key when using Resend. Backend secret. |
-| `MAIL_FROM` | Required by current production SMTP-settings initialization even with HTTP mail selected. Use a verified production sender; local example `Wine Words <no-reply@example.test>`. |
-| `MAIL_REPLY_TO` | Real receiving inbox in production; also used as the default application test-email setting. |
-| `SMTP_ADDRESS` | SMTP server host only if using SMTP; omit for local file transport. |
-| `SMTP_PORT` | Default `587`; match mail provider. |
-| `SMTP_DOMAIN` | SMTP HELO domain; default `localhost`, use appropriate production domain. |
-| `SMTP_USERNAME` | SMTP account username if using SMTP. |
-| `SMTP_PASSWORD` | SMTP password/app password if using SMTP; backend secret. |
-| `SMTP_AUTHENTICATION` | Default `plain`; match provider. |
-| `SMTP_ENABLE_STARTTLS` | `true` by default; only literal `true` enables the current setting. |
-| `REQUIRE_EMAIL_VERIFICATION` | Default false; set `true` only once real delivery and frontend verification URLs work. |
-| `EMAIL_VERIFICATION_EXPIRATION_HOURS` | Positive validity duration in hours, default `24`. |
-| `EMAIL_VERIFICATION_AUTO_SEND_ON_SIGNUP` | Default `true`; automatic sending when verification is required. `false` leaves users to request a resend. |
+| Variable                                 | Configuration                                                                                                                                                                   |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MAIL_TRANSPORT`                         | Local `file`; production `brevo` or `resend`; also supports `smtp` and `auto`.                                                                                                  |
+| `BREVO_API_KEY`                          | Brevo transactional API key when using Brevo. Backend secret.                                                                                                                   |
+| `RESEND_API_KEY`                         | Resend API key when using Resend. Backend secret.                                                                                                                               |
+| `MAIL_FROM`                              | Required by current production SMTP-settings initialization even with HTTP mail selected. Use a verified production sender; local example `Wine Words <no-reply@example.test>`. |
+| `MAIL_REPLY_TO`                          | Real receiving inbox in production; also used as the default application test-email setting.                                                                                    |
+| `SMTP_ADDRESS`                           | SMTP server host only if using SMTP; omit for local file transport.                                                                                                             |
+| `SMTP_PORT`                              | Default `587`; match mail provider.                                                                                                                                             |
+| `SMTP_DOMAIN`                            | SMTP HELO domain; default `localhost`, use appropriate production domain.                                                                                                       |
+| `SMTP_USERNAME`                          | SMTP account username if using SMTP.                                                                                                                                            |
+| `SMTP_PASSWORD`                          | SMTP password/app password if using SMTP; backend secret.                                                                                                                       |
+| `SMTP_AUTHENTICATION`                    | Default `plain`; match provider.                                                                                                                                                |
+| `SMTP_ENABLE_STARTTLS`                   | `true` by default; only literal `true` enables the current setting.                                                                                                             |
+| `REQUIRE_EMAIL_VERIFICATION`             | Default false; set `true` only once real delivery and frontend verification URLs work.                                                                                          |
+| `EMAIL_VERIFICATION_EXPIRATION_HOURS`    | Positive validity duration in hours, default `24`.                                                                                                                              |
+| `EMAIL_VERIFICATION_AUTO_SEND_ON_SIGNUP` | Default `true`; automatic sending when verification is required. `false` leaves users to request a resend.                                                                      |
 
 Automatic mail selection is Brevo → Resend → SMTP → file based on available keys.
 An explicit transport without required credentials warns and falls back; inspect logs
@@ -387,20 +387,20 @@ See [email/domain setup](webcentral_cloudflare_render_email_setup.md).
 
 ### Authentication and the private access gate
 
-| Variable | Configuration |
-|---|---|
-| `TEST_ACCESS_PASSWORD` | Shared private-access gate password; choose different local/production values. Not an account/admin password. |
-| `TEST_ACCESS_TOKEN_EXPIRATION` | Duration such as `7.days` (default); controls gate token lifetime. |
-| `GOOGLE_CLIENT_ID` | Google OAuth web client ID, same as frontend. |
-| `APPLE_CLIENT_ID` | Apple Services ID, same as frontend. |
-| `APPLE_TEAM_ID` | Apple developer team identifier for enabled Apple integration. |
-| `APPLE_KEY_ID` | Apple signing key identifier. |
-| `APPLE_PRIVATE_KEY` | Apple private `.p8` signing key; backend only. Code accepts literal `\n` escapes and converts them to newlines. |
-| `MICROSOFT_CLIENT_ID` | Microsoft application/client ID, same as frontend. |
-| `MICROSOFT_TENANT_ID` | Tenant ID or `common` (default), matching frontend/provider policy. |
-| `FACEBOOK_APP_ID` | Public app ID matching frontend. |
-| `FACEBOOK_APP_SECRET` | Facebook app secret, Rails only. |
-| `FACEBOOK_GRAPH_VERSION` | Code default `v21.0`; match frontend and provider-supported version. |
+| Variable                       | Configuration                                                                                                   |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| `TEST_ACCESS_PASSWORD`         | Shared private-access gate password; choose different local/production values. Not an account/admin password.   |
+| `TEST_ACCESS_TOKEN_EXPIRATION` | Duration such as `7.days` (default); controls gate token lifetime.                                              |
+| `GOOGLE_CLIENT_ID`             | Google OAuth web client ID, same as frontend.                                                                   |
+| `APPLE_CLIENT_ID`              | Apple Services ID, same as frontend.                                                                            |
+| `APPLE_TEAM_ID`                | Apple developer team identifier for enabled Apple integration.                                                  |
+| `APPLE_KEY_ID`                 | Apple signing key identifier.                                                                                   |
+| `APPLE_PRIVATE_KEY`            | Apple private `.p8` signing key; backend only. Code accepts literal `\n` escapes and converts them to newlines. |
+| `MICROSOFT_CLIENT_ID`          | Microsoft application/client ID, same as frontend.                                                              |
+| `MICROSOFT_TENANT_ID`          | Tenant ID or `common` (default), matching frontend/provider policy.                                             |
+| `FACEBOOK_APP_ID`              | Public app ID matching frontend.                                                                                |
+| `FACEBOOK_APP_SECRET`          | Facebook app secret, Rails only.                                                                                |
+| `FACEBOOK_GRAPH_VERSION`       | Code default `v21.0`; match frontend and provider-supported version.                                            |
 
 These provider settings are optional for password login. Register exact local/production
 origins and callbacks with each provider; IDs alone are insufficient. Follow
@@ -409,18 +409,18 @@ There is no separate `JWT_SECRET` env reader: Devise JWT uses Rails `secret_key_
 
 ### Billing, tracking, and optional language-model search
 
-| Variable | Configuration |
-|---|---|
-| `BILLING_PROVIDER` | `none` (default) for basic local operation; `manual` or `stripe` for enabled billing. Stripe without its key falls back to manual. |
-| `STRIPE_SECRET_KEY` | Stripe test key locally, live key only for live production billing. Backend secret. |
-| `STRIPE_WEBHOOK_SECRET` | Signing secret for the specific endpoint/environment; local forwarding and deployed endpoints have different secrets. |
-| `STRIPE_PUBLISHABLE_KEY` | Present in env files but no current application env reader was found. Not required by current hosted Checkout flow. |
-| `AUSTRALIA_POST_API_KEY` | Optional tracking API credential; without it, package workflow still supports tracking links/manual operation. |
-| `AUSTRALIA_POST_TRACKING_URL` | Optional override; default `https://auspost.com.au/mypost/track/#/details/`. |
-| `AUSTRALIA_POST_API_URL` | Optional API override; default `https://digitalapi.auspost.com.au/shipping/v1/track`. |
-| `OLLAMA_BASE_URL` | Optional model service URL; default `http://localhost:11434`. On Render, localhost means the API container, not your laptop. |
-| `OLLAMA_MODEL` | Optional model name, default `llama3.2:3b`; provision the model service/model before using this feature. |
-| `BATCH_SIZE`, `MODEL` | One-off search rake-task controls, not normal service settings; default batch size 500, optional model filter. Inspect `lib/tasks/search.rake` before running. |
+| Variable                      | Configuration                                                                                                                                                  |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `BILLING_PROVIDER`            | `none` (default) for basic local operation; `manual` or `stripe` for enabled billing. Stripe without its key falls back to manual.                             |
+| `STRIPE_SECRET_KEY`           | Stripe test key locally, live key only for live production billing. Backend secret.                                                                            |
+| `STRIPE_WEBHOOK_SECRET`       | Signing secret for the specific endpoint/environment; local forwarding and deployed endpoints have different secrets.                                          |
+| `STRIPE_PUBLISHABLE_KEY`      | Present in env files but no current application env reader was found. Not required by current hosted Checkout flow.                                            |
+| `AUSTRALIA_POST_API_KEY`      | Optional tracking API credential; without it, package workflow still supports tracking links/manual operation.                                                 |
+| `AUSTRALIA_POST_TRACKING_URL` | Optional override; default `https://auspost.com.au/mypost/track/#/details/`.                                                                                   |
+| `AUSTRALIA_POST_API_URL`      | Optional API override; default `https://digitalapi.auspost.com.au/shipping/v1/track`.                                                                          |
+| `OLLAMA_BASE_URL`             | Optional model service URL; default `http://localhost:11434`. On Render, localhost means the API container, not your laptop.                                   |
+| `OLLAMA_MODEL`                | Optional model name, default `llama3.2:3b`; provision the model service/model before using this feature.                                                       |
+| `BATCH_SIZE`, `MODEL`         | One-off search rake-task controls, not normal service settings; default batch size 500, optional model filter. Inspect `lib/tasks/search.rake` before running. |
 
 Stripe webhook route is `/api/v1/webhooks/stripe`; configure that endpoint and its
 signing secret in the matching Stripe environment. See
@@ -428,14 +428,14 @@ signing secret in the matching Stripe environment. See
 
 ### Legacy aliases and infrastructure-only variables
 
-| Names | Status |
-|---|---|
-| `DATABASE_URL_DEV_neon`, `DATABASE_URL_PROD_neon`, `DATABASE_URL_local`, `DATABASE_URL_prod_test_neon` | Convenience names in existing env files, not read by database configuration. Set the selected connection as `DATABASE_URL`. |
-| `SUPABASE_S3_ACCESS_KEY_ID`, `SUPABASE_S3_SECRET_ACCESS_KEY`, `SUPABASE_PROJECT_REF`, `SUPABASE_S3_REGION`, `SUPABASE_S3_BUCKET_NAME` | Legacy `supabase` storage service definition; not needed while Active Storage uses Cloudflare R2. |
-| `NEON_S3_ACCESS_KEY_ID`, `NEON_S3_SECRET_ACCESS_KEY`, `NEON_S3_REGION`, `NEON_S3_BUCKET_NAME`, `NEON_PROJECT_ID` | Unselected `neon` storage definition; not required for R2 uploads or a Neon PostgreSQL database. |
+| Names                                                                                                                                                                                                                                                                                        | Status                                                                                                                           |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL_DEV_neon`, `DATABASE_URL_PROD_neon`, `DATABASE_URL_local`, `DATABASE_URL_prod_test_neon`                                                                                                                                                                                       | Convenience names in existing env files, not read by database configuration. Set the selected connection as `DATABASE_URL`.      |
+| `SUPABASE_S3_ACCESS_KEY_ID`, `SUPABASE_S3_SECRET_ACCESS_KEY`, `SUPABASE_PROJECT_REF`, `SUPABASE_S3_REGION`, `SUPABASE_S3_BUCKET_NAME`                                                                                                                                                        | Legacy `supabase` storage service definition; not needed while Active Storage uses Cloudflare R2.                                |
+| `NEON_S3_ACCESS_KEY_ID`, `NEON_S3_SECRET_ACCESS_KEY`, `NEON_S3_REGION`, `NEON_S3_BUCKET_NAME`, `NEON_PROJECT_ID`                                                                                                                                                                             | Unselected `neon` storage definition; not required for R2 uploads or a Neon PostgreSQL database.                                 |
 | `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, `R2_ENDPOINT`, `BACKUP_ENCRYPTION_RECIPIENT`, `BACKUP_ENCRYPTION_IDENTITY`, `BACKUP_NEON_DATABASE_URL`, `BACKUP_SUPABASE_DATABASE_URL`, `NEON_RESTORE_TEST_DATABASE_URL`, `SUPABASE_RESTORE_TEST_DATABASE_URL`, `SLACK_WEBHOOK_URL` | GitHub backup/restore workflow secrets, not app deployment requirements. Use the [backup guide](DATABASE_BACKUP_AND_RESTORE.md). |
-| `BUNDLE_GEMFILE`, `BUNDLE_DEPLOYMENT`, `BUNDLE_PATH`, `BUNDLE_WITHOUT`, `LD_PRELOAD` | Boot/Docker-managed settings; leave to the existing container configuration. |
-| `CI`, `RENDER`, Vite `MODE` | Tool/platform context; not credentials to invent or copy into the other service. |
+| `BUNDLE_GEMFILE`, `BUNDLE_DEPLOYMENT`, `BUNDLE_PATH`, `BUNDLE_WITHOUT`, `LD_PRELOAD`                                                                                                                                                                                                         | Boot/Docker-managed settings; leave to the existing container configuration.                                                     |
+| `CI`, `RENDER`, Vite `MODE`                                                                                                                                                                                                                                                                  | Tool/platform context; not credentials to invent or copy into the other service.                                                 |
 
 ## 5. CORS, domains, and final checks
 
@@ -458,18 +458,18 @@ After configuring both platforms, verify:
 7. Stripe uses the intended test/live environment and webhook signature verification.
 8. Database backups actually target the deployed database, and media has separate recovery.
 
-| Problem | Check |
-|---|---|
-| API requests go to localhost on Vercel | Set Production/Preview `VITE_API_BASE_URL`, then rebuild. |
-| Browser CORS error | Exact scheme/host/port in Rails allowlist; frontend URL env alone is insufficient. |
-| Rails boot says `MAIL_FROM` missing | Set `MAIL_FROM`, even when HTTP mail transport is selected in production. |
-| Database connection or migrations fail | Correct `DATABASE_URL`, credentials, network/TLS, and `pg_trgm` privileges. |
-| Upload fails | Current service is R2; check `CLOUD_FLARE_R2_*`, bucket permissions and endpoint, not old Supabase values. |
-| Messages never arrive | Check resolved transport, API credentials, verified sender, queue behavior, and logs. |
-| Worker exists but jobs are not durable | Production's final `:async` assignment overrides Solid Queue; fix adapter configuration first. |
-| Unexpected embedded queue process | Remove `SOLID_QUEUE_IN_PUMA`; the string `false` still enables it today. |
-| Credentials cannot decrypt | Obtain the matching master/environment key; do not substitute a fresh key. |
-| Local search has no results | Empty schema has no sample data; use reviewed development data or a sanitized restore. |
+| Problem                                | Check                                                                                                      |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| API requests go to localhost on Vercel | Set Production/Preview `VITE_API_BASE_URL`, then rebuild.                                                  |
+| Browser CORS error                     | Exact scheme/host/port in Rails allowlist; frontend URL env alone is insufficient.                         |
+| Rails boot says `MAIL_FROM` missing    | Set `MAIL_FROM`, even when HTTP mail transport is selected in production.                                  |
+| Database connection or migrations fail | Correct `DATABASE_URL`, credentials, network/TLS, and `pg_trgm` privileges.                                |
+| Upload fails                           | Current service is R2; check `CLOUD_FLARE_R2_*`, bucket permissions and endpoint, not old Supabase values. |
+| Messages never arrive                  | Check resolved transport, API credentials, verified sender, queue behavior, and logs.                      |
+| Worker exists but jobs are not durable | Production's final `:async` assignment overrides Solid Queue; fix adapter configuration first.             |
+| Unexpected embedded queue process      | Remove `SOLID_QUEUE_IN_PUMA`; the string `false` still enables it today.                                   |
+| Credentials cannot decrypt             | Obtain the matching master/environment key; do not substitute a fresh key.                                 |
+| Local search has no results            | Empty schema has no sample data; use reviewed development data or a sanitized restore.                     |
 
 ## Related operational guides
 

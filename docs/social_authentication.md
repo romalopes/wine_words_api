@@ -1,6 +1,6 @@
 # Social authentication
 
-Google, Apple, Microsoft and Facebook sign-in for Wine Prediction.
+Google, Apple, Microsoft and Facebook sign-in for Wine words.
 
 Email/password authentication is unchanged and remains fully supported. Social
 providers are **additional ways to authenticate the same `User`** — they never
@@ -28,19 +28,19 @@ create a parallel identity, session or account system.
    Google Apple Microsoft Facebook
 ```
 
-`UserIdentity` holds the *authentication* identity; `User` holds the
-*application* identity. A User may have any number of identities while keeping
+`UserIdentity` holds the _authentication_ identity; `User` holds the
+_application_ identity. A User may have any number of identities while keeping
 exactly one Account, one role set (Guest / Reader / Reviewer / Admin / Editor),
 one subscription and one Stripe customer.
 
 ### Why a separate table
 
-* No provider columns (`google_id`, `apple_id`, …) are ever added to `users` or
+- No provider columns (`google_id`, `apple_id`, …) are ever added to `users` or
   `accounts`.
-* The **provider UID** (`sub` / app-scoped id) is the identity key — never the
+- The **provider UID** (`sub` / app-scoped id) is the identity key — never the
   email. Emails change, Apple may return a private relay address, and Facebook
   may return nothing at all.
-* `(provider, provider_uid)` carries a **unique database index**, so one
+- `(provider, provider_uid)` carries a **unique database index**, so one
   provider identity can never belong to two Users.
 
 ```
@@ -61,12 +61,12 @@ enum on `UserIdentity`).
 
 ### Sign in (anonymous)
 
-| Method | Path | Body |
-|---|---|---|
-| POST | `/api/v1/auth/google` | `{ "credential": "<ID token>" }` |
-| POST | `/api/v1/auth/apple` | `{ "credential": "<identity token>", "nonce": "<raw nonce>" }` |
-| POST | `/api/v1/auth/microsoft` | `{ "credential": "<ID token>" }` |
-| POST | `/api/v1/auth/facebook` | `{ "credential": "<user access token>" }` |
+| Method | Path                     | Body                                                           |
+| ------ | ------------------------ | -------------------------------------------------------------- |
+| POST   | `/api/v1/auth/google`    | `{ "credential": "<ID token>" }`                               |
+| POST   | `/api/v1/auth/apple`     | `{ "credential": "<identity token>", "nonce": "<raw nonce>" }` |
+| POST   | `/api/v1/auth/microsoft` | `{ "credential": "<ID token>" }`                               |
+| POST   | `/api/v1/auth/facebook`  | `{ "credential": "<user access token>" }`                      |
 
 The response is the **same payload as email/password sign-in**, with the
 ordinary devise-jwt token in the `Authorization` response header. There is no
@@ -74,11 +74,11 @@ separate social session mechanism.
 
 ### Connected sign-in methods (authenticated)
 
-| Method | Path | Purpose |
-|---|---|---|
-| GET | `/api/v1/auth/identities` | list connected providers + `password_authentication` flag |
-| POST | `/api/v1/auth/identities/:provider` | connect an additional provider |
-| DELETE | `/api/v1/auth/identities/:id` | disconnect a provider |
+| Method | Path                                | Purpose                                                   |
+| ------ | ----------------------------------- | --------------------------------------------------------- |
+| GET    | `/api/v1/auth/identities`           | list connected providers + `password_authentication` flag |
+| POST   | `/api/v1/auth/identities/:provider` | connect an additional provider                            |
+| DELETE | `/api/v1/auth/identities/:id`       | disconnect a provider                                     |
 
 ---
 
@@ -89,18 +89,18 @@ separate social session mechanism.
 **Case 1 — the provider identity already exists**
 `(provider, provider_uid)` matches a `UserIdentity` → authenticate its `User`.
 Nothing is created. This works even when the provider stops sending an email
-(Apple only includes `email` in the *first* identity token).
+(Apple only includes `email` in the _first_ identity token).
 
 **Case 2 — the identity is new, but the verified email belongs to an existing User**
 The identity is linked onto that User **only when the provider actually vouches
 for the address** and it is not an Apple private relay address:
 
-| Provider | Auto-links on verified email? | Why |
-|---|---|---|
-| Google | Yes, when `email_verified` is true | Google asserts it explicitly |
-| Microsoft | Yes, when the address matches the directory-authoritative `preferred_username` (or an explicit `email_verified`) | `email` may disagree with the UPN |
-| Apple | Yes, for a normal address only | relay addresses prove nothing about the person's mailbox |
-| Facebook | **No** | Meta supplies no verification signal |
+| Provider  | Auto-links on verified email?                                                                                    | Why                                                      |
+| --------- | ---------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| Google    | Yes, when `email_verified` is true                                                                               | Google asserts it explicitly                             |
+| Microsoft | Yes, when the address matches the directory-authoritative `preferred_username` (or an explicit `email_verified`) | `email` may disagree with the UPN                        |
+| Apple     | Yes, for a normal address only                                                                                   | relay addresses prove nothing about the person's mailbox |
+| Facebook  | **No**                                                                                                           | Meta supplies no verification signal                     |
 
 If the address cannot be trusted the request fails with
 `409 account_exists`: the person is told to sign in the way they normally do and
@@ -116,10 +116,11 @@ existing Account workflow. A social-only User has no password
 
 ### Account linking and the last authentication method
 
-* An identity that already belongs to another User is **never transferred** —
+- An identity that already belongs to another User is **never transferred** —
   the request fails with `409 identity_taken`.
-* A User must always keep at least one way to sign in. Disconnecting the only
+- A User must always keep at least one way to sign in. Disconnecting the only
   method fails with `409 last_authentication_method`.
+
 ---
 
 ## 4. Provider configuration
@@ -137,26 +138,26 @@ halfway through a sign-in:
 
 Values take effect differently in each process:
 
-* **Rails** (dotenv-rails): edit `wine_words_api/.env.development`, then
+- **Rails** (dotenv-rails): edit `wine_words_api/.env.development`, then
   **restart the server** (`bin/rails server`).
-* **Vite**: edit `wine_words/.env.development`, then **restart
+- **Vite**: edit `wine_words/.env.development`, then **restart
   `npm run dev`** (Vite reads `import.meta.env` when the dev server starts and
   bakes the values into production builds).
 
 ### Environment variables (backend — Render in production, never Vite)
 
-| Variable | Provider | Notes |
-|---|---|---|
-| `GOOGLE_CLIENT_ID` | Google | audience for ID token verification |
-| `APPLE_CLIENT_ID` | Apple | the Apple **Services ID** (web client id) |
-| `APPLE_TEAM_ID` | Apple | only needed for the authorization-code exchange |
-| `APPLE_KEY_ID` | Apple | only needed for the authorization-code exchange |
-| `APPLE_PRIVATE_KEY` | Apple | PKCS#8 PEM; literal `\n` escapes are converted |
-| `MICROSOFT_CLIENT_ID` | Microsoft | audience for ID token verification |
-| `MICROSOFT_TENANT_ID` | Microsoft | `common` (default), `organizations`, `consumers`, or a tenant id/domain |
-| `FACEBOOK_APP_ID` | Facebook | also used to check the token's `app_id` |
-| `FACEBOOK_APP_SECRET` | Facebook | **server-side only**; never sent to React |
-| `FACEBOOK_GRAPH_VERSION` | Facebook | defaults to `v21.0` |
+| Variable                 | Provider  | Notes                                                                   |
+| ------------------------ | --------- | ----------------------------------------------------------------------- |
+| `GOOGLE_CLIENT_ID`       | Google    | audience for ID token verification                                      |
+| `APPLE_CLIENT_ID`        | Apple     | the Apple **Services ID** (web client id)                               |
+| `APPLE_TEAM_ID`          | Apple     | only needed for the authorization-code exchange                         |
+| `APPLE_KEY_ID`           | Apple     | only needed for the authorization-code exchange                         |
+| `APPLE_PRIVATE_KEY`      | Apple     | PKCS#8 PEM; literal `\n` escapes are converted                          |
+| `MICROSOFT_CLIENT_ID`    | Microsoft | audience for ID token verification                                      |
+| `MICROSOFT_TENANT_ID`    | Microsoft | `common` (default), `organizations`, `consumers`, or a tenant id/domain |
+| `FACEBOOK_APP_ID`        | Facebook  | also used to check the token's `app_id`                                 |
+| `FACEBOOK_APP_SECRET`    | Facebook  | **server-side only**; never sent to React                               |
+| `FACEBOOK_GRAPH_VERSION` | Facebook  | defaults to `v21.0`                                                     |
 
 No Google client secret is required: ID tokens are verified against Google's
 published JWKS, so there is no secret to leak.
@@ -166,15 +167,15 @@ published JWKS, so there is no secret to leak.
 Only public identifiers. These are compiled into the bundle and are safe to
 expose; **no secret is ever placed here.**
 
-| Variable | Notes |
-|---|---|
-| `VITE_GOOGLE_CLIENT_ID` | Google client id |
-| `VITE_APPLE_CLIENT_ID` | Apple Services ID |
-| `VITE_APPLE_REDIRECT_URI` | defaults to `window.location.origin` |
-| `VITE_MICROSOFT_CLIENT_ID` | Microsoft application (client) id |
-| `VITE_MICROSOFT_TENANT_ID` | must match the backend value (default `common`) |
-| `VITE_FACEBOOK_APP_ID` | Facebook app id |
-| `VITE_FACEBOOK_GRAPH_VERSION` | defaults to `v21.0` |
+| Variable                      | Notes                                           |
+| ----------------------------- | ----------------------------------------------- |
+| `VITE_GOOGLE_CLIENT_ID`       | Google client id                                |
+| `VITE_APPLE_CLIENT_ID`        | Apple Services ID                               |
+| `VITE_APPLE_REDIRECT_URI`     | defaults to `window.location.origin`            |
+| `VITE_MICROSOFT_CLIENT_ID`    | Microsoft application (client) id               |
+| `VITE_MICROSOFT_TENANT_ID`    | must match the backend value (default `common`) |
+| `VITE_FACEBOOK_APP_ID`        | Facebook app id                                 |
+| `VITE_FACEBOOK_GRAPH_VERSION` | defaults to `v21.0`                             |
 
 A provider whose client id is absent is simply **not offered** by the UI
 (`availableProviders()`), and its endpoint returns
@@ -186,19 +187,20 @@ The provider popups are SDK-driven, so the provider dashboards need the
 origins/redirect URIs registered. Because the flow is popup-based, no backend
 callback URL is involved.
 
-| Provider | Environment | Authorised origin / redirect | Frontend | Backend |
-|---|---|---|---|---|
-| Google | Development | `http://localhost:5173` | `http://localhost:5173` | `http://localhost:3000` |
-| Google | Production | `https://<vercel-app-domain>` | Vercel | Render |
-| Apple | Development | HTTPS Return URL on a tunnel (plain `http://localhost:5173` is rejected by Apple — see "Apple" below) | `http://localhost:5173` via tunnel | `http://localhost:3000` |
-| Apple | Production | `https://<vercel-app-domain>` (Services ID return URL) | Vercel | Render |
-| Microsoft | Development | `http://localhost:5173` (SPA redirect URI) | `http://localhost:5173` | `http://localhost:3000` |
-| Microsoft | Production | `https://<vercel-app-domain>` (SPA redirect URI) | Vercel | Render |
-| Facebook | Development | `http://localhost:5173` (Valid OAuth Redirect URI) | `http://localhost:5173` | `http://localhost:3000` |
-| Facebook | Production | `https://<vercel-app-domain>` | Vercel | Render |
+| Provider  | Environment | Authorised origin / redirect                                                                          | Frontend                           | Backend                 |
+| --------- | ----------- | ----------------------------------------------------------------------------------------------------- | ---------------------------------- | ----------------------- |
+| Google    | Development | `http://localhost:5173`                                                                               | `http://localhost:5173`            | `http://localhost:3000` |
+| Google    | Production  | `https://<vercel-app-domain>`                                                                         | Vercel                             | Render                  |
+| Apple     | Development | HTTPS Return URL on a tunnel (plain `http://localhost:5173` is rejected by Apple — see "Apple" below) | `http://localhost:5173` via tunnel | `http://localhost:3000` |
+| Apple     | Production  | `https://<vercel-app-domain>` (Services ID return URL)                                                | Vercel                             | Render                  |
+| Microsoft | Development | `http://localhost:5173` (SPA redirect URI)                                                            | `http://localhost:5173`            | `http://localhost:3000` |
+| Microsoft | Production  | `https://<vercel-app-domain>` (SPA redirect URI)                                                      | Vercel                             | Render                  |
+| Facebook  | Development | `http://localhost:5173` (Valid OAuth Redirect URI)                                                    | `http://localhost:5173`            | `http://localhost:3000` |
+| Facebook  | Production  | `https://<vercel-app-domain>`                                                                         | Vercel                             | Render                  |
 
 Keep the two environments on **separate provider applications** (or separate
 origins on one app) and never use production secrets locally.
+
 ---
 
 ### Setting up each provider (development)
@@ -206,10 +208,10 @@ origins on one app) and never use production secrets locally.
 #### Google
 
 1. In the [Google Cloud Console](https://console.cloud.google.com/):
-   * create (or select) a project,
-   * go to **APIs & Services → OAuth consent screen** → choose **External**,
+   - create (or select) a project,
+   - go to **APIs & Services → OAuth consent screen** → choose **External**,
      fill in the app details and add the scopes `openid`, `email`, `profile`,
-   * while the consent screen is in **Testing** mode, add your own address
+   - while the consent screen is in **Testing** mode, add your own address
      under **Test users** so you can sign in.
 2. Go to **Credentials → Create credentials → OAuth client ID → Web
    application**.
@@ -236,22 +238,22 @@ in `socialProviders.ts`; its credential is sent to the Rails sign-in endpoint.
 #### Apple
 
 1. In the [Apple Developer](https://developer.apple.com/account) portal:
-   * **Certificates, IDs & Profiles → Identifiers** — create an **App ID**
-     (enable *Sign in with Apple*) and a **Services ID**. The Services ID
-     (e.g. `com.wineprediction.web`) is the *only* id this implementation
+   - **Certificates, IDs & Profiles → Identifiers** — create an **App ID**
+     (enable _Sign in with Apple_) and a **Services ID**. The Services ID
+     (e.g. `com.winewords.web`) is the _only_ id this implementation
      needs.
-   * Configure the Services ID: enable **Sign in with Apple** and register
+   - Configure the Services ID: enable **Sign in with Apple** and register
      the authorised **Domain** plus the **Return URL**.
 2. Use the **Services ID** for both variables:
 
    ```
    # wine_words_api/.env.development
-   APPLE_CLIENT_ID=com.wineprediction.web
+   APPLE_CLIENT_ID=com.winewords.web
    ```
 
    ```
    # wine_words/.env.development
-   VITE_APPLE_CLIENT_ID=com.wineprediction.web
+   VITE_APPLE_CLIENT_ID=com.winewords.web
    ```
 
 3. `APPLE_TEAM_ID`, `APPLE_KEY_ID` and `APPLE_PRIVATE_KEY` are **not required**
@@ -279,11 +281,11 @@ Production needs no workaround: the Vercel URL is already HTTPS.
 
 1. In the [Entra admin center](https://entra.microsoft.com) (or the Azure
    portal):
-   * **Identity → Applications → App registrations → New registration** —
+   - **Identity → Applications → App registrations → New registration** —
      give it a name and, under **Supported account types**, select
-     *Accounts in any organizational directory and personal Microsoft
-     accounts* to match the default `common` tenant policy.
-   * Leave **Redirect URI** blank for now — it is added under the platform
+     _Accounts in any organizational directory and personal Microsoft
+     accounts_ to match the default `common` tenant policy.
+   - Leave **Redirect URI** blank for now — it is added under the platform
      configuration in the next step.
 2. On the new registration page go to **Authentication → Add a platform →
    Single-page application (SPA)** and add the **Redirect URIs**
@@ -317,13 +319,13 @@ Production needs no workaround: the Vercel URL is already HTTPS.
 #### Facebook
 
 1. In [Meta for Developers](https://developers.facebook.com):
-   * create an app (type Consumer/None) and add the **Facebook Login**
+   - create an app (type Consumer/None) and add the **Facebook Login**
      product — or open an existing app that has it,
-   * under **Facebook Login → Settings**, the frontend (`socialProviders.js`)
+   - under **Facebook Login → Settings**, the frontend (`socialProviders.js`)
      asks only for `public_profile,email`, so request **no other permissions**,
-   * set the **Site URL** and **Valid OAuth Redirect URIs** to
+   - set the **Site URL** and **Valid OAuth Redirect URIs** to
      `http://localhost:5173` for development (plus the production URL later),
-   * switch the app to **Live** if anyone other than its admins/developers/
+   - switch the app to **Live** if anyone other than its admins/developers/
      test users must be able to sign in (in Development mode only those can).
 2. Copy the **App ID** and **App secret** from **Settings → Basic**:
 
@@ -355,9 +357,10 @@ Production needs no workaround: the Vercel URL is already HTTPS.
 2. Ask the API directly which providers are usable:
 
    ```
-   cd wine_prediction_api
+   cd wine_words_api
    bundle exec rails runner 'Authentication::PROVIDERS.each { |p| puts "#{p}: #{Authentication.configured?(p)}" }'
    ```
+
 3. Open `/login`: "Continue with …" appears only for providers whose
    `VITE_*` id is set — a hidden button means the frontend variable is
    missing, not a code bug.
@@ -370,16 +373,18 @@ Production needs no workaround: the Vercel URL is already HTTPS.
      http://localhost:3000/api/v1/auth/google \
      -H 'Content-Type: application/json' -d '{"credential":"x"}'
    ```
+
 5. After a real sign-in, **Account settings → Sign-in methods** lists the
    connected provider, and the remaining configured providers are offered
    under "Connect another".
+
 ---
 
 ## 4b. Troubleshooting: "The given origin is not allowed for the given client ID"
 
 This 403 is emitted by Google's own SDK (`accounts.google.com/gsi/client`)
 **before** any of our code runs: it rejects the page's `window.location.origin`
-against the *Authorized JavaScript origins* list of the OAuth client being
+against the _Authorized JavaScript origins_ list of the OAuth client being
 used. Nothing in the React code can cause or fix it.
 
 Checklist, in order:
@@ -389,7 +394,7 @@ Checklist, in order:
    exactly one of the registered origins.
 2. **Origins must match literally**: scheme + host + port only. No trailing
    slash, no path, and **no wildcards** — each Vercel preview URL
-   (`wine-prediction-<hash>-….vercel.app`) must be added individually (or test
+   (`wine-words-<hash>-….vercel.app`) must be added individually (or test
    on the production domain instead).
 3. `http://localhost:5173` and `http://127.0.0.1:5173` are **different
    origins**; register both if you use both.
@@ -403,7 +408,7 @@ Checklist, in order:
 6. **The client ID must match everywhere**: the frontend
    (`VITE_GOOGLE_CLIENT_ID`) and the backend (`GOOGLE_CLIENT_ID`) must use the
    same OAuth **Web application** client as the one whose origins you edited.
-7. The **OAuth consent screen** must be configured; while in *Testing* mode,
+7. The **OAuth consent screen** must be configured; while in _Testing_ mode,
    your Google account must be listed under **Test users**.
 
 When this happens the One Tap prompt never displays; the frontend surfaces the
@@ -422,21 +427,21 @@ Cause: Brave sends `sec-gpc: 1` (Global Privacy Control) and, when Shields
 are active, `sec-fetch-storage-access: none`. GSI's `gsi/status` check is a
 cross-site call to `accounts.google.com`; it relies on third-party storage
 access to resolve the client config. When Brave reports `none`, Google rejects
-the lookup with code 5 ("origin not allowed") even though the origin *is*
+the lookup with code 5 ("origin not allowed") even though the origin _is_
 registered.
 
 Workaround (local dev only):
 
 1. **Shields down**: `☰ ⋮ → Shields down for localhost` (or visit the page
-   and click the Brave lion icon → toggle *Shields are UP* off).
+   and click the Brave lion icon → toggle _Shields are UP_ off).
 2. **Privacy settings**: `brave://settings/privacy` → disable, temporarily:
-   - *Block third-party cookies*
-   - *Prevent sites from using your privacy settings to determine whether
-     they can reduce the effectiveness of security features* (sets
+   - _Block third-party cookies_
+   - _Prevent sites from using your privacy settings to determine whether
+     they can reduce the effectiveness of security features_ (sets
      `sec-gpc`) — or keep it on but relax the specific entries below.
 3. **Fingerprinting**: `brave://settings/privacy → Fingerprinting protection`
-   → set to **Standard** (Brave's *Strict* mode adds `sec-fetch-storage-access:
-   none`).
+   → set to **Standard** (Brave's _Strict_ mode adds `sec-fetch-storage-access:
+none`).
 4. Restart Brave, open a **fresh** window, and retest `http://localhost:5173`.
 
 > **Verified:** Chrome passes; Brave 133 with default Shields fails with the
@@ -447,15 +452,15 @@ Workaround (local dev only):
 
 ## 5. Microsoft account types
 
-Wine Prediction supports **both personal and organisational Microsoft
+Wine words supports **both personal and organisational Microsoft
 accounts**. `MICROSOFT_TENANT_ID` selects the policy:
 
-| Value | Accepts |
-|---|---|
-| `common` *(default, recommended)* | personal + organisational |
-| `organizations` | organisational only (rejects the MSA tenant) |
-| `consumers` | personal only |
-| `<tenant-guid-or-domain>` | exactly that one tenant |
+| Value                             | Accepts                                      |
+| --------------------------------- | -------------------------------------------- |
+| `common` _(default, recommended)_ | personal + organisational                    |
+| `organizations`                   | organisational only (rejects the MSA tenant) |
+| `consumers`                       | personal only                                |
+| `<tenant-guid-or-domain>`         | exactly that one tenant                      |
 
 Only the minimum scopes — `openid email profile` — are requested. **No
 Microsoft Graph permission is needed**: the ID token alone establishes identity.
@@ -478,39 +483,40 @@ Apple introduces another relay domain.
 
 How it is handled:
 
-* The Apple **`sub`** is the identity key, so the account still resolves
+- The Apple **`sub`** is the identity key, so the account still resolves
   perfectly on every later sign-in — including when Apple omits the email
   entirely, which it does after the first authorisation.
-* A relay address is **never used to auto-link** onto an existing User
+- A relay address is **never used to auto-link** onto an existing User
   (`Claims#private_relay_email?` blocks Case 2). Someone signing in with Apple
   Hide My Email gets their own account, or connects Apple from Account settings
   while signed in.
-* Relay addresses are ordinary valid strings to us — nothing in the schema
+- Relay addresses are ordinary valid strings to us — nothing in the schema
   assumes the email equals the person's real mailbox, so email-based features
   remain compatible.
+
 ---
 
 ## 7. Security
 
-* **Nothing from the frontend is trusted.** React sends only the provider's
+- **Nothing from the frontend is trusted.** React sends only the provider's
   credential. The backend derives the provider, the provider UID, the email and
   the verification status itself.
-* **Tokens are verified properly**: signature (RS256/ES256 against the
+- **Tokens are verified properly**: signature (RS256/ES256 against the
   provider's published JWKS), issuer, audience, expiry and algorithm
   allow-list. Tokens without `sub` or without `exp` are rejected.
-* **Apple nonce** is compared against the SHA-256 digest Apple echoes back.
-* **Facebook** tokens are validated with `GET /debug_token` (proving validity,
-  expiry and that the token belongs to *our* app) before identity is read from
+- **Apple nonce** is compared against the SHA-256 digest Apple echoes back.
+- **Facebook** tokens are validated with `GET /debug_token` (proving validity,
+  expiry and that the token belongs to _our_ app) before identity is read from
   `/me` with that validated token.
-* **Secrets never reach React**, are never logged, and are never committed.
+- **Secrets never reach React**, are never logged, and are never committed.
   `Authentication::HttpClient` logs nothing at all, so access tokens,
   authorization codes and provider secrets cannot leak into the application log.
-* **Error responses** carry only a safe message plus a stable `code`
+- **Error responses** carry only a safe message plus a stable `code`
   (`invalid_credential`, `invalid_nonce`, `invalid_tenant`,
   `provider_not_configured`, `account_exists`, `identity_taken`,
   `last_authentication_method`, `unsupported_provider`, `provider_unavailable`,
   `provider_error`). No tokens, secrets or stack traces.
-* **JWKS caching**: key sets are cached for an hour and refetched once when an
+- **JWKS caching**: key sets are cached for an hour and refetched once when an
   unknown `kid` appears (standard key-rotation handling).
 
 ---
@@ -518,14 +524,14 @@ How it is handled:
 ## 8. Audit logging
 
 Social authentication uses the existing audit mechanism (`Auditable` /
-`LogService`) and respects the *Save logs to database* setting on the
+`LogService`) and respects the _Save logs to database_ setting on the
 Configuration page:
 
-| Event | Description |
-|---|---|
-| Sign-in | `User logged in with Google` / `Apple` / `Microsoft` / `Facebook` |
-| Linking | `Google identity connected`, `Microsoft identity connected`, … |
-| Unlinking | `Google identity disconnected`, … |
+| Event     | Description                                                       |
+| --------- | ----------------------------------------------------------------- |
+| Sign-in   | `User logged in with Google` / `Apple` / `Microsoft` / `Facebook` |
+| Linking   | `Google identity connected`, `Microsoft identity connected`, …    |
+| Unlinking | `Google identity disconnected`, …                                 |
 
 Credentials, tokens, authorization codes and provider secrets are **never**
 written to the log.
@@ -536,11 +542,11 @@ written to the log.
 
 The provider used has **no effect** on authorization:
 
-* roles are untouched (`Admin` / Super User stays `Admin` after any social login),
-* subscriptions and `UserSubscription` records are untouched,
-* the Stripe customer and subscription are untouched (no duplicate customer is
+- roles are untouched (`Admin` / Super User stays `Admin` after any social login),
+- subscriptions and `UserSubscription` records are untouched,
+- the Stripe customer and subscription are untouched (no duplicate customer is
   ever created),
-* the Account remains exactly one.
+- the Account remains exactly one.
 
 The provider therefore never determines role or plan; the `User` does.
 
@@ -548,39 +554,38 @@ The provider therefore never determines role or plan; the `User` does.
 
 ## 10. Testing
 
-Provider *verification* is the only thing stubbed in the request specs —
+Provider _verification_ is the only thing stubbed in the request specs —
 everything after it (identity resolution, linking, roles, subscriptions,
 Account, JWT issuance, audit logging) runs for real.
 
-| Spec | Covers |
-|---|---|
-| `spec/requests/api/v1/sessions_spec.rb` | email/password sign-in regression: identical payload/JWT, and a social-only User has no password |
-| `spec/models/user_identity_spec.rb` | associations, enum, validations, DB uniqueness |
-| `spec/services/authentication/oidc_verifier_spec.rb` | Google: valid, expired, wrong audience/issuer, bad signature, unknown `kid`, unsigned token |
-| `spec/services/authentication/apple_spec.rb` | nonce digest, private relay, missing email, expiry, audience, issuer |
-| `spec/services/authentication/microsoft_spec.rb` | tenant policies (personal / organisational / concrete), `tid`↔`iss`, UPN trust |
-| `spec/services/authentication/facebook_spec.rb` | `debug_token` validation, app-id match, `/me` mismatch, no-verified-email policy |
-| `spec/requests/api/v1/social_auth_spec.rb` | sign-in end to end, new/existing User, no duplicates, safe errors |
-| `spec/requests/api/v1/social_auth_integrity_spec.rb` | roles, subscriptions, Stripe, Account, four-provider linking, audit |
-| `spec/requests/api/v1/user_identities_spec.rb` | linking endpoints, hijack prevention, last-method protection |
+| Spec                                                 | Covers                                                                                           |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `spec/requests/api/v1/sessions_spec.rb`              | email/password sign-in regression: identical payload/JWT, and a social-only User has no password |
+| `spec/models/user_identity_spec.rb`                  | associations, enum, validations, DB uniqueness                                                   |
+| `spec/services/authentication/oidc_verifier_spec.rb` | Google: valid, expired, wrong audience/issuer, bad signature, unknown `kid`, unsigned token      |
+| `spec/services/authentication/apple_spec.rb`         | nonce digest, private relay, missing email, expiry, audience, issuer                             |
+| `spec/services/authentication/microsoft_spec.rb`     | tenant policies (personal / organisational / concrete), `tid`↔`iss`, UPN trust                   |
+| `spec/services/authentication/facebook_spec.rb`      | `debug_token` validation, app-id match, `/me` mismatch, no-verified-email policy                 |
+| `spec/requests/api/v1/social_auth_spec.rb`           | sign-in end to end, new/existing User, no duplicates, safe errors                                |
+| `spec/requests/api/v1/social_auth_integrity_spec.rb` | roles, subscriptions, Stripe, Account, four-provider linking, audit                              |
+| `spec/requests/api/v1/user_identities_spec.rb`       | linking endpoints, hijack prevention, last-method protection                                     |
 
-Invitations: Wine Prediction has no invitation system at present, so none is
+Invitations: Wine words has no invitation system at present, so none is
 integrated. The design keeps `UserIdentity` separate from invitation logic, so a
 future email-based invitation flow can hook into Case 2/3 resolution by email
 without provider-specific changes.
-
 
 ## Local setup checklist (October 2026)
 
 The app already implements all four providers. IDs and provider-console settings
 must be supplied separately; blank IDs intentionally hide their buttons.
 
-| Provider | Frontend `.env.development` | API `.env.development` | Console configuration |
-|---|---|---|---|
-| Google | `VITE_GOOGLE_CLIENT_ID` | `GOOGLE_CLIENT_ID` (same value) | Web application OAuth client; authorized JavaScript origins `http://localhost:5173` and `https://wine-words.beachvolleyballhub.com` |
-| Microsoft | `VITE_MICROSOFT_CLIENT_ID`, `VITE_MICROSOFT_TENANT_ID=common` | `MICROSOFT_CLIENT_ID`, `MICROSOFT_TENANT_ID=common` | SPA registration; personal + organizational account support for `common`; register the exact frontend origin as the redirect URI |
-| Apple | `VITE_APPLE_CLIENT_ID`, `VITE_APPLE_REDIRECT_URI` | `APPLE_CLIENT_ID` | Services ID linked to a Sign in with Apple App ID; register the domain and exact HTTPS return URL; use an HTTPS development domain rather than localhost |
-| Facebook | `VITE_FACEBOOK_APP_ID`, `VITE_FACEBOOK_GRAPH_VERSION` | `FACEBOOK_APP_ID`, `FACEBOOK_APP_SECRET`, `FACEBOOK_GRAPH_VERSION` | Facebook Login app with website domain and OAuth settings; use authorized app testers during development and complete provider requirements before public rollout |
+| Provider  | Frontend `.env.development`                                   | API `.env.development`                                             | Console configuration                                                                                                                                             |
+| --------- | ------------------------------------------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Google    | `VITE_GOOGLE_CLIENT_ID`                                       | `GOOGLE_CLIENT_ID` (same value)                                    | Web application OAuth client; authorized JavaScript origins `http://localhost:5173` and `https://wine-words.beachvolleyballhub.com`                               |
+| Microsoft | `VITE_MICROSOFT_CLIENT_ID`, `VITE_MICROSOFT_TENANT_ID=common` | `MICROSOFT_CLIENT_ID`, `MICROSOFT_TENANT_ID=common`                | SPA registration; personal + organizational account support for `common`; register the exact frontend origin as the redirect URI                                  |
+| Apple     | `VITE_APPLE_CLIENT_ID`, `VITE_APPLE_REDIRECT_URI`             | `APPLE_CLIENT_ID`                                                  | Services ID linked to a Sign in with Apple App ID; register the domain and exact HTTPS return URL; use an HTTPS development domain rather than localhost          |
+| Facebook  | `VITE_FACEBOOK_APP_ID`, `VITE_FACEBOOK_GRAPH_VERSION`         | `FACEBOOK_APP_ID`, `FACEBOOK_APP_SECRET`, `FACEBOOK_GRAPH_VERSION` | Facebook Login app with website domain and OAuth settings; use authorized app testers during development and complete provider requirements before public rollout |
 
 For deployed frontend builds, set the `VITE_*` variables on the frontend host
 before building. Render's Rails environment does not configure the Vite bundle.
@@ -608,6 +613,7 @@ frontend after changing its variables. Never put the Facebook secret in Vite.
   the actual deployed browser origin before treating rollout as complete.
 
 References:
+
 - https://developers.google.com/identity/gsi/web/guides/display-button
 - https://developer.apple.com/help/account/capabilities/configure-sign-in-with-apple-for-the-web
 - https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-single-page-app-sign-in

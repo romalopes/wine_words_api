@@ -6,10 +6,10 @@ Complete on October 5, 2026. This is an inspection record only; no Article Proje
 
 ## Repository identity
 
-| Canonical repository | Local checkout | Responsibility |
-| --- | --- | --- |
-| `romalopes/wine_words_api` | `/Users/romalopes/Documents/studies/my_project/wine_project/wine_prediction_api` | Rails API |
-| `romalopes/wine_words_front_end` | `/Users/romalopes/Documents/studies/my_project/wine_project/wine_prediction` | React frontend |
+| Canonical repository             | Local checkout                                                              | Responsibility |
+| -------------------------------- | --------------------------------------------------------------------------- | -------------- |
+| `romalopes/wine_words_api`       | `/Users/romalopes/Documents/studies/my_project/wine_project/wine_words_api` | Rails API      |
+| `romalopes/wine_words_front_end` | `/Users/romalopes/Documents/studies/my_project/wine_project/wine_words`     | React frontend |
 
 The local Git remotes retain pre-rename names. The shared project documentation at `WINE_WORDS_README.md` confirms these local checkouts are the intended Wine Words applications.
 

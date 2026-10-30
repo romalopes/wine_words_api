@@ -6,15 +6,15 @@ models and application behaviour, rather than proposed features.
 
 ## Read by domain
 
-| Guide | Models and questions covered |
-|---|---|
-| [Wine catalogue and vintages](wine_vintages.md) | Producer, Wine, Vintage, geography, grapes, and taste profiles; what identifies the bottle being reviewed? |
-| [Reviews](reviews.md) | Review authorship, vintage ownership, publication, article links, and package completion |
-| [Articles](articles.md) | Article content, linked reviews, producers, vintages, and independent publication states |
-| [Article projects](article_projects.md) | Planning, producer contact, sample receipt, notebooks, drafting, deadlines, and concurrency |
-| [Wine packages](wine_packages.md) | Shipment intake, workflow transitions, review deadlines, tracking, and reminders |
-| [Users and shared services](users_and_shared_services.md) | Accounts, identity, roles, subscriptions, images, comments, likes, search, and jobs |
-| [System lifecycle](system_lifecycle.md) | An end-to-end example and which changes propagate between domains |
+| Guide                                                     | Models and questions covered                                                                               |
+| --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| [Wine catalogue and vintages](wine_vintages.md)           | Producer, Wine, Vintage, geography, grapes, and taste profiles; what identifies the bottle being reviewed? |
+| [Reviews](reviews.md)                                     | Review authorship, vintage ownership, publication, article links, and package completion                   |
+| [Articles](articles.md)                                   | Article content, linked reviews, producers, vintages, and independent publication states                   |
+| [Article projects](article_projects.md)                   | Planning, producer contact, sample receipt, notebooks, drafting, deadlines, and concurrency                |
+| [Wine packages](wine_packages.md)                         | Shipment intake, workflow transitions, review deadlines, tracking, and reminders                           |
+| [Users and shared services](users_and_shared_services.md) | Accounts, identity, roles, subscriptions, images, comments, likes, search, and jobs                        |
+| [System lifecycle](system_lifecycle.md)                   | An end-to-end example and which changes propagate between domains                                          |
 
 ## Runtime architecture
 
@@ -28,7 +28,7 @@ flowchart LR
   API --> Providers[Optional social login, billing and tracking providers]
 ```
 
-The frontend lives in the sibling `wine_prediction/` application and is deployed
+The frontend lives in the sibling `wine_words/` application and is deployed
 to Vercel (https://wine-words.vercel.app) and Cloudflare Workers
 (https://wine-words.romalopes.workers.dev/). Rails lives here and is deployed as a Docker application on Render.
 Rails also has server-rendered web controllers and views; their routes are separate

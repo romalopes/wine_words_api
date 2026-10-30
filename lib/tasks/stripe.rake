@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Sync WinePrediction subscription plans to Stripe Products and Prices.
+# Sync Winewords subscription plans to Stripe Products and Prices.
 #
 # Usage:
 #   bundle exec rails stripe:sync_prices
@@ -18,11 +18,11 @@
 # This task is idempotent – run it as often as you like.
 
 namespace :stripe do
-  desc "Create or update Stripe Products and Prices for paid WinePrediction plans"
+  desc "Create or update Stripe Products and Prices for paid Winewords plans"
   task sync_prices: :environment do
-    # Force autoload + self-registration of the Stripe provider so model
+    # Force autoload and explicitly ensure the provider is registered so model
     # validation (provider inclusion check) passes when writing billing prices.
-    Billing::Providers::Stripe
+    Billing::Providers.register(Billing::Providers::Stripe)
 
     unless ENV["STRIPE_SECRET_KEY"].present?
       puts "❌  STRIPE_SECRET_KEY is not set. Skipping Stripe sync."
@@ -77,8 +77,8 @@ namespace :stripe do
           description: plan.description.presence,
           active: true,
           metadata: {
-            wine_prediction_plan_id: plan.id.to_s,
-            wine_prediction_plan_slug: plan.slug,
+            wine_words_plan_id: plan.id.to_s,
+            wine_words_plan_slug: plan.slug
           }
         })
       end
@@ -93,8 +93,8 @@ namespace :stripe do
         recurring: { interval: "year" },
         nickname: "#{plan.name} – Annual",
         metadata: {
-          wine_prediction_plan_id: plan.id.to_s,
-          wine_prediction_plan_slug: plan.slug,
+          wine_words_plan_id: plan.id.to_s,
+          wine_words_plan_slug: plan.slug
         }
       })
 

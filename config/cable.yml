@@ -8,6 +8,9 @@ development:
 test:
   adapter: test
 
+e2e:
+  adapter: test
+
 production:
   adapter: solid_cable
   # Solid Cable shares the primary database connection on Render. If you

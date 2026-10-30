@@ -124,11 +124,11 @@ handling for each step.
 
 ## Architecture and current configuration
 
-| Workflow | Schedule (UTC) | What it does |
-|---|---|---|
-| [database_backup.yml](../.github/workflows/database_backup.yml) | Daily 02:00; manual dispatch | Custom-format `pg_dump`, age encryption, SHA-256 checksum, JSON metadata, R2 upload and object-size checks, daily pruning. |
-| [database_restore_test.yml](../.github/workflows/database_restore_test.yml) | Sunday 03:00; manual dispatch | Downloads a backup, checks/decrypts it, restores a disposable database, checks tables and reports row counts. |
-| [database_backup_freshness.yml](../.github/workflows/database_backup_freshness.yml) | Daily 06:00; manual dispatch | Fails if no backup exists or the newest encrypted dump is over 36 hours old. |
+| Workflow                                                                            | Schedule (UTC)                | What it does                                                                                                               |
+| ----------------------------------------------------------------------------------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| [database_backup.yml](../.github/workflows/database_backup.yml)                     | Daily 02:00; manual dispatch  | Custom-format `pg_dump`, age encryption, SHA-256 checksum, JSON metadata, R2 upload and object-size checks, daily pruning. |
+| [database_restore_test.yml](../.github/workflows/database_restore_test.yml)         | Sunday 03:00; manual dispatch | Downloads a backup, checks/decrypts it, restores a disposable database, checks tables and reports row counts.              |
+| [database_backup_freshness.yml](../.github/workflows/database_backup_freshness.yml) | Daily 06:00; manual dispatch  | Fails if no backup exists or the newest encrypted dump is over 36 hours old.                                               |
 
 At the time of this documentation update, the workflows default to `neon`, support
 `neon` and `supabase`, and pin PostgreSQL clients to **18** and age to **1.3.2**.
@@ -173,11 +173,11 @@ database-backups/
   wine-words/postgresql/<provider>/MONTHLY_<timestamp>.dump.age.json
 ```
 
-| File | Purpose |
-|---|---|
-| `.dump.age` | Encrypted, compressed PostgreSQL custom-format archive; decrypt before using `pg_restore`. |
-| `.dump.age.sha256` | SHA-256 checksum of the encrypted file, referencing its original filename. |
-| `.dump.age.json` | Creation time, provider, dump/server versions, encryption key ID, and retention class. |
+| File               | Purpose                                                                                    |
+| ------------------ | ------------------------------------------------------------------------------------------ |
+| `.dump.age`        | Encrypted, compressed PostgreSQL custom-format archive; decrypt before using `pg_restore`. |
+| `.dump.age.sha256` | SHA-256 checksum of the encrypted file, referencing its original filename.                 |
+| `.dump.age.json`   | Creation time, provider, dump/server versions, encryption key ID, and retention class.     |
 
 An **object key** starts with `wine-words/`; it excludes the bucket name and `s3://`.
 For example (illustrative timestamp):
@@ -197,18 +197,18 @@ Changes after its snapshot are absent. The `latest` workflow input chooses by R2
 Add workflow secrets under **Settings → Secrets and variables → Actions** in the
 [repository settings](https://github.com/romalopes/wine_words_api/settings/secrets/actions).
 
-| Secret | Purpose |
-|---|---|
-| `BACKUP_NEON_DATABASE_URL` | Source connection for the `neon` selection. Use a direct URL with TLS, not a pooler. |
-| `BACKUP_SUPABASE_DATABASE_URL` | Source connection for the `supabase` selection; same connection requirements. |
-| `NEON_RESTORE_TEST_DATABASE_URL` | Direct connection to a disposable Neon restore database. Never production. |
-| `SUPABASE_RESTORE_TEST_DATABASE_URL` | Direct connection to a disposable Supabase restore database. Never production. |
-| `BACKUP_ENCRYPTION_RECIPIENT` | age public key (`age1...`) used to encrypt new backups. |
-| `BACKUP_ENCRYPTION_IDENTITY` | Matching age private key (`AGE-SECRET-KEY-...`) used by the restore workflow. |
-| `BACKUP_R2_ACCESS_KEY_ID`, `BACKUP_R2_SECRET_ACCESS_KEY` | R2 S3 API credentials. |
-| `BACKUP_R2_BUCKET` | Backup bucket name, currently `database-backups` for the linked bucket. |
-| `BACKUP_R2_ENDPOINT` | Bucket's S3 API endpoint, copied from Cloudflare; not the dashboard URL. |
-| `SLACK_WEBHOOK_URL` | Optional failure notification configuration. Check Actions directly as well. |
+| Secret                                                   | Purpose                                                                              |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `BACKUP_NEON_DATABASE_URL`                               | Source connection for the `neon` selection. Use a direct URL with TLS, not a pooler. |
+| `BACKUP_SUPABASE_DATABASE_URL`                           | Source connection for the `supabase` selection; same connection requirements.        |
+| `NEON_RESTORE_TEST_DATABASE_URL`                         | Direct connection to a disposable Neon restore database. Never production.           |
+| `SUPABASE_RESTORE_TEST_DATABASE_URL`                     | Direct connection to a disposable Supabase restore database. Never production.       |
+| `BACKUP_ENCRYPTION_RECIPIENT`                            | age public key (`age1...`) used to encrypt new backups.                              |
+| `BACKUP_ENCRYPTION_IDENTITY`                             | Matching age private key (`AGE-SECRET-KEY-...`) used by the restore workflow.        |
+| `BACKUP_R2_ACCESS_KEY_ID`, `BACKUP_R2_SECRET_ACCESS_KEY` | R2 S3 API credentials.                                                               |
+| `BACKUP_R2_BUCKET`                                       | Backup bucket name, currently `database-backups` for the linked bucket.              |
+| `BACKUP_R2_ENDPOINT`                                     | Bucket's S3 API endpoint, copied from Cloudflare; not the dashboard URL.             |
+| `SLACK_WEBHOOK_URL`                                      | Optional failure notification configuration. Check Actions directly as well.         |
 
 For manual downloads via the dashboard you need Cloudflare access. CLI downloads
 need R2 credentials with object-read access to the bucket; they do not need deletion
@@ -451,7 +451,7 @@ Compare meaningful application records and counts with the chosen snapshot's exp
 state. Inspect producers, wines, articles, associations, and representative users;
 nonzero table counts alone do not establish recovery correctness.
 
-From the `wine_prediction_api` directory, with application dependencies configured:
+From the `wine_words_api` directory, with application dependencies configured:
 
 ```bash
 DATABASE_URL="$RESTORE_DATABASE_URL" RAILS_ENV=production bin/rails db:migrate:status
@@ -546,18 +546,18 @@ attachment downloads alongside the database checks.
 
 ## Troubleshooting
 
-| Symptom | What to check |
-|---|---|
-| Bucket link fails / access denied | Correct Cloudflare account and bucket permissions. For CLI access, use R2 S3 credentials and the bucket's S3 endpoint. |
-| No backups / `NoSuchKey` | Provider prefix, exact object key, retention, and backup run logs. Do not include the bucket name in `backup_prefix`. |
-| Checksum reports missing file | Keep the original basename, run from its directory, and remove browser-added suffixes such as `(1)`. |
-| Checksum mismatch | Stop; download the matching dump/sidecar again and investigate. Do not replace the expected checksum with a newly calculated one. |
-| age cannot decrypt | Correct private identity for the JSON key ID; public recipient and newly generated keys cannot decrypt older backups. |
-| `unsupported version ... in file header` | Check `pg_restore --version` and PATH; use the client matching the dump version, currently 18. |
-| Dump client older than source server | Update `PG_CLIENT_MAJOR` in backup and restore workflows together after checking compatibility. |
-| Connection fails / pooler rejected | Direct host, TLS settings, credentials, network reachability, firewall/allowlist, and provider connection limits. |
-| Restore guard aborts | Target must be separate and disposable; do not disguise production to bypass the guard. |
-| Existing relations / duplicate keys | Use a fresh target. A failed nontransactional workflow run may have left partial objects. |
-| Missing role, extension, or permission | Inspect the first restore error. Check target ownership/extension support and provider-managed schemas; do not ignore errors. |
-| Restore is green but records are wrong | Verify selected source, snapshot date, and business data; current automated validation is limited. |
-| Attachments fail after recovery | Check `:cloudflare_r2`, `CLOUD_FLARE_R2_BUCKET`, endpoint and credentials, and that the referenced object keys exist in the R2 media bucket. Restore missing media from its separate backup; database metadata does not contain uploaded file bytes. |
+| Symptom                                  | What to check                                                                                                                                                                                                                                        |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Bucket link fails / access denied        | Correct Cloudflare account and bucket permissions. For CLI access, use R2 S3 credentials and the bucket's S3 endpoint.                                                                                                                               |
+| No backups / `NoSuchKey`                 | Provider prefix, exact object key, retention, and backup run logs. Do not include the bucket name in `backup_prefix`.                                                                                                                                |
+| Checksum reports missing file            | Keep the original basename, run from its directory, and remove browser-added suffixes such as `(1)`.                                                                                                                                                 |
+| Checksum mismatch                        | Stop; download the matching dump/sidecar again and investigate. Do not replace the expected checksum with a newly calculated one.                                                                                                                    |
+| age cannot decrypt                       | Correct private identity for the JSON key ID; public recipient and newly generated keys cannot decrypt older backups.                                                                                                                                |
+| `unsupported version ... in file header` | Check `pg_restore --version` and PATH; use the client matching the dump version, currently 18.                                                                                                                                                       |
+| Dump client older than source server     | Update `PG_CLIENT_MAJOR` in backup and restore workflows together after checking compatibility.                                                                                                                                                      |
+| Connection fails / pooler rejected       | Direct host, TLS settings, credentials, network reachability, firewall/allowlist, and provider connection limits.                                                                                                                                    |
+| Restore guard aborts                     | Target must be separate and disposable; do not disguise production to bypass the guard.                                                                                                                                                              |
+| Existing relations / duplicate keys      | Use a fresh target. A failed nontransactional workflow run may have left partial objects.                                                                                                                                                            |
+| Missing role, extension, or permission   | Inspect the first restore error. Check target ownership/extension support and provider-managed schemas; do not ignore errors.                                                                                                                        |
+| Restore is green but records are wrong   | Verify selected source, snapshot date, and business data; current automated validation is limited.                                                                                                                                                   |
+| Attachments fail after recovery          | Check `:cloudflare_r2`, `CLOUD_FLARE_R2_BUCKET`, endpoint and credentials, and that the referenced object keys exist in the R2 media bucket. Restore missing media from its separate backup; database metadata does not contain uploaded file bytes. |

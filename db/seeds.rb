@@ -39,7 +39,7 @@ puts "  - #{Grape.count} grapes"
 # server-authoritative five-level labels. Legacy profile seed variants remain
 # as compatibility wrappers but must not be loaded from here.
 #  bundle exec rails runner db/seeds/wine_profiles/wine_profiles_seed_consolidated.rb
-# load Rails.root.join('db', 'seeds', 'wine_profiles', 'wine_profiles_seed_consolidated.rb').to_s
+load Rails.root.join('db', 'seeds', 'wine_profiles', 'wine_profiles_seed_consolidated.rb').to_s
 puts "Seeds created successfully!"
 puts "  - #{TasteParameter.count} taste parameters"
 puts "  - #{WineProfile.count} wine profiles"
@@ -47,7 +47,7 @@ puts "  - #{WineProfileTasteParameter.count} profile taste parameters"
 puts "  - #{WineTasteParameter.count} wine taste parameters"
 
 # bundle exec rails runner db/seeds/producers.rb
-# load Rails.root.join('db', 'seeds', 'producers.rb').to_s
+load Rails.root.join('db', 'seeds', 'producers.rb').to_s
 # puts "  - #{Producer.count} producers"
 
 #  bundle exec rails runner db/seeds/producers_ray_jordan.rb

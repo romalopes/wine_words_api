@@ -3,8 +3,8 @@
 For current domain relationships and workflows, see the
 [architecture index](docs/architecture/architecture.md).
 
-> Generated 2026-09-24 from working trees `wine_prediction` (frontend) and
-> `wine_prediction_api` (backend). Documents **implemented, verified**
+> Generated 2026-09-24 from working trees `wine_words` (frontend) and
+> `wine_words_api` (backend). Documents **implemented, verified**
 > functionality only. Planned items are explicitly marked.
 
 ## 1. What Wine Words is
@@ -26,10 +26,10 @@ Wine Words is a wine review/content platform with:
 
 Local folders (not repo names):
 
-| App      | Local folder                | GitHub canonical                                                                                            |
-| -------- | --------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| Frontend | `../wine_prediction`        | `https://github.com/romalopes/wine_words_front_end` (clone remote still uses pre-rename `wine_finder_quiz`) |
-| Backend  | `.` (`wine_prediction_api`) | `https://github.com/romalopes/wine_words_api` (clone remote still uses pre-rename `wine_prediction_api`)    |
+| App      | Local folder           | GitHub canonical                                                                                            |
+| -------- | ---------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Frontend | `../wine_words`        | `https://github.com/romalopes/wine_words_front_end` (clone remote still uses pre-rename `wine_finder_quiz`) |
+| Backend  | `.` (`wine_words_api`) | `https://github.com/romalopes/wine_words_api` (clone remote still uses pre-rename `wine_words_api`)         |
 
 Current frontend deployments: Vercel at https://wine-words.vercel.app and
 Cloudflare Workers at https://wine-words.romalopes.workers.dev/.
@@ -72,7 +72,7 @@ Notes:
 
 | Layer                      | Technology                                                                                       | Version/source                                                    |
 | -------------------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------- |
-| Frontend                   | React, Vite, react-router                                                                        | `^19.0.0`, `^6.4.3`, `^7.3.0` (`wine_prediction/package.json`)    |
+| Frontend                   | React, Vite, react-router                                                                        | `^19.0.0`, `^6.4.3`, `^7.3.0` (`wine_words/package.json`)         |
 | Frontend UI/tests          | react-bootstrap/Bootstrap 5, DOMPurify, Vitest 4 + Testing Library + jsdom, ESLint 9 flat config | `^2.10.9`/`^5.3.3`, `^3.4.14`, `^4.1.11`; `scripts/smoke-test.js` |
 | Backend language/framework | Ruby, Rails                                                                                      | `3.4.2` (`.ruby-version`), `~> 8.1.3` (`Gemfile`)                 |
 | Backend data               | PostgreSQL, Active Storage, Solid Cache/Queue/Cable                                              | `pg ~> 1.1`; storage/dev+prod Supabase S3; Solid adapters         |
@@ -90,8 +90,8 @@ or copy it into one/both repos.
 
 ```text
 wine_project/
-├── wine_prediction/        # React SPA (repo romalopes/wine_words_front_end)
-└── wine_prediction_api/    # Rails app (repo romalopes/wine_words_api)
+├── wine_words/        # React SPA (repo romalopes/wine_words_front_end)
+└── wine_words_api/    # Rails app (repo romalopes/wine_words_api)
     ├── WINE_WORDS_README.md   # this file (shared draft location)
     ├── README.md              # stub (untouched)
     ├── docs/                  # DATABASE_BACKUP_AND_RESTORE.md,
@@ -102,8 +102,8 @@ wine_project/
                                   # removed/rotated. Not quoted here.
 ```
 
-`wine_prediction/react-router/` is an unused scaffold, not part of the build.
-`wine_prediction/dist/` is local build output only.
+`wine_words/react-router/` is an unused scaffold, not part of the build.
+`wine_words/dist/` is local build output only.
 
 ## 6. Project structure
 
@@ -175,7 +175,7 @@ producer portal accounts.
 Prerequisites: Ruby `3.4.2`, Bundler, PostgreSQL 14+, Node 24/npm 11
 (unpinned), Git. Optional: local Ollama (`llama3.2:3b`), Stripe CLI.
 
-Frontend (`../wine_prediction`):
+Frontend (`../wine_words`):
 
 ```bash
 npm install
@@ -230,7 +230,7 @@ for Neon/R2/AWS storage and backup.
 ## 10. Authentication and authorization
 
 - Password auth: Devise + `devise-jwt`; token in the `Authorization` response
-  header, stored in `localStorage` (`wine_prediction_token`), sent as
+  header, stored in `localStorage` (`wine_words_token`), sent as
   `Bearer`; sign-out revokes via `jwt_denylists`.
 - Social auth: client obtains the provider credential, `POST
 /api/v1/auth/{google,apple,microsoft,facebook}`; server verifies against
@@ -347,7 +347,7 @@ access: `POST/GET /api/v1/test_access`. Web SSR: `/` dashboard, `quiz`,
 
 ## 15. Frontend to API integration
 
-`wine_prediction/src/services/api.js` wrapper: JSON + `Bearer` from
+`wine_words/src/services/api.js` wrapper: JSON + `Bearer` from
 `localStorage`, `X-Test-Access-Token` from `sessionStorage`, `credentials:
 'include'`, `Authorization`-response capture, normalized errors, 401
 `test_access_required` redirect to `/test-access`. `VITE_API_BASE_URL` is

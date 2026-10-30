@@ -9,7 +9,7 @@ seed scripts have not been executed as part of writing this guide.
 Complete the [local setup](LOCAL_AND_DEPLOYMENT_SETUP.md) first: install the Ruby
 bundle, configure `.env.development.local`, and create/migrate a dedicated
 PostgreSQL development database. Run the commands here from the API repository
-root (`wine_prediction_api/` in the shared workspace).
+root (`wine_words_api/` in the shared workspace).
 
 Check the actual connection without printing its password:
 

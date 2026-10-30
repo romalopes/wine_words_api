@@ -88,7 +88,7 @@ module WinePredictionApi
                                              read_timeout: 10)
       ActionMailer::Base.add_delivery_method(:dynamic, DynamicDelivery)
 
-      next if Rails.env.test?
+      next if Rails.env.test? || Rails.env.e2e?
 
       ActionMailer::Base.delivery_method = :dynamic
 

@@ -4,7 +4,7 @@ This guide explains how to reuse Wine Words' Action Mailer infrastructure with *
 
 ## 1. Reference and implementation baseline
 
-Reference repository: [Wine Words API on GitHub](https://github.com/romalopes/wine_words_api). The local checkout is named `wine_prediction_api`; its origin still uses the earlier repository name `romalopes/wine_prediction_api`.
+Reference repository: [Wine Words API on GitHub](https://github.com/romalopes/wine_words_api). The local checkout is named `wine_words_api`; its origin still uses the earlier repository name `romalopes/wine_words_api`.
 
 This guide was prepared from the local implementation on 6 October 2026, at checkout HEAD `87ce86b6ec79c14b327b6a10de6adcb8fea83c1f`. GitHub links below use `main` for navigation and may change; inspect the chosen source revision before copying. The source declares Rails `~> 8.1.3` and Ruby `3.4.2`. Keep the target application's supported Ruby/Rails versions and verify compatibility rather than replacing its dependency files.
 
@@ -34,43 +34,43 @@ Provider selection is independent of business features: password reset, email ve
 
 Paths are relative to the backend repository and to the target Rails root.
 
-| Source / GitHub reference | Target action | Responsibility |
-| --- | --- | --- |
-| [`lib/mail_transport.rb`](https://github.com/romalopes/wine_words_api/blob/main/lib/mail_transport.rb) | Copy | Transport override, automatic precedence, configuration warnings |
-| [`lib/http_mail_delivery.rb`](https://github.com/romalopes/wine_words_api/blob/main/lib/http_mail_delivery.rb) | Copy | Body/address extraction, attachment encoding, HTTPS JSON requests, API error handling |
-| [`lib/brevo_delivery.rb`](https://github.com/romalopes/wine_words_api/blob/main/lib/brevo_delivery.rb) | Copy | Brevo endpoint, authentication, payload, diagnostic hints |
-| [`lib/resend_delivery.rb`](https://github.com/romalopes/wine_words_api/blob/main/lib/resend_delivery.rb) | Copy | Resend endpoint, authentication, payload, diagnostic hints |
-| [`lib/mail_sender.rb`](https://github.com/romalopes/wine_words_api/blob/main/lib/mail_sender.rb) | Copy and change defaults | `MAIL_FROM` and `MAIL_REPLY_TO` lookup |
-| [`config/application.rb`](https://github.com/romalopes/wine_words_api/blob/main/config/application.rb) | Merge only mail requires and initializer | Register adapters and apply selection after Action Mailer configuration |
-| [`config/environments/development.rb`](https://github.com/romalopes/wine_words_api/blob/main/config/environments/development.rb) | Adapt mail settings | SMTP settings, delivery flags, URLs |
-| `config/environments/production.rb` | Use clean example below | Production delivery, SMTP and URL configuration |
-| [`config/environments/test.rb`](https://github.com/romalopes/wine_words_api/blob/main/config/environments/test.rb) | Preserve test delivery | In-memory mail and test jobs |
-| [`app/mailers/application_mailer.rb`](https://github.com/romalopes/wine_words_api/blob/main/app/mailers/application_mailer.rb) | Adapt | Shared sender and layout |
-| `app/views/layouts/mailer.html.erb`, `mailer.text.erb` | Copy or retain target layouts | Rendering wrappers |
-| [`spec/lib`](https://github.com/romalopes/wine_words_api/tree/main/spec/lib) | Copy the four mail specs listed below | Selector, sender, and adapter regression coverage |
+| Source / GitHub reference                                                                                                        | Target action                            | Responsibility                                                                        |
+| -------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------- |
+| [`lib/mail_transport.rb`](https://github.com/romalopes/wine_words_api/blob/main/lib/mail_transport.rb)                           | Copy                                     | Transport override, automatic precedence, configuration warnings                      |
+| [`lib/http_mail_delivery.rb`](https://github.com/romalopes/wine_words_api/blob/main/lib/http_mail_delivery.rb)                   | Copy                                     | Body/address extraction, attachment encoding, HTTPS JSON requests, API error handling |
+| [`lib/brevo_delivery.rb`](https://github.com/romalopes/wine_words_api/blob/main/lib/brevo_delivery.rb)                           | Copy                                     | Brevo endpoint, authentication, payload, diagnostic hints                             |
+| [`lib/resend_delivery.rb`](https://github.com/romalopes/wine_words_api/blob/main/lib/resend_delivery.rb)                         | Copy                                     | Resend endpoint, authentication, payload, diagnostic hints                            |
+| [`lib/mail_sender.rb`](https://github.com/romalopes/wine_words_api/blob/main/lib/mail_sender.rb)                                 | Copy and change defaults                 | `MAIL_FROM` and `MAIL_REPLY_TO` lookup                                                |
+| [`config/application.rb`](https://github.com/romalopes/wine_words_api/blob/main/config/application.rb)                           | Merge only mail requires and initializer | Register adapters and apply selection after Action Mailer configuration               |
+| [`config/environments/development.rb`](https://github.com/romalopes/wine_words_api/blob/main/config/environments/development.rb) | Adapt mail settings                      | SMTP settings, delivery flags, URLs                                                   |
+| `config/environments/production.rb`                                                                                              | Use clean example below                  | Production delivery, SMTP and URL configuration                                       |
+| [`config/environments/test.rb`](https://github.com/romalopes/wine_words_api/blob/main/config/environments/test.rb)               | Preserve test delivery                   | In-memory mail and test jobs                                                          |
+| [`app/mailers/application_mailer.rb`](https://github.com/romalopes/wine_words_api/blob/main/app/mailers/application_mailer.rb)   | Adapt                                    | Shared sender and layout                                                              |
+| `app/views/layouts/mailer.html.erb`, `mailer.text.erb`                                                                           | Copy or retain target layouts            | Rendering wrappers                                                                    |
+| [`spec/lib`](https://github.com/romalopes/wine_words_api/tree/main/spec/lib)                                                     | Copy the four mail specs listed below    | Selector, sender, and adapter regression coverage                                     |
 
 Optional integrations:
 
-| Source | When needed |
-| --- | --- |
-| `app/mailers/custom_devise_mailer.rb`, `config/initializers/devise.rb`, `app/views/devise/mailer/` | Target already uses Devise; merge sender settings and adapt templates/links |
-| `app/mailers/test_email_interceptor.rb`, `config/initializers/action_mailer.rb`, `app/models/app_setting.rb` | Target needs database-controlled redirection to a test inbox |
+| Source                                                                                                                                            | When needed                                                                                                 |
+| ------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `app/mailers/custom_devise_mailer.rb`, `config/initializers/devise.rb`, `app/views/devise/mailer/`                                                | Target already uses Devise; merge sender settings and adapt templates/links                                 |
+| `app/mailers/test_email_interceptor.rb`, `config/initializers/action_mailer.rb`, `app/models/app_setting.rb`                                      | Target needs database-controlled redirection to a test inbox                                                |
 | `app/mailers/email_verifications_mailer.rb`, its views, `app/services/email_verification_service.rb`, `config/initializers/email_verification.rb` | Target also needs verification business logic; additional user fields, routes, and controllers are required |
-| `app/mailers/wine_packages_mailer.rb` and its views | Reference for a domain-specific mailer, not a generic dependency |
+| `app/mailers/wine_packages_mailer.rb` and its views                                                                                               | Reference for a domain-specific mailer, not a generic dependency                                            |
 
 Do not copy real `.env` files, Wine Words sender addresses, the entire `Gemfile`, database schema, or unrelated domain models. The core transport files need no database tables. Rails provides Action Mailer, Mail, and Active Support; the HTTP helper uses Ruby standard libraries (`net/http`, `json`, `uri`, `base64`). No Brevo or Resend SDK is required. The adapters use Active Support helpers such as `blank?` and `present?`, so they are not standalone Ruby classes without those dependencies.
 
 ## 4. Transport selection: exact behavior
 
-| `MAIL_TRANSPORT` | Required configuration | Result |
-| --- | --- | --- |
-| `brevo` | Nonblank `BREVO_API_KEY` | `:brevo` |
-| `resend` | Nonblank `RESEND_API_KEY` | `:resend` |
-| `smtp` | Nonblank `SMTP_ADDRESS` | `:smtp` |
-| `file` | None | `:file`, including when provider keys exist |
-| `auto`, unset, or blank | None | First available: Brevo → Resend → SMTP → file |
-| Unknown value | None | Warn and use automatic selection |
-| Explicit provider missing its required value | None | Warn and use automatic selection |
+| `MAIL_TRANSPORT`                             | Required configuration    | Result                                        |
+| -------------------------------------------- | ------------------------- | --------------------------------------------- |
+| `brevo`                                      | Nonblank `BREVO_API_KEY`  | `:brevo`                                      |
+| `resend`                                     | Nonblank `RESEND_API_KEY` | `:resend`                                     |
+| `smtp`                                       | Nonblank `SMTP_ADDRESS`   | `:smtp`                                       |
+| `file`                                       | None                      | `:file`, including when provider keys exist   |
+| `auto`, unset, or blank                      | None                      | First available: Brevo → Resend → SMTP → file |
+| Unknown value                                | None                      | Warn and use automatic selection              |
+| Explicit provider missing its required value | None                      | Warn and use automatic selection              |
 
 The override is stripped and lowercased. Credential presence checks ignore whitespace-only values. The selector checks presence, not credential validity or network connectivity. SMTP selection does not validate username/password.
 
@@ -91,7 +91,7 @@ This is configuration fallback at boot, not runtime failover. File fallback does
 From the target project root, after assigning the actual source checkout path:
 
 ```sh
-wine_words_source=/absolute/path/to/wine_prediction_api
+wine_words_source=/absolute/path/to/wine_words_api
 mkdir -p lib
 cp "$wine_words_source/lib/mail_transport.rb" lib/
 cp "$wine_words_source/lib/mail_sender.rb" lib/
@@ -290,17 +290,17 @@ Messages are written under `Rails.root.join("tmp/mails")`. Nothing is sent to a 
 
 Both HTTP adapters map From, To, Cc, Bcc, Reply-To, subject, HTML/text parts, and base64-encoded attachments. The shared helper uses 10-second default open/read timeouts. Each adapter returns `true` for a successful HTTP response, raises its own `Error` for non-2xx responses, and wraps network exceptions with provider context.
 
-| Concern | Copied behavior |
-| --- | --- |
-| Provider message ID | Response is not persisted by these adapters |
-| Delivery confirmation | API acceptance does not prove inbox delivery |
-| Retries and backoff | No explicit adapter retry/backoff policy; define job-level behavior if needed |
-| Automatic failover | Not implemented after a delivery failure |
-| Idempotency | No explicit idempotency key; retrying an uncertain send can duplicate mail |
-| Webhooks, bounces, complaints | Not handled by the transport files |
-| Custom headers, provider tags, scheduling | Not generally mapped; extend payloads if required |
-| Inline/CID attachments and complex MIME | Not comprehensively mapped; verify before depending on them |
-| Timeout environment variables | None implemented; change registered adapter settings if necessary |
+| Concern                                   | Copied behavior                                                               |
+| ----------------------------------------- | ----------------------------------------------------------------------------- |
+| Provider message ID                       | Response is not persisted by these adapters                                   |
+| Delivery confirmation                     | API acceptance does not prove inbox delivery                                  |
+| Retries and backoff                       | No explicit adapter retry/backoff policy; define job-level behavior if needed |
+| Automatic failover                        | Not implemented after a delivery failure                                      |
+| Idempotency                               | No explicit idempotency key; retrying an uncertain send can duplicate mail    |
+| Webhooks, bounces, complaints             | Not handled by the transport files                                            |
+| Custom headers, provider tags, scheduling | Not generally mapped; extend payloads if required                             |
+| Inline/CID attachments and complex MIME   | Not comprehensively mapped; verify before depending on them                   |
+| Timeout environment variables             | None implemented; change registered adapter settings if necessary             |
 
 The HTTP error message includes the provider response body. Review log access and retention because provider errors may include recipient information. Do not log API keys or full authentication headers.
 
@@ -404,18 +404,18 @@ Then test one actual target mailer with `deliver_later`, confirm the worker proc
 
 ## 10. Troubleshooting
 
-| Symptom | Check |
-| --- | --- |
-| Messages appear only in `tmp/mails` | Effective transport, missing credentials, override warnings, and environment loading |
-| Brevo used when Resend was intended | Both keys are present; set `MAIL_TRANSPORT=resend` and restart |
-| SMTP connection refused or timed out | Host/port, network egress, provider TLS mode, and SMTP settings block |
-| HTTP 401/403 | API key, key permissions, sender/domain setup, and provider response details |
-| Brevo rejects caller IP | Provider authorized IP settings and actual outbound addresses |
-| All messages arrive at one inbox | Optional `TestEmailInterceptor` and `AppSetting` values |
-| `uninitialized constant MailTransport` or adapter class | Explicit requires and initializer placement |
-| `deliver_now` works, `deliver_later` does not | Queue adapter, worker, queue migrations, and worker environment |
-| Reply-To missing | Mailer must explicitly use `MailSender.reply_to` |
-| Wrong links or sender after migration | Target templates, `APP_HOST`, `FRONTEND_URL`, sender defaults, and process restart |
-| Production configuration fails Ruby parsing | Resolve source conflict markers; use the clean snippets instead of copying the file |
+| Symptom                                                 | Check                                                                                |
+| ------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Messages appear only in `tmp/mails`                     | Effective transport, missing credentials, override warnings, and environment loading |
+| Brevo used when Resend was intended                     | Both keys are present; set `MAIL_TRANSPORT=resend` and restart                       |
+| SMTP connection refused or timed out                    | Host/port, network egress, provider TLS mode, and SMTP settings block                |
+| HTTP 401/403                                            | API key, key permissions, sender/domain setup, and provider response details         |
+| Brevo rejects caller IP                                 | Provider authorized IP settings and actual outbound addresses                        |
+| All messages arrive at one inbox                        | Optional `TestEmailInterceptor` and `AppSetting` values                              |
+| `uninitialized constant MailTransport` or adapter class | Explicit requires and initializer placement                                          |
+| `deliver_now` works, `deliver_later` does not           | Queue adapter, worker, queue migrations, and worker environment                      |
+| Reply-To missing                                        | Mailer must explicitly use `MailSender.reply_to`                                     |
+| Wrong links or sender after migration                   | Target templates, `APP_HOST`, `FRONTEND_URL`, sender defaults, and process restart   |
+| Production configuration fails Ruby parsing             | Resolve source conflict markers; use the clean snippets instead of copying the file  |
 
 The migration changes delivery infrastructure only. Port each business email flow separately, using its own models, authorization, token handling, templates, and scheduling requirements.
