@@ -1,4 +1,5 @@
 class Api::V1::ReviewsController < ApplicationController
+  include Pundit::Authorization
   audit_actions :create, :update, :destroy
 
   # Lifetime of the cached #grouped payload (see the comment there): kept below
@@ -237,6 +238,7 @@ class Api::V1::ReviewsController < ApplicationController
     review = @vintage.reviews.new(review_params)
     @review = review
     review.user = current_user
+    authorize @review
 
     if review.title.blank?
       year = @vintage.no_vintage? ? "NV" : @vintage.year
@@ -252,9 +254,7 @@ class Api::V1::ReviewsController < ApplicationController
   end
 
   def update
-    unless @review.user_id == current_user.id || current_user.wine_manager?
-      return render json: { error: "Forbidden" }, status: :forbidden
-    end
+    authorize @review
 
     if @review.update(review_params)
       publish_review_events(@review)
@@ -270,10 +270,7 @@ class Api::V1::ReviewsController < ApplicationController
   end
 
   def destroy
-    unless @review.user_id == current_user.id || current_user.wine_manager?
-      return render json: { error: "Forbidden" }, status: :forbidden
-    end
-
+    authorize @review
     @review.destroy
     head :no_content
   end

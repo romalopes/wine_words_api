@@ -3,7 +3,7 @@
 # models rather than a table, so this computes the counts directly (mirroring
 # categories#counts) instead of iterating records.
 class Api::V1::SourcesController < ApplicationController
-  before_action :ensure_wine_manager!
+  include Pundit::Authorization
 
   # GET /api/v1/sources
   def index
@@ -27,14 +27,6 @@ class Api::V1::SourcesController < ApplicationController
   end
 
   private
-
-  # Matches the helper of the same name on the other management controllers
-  # (it is intentionally defined per-controller rather than shared).
-  def ensure_wine_manager!
-    return if current_user&.wine_manager?
-
-    render json: { error: "Forbidden" }, status: :forbidden
-  end
 
   def source_label(value)
     {

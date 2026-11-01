@@ -1,4 +1,5 @@
 class Api::V1::ArticlesController < ApplicationController
+  include Pundit::Authorization
   audit_actions :create, :update, :destroy
 
   def log_description
@@ -189,6 +190,7 @@ class Api::V1::ArticlesController < ApplicationController
   def create
     @article = Article.new(article_params)
     @article.user = current_user
+    authorize @article
     if @article.save
       image_errors = attach_images(@article)
       if image_errors.any?
@@ -203,9 +205,7 @@ class Api::V1::ArticlesController < ApplicationController
   end
 
   def update
-    unless @article.user_id == current_user.id || current_user.wine_manager?
-      return render json: { error: "Forbidden" }, status: :forbidden
-    end
+    authorize @article
 
     if @article.update(article_params)
       image_errors = attach_images(@article)
@@ -226,10 +226,7 @@ class Api::V1::ArticlesController < ApplicationController
   end
 
   def destroy
-    unless @article.user_id == current_user.id || current_user.wine_manager?
-      return render json: { error: "Forbidden" }, status: :forbidden
-    end
-
+    authorize @article
     @article.destroy
     head :no_content
   end

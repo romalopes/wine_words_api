@@ -1,4 +1,5 @@
 class Api::V1::ProducersController < ApplicationController
+  include Pundit::Authorization
   audit_actions :create, :update, :destroy
 
   def log_description
@@ -16,8 +17,6 @@ class Api::V1::ProducersController < ApplicationController
   before_action :set_producer, only: [:show, :update, :destroy, :attach_logo, :remove_logo, :link_wine]
   # Creating and deleting producers stays a catalogue-manager action: Admins,
   # Editors and Reviewers may create, but only Admins/Editors may delete.
-  before_action :ensure_wine_manager!, only: [:create]
-  before_action :ensure_catalogue_manager!, only: [:destroy]
   # Owners and managers may edit their own producer; contributors are read-only.
   before_action :ensure_producer_editor!, only: [:update, :attach_logo, :remove_logo]
 
@@ -66,6 +65,7 @@ class Api::V1::ProducersController < ApplicationController
 
   def create
     @producer = Producer.new(producer_params)
+    authorize @producer
     if @producer.save
       render json: producer_json(@producer), status: :created
     else
@@ -88,6 +88,7 @@ class Api::V1::ProducersController < ApplicationController
   end
 
   def destroy
+    authorize @producer
     @producer.destroy
     head :no_content
   end

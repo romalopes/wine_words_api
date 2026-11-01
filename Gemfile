@@ -78,3 +78,5 @@ group :development, :test do
   gem "rspec-rails", "~> 7.0"
 
 end
+
+gem "pundit", "~> 2.5"

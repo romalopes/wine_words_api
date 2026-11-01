@@ -1,4 +1,5 @@
 class Api::V1::WinesController < ApplicationController
+  include Pundit::Authorization
   audit_actions :create, :update, :destroy
 
   def log_description
@@ -13,7 +14,6 @@ class Api::V1::WinesController < ApplicationController
   # Wine management (create/update/destroy) is restricted to signed-in Admins,
   # Editors and Reviewers (= User#wine_manager?); reading stays public.
   before_action :authenticate_user!, only: [:create, :update, :destroy]
-  before_action :ensure_wine_manager!, only: [:create, :update, :destroy]
   skip_before_action :authenticate_user!, only: [:index, :show, :search, :advanced_search]
 
   def index
@@ -141,6 +141,7 @@ class Api::V1::WinesController < ApplicationController
 
   def create
     @wine = Wine.new(wine_params)
+    authorize @wine
     if @wine.save
       # Follow notifications (issue #192): a new wine notifies its producer's followers.
       Notifications::EventPublisher.publish!(
@@ -154,6 +155,7 @@ class Api::V1::WinesController < ApplicationController
 
   def update
     @wine = Wine.find_by!(slug: params[:id])
+    authorize @wine
     if @wine.update(wine_params)
       # Follow notifications (issue #192): meaningful public edits only.
       if Notifications::MeaningfulChangeDetector.meaningful_update?(@wine)
@@ -169,6 +171,7 @@ class Api::V1::WinesController < ApplicationController
 
   def destroy
     @wine = Wine.find_by!(slug: params[:id])
+    authorize @wine
     @wine.destroy
     head :no_content
   end

@@ -1,4 +1,5 @@
 class Api::V1::GrapesController < ApplicationController
+  include Pundit::Authorization
   audit_actions :create, :update, :destroy
 
   # Server-side ordering for count sorts: correlated subqueries over the
@@ -20,7 +21,6 @@ class Api::V1::GrapesController < ApplicationController
   end
 
   before_action :authenticate_user!, except: [:index, :show, :search]
-  before_action :ensure_wine_manager!, only: [:create, :update, :destroy, :link_wine]
   before_action :set_grape, only: [:show, :update, :destroy, :link_wine]
 
   def index
@@ -70,6 +70,7 @@ class Api::V1::GrapesController < ApplicationController
 
   def create
     grape = Grape.new(grape_params)
+    authorize grape
     if grape.save
       render json: grape, status: :created
     else
@@ -78,6 +79,7 @@ class Api::V1::GrapesController < ApplicationController
   end
 
   def update
+    authorize @grape
     if @grape.update(grape_params)
       render json: @grape
     else
@@ -86,6 +88,7 @@ class Api::V1::GrapesController < ApplicationController
   end
 
   def destroy
+    authorize @grape
     @grape.destroy
     head :no_content
   end

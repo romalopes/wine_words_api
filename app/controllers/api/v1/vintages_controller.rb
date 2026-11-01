@@ -1,4 +1,5 @@
 class Api::V1::VintagesController < ApplicationController
+  include Pundit::Authorization
   audit_actions :create
 
   def log_description
@@ -12,12 +13,12 @@ class Api::V1::VintagesController < ApplicationController
   before_action :authenticate_user!
   before_action :set_wine, only: [:create]
   # Only Admins, Editors and Reviewers may add vintages.
-  before_action :ensure_wine_manager!, only: [:create]
 
   # POST /api/v1/wines/:wine_id/vintages
   def create
     vintage = @wine.vintages.new(vintage_params)
     @vintage_record = vintage
+    authorize vintage
 
     if vintage.save
       # Follow notifications (issue #192): a new vintage notifies the wine's
