@@ -115,7 +115,8 @@ module Api
           subscription: user.subscription ? { id: user.subscription.id, name: user.subscription.name } : nil,
           billing_provider: current_sub&.billing_provider,
           can_manage_billing: Billing.configured?,
-          subscription_status: current_sub&.status
+          subscription_status: current_sub&.status,
+          can_access_wine_packages: user.can_access_wine_packages?
         }
       end
     end

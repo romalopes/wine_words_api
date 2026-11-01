@@ -44,9 +44,12 @@ module WinePackages
           !package.rejected?
       end
 
-      # The responsible reviewer; falls back to whoever recorded the package.
+      # Producer requests must never fall back to their producer-side creator:
+      # accepting editorially without assigning a reviewer would otherwise send
+      # internal deadline mail to the requester. Legacy/manual packages retain
+      # the recorder fallback.
       def recipient
-        package.reviewer || package.created_by
+        package.reviewer || package.created_by unless package.source == "producer_request"
       end
 
       # Only reminders that are still in the future (or today) are worth having.

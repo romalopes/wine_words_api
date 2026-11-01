@@ -125,6 +125,18 @@ RSpec.describe "Api::V1::ShipmentTrackings", type: :request do
   end
 
   describe "POST /api/v1/wine_packages/:wine_package_id/shipment_tracking/refresh" do
+    it "forbids producer managers from refreshing provider history" do
+      manager = User.create!(first_name: "Track Manager", email: "track-manager@example.com", password: "password123")
+      ProducerMembership.create!(user: manager, producer: producer, membership_type: "manager", created_by: admin)
+      package.update!(source: "producer_request", status: "accepted")
+      ShipmentTracking.create!(wine_package: package, carrier: "Aramex", number: "AR1")
+
+      sign_in manager
+      post "#{tracking_url}/refresh"
+
+      expect(response).to have_http_status(:forbidden)
+    end
+
     it "refuses to refresh when nothing is recorded" do
       post "#{tracking_url}/refresh"
       expect(response).to have_http_status(:unprocessable_entity)

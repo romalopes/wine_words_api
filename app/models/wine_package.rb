@@ -255,14 +255,18 @@ class WinePackage < ApplicationRecord
     transition_to!("cancelled", actor: actor)
   end
 
+  def restore_draft!(actor: nil)
+    transition_to!("draft", actor: actor)
+  end
+
   # ---- Producer-managed request flow (issue #199) ------------------------
 
-  # Submits a producer-managed draft as a review request. A draft must carry
-  # at least one wine line; the requester is recorded and the "requested"
-  # event lands in the timeline (recorded by the transition itself).
+  # Submits a producer-managed draft as a review request. Wine lines are
+  # optional: a producer may submit the package details first and the editorial
+  # team can process the request even when no catalogue wines were supplied.
+  # The requester is recorded and the "requested" event lands in the timeline.
   def submit_request!(at: Time.current, actor: nil)
     raise InvalidTransition, "only a draft package can be submitted" unless draft?
-    raise InvalidTransition, "add at least one wine to the package before submitting" if wine_package_items.empty?
 
     self.submitted_at ||= at
     self.requested_by ||= actor if actor

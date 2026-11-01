@@ -100,17 +100,44 @@ class WinePackageSerializer
   # (submit/withdraw) are included for the producer request wizard; the
   # controller still enforces who may actually perform them.
   def capabilities
+    policy = @viewer && WinePackagePolicy.new(@viewer, @package)
+    return state_capabilities unless policy
+
+    {
+      update: policy.update?,
+      manage_items: policy.manage_items?,
+      manage_attachments: policy.manage_attachments?,
+      manage_tracking: policy.manage_tracking?,
+      refresh_tracking: policy.refresh_tracking?,
+      create_review: policy.review?,
+      destroy: policy.destroy?,
+      mark_in_transit: policy.mark_in_transit?,
+      mark_arrived: policy.mark_arrived?,
+      start_reviewing: policy.start_reviewing?,
+      mark_completed: policy.mark_completed?,
+      reopen: policy.reopen?,
+      cancel: policy.cancel?,
+      accept: policy.accept?,
+      reject: policy.reject?,
+      submit: policy.submit? && @package.draft? && @package.can_transition_to?("requested"),
+      withdraw: policy.withdraw? && @package.requested? && @package.can_transition_to?("cancelled"),
+      restore_draft: policy.restore_draft?
+    }
+  end
+
+  def state_capabilities
     {
       mark_in_transit: @package.can_transition_to?("in_transit"),
       mark_arrived: @package.can_transition_to?("arrived"),
-      start_reviewing: @package.can_transition_to?("reviewing"),
+      start_reviewing: @package.can_transition_to?("reviewing") && !@package.completed?,
       mark_completed: @package.can_transition_to?("completed"),
       reopen: @package.can_transition_to?("reviewing") && @package.completed?,
       cancel: @package.can_transition_to?("cancelled"),
       accept: @package.can_transition_to?("accepted"),
       reject: @package.can_transition_to?("rejected"),
       submit: @package.draft? && @package.can_transition_to?("requested"),
-      withdraw: @package.requested? && @package.can_transition_to?("cancelled")
+      withdraw: @package.requested? && @package.can_transition_to?("cancelled"),
+      restore_draft: @package.cancelled? && @package.can_transition_to?("draft")
     }
   end
 

@@ -79,7 +79,8 @@ RSpec.describe "Api::V1::Passwords", type: :request do
         "email" => user.email,
         "first_name" => user.first_name,
         "roles" => user.role_names,
-        "can_manage_billing" => Billing.configured?
+        "can_manage_billing" => Billing.configured?,
+        "can_access_wine_packages" => false
       )
       expect(payload).to have_key("subscription")
       expect(payload).to have_key("billing_provider")

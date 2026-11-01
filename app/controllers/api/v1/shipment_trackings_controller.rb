@@ -23,7 +23,8 @@ class Api::V1::ShipmentTrackingsController < ApplicationController
   # Reading is as broad as viewing the package (producer members included);
   # writing/refreshing is gated on the manage_tracking? tier.
   before_action :ensure_package_visible!, only: [ :show ]
-  before_action :ensure_package_tracking_manageable!, only: %i[update refresh]
+  before_action :ensure_package_tracking_manageable!, only: [ :update ]
+  before_action :ensure_package_tracking_refreshable!, only: [ :refresh ]
 
   rescue_from ActiveRecord::RecordInvalid, with: :render_record_invalid
 

@@ -78,6 +78,12 @@ class WinePackagePolicy < ApplicationPolicy
     editorial_manage? || (producer_member? && PRODUCER_MANAGEABLE_STATUSES.include?(record.status))
   end
 
+  # Carrier/provider refreshes can append provider events and update the
+  # editorial shipment snapshot, so they remain editorial-only.
+  def refresh_tracking?
+    editorial_manage?
+  end
+
   # Submitting a producer draft for review.
   def submit?
     editorial_manage? || (producer_member? && record.draft?)
@@ -86,6 +92,44 @@ class WinePackagePolicy < ApplicationPolicy
   # Withdrawing a pending request: the producer side or the editorial side.
   def withdraw?
     editorial_manage? || (producer_member? && record.requested?)
+  end
+
+  # A withdrawn producer request may be corrected and resubmitted. Editorial
+  # users may also restore it when handling a producer support request.
+  def restore_draft?
+    record.cancelled? && (editorial_manage? || producer_member?)
+  end
+
+  def accept?
+    editorial_manage? && record.requested?
+  end
+
+  def reject?
+    editorial_manage? && record.requested?
+  end
+
+  def mark_in_transit?
+    editorial_manage? && record.can_transition_to?("in_transit")
+  end
+
+  def mark_arrived?
+    editorial_manage? && record.can_transition_to?("arrived")
+  end
+
+  def start_reviewing?
+    editorial_manage? && record.can_transition_to?("reviewing") && !record.completed?
+  end
+
+  def mark_completed?
+    editorial_manage? && record.can_transition_to?("completed")
+  end
+
+  def reopen?
+    editorial_manage? && record.completed? && record.can_transition_to?("reviewing")
+  end
+
+  def cancel?
+    editorial_manage? && record.can_transition_to?("cancelled")
   end
 
   # Starting/completing reviews (`create_review` on an item) stays editorial.

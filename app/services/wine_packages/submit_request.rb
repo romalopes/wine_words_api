@@ -3,8 +3,8 @@ module WinePackages
   #
   #   * only a draft can be submitted — the workflow guard rejects anything
   #     else with the same message in the console and in the API;
-  #   * the draft must carry at least one wine line (a request without wines
-  #     is meaningless and would auto-complete the package instantly);
+  #   * wine lines are optional, allowing package/shipping details to be
+  #     submitted before the producer has identified individual wines;
   #   * the requester is recorded on `requested_by`, and both `submitted_at`
   #     and `requested_at` are stamped;
   #   * the "requested" timeline event is recorded by the transition itself,
@@ -24,7 +24,6 @@ module WinePackages
 
     def call
       raise Error, "only a draft package can be submitted" unless package.draft?
-      raise Error, "add at least one wine to the package before submitting" if package.wine_package_items.empty?
 
       package.submit_request!(at: at, actor: user)
       Notifications::Lifecycle.deliver!(package, event: "requested", actor: user)

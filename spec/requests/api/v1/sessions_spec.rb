@@ -36,10 +36,25 @@ RSpec.describe "Api::V1::Sessions", type: :request do
       expect(payload["roles"]).to include("Guest")
       expect(payload.keys).to include(
         "id", "email", "display_name", "roles", "subscription",
-        "billing_provider", "can_manage_billing", "subscription_status"
+        "billing_provider", "can_manage_billing", "subscription_status",
+        "can_access_wine_packages"
       )
+      expect(payload["can_access_wine_packages"]).to be false
       # devise-jwt issued the usual token.
       expect(response.headers["Authorization"]).to be_present
+    end
+
+    it "grants package access to a Reader who manages a producer" do
+      user.roles << Role.find_or_create_by!(name: "Reader")
+      user.producer_memberships.create!(
+        producer: Producer.create!(name: "Session Managed Producer"),
+        membership_type: "manager"
+      )
+
+      post "/api/v1/auth/sign_in", params: sign_in_params("password123"), as: :json
+
+      expect(response).to have_http_status(:ok)
+      expect(JSON.parse(response.body).dig("user", "can_access_wine_packages")).to be true
     end
 
     it "rejects a wrong password" do

@@ -241,6 +241,19 @@ RSpec.describe WinePackage, type: :model do
     end
   end
 
+  describe "#submit_request!" do
+    it "submits a producer request without wine lines" do
+      package = create_package(source: "producer_request", reviewer: nil, status: "draft")
+
+      expect { package.submit_request!(actor: other_user) }
+        .to change(package, :status).from("draft").to("requested")
+
+      expect(package).to have_attributes(requested_by_id: other_user.id)
+      expect(package.submitted_at).to be_present
+      expect(package.wine_package_items).to be_empty
+    end
+  end
+
   describe "#transition_to!" do
     it "performs a legal transition" do
       package = create_package(status: "announced")

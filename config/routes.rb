@@ -119,6 +119,12 @@ Rails.application.routes.draw do
       get  "health/email/transport",    to: "health#email_transport",    as: :health_email_transport
       post "health/email/test",         to: "health#send_test_email",    as: :health_send_test_email
 
+      # --- Diagnostics: notification tool ------------------------------------- #
+      # Delivers a real in-app notification to the signed-in admin so the
+      # notification bell (GET /api/v1/notifications/unread_count) can be
+      # verified end to end. Admin-only like the e-mail test.
+      post "health/notifications/test", to: "health#send_test_notification", as: :health_send_test_notification
+
 
       # Private test-access gate (see TestAccessToken): password -> signed
       # token; token verification for the SPA on boot.
@@ -245,6 +251,7 @@ Rails.application.routes.draw do
         member do
           post :mark_arrived
           post :mark_in_transit
+          post :start_reviewing
           post :mark_completed
           post :reopen
           post :cancel
@@ -253,6 +260,7 @@ Rails.application.routes.draw do
           # Producer request lifecycle (issue #199).
           post :submit
           post :withdraw
+          post :restore_draft
           # Read-only projections for the producer dashboard.
           get :timeline
           get :progress

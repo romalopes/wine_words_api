@@ -63,6 +63,7 @@ class Api::V1::UsersController < ApplicationController
         billing_provider: current_sub&.billing_provider,
         can_manage_billing: Billing.configured?,
         subscription_status: current_sub&.status,
+        can_access_wine_packages: current_user.can_access_wine_packages?,
         # Scheduled/pending plan change so the UI can show the downgrade banner.
         subscription_change: pending_change && {
           id: pending_change.id,

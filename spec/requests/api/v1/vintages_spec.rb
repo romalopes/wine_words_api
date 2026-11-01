@@ -82,6 +82,16 @@ RSpec.describe "Vintage price (price_cents)", type: :request do
   end
 
   describe "authorization" do
+    let(:producer_owner) do
+      User.create!(first_name: "Vintage Owner", email: "vintage-owner@example.com",
+                   password: "password123")
+    end
+
+    before do
+      ProducerMembership.create!(user: producer_owner, producer: producer,
+                                 membership_type: "owner", created_by: manager)
+    end
+
     it "lets a Reviewer add a vintage" do
       sign_in reviewer
 
@@ -100,6 +110,42 @@ RSpec.describe "Vintage price (price_cents)", type: :request do
 
       expect(response).to have_http_status(:created)
       expect(wine.vintages.find_by(year: 2023).no_vintage).to be true
+    end
+
+    it "lets a producer owner add a vintage to their producer's wine" do
+      sign_in producer_owner
+
+      post "/api/v1/wines/#{wine.slug}/vintages",
+           params: { vintage: { year: 2024, no_vintage: false } }, as: :json
+
+      expect(response).to have_http_status(:created)
+      expect(wine.vintages.map(&:year)).to include(2024)
+    end
+
+    it "blocks a producer owner from adding a vintage to another producer's wine" do
+      other_producer = Producer.create!(name: "Other Vintage Producer")
+      other_wine = Wine.create!(name: "Other Wine", color: "Red", producer: other_producer)
+      sign_in producer_owner
+
+      post "/api/v1/wines/#{other_wine.slug}/vintages",
+           params: { vintage: { year: 2024, no_vintage: false } }, as: :json
+
+      expect(response).to have_http_status(:forbidden)
+      expect(other_wine.vintages).to be_empty
+    end
+
+    it "keeps producer contributors read-only" do
+      contributor = User.create!(first_name: "Vintage Contributor",
+                                 email: "vintage-contributor@example.com",
+                                 password: "password123")
+      ProducerMembership.create!(user: contributor, producer: producer,
+                                 membership_type: "contributor", created_by: manager)
+      sign_in contributor
+
+      post "/api/v1/wines/#{wine.slug}/vintages",
+           params: { vintage: { year: 2024 } }, as: :json
+
+      expect(response).to have_http_status(:forbidden)
     end
 
     it "still blocks users without a wine-manager role" do

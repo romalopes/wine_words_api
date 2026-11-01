@@ -64,6 +64,10 @@ module WinePackageAuthorizable
     authorize @package, :manage_tracking?
   end
 
+  def ensure_package_tracking_refreshable!
+    authorize @package, :refresh_tracking?
+  end
+
   # Review creation (`create_review` on an item) stays editorial.
   def ensure_package_editorial_manageable!
     authorize @package, :review?

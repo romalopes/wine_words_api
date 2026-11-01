@@ -66,6 +66,7 @@ RSpec.describe "Impersonation", type: :request do
         expect(payload).to have_key("subscription")
         expect(payload).to have_key("billing_provider")
         expect(payload).to have_key("subscription_status")
+        expect(payload).to have_key("can_access_wine_packages")
         expect(payload["can_manage_billing"]).to eq(Billing.configured?)
       end
     end
@@ -204,7 +205,9 @@ RSpec.describe "Impersonation", type: :request do
 
       get "/api/v1/me", headers: { "Authorization" => "Bearer #{token}" }
       expect(response).to have_http_status(:ok)
-      expect(JSON.parse(response.body)["user"]["id"]).to eq(normal_user.id)
+      payload = JSON.parse(response.body)["user"]
+      expect(payload["id"]).to eq(normal_user.id)
+      expect(payload["can_access_wine_packages"]).to be false
     end
   end
 

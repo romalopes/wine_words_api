@@ -134,7 +134,8 @@ class Api::V1::WinesController < ApplicationController
     ).call
     review_counts = Review.where(vintage_id: wine.vintages.map(&:id)).group(:vintage_id).count
     liked_ids = Likes.liked_ids_for([wine], current_user)
-    render json: WineSerializer.new(wine, request.base_url, liked_ids: liked_ids, review_counts: review_counts).as_json
+    render json: WineSerializer.new(wine, request.base_url, liked_ids: liked_ids,
+                                    review_counts: review_counts, user: current_user).as_json
   rescue ActiveRecord::RecordNotFound
     render json: { error: "Wine not found" }, status: :not_found
   end
@@ -147,7 +148,9 @@ class Api::V1::WinesController < ApplicationController
       Notifications::EventPublisher.publish!(
         event_type: "wine.created", subject: @wine, actor: current_user
       )
-      render json: WineSerializer.new(@wine, request.base_url, liked_ids: Likes.liked_ids_for([@wine], current_user)).as_json, status: :created
+      render json: WineSerializer.new(@wine, request.base_url,
+                                      liked_ids: Likes.liked_ids_for([@wine], current_user),
+                                      user: current_user).as_json, status: :created
     else
       render json: { errors: @wine.errors.full_messages }, status: :unprocessable_entity
     end
@@ -156,14 +159,16 @@ class Api::V1::WinesController < ApplicationController
   def update
     @wine = Wine.find_by!(slug: params[:id])
     authorize @wine
-    if @wine.update(wine_params)
+    if @wine.update(wine_update_params)
       # Follow notifications (issue #192): meaningful public edits only.
       if Notifications::MeaningfulChangeDetector.meaningful_update?(@wine)
         Notifications::EventPublisher.publish!(
           event_type: "wine.updated", subject: @wine, actor: current_user
         )
       end
-      render json: WineSerializer.new(@wine, request.base_url, liked_ids: Likes.liked_ids_for([@wine], current_user)).as_json
+      render json: WineSerializer.new(@wine, request.base_url,
+                                      liked_ids: Likes.liked_ids_for([@wine], current_user),
+                                      user: current_user).as_json
     else
       render json: { errors: @wine.errors.full_messages }, status: :unprocessable_entity
     end
@@ -330,6 +335,18 @@ class Api::V1::WinesController < ApplicationController
         end
       end
     end
+    permitted
+  end
+
+  # Producer owners/managers may maintain their own catalogue, but may not move
+  # a wine to another producer or bypass editorial-only destructive actions via
+  # nested vintage attributes.
+  def wine_update_params
+    permitted = wine_params
+    return permitted if current_user&.wine_manager?
+
+    permitted.delete(:producer_id)
+    Array(permitted[:vintages_attributes]).each { |attributes| attributes.delete(:_destroy) }
     permitted
   end
 end

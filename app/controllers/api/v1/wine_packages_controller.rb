@@ -24,15 +24,17 @@ class Api::V1::WinePackagesController < ApplicationController
   # Workflow actions guarded by ensure_package_manageable! — editorial-only,
   # a producer member can never drive the editorial workflow (§2).
   MANAGEABLE_ACTIONS = %i[
-    destroy mark_arrived mark_in_transit mark_completed reopen cancel
+    destroy mark_arrived mark_in_transit start_reviewing mark_completed reopen cancel
     accept reject
   ].freeze
 
   audit_actions :create, :update, :destroy,
                 submit: "wine_package.submitted",
                 withdraw: "wine_package.withdrawn",
+                restore_draft: "wine_package.restored_to_draft",
                 mark_arrived: "wine_package.arrived",
                 mark_in_transit: "wine_package.in_transit",
+                start_reviewing: "wine_package.reviewing",
                 mark_completed: "wine_package.completed",
                 reopen: "wine_package.reopened",
                 cancel: "wine_package.cancelled",
@@ -40,11 +42,12 @@ class Api::V1::WinePackagesController < ApplicationController
                 reject: "wine_package.rejected"
 
   before_action :set_package,
-                only: [ :show, :update, :submit, :withdraw, :timeline, :progress ] +
+                only: [ :show, :update, :submit, :withdraw, :restore_draft, :timeline, :progress ] +
                       MANAGEABLE_ACTIONS
   before_action :ensure_package_visible!, only: [ :show, :timeline, :progress ]
   before_action :ensure_package_editable!, only: %i[update submit]
   before_action :ensure_package_withdrawable!, only: [ :withdraw ]
+  before_action :ensure_package_restorable!, only: [ :restore_draft ]
   before_action :ensure_package_manageable!, only: MANAGEABLE_ACTIONS
 
   rescue_from WinePackage::InvalidTransition, with: :render_invalid_transition
@@ -175,6 +178,11 @@ class Api::V1::WinePackagesController < ApplicationController
     render json: WinePackageSerializer.new(@package.reload, request.base_url, viewer: current_user).as_json
   end
 
+  def restore_draft
+    @package.restore_draft!(actor: current_user)
+    render json: WinePackageSerializer.new(@package.reload, request.base_url, viewer: current_user).as_json
+  end
+
   # GET /api/v1/wine_packages/:id/timeline
   #
   # Merged, viewer-scoped activity timeline: application milestones (submitted,
@@ -228,6 +236,11 @@ class Api::V1::WinePackagesController < ApplicationController
     render json: WinePackageSerializer.new(@package, request.base_url, viewer: current_user).as_json
   end
 
+  def start_reviewing
+    @package.start_reviewing!(actor: current_user)
+    render json: WinePackageSerializer.new(@package.reload, request.base_url, viewer: current_user).as_json
+  end
+
   def mark_completed
     WinePackages::MarkCompleted.call(@package, at: parsed_time(:reviewed_at) || Time.current, actor: current_user)
     render json: WinePackageSerializer.new(@package.reload, request.base_url, viewer: current_user).as_json
@@ -244,6 +257,10 @@ class Api::V1::WinePackagesController < ApplicationController
   end
 
   def accept
+    reviewer = acceptance_reviewer
+    return unless reviewer
+
+    @package.reviewer = reviewer
     @package.accept!(by: current_user)
     WinePackages::Notifications::Lifecycle.deliver!(@package, event: "accepted", actor: current_user)
     render json: WinePackageSerializer.new(@package.reload, request.base_url, viewer: current_user).as_json
@@ -256,6 +273,23 @@ class Api::V1::WinePackagesController < ApplicationController
   end
 
   private
+
+  def ensure_package_restorable!
+    authorize @package, :restore_draft?
+  end
+
+  def acceptance_reviewer
+    reviewer_id = raw_param(:reviewer_id).presence
+    reviewer = reviewer_id.blank? ? current_user : User.find(reviewer_id)
+    return reviewer if reviewer.active? && reviewer.wine_manager?
+
+    render json: { error: "Reviewer must be an active Admin, Editor, or Reviewer" },
+           status: :unprocessable_entity
+    nil
+  rescue ActiveRecord::RecordNotFound
+    render json: { error: "Reviewer not found" }, status: :unprocessable_entity
+    nil
+  end
 
   def serialize_packages(packages)
     packages.map { |package| WinePackageListSerializer.new(package, request.base_url, viewer: current_user).as_json }

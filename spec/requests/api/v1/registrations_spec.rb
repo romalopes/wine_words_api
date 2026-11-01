@@ -79,6 +79,7 @@ RSpec.describe "Api::V1::Registrations", type: :request do
       expect(user_hash["can_manage_billing"]).to eq(Billing.configured?)
       expect(user_hash).to have_key("billing_provider")
       expect(user_hash).to have_key("subscription_status")
+      expect(user_hash["can_access_wine_packages"]).to be false
     end
   end
 

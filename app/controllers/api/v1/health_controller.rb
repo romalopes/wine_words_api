@@ -258,14 +258,60 @@ class Api::V1::HealthController < ApplicationController
     }, status: :internal_server_error
   end
 
-  # Mirrors the {.authenticate_admin!} gate for the send-test endpoint without
+  # POST /api/v1/health/notifications/test — admin-only diagnostics.
+  #
+  # Delivers a real in-app notification to the signed-in admin so the
+  # notification bell can be verified end to end: the bell's badge is driven by
+  # GET /api/v1/notifications/unread_count, which counts this user's DELIVERED
+  # UNREAD notifications. This endpoint therefore stamps `delivered_at` and
+  # clears `read_at` on the test row before reporting the same unread count the
+  # bell will show — so "reflects in the bell" is verified, not assumed.
+  #
+  # The delivery is idempotent per day: `Notification.notify!` dedups on
+  # (type, wine_package, scheduled_date), so repeated runs re-use today's test
+  # row (re-marking it unread) instead of flooding the notifications feed.
+  #
+  # Responses:
+  #   200 { status: "delivered", notification_id, notification_type, message,
+  #         unread_count, delivered_at } — notification created and counted.
+  #   500 { error, code, details } — persistence failed.
+  def send_test_notification
+    notification = Notification.notify!(
+      recipient: current_user,
+      type: "health_test",
+      message: "API Health test notification (#{Time.current.utc.iso8601})"
+    )
+    notification.mark_delivered!
+    # The bell counts unread deliveries, so make sure the test row is unread
+    # before reporting the count — a previously read test row would otherwise
+    # be invisible to the badge.
+    notification.update!(read_at: nil)
+
+    render json: {
+      status: "delivered",
+      notification_id: notification.id,
+      notification_type: notification.notification_type,
+      message: notification.message,
+      unread_count: current_user.notifications.delivered.unread.count,
+      delivered_at: notification.delivered_at&.utc.iso8601
+    }, status: :ok
+  rescue StandardError => error
+    render json: {
+      error: "Notification test failed",
+      code: "notification_test_failed",
+      details: error.message
+    }, status: :internal_server_error
+  end
+
+  # Mirrors the {.authenticate_admin!} gate for the send-test endpoints without
   # sharing the filter name, so the `only: %i[detailed search_index]` action
   # list is not replaced by the new declaration.
   def authenticate_admin_for_send_test!
     authenticate_admin!
   end
 
-  before_action :authenticate_admin_for_send_test!, only: :send_test_email
+  before_action :authenticate_admin_for_send_test!,
+                only: %i[send_test_email send_test_notification]
 
   private
 

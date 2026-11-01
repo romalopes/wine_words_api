@@ -170,6 +170,37 @@ RSpec.describe User, type: :model do
     end
   end
 
+  describe "#can_access_wine_packages?" do
+    let(:producer) { Producer.create!(name: "Package Access Producer #{SecureRandom.hex(3)}") }
+
+    it "is true for Admins, Editors and Reviewers" do
+      expect(admin.can_access_wine_packages?).to be true
+      expect(editor.can_access_wine_packages?).to be true
+      expect(reviewer.can_access_wine_packages?).to be true
+    end
+
+    it "is true for a Reader who owns or manages a producer" do
+      owner = with_role(create_user, "Reader")
+      manager = with_role(create_user, "Reader")
+      owner.producer_memberships.create!(producer:, membership_type: "owner")
+      manager.producer_memberships.create!(
+        producer: Producer.create!(name: "Managed Package Producer #{SecureRandom.hex(3)}"),
+        membership_type: "manager"
+      )
+
+      expect(owner.can_access_wine_packages?).to be true
+      expect(manager.can_access_wine_packages?).to be true
+    end
+
+    it "is false for contributors and unrelated Readers" do
+      contributor = with_role(create_user, "Reader")
+      contributor.producer_memberships.create!(producer:, membership_type: "contributor")
+
+      expect(contributor.can_access_wine_packages?).to be false
+      expect(reader.can_access_wine_packages?).to be false
+    end
+  end
+
   describe "#catalogue_manager?" do
     # The narrow tier that "sees everything" — deliberately NOT widened to
     # Reviewers, so a Reviewer still manages only their own wine packages (see

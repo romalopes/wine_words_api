@@ -38,6 +38,11 @@ class Notification < ApplicationRecord
     vintage_created
     vintage_updated
     producer_updated
+    # API-health diagnostics: a one-off test delivery so admins can verify the
+    # notification bell end to end from /admin/api-health. Never created by
+    # lifecycle code, and excluded from every reminder/e-mail job because the
+    # deadline job filters on its own DEADLINE_TYPE.
+    health_test
   ].freeze
 
   belongs_to :recipient, class_name: "User"

@@ -233,6 +233,13 @@ class User < ApplicationRecord
     catalogue_manager? || reviewer?
   end
 
+  # Wine-package navigation is available to catalogue staff/reviewers and to
+  # producer owners/managers. Contributors remain read-only and do not gain
+  # access to the producer package workflow.
+  def can_access_wine_packages?
+    wine_manager? || producer_memberships.managing.exists?
+  end
+
   # ---------------------------------------------------------------------------
   # Comments (see Comments::Permission). Every signed-in account may join the
   # discussion EXCEPT the base free "Guest" role: Reader, Reviewer, Editor and

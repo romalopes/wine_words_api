@@ -479,4 +479,107 @@ RSpec.describe "Api::V1::WinePackages", type: :request do
       expect(Notification.where(wine_package_id: package.id).count).to eq(0)
     end
   end
+
+  describe "producer request lifecycle" do
+    let(:manager) do
+      User.create!(first_name: "Producer Manager", email: "producer-manager@example.com", password: "password123")
+    end
+
+    before do
+      ProducerMembership.create!(user: manager, producer: producer, membership_type: "manager", created_by: admin)
+    end
+
+    it "creates a producer-safe draft, submits, withdraws and restores it" do
+      sign_in manager
+      post "/api/v1/wine_packages", as: :json, params: {
+        wine_package: {
+          producer_id: producer.id,
+          producer_reference: "REF-77",
+          producer_notes: "Please review",
+          shipping_notes: "Two parcels",
+          reviewer_id: admin.id,
+          notes: "must not be accepted"
+        }
+      }
+
+      expect(response).to have_http_status(:created)
+      package = WinePackage.find(JSON.parse(response.body)["id"])
+      expect(package).to have_attributes(status: "draft", source: "producer_request",
+                                         requested_by_id: manager.id, reviewer_id: nil,
+                                         producer_reference: "REF-77", notes: nil)
+      package.wine_package_items.create!(proposed_wine_name: "Estate Shiraz", quantity: 1,
+                                         review_requested: true)
+
+      post "/api/v1/wine_packages/#{package.id}/submit"
+      expect(response).to have_http_status(:ok)
+      expect(package.reload.status).to eq("requested")
+
+      post "/api/v1/wine_packages/#{package.id}/withdraw"
+      expect(response).to have_http_status(:ok)
+      expect(package.reload.status).to eq("cancelled")
+
+      post "/api/v1/wine_packages/#{package.id}/restore_draft"
+      expect(response).to have_http_status(:ok)
+      expect(package.reload.status).to eq("draft")
+    end
+
+    it "lets a producer manager submit a request without wine lines" do
+      package = WinePackage.create!(producer: producer, created_by: manager, requested_by: manager,
+                                    source: "producer_request", status: "draft")
+      sign_in manager
+
+      post "/api/v1/wine_packages/#{package.id}/submit"
+
+      expect(response).to have_http_status(:ok)
+      expect(package.reload).to have_attributes(status: "requested", requested_by_id: manager.id)
+      expect(package.wine_package_items).to be_empty
+      expect(package.submitted_at).to be_present
+    end
+
+    it "assigns a reviewer when an editor accepts the request" do
+      package = WinePackage.create!(producer: producer, created_by: manager, requested_by: manager,
+                                    source: "producer_request", status: "requested")
+      sign_in admin
+
+      post "/api/v1/wine_packages/#{package.id}/accept", as: :json,
+           params: { reviewer_id: reviewer_user.id }
+
+      expect(response).to have_http_status(:ok)
+      expect(package.reload).to have_attributes(status: "accepted", reviewer_id: reviewer_user.id,
+                                                 accepted_by_id: admin.id)
+    end
+
+    it "rejects assigning a producer-side user as reviewer" do
+      package = WinePackage.create!(producer: producer, created_by: manager, requested_by: manager,
+                                    source: "producer_request", status: "requested")
+      sign_in admin
+
+      post "/api/v1/wine_packages/#{package.id}/accept", as: :json,
+           params: { reviewer_id: manager.id }
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(package.reload).to have_attributes(status: "requested", reviewer_id: nil)
+    end
+
+    it "returns viewer-specific producer capabilities" do
+      package = WinePackage.create!(producer: producer, created_by: manager, requested_by: manager,
+                                    source: "producer_request", status: "draft")
+      sign_in manager
+
+      get "/api/v1/wine_packages/#{package.id}"
+
+      can = JSON.parse(response.body).fetch("can")
+      expect(can).to include("update" => true, "manage_items" => true, "submit" => true,
+                             "accept" => false, "mark_arrived" => false, "destroy" => false)
+    end
+
+    it "never schedules reviewer deadlines to the producer-side creator" do
+      package = WinePackage.create!(producer: producer, created_by: manager, requested_by: manager,
+                                    source: "producer_request", status: "accepted")
+
+      WinePackages::MarkArrived.call(package)
+
+      expect(Notification.where(wine_package: package, notification_type: "wine_package_deadline")).to be_empty
+    end
+  end
 end
