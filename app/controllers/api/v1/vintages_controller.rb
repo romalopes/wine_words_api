@@ -36,12 +36,6 @@ class Api::V1::VintagesController < ApplicationController
 
   private
 
-  def ensure_wine_manager!
-    return if current_user&.wine_manager?
-
-    render json: { error: "Forbidden" }, status: :forbidden
-  end
-
   def set_wine
     @wine = Wine.find_by!(slug: params[:wine_id])
   rescue ActiveRecord::RecordNotFound

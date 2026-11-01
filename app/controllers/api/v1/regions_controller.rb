@@ -12,8 +12,7 @@ class Api::V1::RegionsController < ApplicationController
   # Regions are read publicly (used by the wine-form picker).
   # Create/update/destroy is restricted to wine managers.
   before_action :authenticate_user!, except: [:index, :show, :tree]
-  before_action :ensure_wine_manager!, only: [:create, :update, :destroy, :link_wine]
-  before_action :set_region, only: [:show, :update, :destroy, :link_wine]
+  before_action :set_region, only: [:update, :destroy, :link_wine, :link_producer]
 
   def index
     regions = Region.includes(:country).order(:name)
@@ -36,6 +35,7 @@ class Api::V1::RegionsController < ApplicationController
                     .first
     
     if region
+      authorize region
       render json: region_with_path(region)
     else
       render json: { error: "Region not found" }, status: :not_found
@@ -65,6 +65,7 @@ class Api::V1::RegionsController < ApplicationController
   end
 
   def link_wine
+    authorize @region, :link_wine?
     wine = Wine.find_by(slug: params[:wine_id]) || Wine.find_by(id: params[:wine_id])
     unless wine
       return render json: { error: "Wine not found" }, status: :not_found
@@ -76,7 +77,7 @@ class Api::V1::RegionsController < ApplicationController
 
   # POST /api/v1/regions/:id/link_producer — add the producer to this region.
   def link_producer
-    return render json: { error: "Forbidden" }, status: :forbidden unless current_user&.wine_manager?
+    authorize @region, :link_producer?
 
     producer = Producer.find_by(slug: params[:producer_id]) || Producer.find_by(id: params[:producer_id])
     return render json: { error: "Producer not found" }, status: :not_found unless producer
@@ -87,6 +88,7 @@ class Api::V1::RegionsController < ApplicationController
 
   def create
     region = Region.new(region_params)
+    authorize region
     if region.save
       render json: region_json(region), status: :created
     else
@@ -95,6 +97,7 @@ class Api::V1::RegionsController < ApplicationController
   end
 
   def update
+    authorize @region
     if @region.update(region_params)
       render json: region_json(@region)
     else
@@ -103,6 +106,7 @@ class Api::V1::RegionsController < ApplicationController
   end
 
   def destroy
+    authorize @region
     @region.destroy
     head :no_content
   end
@@ -134,9 +138,4 @@ class Api::V1::RegionsController < ApplicationController
     params.require(:region).permit(:name, :country_id, :parent_id, :is_state, :is_appellation)
   end
 
-  def ensure_wine_manager!
-    return if current_user&.wine_manager?
-
-    render json: { error: "Forbidden" }, status: :forbidden
-  end
 end

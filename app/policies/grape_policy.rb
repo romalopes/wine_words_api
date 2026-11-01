@@ -12,7 +12,10 @@ class GrapePolicy < ApplicationPolicy
   end
 
   def create? = user&.wine_manager?
+  def index? = true
+  def show? = true
   def update? = user&.wine_manager?
   def link_wine? = user&.wine_manager?
+  alias_method :link_producer?, :link_wine?
   def destroy? = user&.catalogue_manager?
 end

@@ -12,11 +12,9 @@ class Api::V1::SubscriptionsController < ApplicationController
   # Public read of visible+active plans; Admins also see hidden/inactive ones.
   skip_before_action :authenticate_user!, only: :index
 
-  before_action :ensure_admin!, only: [:show, :create, :update, :destroy]
-
   # GET /api/v1/subscriptions
   def index
-    subs = current_user&.admin? ? Subscription.all : Subscription.active.visible
+    subs = policy_scope(Subscription)
     subs = subs.includes(subscription_subscription_features: :subscription_feature)
     render json: subs.by_position.map { |s| subscription_json(s) }
   end
@@ -24,6 +22,7 @@ class Api::V1::SubscriptionsController < ApplicationController
   # GET /api/v1/subscriptions/:id
   def show
     sub = Subscription.includes(subscription_subscription_features: :subscription_feature).find(params[:id])
+    authorize sub
     render json: subscription_json(sub)
   end
 
@@ -31,6 +30,7 @@ class Api::V1::SubscriptionsController < ApplicationController
   def create
     sub = Subscription.new(subscription_params)
     @subscription = sub
+    authorize sub
     if sub.save
       render json: subscription_json(sub), status: :created
     else
@@ -42,6 +42,7 @@ class Api::V1::SubscriptionsController < ApplicationController
   def update
     sub = Subscription.find(params[:id])
     @subscription = sub
+    authorize sub
     if sub.update(subscription_params)
       render json: subscription_json(sub)
     else
@@ -54,6 +55,7 @@ class Api::V1::SubscriptionsController < ApplicationController
   def destroy
     sub = Subscription.find(params[:id])
     @subscription = sub
+    authorize sub
     if sub.destroy
       head :no_content
     else
@@ -62,12 +64,6 @@ class Api::V1::SubscriptionsController < ApplicationController
   end
 
   private
-
-  def ensure_admin!
-    return if current_user&.admin?
-
-    render json: { error: "Forbidden" }, status: :forbidden
-  end
 
   def subscription_params
     params.require(:subscription).permit(

@@ -20,28 +20,21 @@ module WinePackageAuthorizable
   private
 
   def packages_scope
-    return WinePackage.all if current_user&.catalogue_manager?
-
-    WinePackage.where(reviewer_id: current_user&.id)
-               .or(WinePackage.where(created_by_id: current_user&.id))
+    policy_scope(WinePackage)
   end
 
   def package_manageable?(package)
     return false if package.nil?
 
-    current_user&.catalogue_manager? || package.reviewer_id == current_user&.id
+    WinePackagePolicy.new(current_user, package).update?
   end
 
   # Any wine manager — Admins, Editors and Reviewers — may record a package.
   def ensure_package_creator!
-    return if current_user&.wine_manager?
-
-    render json: { error: "Forbidden" }, status: :forbidden
+    authorize WinePackage, :create?
   end
 
   def ensure_package_manageable!
-    return if package_manageable?(@package)
-
-    render json: { error: "Forbidden" }, status: :forbidden
+    authorize @package, :manage?
   end
 end

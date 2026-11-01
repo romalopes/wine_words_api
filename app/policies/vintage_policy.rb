@@ -13,5 +13,6 @@ class VintagePolicy < ApplicationPolicy
 
   def create? = user&.wine_manager?
   def update? = user&.wine_manager?
+  def link_to_project? = user&.wine_manager?
   def destroy? = user&.catalogue_manager?
 end

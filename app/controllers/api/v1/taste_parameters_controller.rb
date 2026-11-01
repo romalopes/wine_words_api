@@ -14,6 +14,7 @@ class Api::V1::TasteParametersController < ApplicationController
 
   def create
     @taste_parameter = TasteParameter.new(taste_parameter_params)
+    authorize @taste_parameter
     if @taste_parameter.save
       render json: @taste_parameter, status: :created
     else
@@ -23,6 +24,7 @@ class Api::V1::TasteParametersController < ApplicationController
 
   def update
     @taste_parameter = TasteParameter.find_by!(slug: params[:id])
+    authorize @taste_parameter
     if @taste_parameter.update(taste_parameter_params)
       render json: @taste_parameter
     else
@@ -32,6 +34,7 @@ class Api::V1::TasteParametersController < ApplicationController
 
   def destroy
     @taste_parameter = TasteParameter.find_by!(slug: params[:id])
+    authorize @taste_parameter
     @taste_parameter.destroy
     head :no_content
   end

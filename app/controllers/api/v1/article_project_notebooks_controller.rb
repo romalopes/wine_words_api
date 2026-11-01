@@ -70,8 +70,8 @@ class Api::V1::ArticleProjectNotebooksController < ApplicationController
   end
 
   def ensure_article_project_manageable!
-    return if article_project_manageable?(@article_project)
-
+    authorize @article_project, :manage?
+  rescue Pundit::NotAuthorizedError
     render json: { error: "Article project not found" }, status: :not_found
   end
 

@@ -10,7 +10,6 @@ class Api::V1::CountriesController < ApplicationController
   end
 
   before_action :authenticate_user!, except: [:index, :show]
-  before_action :ensure_manager!, only: [:create, :update, :destroy]
   before_action :set_country, only: [:show, :update, :destroy]
 
   def index
@@ -36,23 +35,25 @@ class Api::V1::CountriesController < ApplicationController
   end
 
   def show
+    authorize @country
     render json: country_detail_json(@country)
   end
 
   # POST /api/v1/countries/:id/link_producer — assign the producer to this country.
   def link_producer
-    return render json: { error: "Forbidden" }, status: :forbidden unless current_user&.wine_manager?
+    country = Country.find_by(slug: params[:id]) || Country.find(params[:id])
+    authorize country, :link_producer?
 
     producer = Producer.find_by(slug: params[:producer_id]) || Producer.find_by(id: params[:producer_id])
     return render json: { error: "Producer not found" }, status: :not_found unless producer
 
-    country = Country.find(params[:id])
     producer.update!(country_id: country.id)
     render json: { id: country.id, name: country.name, linked: true }
   end
 
   def create
     country = Country.new(country_params)
+    authorize country
     if country.save
       render json: country, status: :created
     else
@@ -61,6 +62,7 @@ class Api::V1::CountriesController < ApplicationController
   end
 
   def update
+    authorize @country
     if @country.update(country_params)
       render json: @country
     else
@@ -69,6 +71,7 @@ class Api::V1::CountriesController < ApplicationController
   end
 
   def destroy
+    authorize @country
     @country.destroy
     head :no_content
   end
@@ -102,8 +105,4 @@ class Api::V1::CountriesController < ApplicationController
     params.require(:country).permit(:name, :code, :continent, :flag_emoji, :is_wine_country)
   end
 
-  def ensure_manager!
-    return if current_user&.wine_manager?
-    render json: { error: "Forbidden" }, status: :forbidden
-  end
 end

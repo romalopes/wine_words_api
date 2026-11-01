@@ -13,6 +13,7 @@ RSpec.describe "Api::V1::TasteParameters", type: :request do
   end
 
   before do
+    wine_manager.roles << Role.find_or_create_by!(name: "Reviewer")
     sign_in wine_manager
   end
 

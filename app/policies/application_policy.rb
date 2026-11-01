@@ -11,6 +11,7 @@ class ApplicationPolicy
   end
 
   # Default policy - denies everything unless explicitly allowed.
+  def index? = false
   def show? = false
   def create? = false
   def update? = false
@@ -27,10 +28,9 @@ class ApplicationPolicy
       @scope = scope
     end
 
-    # By default, the scope resolves to all records.
-    # Override in child policies to filter records based on user roles.
+    # Secure default: resources without an explicit scope expose no records.
     def resolve
-      scope.all
+      scope.none
     end
   end
 end

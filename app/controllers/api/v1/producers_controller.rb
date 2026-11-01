@@ -17,9 +17,6 @@ class Api::V1::ProducersController < ApplicationController
   before_action :set_producer, only: [:show, :update, :destroy, :attach_logo, :remove_logo, :link_wine]
   # Creating and deleting producers stays a catalogue-manager action: Admins,
   # Editors and Reviewers may create, but only Admins/Editors may delete.
-  # Owners and managers may edit their own producer; contributors are read-only.
-  before_action :ensure_producer_editor!, only: [:update, :attach_logo, :remove_logo]
-
   def index
     scope = Producer.eager_load(:country, :address)
                     .preload(logo_attachment: :blob,
@@ -50,7 +47,7 @@ class Api::V1::ProducersController < ApplicationController
 
   # POST /api/v1/producers/:id/link_wine — assign a wine to this producer.
   def link_wine
-    return render json: { error: "Forbidden" }, status: :forbidden unless current_user&.wine_manager?
+    authorize @producer, :link_wine?
 
     wine = Wine.find_by(slug: params[:wine_id]) || Wine.find_by(id: params[:wine_id])
     return render json: { error: "Wine not found" }, status: :not_found unless wine
@@ -74,6 +71,7 @@ class Api::V1::ProducersController < ApplicationController
   end
 
   def update
+    authorize @producer
     if @producer.update(producer_params)
       # Follow notifications (issue #192): meaningful public edits only.
       if Notifications::MeaningfulChangeDetector.meaningful_update?(@producer)
@@ -95,6 +93,7 @@ class Api::V1::ProducersController < ApplicationController
 
   # POST /api/v1/producers/:id/logo — dedicated single logo upload.
   def attach_logo
+    authorize @producer, :attach_logo?
     file = params[:logo]
     unless file.respond_to?(:tempfile) || file.respond_to?(:read)
       return render json: { errors: ["Logo file is missing"] }, status: :unprocessable_entity
@@ -114,33 +113,12 @@ class Api::V1::ProducersController < ApplicationController
 
   # DELETE /api/v1/producers/:id/logo
   def remove_logo
+    authorize @producer, :remove_logo?
     @producer.logo.purge if @producer.logo.attached?
     head :no_content
   end
 
   private
-
-  def ensure_wine_manager!
-    return if real_current_user&.wine_manager?
-
-    render_forbidden
-  end
-
-  def ensure_catalogue_manager!
-    return if real_current_user&.catalogue_manager?
-
-    render_forbidden
-  end
-
-  # Global Admins/Editors/Reviewers keep their existing producer-edit rights.
-  # Otherwise only an owner or manager membership grants access; contributors
-  # and unrelated users are read-only.
-  def ensure_producer_editor!
-    return if real_current_user&.wine_manager?
-    return if editable_membership_for(real_current_user, @producer)
-
-    render_forbidden
-  end
 
   def editable_membership_for(user, producer)
     return false unless user && producer
@@ -156,11 +134,7 @@ class Api::V1::ProducersController < ApplicationController
     user = real_current_user
     return false unless user
 
-    user.wine_manager? || editable_membership_for(user, producer)
-  end
-
-  def render_forbidden
-    render json: { error: "Forbidden" }, status: :forbidden
+    ProducerPolicy.new(user, producer).update?
   end
 
   def set_producer

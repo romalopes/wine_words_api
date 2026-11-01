@@ -10,7 +10,7 @@ module Api
       #   GET /api/v1/analytics/diagnostics/accepted
       #   GET /api/v1/analytics/diagnostics/exclusion_reasons
       class DiagnosticsController < ApplicationController
-        before_action :authenticate_admin!
+        before_action :authorize_diagnostics!
         before_action :require_diagnostics_enabled!
 
         # GET /api/v1/analytics/diagnostics/accepted
@@ -26,6 +26,10 @@ module Api
         end
 
         private
+
+        def authorize_diagnostics!
+          authorize_real_user(:administration, :diagnostics?, policy_class: AdministrationPolicy)
+        end
 
         def require_diagnostics_enabled!
           enabled = AppSetting.boolean("analytics_diagnostics_enabled")

@@ -111,7 +111,10 @@ class Producer < ApplicationRecord
   end
 
   def drop_regions_of_old_country
-    producer_regions.select(&:persisted?).each(&:mark_for_destruction)
+    # Clear both persisted join rows and an already-loaded association target.
+    # Marking only the join rows can let autosave reinsert the stale regions
+    # when a controller eager-loaded `regions` before changing the country.
+    regions.clear
   end
 
   def generate_slug

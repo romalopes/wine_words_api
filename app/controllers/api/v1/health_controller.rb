@@ -281,9 +281,7 @@ class Api::V1::HealthController < ApplicationController
     unless real_current_user
       return render json: { error: "Authentication required" }, status: :unauthorized
     end
-    return if real_current_user.admin?
-
-    render json: { error: "Forbidden" }, status: :forbidden
+    authorize_real_user(:administration, :diagnostics?, policy_class: AdministrationPolicy)
   end
 
   # A real round trip instead of `connection.active?`: in a freshly booted

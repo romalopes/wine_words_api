@@ -6,7 +6,7 @@ source "$SCRIPT_PATH"
 TEST_DIR=$(mktemp -d)
 trap 'rm -rf "$TEST_DIR"' EXIT
 API_DIR="$TEST_DIR"
-unset NEON_DATABASE_URL SUPABASE_DATABASE_URL LOCAL_DATABASE_URL
+unset BACKUP_NEON_DATABASE_URL BACKUP_SUPABASE_DATABASE_URL BACKUP_LOCAL_DATABASE_URL
 
 assert_equal() {
   [[ "$1" == "$2" ]] || { echo "FAIL: $3" >&2; exit 1; }
@@ -69,21 +69,21 @@ assert_equal() {
 )
 
 if (get_database_url local) > /dev/null 2>&1; then
-  echo 'FAIL: accepted missing LOCAL_DATABASE_URL'; exit 1
+  echo 'FAIL: accepted missing BACKUP_LOCAL_DATABASE_URL'; exit 1
 fi
-printf '%s\n' 'LOCAL_DATABASE_URL="postgresql:///custom_local"' > "$API_DIR/.env.development.local"
+printf '%s\n' 'BACKUP_LOCAL_DATABASE_URL="postgresql:///custom_local"' > "$API_DIR/.env.development"
 assert_equal "$(get_database_url local)" 'postgresql:///custom_local' local_file_url
-export LOCAL_DATABASE_URL=postgresql:///exported_local
-assert_equal "$(get_database_url local)" "$LOCAL_DATABASE_URL" local_environment_precedence
-unset LOCAL_DATABASE_URL
+export BACKUP_LOCAL_DATABASE_URL=postgresql:///exported_local
+assert_equal "$(get_database_url local)" "$BACKUP_LOCAL_DATABASE_URL" local_environment_precedence
+unset BACKUP_LOCAL_DATABASE_URL
 
-printf '%s\n' 'NEON_DATABASE_URL="postgresql://fake:fake@invalid/test_db?sslmode=require"' > "$API_DIR/.env.development.local"
+printf '%s\n' 'BACKUP_NEON_DATABASE_URL="postgresql://fake:fake@invalid/test_db?sslmode=require"' > "$API_DIR/.env.development"
 assert_equal "$(get_database_url neon)" 'postgresql://fake:fake@invalid/test_db?sslmode=require' quoted_url
-export NEON_DATABASE_URL=postgres://fake:fake@invalid/override
-assert_equal "$(get_database_url neon)" "$NEON_DATABASE_URL" environment_precedence
-validate_database_url "$NEON_DATABASE_URL"
-unset NEON_DATABASE_URL
-printf "%s\n" "SUPABASE_DATABASE_URL='postgresql://fake:fake@invalid/test_db'" >> "$API_DIR/.env.development.local"
+export BACKUP_NEON_DATABASE_URL=postgres://fake:fake@invalid/override
+assert_equal "$(get_database_url neon)" "$BACKUP_NEON_DATABASE_URL" environment_precedence
+validate_database_url "$BACKUP_NEON_DATABASE_URL"
+unset BACKUP_NEON_DATABASE_URL
+printf "%s\n" "BACKUP_SUPABASE_DATABASE_URL='postgresql://fake:fake@invalid/test_db'" >> "$API_DIR/.env.development"
 assert_equal "$(get_database_url supabase)" 'postgresql://fake:fake@invalid/test_db' single_quoted_url
 if (validate_database_url 'invalid://secret') > "$TEST_DIR/error" 2>&1; then exit 1; fi
 if grep -q secret "$TEST_DIR/error"; then exit 1; fi
@@ -155,31 +155,31 @@ if grep -q secret "$TEST_DIR/error"; then exit 1; fi
 )
 # R2 and encryption settings work from dotenv without exports.
 (
-  unset R2_BUCKET R2_ENDPOINT R2_ACCESS_KEY_ID R2_SECRET_ACCESS_KEY
+  unset BACKUP_R2_BUCKET BACKUP_R2_ENDPOINT BACKUP_R2_ACCESS_KEY_ID BACKUP_R2_SECRET_ACCESS_KEY
   unset BACKUP_ENCRYPTION_RECIPIENT BACKUP_ENCRYPTION_IDENTITY
   mkdir -p "$TEST_DIR/config-only"
   API_DIR="$TEST_DIR/config-only"
   recipient=$(age-keygen -y "$TEST_DIR/test-identity.txt")
-  cat > "$API_DIR/.env.development.local" <<ENV
-export R2_BUCKET="test-backups"
-  export R2_ENDPOINT = https://example.invalid
-export R2_ACCESS_KEY_ID='fake-access'
-export R2_SECRET_ACCESS_KEY="fake-secret"
+  cat > "$API_DIR/.env.development" <<ENV
+export BACKUP_R2_BUCKET="test-backups"
+  export BACKUP_R2_ENDPOINT = https://example.invalid
+export BACKUP_R2_ACCESS_KEY_ID='fake-access'
+export BACKUP_R2_SECRET_ACCESS_KEY="fake-secret"
 BACKUP_ENCRYPTION_RECIPIENT=$recipient
 BACKUP_ENCRYPTION_IDENTITY="$TEST_DIR/test-identity.txt"
 ENV
   aws() {
     assert_equal "$AWS_ACCESS_KEY_ID" fake-access r2_access_from_file
     assert_equal "$AWS_SECRET_ACCESS_KEY" fake-secret r2_secret_from_file
-    assert_equal "$3" 's3://test-backups/wine-words/postgresql/neon/' r2_bucket_from_file
+    assert_equal "$3" 's3://test-backups/database_backup/postgresql/neon/' r2_bucket_from_file
     assert_equal "$5" https://example.invalid r2_endpoint_from_file
   }
   list_r2_backups neon > /dev/null
   assert_equal "$(get_config_value BACKUP_ENCRYPTION_RECIPIENT)" "$recipient" recipient_from_file
   decrypt_backup "$TEST_DIR/age-input.age" > "$TEST_DIR/from-dotenv"
   cmp "$TEST_DIR/age-input" "$TEST_DIR/from-dotenv"
-  export R2_BUCKET=override
-  assert_equal "$(get_config_value R2_BUCKET)" override r2_export_precedence
+  export BACKUP_R2_BUCKET=override
+  assert_equal "$(get_config_value BACKUP_R2_BUCKET)" override r2_export_precedence
 )
 # Small databases are valid; compare against archive definitions, not five tables.
 (
@@ -243,11 +243,11 @@ ENV
   verify_backup_file() { test -s "$1"; }
   restore_database() { printf '%s|%s|%s' "$1" "$3" "$4" > "$TEST_DIR/copy-target"; }
   for spec in \
-    'restore_local_to_neondb local neon NEON_DATABASE_URL' \
+    'restore_local_to_neondb local neon BACKUP_NEON_DATABASE_URL' \
     'restore_local_to_supabase local supabase SUPA_DATABASE_URL' \
-    'restore_local_to_local local local LOCAL_SECOND_DATABASE_URL' \
-    'restore_neondb_to_neondb neon neon NEON_SECOND_DATABASE_URL' \
-    'restore_neondb_to_local neon local LOCAL_DATABASE_URL'; do
+    'restore_local_to_local local local BACKUP_LOCAL_SECOND_DATABASE_URL' \
+    'restore_neondb_to_neondb neon neon BACKUP_NEON_SECOND_DATABASE_URL' \
+    'restore_neondb_to_local neon local BACKUP_LOCAL_DATABASE_URL'; do
     read -r command source_provider target_provider variable <<< "$spec"
     main "$command" "$TEST_DIR/copy backups" > /dev/null
     assert_equal "$(cat "$TEST_DIR/copy-source")" "$source_provider" copy_source
@@ -264,12 +264,12 @@ ENV
 )
 # Download latest from object metadata and fetch the encrypted checksum sidecar.
 (
-  export R2_BUCKET=test R2_ENDPOINT=https://example.invalid
-  export R2_ACCESS_KEY_ID=fake R2_SECRET_ACCESS_KEY=fake
+  export BACKUP_R2_BUCKET=test BACKUP_R2_ENDPOINT=https://example.invalid
+  export BACKUP_R2_ACCESS_KEY_ID=fake BACKUP_R2_SECRET_ACCESS_KEY=fake
   aws() {
     if [ "$1" = s3api ]; then
       [[ "$*" == *'sort_by(@, &LastModified)[-1].Key'* ]] || exit 1
-      printf 'wine-words/postgresql/neon/latest.dump.age\n'
+      printf 'database_backup/postgresql/neon/latest.dump.age\n'
     else
       printf '%s\n' "$3" >> "$TEST_DIR/download-keys"
       printf fixture > "$4"
@@ -294,17 +294,17 @@ ENV
   fi
   grep -q 'No backups found' "$TEST_DIR/empty-error"
   aws() { return 1; }
-  if (download_from_r2 neon wine-words/postgresql/neon/missing.dump.age "$TEST_DIR/missing") > /dev/null 2>&1; then
+  if (download_from_r2 neon database_backup/postgresql/neon/missing.dump.age "$TEST_DIR/missing") > /dev/null 2>&1; then
     echo 'FAIL: accepted missing R2 object'; exit 1
   fi
 )
 # R2 shortcut: exact key takes precedence; omitted and empty keys use dotenv.
 (
-  unset R2_BACKUP_SPECIFIC
+  unset BACKUP_R2_BACKUP_SPECIFIC
   API_DIR="$TEST_DIR/r2-shortcut"
   mkdir -p "$API_DIR"
-  printf 'R2_BACKUP_SPECIFIC=latest\n' > "$API_DIR/.env.development.local"
-  export LOCAL_DATABASE_URL=postgresql:///local_test
+  printf 'BACKUP_R2_BACKUP_SPECIFIC=latest\n' > "$API_DIR/.env.development"
+  export BACKUP_LOCAL_DATABASE_URL=postgresql:///local_test
   export BACKUP_ENCRYPTION_IDENTITY="$TEST_DIR/test-identity.txt"
   check_dependencies() { :; }
   check_restore_server_version() { :; }
@@ -318,15 +318,15 @@ ENV
     test -s "$2"
     assert_equal "$3|$4" 'local|postgresql:///local_test' r2_target
   }
-  main restore_r2_to_local 'wine-words/postgresql/supabase/specific.dump.age' "$TEST_DIR/r2 downloads" > /dev/null
-  assert_equal "$(cat "$TEST_DIR/r2-selection")" 'supabase|wine-words/postgresql/supabase/specific.dump.age' explicit_r2_key
+  main restore_r2_to_local 'database_backup/postgresql/supabase/specific.dump.age' "$TEST_DIR/r2 downloads" > /dev/null
+  assert_equal "$(cat "$TEST_DIR/r2-selection")" 'supabase|database_backup/postgresql/supabase/specific.dump.age' explicit_r2_key
   main restore_r2_to_local '' "$TEST_DIR/r2 downloads" > /dev/null
   assert_equal "$(cat "$TEST_DIR/r2-selection")" 'neon|latest' empty_r2_key
   (cd "$TEST_DIR"; main restore_r2_to_local) > /dev/null
   assert_equal "$(cat "$TEST_DIR/r2-selection")" 'neon|latest' omitted_r2_key
-  export R2_BACKUP_SPECIFIC=wine-words/postgresql/neon/exported.dump.age
+  export BACKUP_R2_BACKUP_SPECIFIC=database_backup/postgresql/neon/exported.dump.age
   main restore_r2_to_local '' "$TEST_DIR/r2 downloads" > /dev/null
-  assert_equal "$(cat "$TEST_DIR/r2-selection")" "neon|$R2_BACKUP_SPECIFIC" exported_r2_key
+  assert_equal "$(cat "$TEST_DIR/r2-selection")" "neon|$BACKUP_R2_BACKUP_SPECIFIC" exported_r2_key
   verify_backup_file() { return 1; }
   restore_database() { touch "$TEST_DIR/unexpected-restore"; }
   if (main restore_r2_to_local latest "$TEST_DIR/r2 downloads") > /dev/null 2>&1; then

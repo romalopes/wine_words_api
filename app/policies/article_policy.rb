@@ -10,7 +10,6 @@
 class ArticlePolicy < ApplicationPolicy
   class Scope < Scope
     def resolve
-      scope = super
       if user&.wine_manager?
         scope.all
       elsif user
@@ -22,10 +21,13 @@ class ArticlePolicy < ApplicationPolicy
   end
 
   def show? = record.status == "published" || record.user == user || user&.wine_manager?
+  def index? = true
 
   def create? = user&.wine_manager?
 
   def update? = user&.wine_manager? || record.user == user
+
+  def link_to_project? = user&.catalogue_manager? || record.user == user
 
   def destroy? = user&.catalogue_manager?
 end

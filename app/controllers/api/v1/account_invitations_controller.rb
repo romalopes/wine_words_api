@@ -1,7 +1,6 @@
 class Api::V1::AccountInvitationsController < ApplicationController
-  before_action :require_catalogue_manager!
   before_action :load_user
-  before_action :require_manageable_target!
+  before_action :authorize_target!
   audit_actions create: "invitation_sent", resend: "invitation_resent", revoke: "invitation_revoked"
 
   def index
@@ -28,19 +27,12 @@ class Api::V1::AccountInvitationsController < ApplicationController
 
   private
 
-  def require_catalogue_manager!
-    head :forbidden unless real_current_user&.catalogue_manager?
-  end
-
   def load_user
     @user = User.find(params[:user_id])
   end
 
-  def require_manageable_target!
-    return if real_current_user.admin?
-    return unless @user.roles.where(name: %w[Admin Editor]).exists?
-
-    head :forbidden
+  def authorize_target!
+    authorize_real_user(@user, "#{action_name}?", policy_class: AccountInvitationPolicy)
   end
 
   def render_service_error(error)

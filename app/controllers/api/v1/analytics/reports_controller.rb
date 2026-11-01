@@ -85,9 +85,7 @@ module Api
 
         def require_reporting_access!
           @scope = ::Analytics::Scope.new(current_user)
-          return if @scope.reporting_access?
-
-          render json: { error: "Forbidden" }, status: :forbidden
+          authorize :analytics, :report?, policy_class: AnalyticsPolicy
         end
 
         def resolve_period

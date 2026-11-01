@@ -14,6 +14,19 @@ class ProducerPolicy < ApplicationPolicy
   end
 
   def create? = user&.wine_manager?
-  def update? = user&.catalogue_manager?
+  def index? = true
+  def show? = true
+  def update?
+    return false unless user
+    return true if user.wine_manager?
+
+    record.producer_memberships
+          .where(user_id: user.id, membership_type: ProducerMembership::EDITABLE_TYPES)
+          .exists?
+  end
+  def link_wine? = user&.wine_manager?
+  def link_to_project? = user&.wine_manager?
+  alias_method :attach_logo?, :update?
+  alias_method :remove_logo?, :update?
   def destroy? = user&.catalogue_manager?
 end

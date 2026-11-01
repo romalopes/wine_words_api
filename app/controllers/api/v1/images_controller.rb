@@ -8,7 +8,7 @@ class Api::V1::ImagesController < ApplicationController
 
   def create
     return render json: { error: "Not found" }, status: :not_found unless @record
-    return render json: { error: "Forbidden" }, status: :forbidden unless authorized_to_modify?(@record)
+    authorize @record, :update?
 
     files = Array(params[:images]).compact_blank
     return render json: { error: "No images provided" }, status: :unprocessable_entity if files.empty?
@@ -29,7 +29,7 @@ class Api::V1::ImagesController < ApplicationController
 
   def destroy
     return render json: { error: "Not found" }, status: :not_found unless @record
-    return render json: { error: "Forbidden" }, status: :forbidden unless authorized_to_modify?(@record)
+    authorize @record, :update?
 
     image = @record.images.find_by(id: params[:id])
     return render json: { error: "Not found" }, status: :not_found unless image
@@ -42,7 +42,7 @@ class Api::V1::ImagesController < ApplicationController
   # body: { image_ids: [id, id, ...] } or { images: [{ id }, { id }, ...] }
   def reorder
     return render json: { error: "Not found" }, status: :not_found unless @record
-    return render json: { error: "Forbidden" }, status: :forbidden unless authorized_to_modify?(@record)
+    authorize @record, :update?
 
     ordered = params[:image_ids].presence || params[:images].presence
     return render json: { error: "No image order provided" }, status: :unprocessable_entity if ordered.blank?
@@ -56,7 +56,7 @@ class Api::V1::ImagesController < ApplicationController
   # PATCH /api/v1/images/:id/primary?imageable_type&imageable_id
   def set_primary
     return render json: { error: "Not found" }, status: :not_found unless @record
-    return render json: { error: "Forbidden" }, status: :forbidden unless authorized_to_modify?(@record)
+    authorize @record, :update?
 
     image = @record.images.find_by(id: params[:id])
     return render json: { error: "Not found" }, status: :not_found unless image
@@ -83,23 +83,6 @@ class Api::V1::ImagesController < ApplicationController
     # Promote the next remaining image if the only primary was removed.
     next_up = @record&.images&.ordered&.first
     next_up&.update_columns(primary: true)
-  end
-
-  def authorized_to_modify?(record)
-    return false unless record
-
-    # WinePackage follows its own authorization rules (WinePackageAuthorizable):
-    # catalogue managers (Admin/Editor) manage every package; a Reviewer only
-    # the packages they are responsible for.
-    if record.is_a?(WinePackage)
-      return current_user&.catalogue_manager? || record.reviewer_id == current_user&.id
-    end
-
-    if record.respond_to?(:user_id)
-      current_user&.wine_manager? || record.user_id == current_user&.id
-    else
-      current_user&.wine_manager?
-    end
   end
 
   def find_record

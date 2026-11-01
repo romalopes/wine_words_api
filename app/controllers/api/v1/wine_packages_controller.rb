@@ -202,8 +202,8 @@ class Api::V1::WinePackagesController < ApplicationController
   # Same visibility as #index (content managers, the reviewer, the recorder).
   # A 404 rather than a 403 so the endpoint never reveals that a package exists.
   def ensure_package_visible!
-    return if package_manageable?(@package) || @package.created_by_id == current_user&.id
-
+    authorize @package, :show?
+  rescue Pundit::NotAuthorizedError
     render json: { error: "Wine package not found" }, status: :not_found
   end
 

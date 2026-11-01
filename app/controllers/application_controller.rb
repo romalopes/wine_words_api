@@ -1,4 +1,5 @@
 class ApplicationController < ActionController::Base
+  include Pundit::Authorization
   include Api::Paginatable
   include Api::RelatedFeed
   include Auditable
@@ -31,6 +32,8 @@ class ApplicationController < ActionController::Base
   include TestAccess
 
   before_action :set_sentry_context
+
+  rescue_from Pundit::NotAuthorizedError, with: :render_not_authorized
   def render_resource(resource)
     if resource.errors.empty?
       render json: resource
@@ -48,9 +51,8 @@ class ApplicationController < ActionController::Base
   # SettingsController) so the guard is explicit per controller.
   def authenticate_admin!
     return render json: { error: "Authentication required" }, status: :unauthorized unless current_user
-    return if real_current_user&.admin?
 
-    render json: { error: "Forbidden" }, status: :forbidden
+    authorize_real_user(:administration, :access?, policy_class: AdministrationPolicy)
   end
 
   # Soft-deleted accounts (issue #195): any authenticated request from a user
@@ -79,6 +81,26 @@ class ApplicationController < ActionController::Base
     }, status: :forbidden
   end
   private
+
+  # Authorization is always evaluated against the effective user. During
+  # impersonation this intentionally means the impersonated account receives
+  # only its own access; endpoints that must use the real actor pass
+  # `user: real_current_user` explicitly to `authorize`.
+  def pundit_user
+    current_user
+  end
+
+  def render_not_authorized
+    render json: { error: "Forbidden" }, status: :forbidden
+  end
+
+  # Administrative actions must never gain or lose authority because an admin
+  # is impersonating another account. Keep this explicit rather than changing
+  # pundit_user globally, because ordinary content actions intentionally use the
+  # effective user.
+  def authorize_real_user(record, query, policy_class: nil)
+    Pundit.authorize(real_current_user, record, query, policy_class: policy_class)
+  end
 
   def email_verification_error_message(user)
     if user.email_verification_expired?

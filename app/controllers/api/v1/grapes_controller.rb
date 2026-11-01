@@ -48,6 +48,7 @@ class Api::V1::GrapesController < ApplicationController
   end
 
   def link_wine
+    authorize @grape, :link_wine?
     wine = Wine.find_by(slug: params[:wine_id]) || Wine.find_by(id: params[:wine_id])
     unless wine
       return render json: { error: "Wine not found" }, status: :not_found
@@ -59,7 +60,7 @@ class Api::V1::GrapesController < ApplicationController
 
   # POST /api/v1/grapes/:id/link_producer — add the producer to this grape.
   def link_producer
-    return render json: { error: "Forbidden" }, status: :forbidden unless current_user&.wine_manager?
+    authorize @grape, :link_producer?
 
     producer = Producer.find_by(slug: params[:producer_id]) || Producer.find_by(id: params[:producer_id])
     return render json: { error: "Producer not found" }, status: :not_found unless producer
@@ -175,8 +176,4 @@ class Api::V1::GrapesController < ApplicationController
     data
   end
 
-  def ensure_wine_manager!
-    return if current_user&.wine_manager?
-    render json: { error: "Forbidden" }, status: :forbidden
-  end
 end

@@ -16,9 +16,7 @@ class Api::V1::ReviewsController < ApplicationController
      @review&.user].compact
   end
 
-  # Only Admins, Editors and Reviewers may create reviews.
   before_action :authenticate_user!, except: [:index, :show, :grouped, :related]
-  before_action :ensure_wine_manager!, only: [:create]
   # Resolve @vintage for nested routes. Required for #create; optional for
   # #index (top-level feed runs without vintage params).
   # NOTE: declared ONCE — duplicate before_action declarations of the same
@@ -38,7 +36,7 @@ class Api::V1::ReviewsController < ApplicationController
       else
         Review.all
       end
-    reviews = reviews.visible_to(current_user) unless current_user&.wine_manager?
+    reviews = policy_scope(reviews)
     # "My reviews" scope: narrow to the signed-in user's own reviews (any status,
     # including their drafts). `visible_to` already includes the user's own rows,
     # so this only tightens the set — it never widens what they can see.
@@ -198,6 +196,7 @@ class Api::V1::ReviewsController < ApplicationController
        !current_user&.wine_manager?
       return render json: { error: "Not found" }, status: :not_found
     end
+    authorize @review
     render json: ReviewSerializer.new(@review, request.base_url, liked_ids: Likes.liked_ids_for([@review], current_user)).as_json
   end
 
@@ -312,12 +311,6 @@ class Api::V1::ReviewsController < ApplicationController
   # listing unfiltered instead of returning an empty page.
   def ranked_search?(term)
     Review.searchable_term(term).present?
-  end
-
-  def ensure_wine_manager!
-    return if current_user&.wine_manager?
-
-    render json: { error: "Forbidden" }, status: :forbidden
   end
 
   # Follow notifications (issue #192): first publication and meaningful edits

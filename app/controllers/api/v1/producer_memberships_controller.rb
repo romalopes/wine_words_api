@@ -1,9 +1,8 @@
 class Api::V1::ProducerMembershipsController < ApplicationController
-  before_action :require_catalogue_manager!, except: :index_for_producer
-
   # GET /api/v1/users/:user_id/producer_memberships
   def index
     user = User.find(params[:user_id])
+    authorize_real_user(ProducerMembership, :index?)
     memberships = user.producer_memberships.includes(producer: :country).includes(:created_by)
     render json: memberships.map { |pm| membership_json(pm) }
   end
@@ -13,8 +12,7 @@ class Api::V1::ProducerMembershipsController < ApplicationController
   # endpoints: Reviewers may see who is linked (wine_manager?), but only
   # catalogue managers may create/unlink.
   def index_for_producer
-    require_wine_manager!
-    return if performed?
+    authorize_real_user(ProducerMembership, :index_for_producer?)
 
     producer = Producer.find(params[:id])
     memberships = producer.producer_memberships.includes(:user, :created_by).includes(producer: :country)
@@ -27,6 +25,7 @@ class Api::V1::ProducerMembershipsController < ApplicationController
   # that have not been updated yet, but `membership_type` is required.
   def create
     user = User.find(params[:user_id])
+    authorize_real_user(ProducerMembership, :create?)
 
     if membership_params[:producer_id].blank?
       return render json: { errors: ["Producer can't be blank"] }, status: :unprocessable_entity
@@ -60,6 +59,7 @@ class Api::V1::ProducerMembershipsController < ApplicationController
   def update
     user = User.find(params[:user_id])
     membership = user.producer_memberships.find(params[:id])
+    authorize_real_user(membership, :update?)
 
     if membership.update(membership_type: membership_params[:membership_type])
       render json: membership_json(membership)
@@ -72,6 +72,7 @@ class Api::V1::ProducerMembershipsController < ApplicationController
   def destroy
     user = User.find(params[:user_id])
     membership = user.producer_memberships.find(params[:id])
+    authorize_real_user(membership, :destroy?)
     membership.destroy!
     head :no_content
   end
@@ -81,14 +82,6 @@ class Api::V1::ProducerMembershipsController < ApplicationController
   def membership_params
     source = params[:producer_membership].present? ? params.require(:producer_membership) : params
     source.permit(:producer_id, :membership_type)
-  end
-
-  def require_catalogue_manager!
-    head :forbidden unless real_current_user&.catalogue_manager?
-  end
-
-  def require_wine_manager!
-    head :forbidden unless real_current_user&.wine_manager?
   end
 
   def membership_json(membership)

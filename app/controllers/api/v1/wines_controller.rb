@@ -292,12 +292,6 @@ class Api::V1::WinesController < ApplicationController
     Array(values).map { |v| Integer(v, exception: false) }.compact.uniq
   end
 
-  def ensure_wine_manager!
-    return if current_user&.wine_manager?
-
-    render json: { error: "Forbidden" }, status: :forbidden
-  end
-
     def wine_search_json(wine)
     {
       id: wine.id,

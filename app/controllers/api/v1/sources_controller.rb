@@ -7,9 +7,8 @@ class Api::V1::SourcesController < ApplicationController
 
   # GET /api/v1/sources
   def index
-    manager = current_user.wine_manager?
-    review_scope = manager ? Review.all : Review.published
-    article_scope = manager ? Article.all : Article.published
+    review_scope = policy_scope(Review)
+    article_scope = policy_scope(Article)
 
     review_counts = review_scope.group(:source).count
     article_counts = article_scope.group(:source).count

@@ -34,13 +34,6 @@ class Api::V1::LogsController < ApplicationController
 
   private
 
-  def authenticate_admin!
-    return render json: { error: "Authentication required" }, status: :unauthorized unless current_user
-    return if real_current_user&.admin?
-
-    render json: { error: "Forbidden" }, status: :forbidden
-  end
-
   # Applies the query-string filters to the audit-log scope.
   def audit_scope
     scope = Log.all

@@ -1,0 +1,18 @@
+# frozen_string_literal: true
+
+class CategoryPolicy < ApplicationPolicy
+  class Scope < ApplicationPolicy::Scope
+    def resolve = scope.all
+  end
+
+  def index? = true
+  def show? = true
+  def create? = user&.wine_manager?
+  def update? = user&.wine_manager?
+  def destroy? = user&.wine_manager?
+  def reorder? = user&.wine_manager?
+  def link_wine? = user&.wine_manager?
+  alias_method :link_producer?, :link_wine?
+  alias_method :link_review?, :link_wine?
+  alias_method :link_article?, :link_wine?
+end

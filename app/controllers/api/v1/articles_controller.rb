@@ -12,9 +12,6 @@ class Api::V1::ArticlesController < ApplicationController
 
   before_action :authenticate_user!, except: [:index, :show, :grouped, :related]
   before_action :set_article, only: [:show, :update, :destroy, :related]
-  # Only Admins, Editors and Reviewers may create articles.
-  before_action :ensure_wine_manager!, only: [:create]
-
   def index
     # `:categories` (through) and `:images` rather than the join rows alone:
     # the list serializer reads `article.categories`, and a through-association
@@ -24,7 +21,7 @@ class Api::V1::ArticlesController < ApplicationController
                       .preload(:categories, images: { file_attachment: :blob })
     # Content managers see everything (including drafts); everyone else sees
     # only what's visible to them (published + their own drafts).
-    articles = articles.visible_to(current_user) unless current_user&.wine_manager?
+    articles = policy_scope(articles)
     articles = articles.joins(:article_categories).where(article_categories: { category_id: params[:category_id] }).distinct if params[:category_id].present?
     articles = articles.left_outer_joins(:article_categories).where(article_categories: { id: nil }) if params[:uncategorised] == "true"
     articles = articles.where(source: params[:source]) if params[:source].present?
@@ -134,6 +131,7 @@ class Api::V1::ArticlesController < ApplicationController
        !current_user&.wine_manager?
       return render json: { error: "Not found" }, status: :not_found
     end
+    authorize @article
 
     ActiveRecord::Associations::Preloader.new(
       records: [@article],
@@ -268,12 +266,6 @@ class Api::V1::ArticlesController < ApplicationController
   # listing unfiltered instead of returning an empty page.
   def ranked_search?(term)
     Article.searchable_term(term).present?
-  end
-
-  def ensure_wine_manager!
-    return if current_user&.wine_manager?
-
-    render json: { error: "Forbidden" }, status: :forbidden
   end
 
   # Keep lookup lightweight; show loads its associations after authorization.

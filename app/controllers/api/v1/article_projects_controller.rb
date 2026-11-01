@@ -56,6 +56,7 @@ class Api::V1::ArticleProjectsController < ApplicationController
 
   # GET /api/v1/article_projects/:id
   def show
+    authorize @article_project
     render json: ArticleProjectSerializer.new(@article_project).as_json
   end
 
@@ -107,8 +108,8 @@ class Api::V1::ArticleProjectsController < ApplicationController
   end
 
   def ensure_article_project_manageable!
-    return if article_project_manageable?(@article_project)
-
+    authorize @article_project, :manage?
+  rescue Pundit::NotAuthorizedError
     render json: { error: "Article project not found" }, status: :not_found
   end
 
@@ -180,14 +181,14 @@ class Api::V1::ArticleProjectsController < ApplicationController
   end
 
   def validate_article_access!(article)
-    return if current_user.catalogue_manager? || article.user_id == current_user.id
-
+    authorize article, :link_to_project?
+  rescue Pundit::NotAuthorizedError
     raise ActiveRecord::RecordNotFound
   end
 
   def validate_review_access!(review)
-    return if current_user.catalogue_manager? || review.user_id == current_user.id
-
+    authorize review, :link_to_project?
+  rescue Pundit::NotAuthorizedError
     raise ActiveRecord::RecordNotFound
   end
 
@@ -195,11 +196,19 @@ class Api::V1::ArticleProjectsController < ApplicationController
   # and can select existing catalogue records, while foreign IDs remain blocked
   # by Rails' nested-association lookup scoped to this ArticleProject.
   def validate_producer_access!(producer)
-    raise ActiveRecord::RecordNotFound unless producer.present? && current_user.wine_manager?
+    raise ActiveRecord::RecordNotFound unless producer.present?
+
+    authorize producer, :link_to_project?
+  rescue Pundit::NotAuthorizedError
+    raise ActiveRecord::RecordNotFound
   end
 
   def validate_vintage_access!(vintage)
-    raise ActiveRecord::RecordNotFound unless vintage.present? && current_user.wine_manager?
+    raise ActiveRecord::RecordNotFound unless vintage.present?
+
+    authorize vintage, :link_to_project?
+  rescue Pundit::NotAuthorizedError
+    raise ActiveRecord::RecordNotFound
   end
 
   def render_record_invalid(error)

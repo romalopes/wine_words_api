@@ -15,6 +15,7 @@ class WinePolicy < ApplicationPolicy
   end
 
   def show? = true
+  def index? = true
 
   def create? = user&.wine_manager?
 

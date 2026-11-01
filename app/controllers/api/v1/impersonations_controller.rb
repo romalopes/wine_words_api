@@ -18,7 +18,7 @@ module Api
       # Starts impersonating the given user. Returns a new JWT with the
       # impersonated_user_id claim and the effective user representation.
       def create
-        return unless authorize_admin!
+        authorize_real_user(:administration, :impersonate?, policy_class: AdministrationPolicy)
         return unless (target_user = find_target_user)
         return unless ensure_not_admin_target!(target_user)
         return unless ensure_not_nested!
@@ -73,13 +73,6 @@ module Api
 
       # Guard methods render an error and return false on failure; they return
       # true when the caller may proceed.
-
-      def authorize_admin!
-        return true if real_current_user&.admin?
-
-        render json: { error: "Only admins can impersonate other users" }, status: :forbidden
-        false
-      end
 
       def find_target_user
         user = User.find_by(id: params[:user_id])

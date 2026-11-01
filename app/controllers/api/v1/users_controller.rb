@@ -20,7 +20,7 @@ class Api::V1::UsersController < ApplicationController
   # role; Editors are restricted to Reader/Reviewer. Producer memberships are
   # created in the same transaction and always attribute the authenticated actor.
   def create
-    return head(:forbidden) unless real_current_user&.catalogue_manager?
+    authorize_real_user(User, :create?)
 
     result = PrivilegedAccountCreation.call(actor: real_current_user, attributes: create_user_params.to_h)
     @target_user = result.user
@@ -33,11 +33,9 @@ class Api::V1::UsersController < ApplicationController
   end
 
   def invitation_email
-    return head(:forbidden) unless real_current_user&.catalogue_manager?
-
     @target_user = User.find(params[:id])
+    authorize_real_user(@target_user, :invitation_email?)
     return render json: { error: "Only unclaimed accounts can change invitation email" }, status: :unprocessable_entity unless @target_user.unclaimed?
-    return head(:forbidden) if !real_current_user.admin? && @target_user.roles.where(name: %w[Admin Editor]).exists?
 
     @target_user.update!(email: params.require(:user).permit(:email)[:email])
     render json: user_detail_json(@target_user.reload)
@@ -88,7 +86,7 @@ class Api::V1::UsersController < ApplicationController
   # a page param the legacy plain-array response (limit 20) is kept for
   # compatibility.
   def search
-    return head(:forbidden) unless real_current_user&.catalogue_manager?
+    authorize_real_user(User, :search?)
 
     query = params[:q].to_s.strip
     users = User.search_by_name_or_email(query)
@@ -99,25 +97,23 @@ class Api::V1::UsersController < ApplicationController
 
   # GET /api/v1/roles - the full role list (id + human name), for role pickers.
   def roles
-    return head(:forbidden) unless real_current_user&.catalogue_manager?
+    authorize_real_user(User, :roles?)
     render json: Role.order(:id).map { |r| { id: r.id, name: Role.names[r.name.to_s] || r.name.to_s } }
   end
 
   # GET /api/v1/users/:id - detailed user info including producer memberships
   def show
-    return head(:forbidden) unless real_current_user&.catalogue_manager?
-
     user = User.includes(:roles, :subscription, :producer_memberships, producers: :country).find(params[:id])
+    authorize_real_user(user, :show?)
     render json: user_detail_json(user)
   end
 
   # PATCH /api/v1/users/:id/roles   body: { role_ids: [1,3] }
   # Admin only.
   def assign_roles
-    return head(:forbidden) unless real_current_user&.admin?
-
     user = User.find(params[:id])
     @target_user = user
+    authorize_real_user(user, :assign_roles?)
     old_role_names = user.role_names
     role_ids = Array(params[:role_ids]).compact.map(&:to_i)
 
@@ -141,10 +137,9 @@ class Api::V1::UsersController < ApplicationController
   # (Guest <-> Reader) while preserving privileged roles and history.
   # Rejects downgrades (assigning a lower-priced plan) with a 422 error.
   def assign_subscription
-    return head(:forbidden) unless real_current_user&.admin?
-
     user = User.find(params[:id])
     @target_user = user
+    authorize_real_user(user, :assign_subscription?)
     subscription = Subscription.find(params[:subscription_id])
     @assigned_subscription = subscription
 
@@ -159,9 +154,8 @@ class Api::V1::UsersController < ApplicationController
   # out of this endpoint intentionally.
   # DELETE /api/v1/users/:id — soft delete (admin only)
   def soft_delete
-    return head(:forbidden) unless real_current_user&.admin?
-
     @target_user = User.find(params[:id])
+    authorize_real_user(@target_user, :soft_delete?)
 
     result = AccountDeletionService.soft_delete(@target_user, actor: real_current_user)
 
@@ -174,13 +168,11 @@ class Api::V1::UsersController < ApplicationController
 
   # DELETE /api/v1/users/:id/hard — hard delete (admin only, behind feature flag)
   def hard_delete
-    return head(:forbidden) unless real_current_user&.admin?
-
+    @target_user = User.find(params[:id])
+    authorize_real_user(@target_user, :hard_delete?)
     unless AppSetting.hard_delete_enabled?
       return render json: { error: "hard_delete_disabled" }, status: :forbidden
     end
-
-    @target_user = User.find(params[:id])
 
     result = AccountDeletionService.hard_delete(@target_user, actor: real_current_user)
 
@@ -199,9 +191,8 @@ class Api::V1::UsersController < ApplicationController
 
   # POST /api/v1/users/:id/reactivate — reactivate soft‑deleted user (admin only)
   def reactivate
-    return head(:forbidden) unless real_current_user&.admin?
-
     @target_user = User.find(params[:id])
+    authorize_real_user(@target_user, :reactivate?)
 
     result = AccountDeletionService.reactivate(@target_user, actor: real_current_user)
 
@@ -213,9 +204,8 @@ class Api::V1::UsersController < ApplicationController
   end
 
   def update_account
-    return head(:forbidden) unless real_current_user&.admin?
-
     @target_user = User.find(params[:id])
+    authorize_real_user(@target_user, :update_account?)
     account = Account.build_default(@target_user)
 
     Account.transaction do

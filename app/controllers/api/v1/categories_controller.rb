@@ -9,8 +9,7 @@ class Api::V1::CategoriesController < ApplicationController
     [@category].compact
   end
 
-    skip_before_action :authenticate_user!, only: [:index, :show, :counts]
-  before_action :ensure_wine_manager!, only: [:create, :update, :destroy, :reorder, :link_wine, :link_producer, :link_review, :link_article]
+  skip_before_action :authenticate_user!, only: [:index, :show, :counts]
 
   SORT_COLUMNS = {
     "wine" => :sort_order_wine,
@@ -74,6 +73,7 @@ class Api::V1::CategoriesController < ApplicationController
   # (used by the React category detail page).
   def show
     category = find_category
+    authorize category
 
     wines = category.category_wines.includes(
       wine_taste_parameters: :taste_parameter, vintages: [], producer: [],
@@ -119,48 +119,48 @@ class Api::V1::CategoriesController < ApplicationController
 
   # POST /api/v1/categories/:id/link_wine — add the wine to this category.
   def link_wine
-    return render json: { error: "Forbidden" }, status: :forbidden unless current_user&.wine_manager?
+    category = find_category
+    authorize category, :link_wine?
 
     wine = Wine.find_by(slug: params[:wine_id]) || Wine.find_by(id: params[:wine_id])
     return render json: { error: "Wine not found" }, status: :not_found unless wine
 
-    category = find_category
     wine.categories << category unless wine.categories.include?(category)
     render json: { id: category.id, name: category.name, linked: true }
   end
 
   # POST /api/v1/categories/:id/link_producer — add the producer to this category.
   def link_producer
-    return render json: { error: "Forbidden" }, status: :forbidden unless current_user&.wine_manager?
+    category = find_category
+    authorize category, :link_producer?
 
     producer = Producer.find_by(slug: params[:producer_id]) || Producer.find_by(id: params[:producer_id])
     return render json: { error: "Producer not found" }, status: :not_found unless producer
 
-    category = find_category
     producer.categories << category unless producer.categories.include?(category)
     render json: { id: category.id, name: category.name, linked: true }
   end
 
   # POST /api/v1/categories/:id/link_review — add the review to this category.
   def link_review
-    return render json: { error: "Forbidden" }, status: :forbidden unless current_user&.wine_manager?
+    category = find_category
+    authorize category, :link_review?
 
     review = Review.find_by(slug: params[:review_id]) || Review.find_by(id: params[:review_id])
     return render json: { error: "Review not found" }, status: :not_found unless review
 
-    category = find_category
     review.categories << category unless review.categories.include?(category)
     render json: { id: category.id, name: category.name, linked: true }
   end
 
   # POST /api/v1/categories/:id/link_article — add the article to this category.
   def link_article
-    return render json: { error: "Forbidden" }, status: :forbidden unless current_user&.wine_manager?
+    category = find_category
+    authorize category, :link_article?
 
     article = Article.find_by(slug: params[:article_id]) || Article.find_by(id: params[:article_id])
     return render json: { error: "Article not found" }, status: :not_found unless article
 
-    category = find_category
     article.categories << category unless article.categories.include?(category)
     render json: { id: category.id, name: category.name, linked: true }
   end
@@ -168,6 +168,7 @@ class Api::V1::CategoriesController < ApplicationController
   def create
     category = Category.new(category_params)
     @category = category
+    authorize category
     if category.save
       render json: category_payload(category), status: :created
     else
@@ -178,6 +179,7 @@ class Api::V1::CategoriesController < ApplicationController
   def update
     category = find_category
     @category = category
+    authorize category
     if category.update(category_params)
       render json: category_payload(category)
     else
@@ -190,6 +192,7 @@ class Api::V1::CategoriesController < ApplicationController
   def destroy
     category = find_category
     @category = category
+    authorize category
     category.destroy!
     render json: { ok: true }
   rescue ActiveRecord::RecordNotFound
@@ -200,6 +203,8 @@ class Api::V1::CategoriesController < ApplicationController
   #   { "type": "wine"|"review"|"article", "ordered_ids": [3, 1, 2, ...] }
   # Each move calls this endpoint; sort_order_<type> is rewritten from position.
   def reorder
+    authorize Category, :reorder?
+
     type = params[:type].to_s
     column = SORT_COLUMNS[type]
     return render json: { error: "Invalid type" }, status: :bad_request unless column
@@ -268,11 +273,6 @@ class Api::V1::CategoriesController < ApplicationController
   # Resolve the category by slug (preferred) or numeric id, for backwards compat.
   def find_category
     Category.find_by(slug: params[:id]) || Category.find(params[:id])
-  end
-
-  def ensure_wine_manager!
-    return if current_user&.wine_manager?
-    render json: { error: "Forbidden" }, status: :forbidden
   end
 
   def category_params
