@@ -9,23 +9,29 @@ module WinePackages
   # Raises WinePackage::InvalidTransition unless the package is "arrived" or
   # "reviewing".
   class MarkCompleted
-    def self.call(package, at: Time.current)
-      new(package, at: at).call
+    def self.call(package, at: Time.current, actor: nil)
+      new(package, at: at, actor: actor).call
     end
 
-    def initialize(package, at: Time.current)
+    def initialize(package, at: Time.current, actor: nil)
       @package = package
       @at = at
+      @actor = actor
     end
 
     def call
       package.auto_completed = false
-      package.mark_completed!(at: at)
+      package.mark_completed!(at: at, actor: actor)
+
+      # The producer side learns the review work is finished (issue #199).
+      # Delivered in-app; a failure never rolls the transition back.
+      Notifications::Lifecycle.deliver!(package, event: "completed", actor: actor)
+
       package
     end
 
     private
 
-    attr_reader :package, :at
+    attr_reader :package, :at, :actor
   end
 end

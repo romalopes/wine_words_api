@@ -69,6 +69,10 @@ module WinePackages
       package.auto_completed = true
       package.mark_completed!
       Notifications::Schedule.call(package)
+      # The producer side learns the review work finished automatically
+      # (issue #199). Delivered in-app; a failure never rolls the transition
+      # back.
+      Notifications::Lifecycle.deliver!(package, event: "completed")
     end
 
     def reopen!

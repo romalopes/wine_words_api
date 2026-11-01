@@ -55,6 +55,9 @@ class WinePackage < ApplicationRecord
   belongs_to :reviewer, class_name: "User", optional: true
   # Who recorded the package (audit; may differ from the reviewer).
   belongs_to :created_by, class_name: "User", optional: true
+  # The producer-side requester (issue #199): the owner/manager member who
+  # submitted the package on the producer's behalf.
+  belongs_to :requested_by, class_name: "User", optional: true
   belongs_to :accepted_by, class_name: "User", optional: true
   belongs_to :rejected_by, class_name: "User", optional: true
 
@@ -67,6 +70,10 @@ class WinePackage < ApplicationRecord
   has_many :shipment_tracking_events, dependent: :destroy
   has_one :shipment_tracking, dependent: :destroy
   has_many :notifications, dependent: :destroy
+  # Typed attachments (bottle photos, postal receipts, ...) and the
+  # application activity timeline (issue #199).
+  has_many :wine_package_attachments, dependent: :destroy
+  has_many :wine_package_events, dependent: :destroy
 
   accepts_nested_attributes_for :wine_package_items,
                                 allow_destroy: true,
@@ -111,6 +118,20 @@ class WinePackage < ApplicationRecord
       .distinct
   }
   scope :by_recency, -> { order(created_at: :desc) }
+  # Packages the user manages as an active owner/manager member of their
+  # producer (issue #199). A mere follower or contributor never matches.
+  scope :managed_by_producer_member, lambda { |user|
+    return none unless user
+
+    where(producer_id: ProducerMembership.managing_producer_ids_for(user))
+  }
+
+  # Package fields a producer member may edit on their own draft (issue #199 §6).
+  # `notes` remains editorial-only and `internal_notes` is never
+  # producer-writable or producer-readable.
+  PRODUCER_EDITABLE_FIELDS = %w[
+    producer_reference producer_notes shipping_notes expected_at
+  ].freeze
 
   # Convenience alias for the items collection.
   def items
@@ -134,7 +155,12 @@ class WinePackage < ApplicationRecord
   # Raises WinePackage::InvalidTransition for a move the workflow forbids.
   # Transitioning to the current status is an idempotent no-op: any pending
   # attribute changes (e.g. a just-set arrived_at) are still saved.
-  def transition_to!(new_status)
+  #
+  # The status change and its activity-timeline event (WinePackageEvent, issue
+  # #199) land in the same transaction so they can never drift apart. `actor:`
+  # is the signed-in user who caused the move; transitions without one (system,
+  # console, carrier callbacks) stay actor-nil.
+  def transition_to!(new_status, actor: nil)
     new_status = new_status.to_s
     unless self.class.statuses.key?(new_status)
       raise ArgumentError, "unknown status: #{new_status}"
@@ -149,14 +175,33 @@ class WinePackage < ApplicationRecord
       raise InvalidTransition, "cannot transition from #{status.inspect} to #{new_status.inspect}"
     end
 
-    update!(status: new_status)
+    transaction do
+      update!(status: new_status)
+      WinePackageEvent.record!(
+        wine_package: self,
+        event_type: new_status,
+        actor: actor || transition_actor_for(new_status),
+        occurred_at: Time.current
+      )
+    end
     true
   end
 
+  # Best-effort provenance for the timeline event: whoever the workflow
+  # already recorded for this step.
+  def transition_actor_for(new_status)
+    case new_status
+    when "accepted" then accepted_by
+    when "rejected" then rejected_by
+    when "requested" then requested_by || created_by
+    end
+  end
+
   # Producer asked Wine Words to review these wines.
-  def request!(at: Time.current)
+  def request!(at: Time.current, actor: nil)
     self.requested_at ||= at
-    transition_to!("requested")
+    self.requested_by ||= actor if actor
+    transition_to!("requested", actor: actor || requested_by)
   end
 
   def accept!(by:, at: Time.current)
@@ -165,49 +210,86 @@ class WinePackage < ApplicationRecord
     self.rejected_by = nil
     self.rejected_at = nil
     self.rejection_reason = nil
-    transition_to!("accepted")
+    transition_to!("accepted", actor: by)
   end
 
   def reject!(by:, reason: nil, at: Time.current)
     self.rejected_by = by
     self.rejected_at ||= at
     self.rejection_reason = reason if reason.present?
-    transition_to!("rejected")
+    transition_to!("rejected", actor: by)
   end
 
-  def mark_in_transit!(at: Time.current)
-    transition_to!("in_transit")
+  def mark_in_transit!(at: Time.current, actor: nil)
+    transition_to!("in_transit", actor: actor)
   end
 
   # Physical arrival. Starts the review clock: `arrived_at` defaults to now and
   # `review_deadline` defaults to one calendar month later. Both keep any
   # explicitly supplied value (||=), so a manually set deadline is preserved.
-  def mark_arrived!(at: Time.current)
+  def mark_arrived!(at: Time.current, actor: nil)
     self.arrived_at ||= at
     self.review_deadline ||= default_review_deadline
-    transition_to!("arrived")
+    transition_to!("arrived", actor: actor)
   end
 
-  def start_reviewing!
-    transition_to!("reviewing")
+  def start_reviewing!(actor: nil)
+    transition_to!("reviewing", actor: actor)
   end
 
   # Explicit completion — a reviewer may complete a package even when some
   # review_requested items have no published review yet.
-  def mark_completed!(at: Time.current)
+  def mark_completed!(at: Time.current, actor: nil)
     self.reviewed_at ||= at
-    transition_to!("completed")
+    transition_to!("completed", actor: actor)
   end
 
   # Undo an accidental completion. Reopening clears the automatic-completion
   # provenance: whatever happens next is a fresh workflow decision.
-  def reopen!
+  def reopen!(actor: nil)
     self.auto_completed = false
-    transition_to!("reviewing")
+    transition_to!("reviewing", actor: actor)
   end
 
-  def cancel!
-    transition_to!("cancelled")
+  def cancel!(actor: nil)
+    transition_to!("cancelled", actor: actor)
+  end
+
+  # ---- Producer-managed request flow (issue #199) ------------------------
+
+  # Submits a producer-managed draft as a review request. A draft must carry
+  # at least one wine line; the requester is recorded and the "requested"
+  # event lands in the timeline (recorded by the transition itself).
+  def submit_request!(at: Time.current, actor: nil)
+    raise InvalidTransition, "only a draft package can be submitted" unless draft?
+    raise InvalidTransition, "add at least one wine to the package before submitting" if wine_package_items.empty?
+
+    self.submitted_at ||= at
+    self.requested_by ||= actor if actor
+    request!(at: at, actor: actor || requested_by)
+    true
+  end
+
+  # Withdraws a pending (requested) producer request. Cancellation is the only
+  # legal move out of "requested" besides the editorial decisions, and a
+  # cancelled package may be reopened to draft later (existing workflow).
+  def withdraw!(by: nil, at: Time.current)
+    raise InvalidTransition, "only a pending request can be withdrawn" unless requested?
+
+    transaction do
+      WinePackageEvent.record!(
+        wine_package: self, event_type: "withdrawn", actor: by, occurred_at: at
+      )
+      cancel!(actor: by)
+    end
+    true
+  end
+
+  # Is this user an active owner/manager member of the package's producer?
+  def managed_by_producer_member?(user)
+    return false unless user
+
+    ProducerMembership.managing_producer_ids_for(user).include?(producer_id)
   end
 
   # ---- Review progress --------------------------------------------------

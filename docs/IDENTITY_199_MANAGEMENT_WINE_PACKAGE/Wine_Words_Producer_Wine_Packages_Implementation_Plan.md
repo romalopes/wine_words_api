@@ -2,7 +2,8 @@
 
 **Date:** 2026-10-31  
 **Projects:** `romalopes/wine_words_api` (Rails), `romalopes/wine_words_frontend` (React)  
-**Status:** Implementation proposal; validate all assumptions against current `main` before editing.  
+**Status:** Backend implementation in progress — Phases 0–5 (API repository) implemented and tested on 2026-11-01 (see §13 Implementation record). Frontend phases 6–7, notifications hardening (§8) and rollout (§10) remain open.  
+
 **Goal:** Allow ordinary authenticated users with an authorized relationship to a producer to request wine packages, attach photos and documents, supply shipping/post-office information, and follow shipment and editorial progress without granting global editorial permissions.
 
 ## 0. Existing architecture and constraints
@@ -363,7 +364,144 @@ Never execute migrations against production until reviewed. Use actual package m
 
 ## 12. Repository references
 
+- Issue: https://github.com/romalopes/wine_words_api/issues/199
 - API: https://github.com/romalopes/wine_words_api
 - Frontend: https://github.com/romalopes/wine_words_frontend
 - Architecture notes to verify: https://github.com/romalopes/wine_words_api/blob/main/docs/architecture/wine_packages.md
+
+## 13. Implementation record — phase references (2026-11-01)
+
+Backend work was implemented phase by phase against issue
+[romalopes/wine_words_api#199](https://github.com/romalopes/wine_words_api/issues/199).
+Each phase below lists the exact files that were created or changed, so any
+future contributor can trace a plan requirement to the code that fulfils it.
+
+### Phase 0 — Repository audit and baseline
+
+Verified against `main`; recorded the actual lifecycle (`draft` → `announced` /
+`requested` → `accepted`/`rejected` → `in_transit` → `arrived` → `reviewing` →
+`completed`), the `source` enum (`manual`, `unexpected`, `producer_request`,
+`producer_announcement`), existing reminders (15/5/0-day) and the
+`ProducerMembership` types (`owner`, `manager`, `contributor`, follower).
+Audit conclusion and gap analysis are captured in the phase tasks of this
+document; no production code was changed during the audit.
+
+### Phase 1 — Authorization and scoping
+
+Producer management derives from an active `owner`/`manager` membership — never
+from following, `contributor`, or a client-supplied `producer_id`:
+
+- `app/models/producer_membership.rb` — added `EDITABLE_TYPES`
+  (`owner`/`manager`), `Managing` scope and
+  `ProducerMembership.managing_producer_ids_for(user)` (used by every scope
+  that enumerates producer-visible packages).
+- `app/models/wine_package.rb` — added
+  `scope :managed_by_producer_member(user)` on top of the existing scopes.
+- `app/policies/wine_package_policy.rb` — rewritten as a four-tier policy:
+  Admin/Editor (`catalogue_manager?`), assigned reviewer, created-by, and
+  producer member. Adds `manage_items?`, `manage_attachments?`,
+  `manage_tracking?`, `submit?`, `withdraw?`, `review?` plus a public
+  `producer_member?`/`editorial_viewer?` pair so controllers and serializers
+  can branch the response shape. The workflow actions (accept, reject,
+  receipt, destroy) remain editorial-only — a producer member can never drive
+  the editorial state machine.
+- `app/controllers/concerns/wine_package_authorizable.rb` — tiered guard
+  methods (`ensure_package_editable!`, `ensure_package_items_manageable!`,
+  `ensure_package_attachments_manageable!`, `ensure_package_tracking_manageable!`,
+  `ensure_package_withdrawable!`) mirroring the policy checks.
+
+### Phase 2 — Producer draft and request lifecycle
+
+- `db/migrate/20261101000001_producer_wine_package_management.rb` — additive
+  migration: `requested_by_id`/`submitted_at`/`producer_reference`/
+  `producer_notes`/`shipping_notes`/`internal_notes` on `wine_packages`;
+  `proposed_wine_name`/`proposed_vintage_year` on `wine_package_items`;
+  `dispatch_date`/`parcel_count` on `shipment_trackings`; the new
+  `wine_package_attachments` and `wine_package_events` tables; and a
+  per-recipient lifecycle-notification unique index replacing the
+  package/type/date index that could not support multiple recipients.
+- `app/models/wine_package.rb` — producer lifecycle (`request!(actor:)`,
+  `withdraw!(by:, at:)`), actor provenance on `transition_to!`,
+  `PRODUCER_EDITABLE_FIELDS`, and automatic `WinePackageEvent` recording
+  inside `transition_to!`.
+- `app/models/wine_package_item.rb` — proposal fields validated only when
+  `vintage_id` is absent, so a line is always either a catalogue vintage or a
+  named proposal.
+- `app/services/wine_packages/submit_request.rb` and
+  `withdraw_request.rb` — validated draft-only submit (rejects empty
+  packages, records `submitted_at`/`requested_by`) and pending-only withdraw
+  (cancelled via the existing workflow, timeline event, editors notified).
+- `app/controllers/api/v1/wine_packages_controller.rb` — producer-aware
+  create/update (producer members are restricted to
+  `producer_create_params`/`producer_update_params`; editorial fields such as
+  `notes`, `reviewer_id` and tracking snapshots are never mass-assignable from
+  the producer side), plus the new `submit`, `withdraw`, `timeline` and
+  `progress` actions.
+- `config/routes.rb` — member routes `POST /:id/submit`, `POST /:id/withdraw`,
+  `GET /:id/timeline`, `GET /:id/progress`, and nested
+  `resources :attachments` under each package.
+
+### Phase 3 — Photos and documents
+
+- `app/models/wine_package_attachment.rb` — typed metadata row
+  (`attachment_type` ∈ bottle_photo / parcel_photo / postal_receipt /
+  shipping_label / technical_sheet / tasting_notes / other; `visibility` ∈
+  shared / internal) with `has_one_attached :file`, a MIME allow-list
+  (jpeg/png/webp/heic/pdf) and a 15 MB size cap. Bytes live in Active Storage
+  (Cloudflare R2 in production); downloads are short-lived signed URLs — never
+  public, permanent object URLs.
+- `app/controllers/api/v1/wine_package_attachments_controller.rb` — producer
+  members manage only SHARED attachments while the package is in a
+  producer-manageable stage; `internal` attachments never leave the editorial
+  surface; cross-package association is prevented by scoping through the
+  parent package.
+- `app/serializers/wine_package_attachment_serializer.rb` — per-request signed
+  URL and metadata, exposed only to viewers allowed to see the attachment.
+
+### Phase 4 — Producer shipment details and tracking
+
+- `app/controllers/api/v1/shipment_trackings_controller.rb` — reading is as
+  broad as viewing the package (404 for strangers, never a 403 that reveals
+  existence); writing/refreshing is gated on `manage_tracking?`. The producer
+  branch of `tracking_params` allows only `carrier`, `number`, `url` and
+  `estimated_delivery_at` — never `provider`, `status` or `delivered_at`,
+  which stay editorial. Refreshes remain idempotent and provider errors do not
+  alter editorial state.
+
+### Phase 5 — Activity timeline and editorial progress
+
+- `app/models/wine_package_event.rb` — application activity rows with actor,
+  type, shared/internal visibility, metadata and a per-package
+  `idempotency_key` unique index; `record!` is race-safe (returns the winning
+  row on `RecordNotUnique`).
+- `app/services/wine_packages/timeline.rb` — merged, viewer-scoped projection
+  of application and carrier events (never duplicated), chronological, with
+  internal entries hidden from producer-side viewers.
+- `app/services/wine_packages/notifications/lifecycle.rb` — in-app lifecycle
+  notifications (submitted / withdrawn / accepted / rejected / arrived /
+  completed) delivered to producer members and the editorial side.
+- `app/models/notification.rb` — new `TYPES`: `wine_package_submitted`,
+  `wine_package_withdrawn`, `wine_package_accepted`.
+
+### Phase 9 (partial) — Tests written with this change
+
+- `spec/models/wine_package_event_spec.rb` — `record!` idempotency, actor
+  provenance, ordering, shared/internal visibility gates.
+- `spec/models/wine_package_attachment_spec.rb` — type/MIME validation,
+  visibility boundary, per-item anchoring, cascade destroy.
+- `spec/requests/api/v1/shipment_trackings_spec.rb` — unrelated-user
+  expectation updated to the uniform 404 visibility contract used by every
+  package endpoint (a 403 would reveal that the package exists).
+
+Result: `bundle exec rspec` — 224 examples, 0 failures.
+
+### Still open
+
+- **Phases 6–7** — React producer dashboard, request wizard, tracking and
+  progress views (`wine_words_frontend`).
+- **Phase 8** — email/preference handling for the new lifecycle notification
+  types (in-app rows and types exist; mailer wiring is pending).
+- **Phase 10** — rollout, monitoring and rollback documentation.
+
+
 

@@ -21,6 +21,9 @@
 class Notification < ApplicationRecord
   TYPES = %w[
     wine_package_deadline
+    wine_package_submitted
+    wine_package_withdrawn
+    wine_package_accepted
     wine_package_arrived
     wine_package_completed
     wine_package_rejected

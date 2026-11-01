@@ -5,6 +5,15 @@
 # apply here, in the console and in the future producer portal. Workflow actions
 # are separate routes (never a free-form `status` write) so an illegal move is
 # rejected rather than silently stored.
+# Issue #199 producer management: an ordinary signed-in user who is an active
+# owner/manager member of a producer may
+#   * open a producer-managed draft (source producer_request) for THEIR producer
+#     and add wine lines — including wines not yet in the catalogue;
+#   * edit their draft fields, submit the request and withdraw it while it is
+#     still pending;
+#   * read the producer-safe package view, timeline and progress.
+# Editorial workflow actions (accept/reject/arrival/completion/destroy) stay
+# editorial-only, and producers never see editorial-only fields.
 class Api::V1::WinePackagesController < ApplicationController
   include WinePackageAuthorizable
 
@@ -12,12 +21,16 @@ class Api::V1::WinePackagesController < ApplicationController
   # through the workflow actions below.
   ENTRY_STATUSES = %w[draft announced requested arrived].freeze
 
+  # Workflow actions guarded by ensure_package_manageable! — editorial-only,
+  # a producer member can never drive the editorial workflow (§2).
   MANAGEABLE_ACTIONS = %i[
-    update destroy mark_arrived mark_in_transit mark_completed reopen cancel
+    destroy mark_arrived mark_in_transit mark_completed reopen cancel
     accept reject
   ].freeze
 
   audit_actions :create, :update, :destroy,
+                submit: "wine_package.submitted",
+                withdraw: "wine_package.withdrawn",
                 mark_arrived: "wine_package.arrived",
                 mark_in_transit: "wine_package.in_transit",
                 mark_completed: "wine_package.completed",
@@ -26,9 +39,12 @@ class Api::V1::WinePackagesController < ApplicationController
                 accept: "wine_package.accepted",
                 reject: "wine_package.rejected"
 
-  before_action :ensure_package_creator!, only: [ :create ]
-  before_action :set_package, only: [ :show ] + MANAGEABLE_ACTIONS
-  before_action :ensure_package_visible!, only: [ :show ]
+  before_action :set_package,
+                only: [ :show, :update, :submit, :withdraw, :timeline, :progress ] +
+                      MANAGEABLE_ACTIONS
+  before_action :ensure_package_visible!, only: [ :show, :timeline, :progress ]
+  before_action :ensure_package_editable!, only: %i[update submit]
+  before_action :ensure_package_withdrawable!, only: [ :withdraw ]
   before_action :ensure_package_manageable!, only: MANAGEABLE_ACTIONS
 
   rescue_from WinePackage::InvalidTransition, with: :render_invalid_transition
@@ -73,7 +89,7 @@ class Api::V1::WinePackagesController < ApplicationController
 
   # GET /api/v1/wine_packages/:id
   def show
-    render json: WinePackageSerializer.new(@package, request.base_url).as_json
+    render json: WinePackageSerializer.new(@package, request.base_url, viewer: current_user).as_json
   end
 
   # POST /api/v1/wine_packages
@@ -82,40 +98,112 @@ class Api::V1::WinePackagesController < ApplicationController
   # expected package), "requested" (a producer asked for a review) or "arrived"
   # (a package received today — the review clock starts and the 15/5/0-day
   # reminders are scheduled).
+  #
+  # A producer member (issue #199) always creates a plain draft with source
+  # producer_request and no reviewer assigned: the request is submitted
+  # explicitly via POST /:id/submit and the editorial team picks the reviewer
+  # when the request is accepted. Wine lines (catalogue vintages or proposed
+  # wines) may be supplied inline through wine_package_items_attributes.
   def create
-    unless ENTRY_STATUSES.include?(entry_status)
+    producer_view = producer_creator?
+
+    unless producer_view || ENTRY_STATUSES.include?(entry_status)
       return render json: {
         errors: [ "status must be one of: #{ENTRY_STATUSES.join(', ')}" ]
       }, status: :unprocessable_entity
     end
 
-    package = WinePackage.new(package_params)
+    package = WinePackage.new(producer_view ? producer_create_params : package_params)
     # New packages always start at draft and are moved by the workflow, so an
     # arbitrary status can never be written straight into the column.
     package.status = "draft"
     package.created_by = current_user
-    package.reviewer ||= current_user
+    if producer_view
+      package.source = "producer_request"
+      package.requested_by = current_user
+      # A producer request starts unassigned — editorial picks the reviewer.
+    else
+      package.reviewer ||= current_user
+    end
     @package = package
 
+    authorize package, :create?
     package.save!
-    apply_entry_status!(package)
+    apply_entry_status!(package) unless producer_view
 
-    render json: WinePackageSerializer.new(package.reload, request.base_url).as_json,
+    render json: WinePackageSerializer.new(package.reload, request.base_url, viewer: current_user).as_json,
            status: :created
   end
 
   # PATCH /api/v1/wine_packages/:id
   #
-  # Status and source are workflow-owned and therefore not assignable here (see
-  # update_params).
+  # Status and source are workflow-owned and therefore not assignable here.
+  # A producer member may only edit their own draft's producer-editable fields;
+  # editors/admins/reviewers keep the existing full field set.
   def update
-    @package.update!(update_params)
-    render json: WinePackageSerializer.new(@package, request.base_url).as_json
+    @package.update!(package_producer_member? ? producer_update_params : update_params)
+    render json: WinePackageSerializer.new(@package, request.base_url, viewer: current_user).as_json
   end
 
   def destroy
     @package.destroy
     head :no_content
+  end
+
+  # --- Producer request wizard (issue #199) --------------------------------
+
+  # POST /api/v1/wine_packages/:id/submit
+  #
+  # Submits a producer-managed draft as a review request (draft -> requested).
+  # Editors are notified; the package's activity timeline records the step.
+  def submit
+    WinePackages::SubmitRequest.call(
+      @package,
+      user: current_user,
+      at: parsed_time(:submitted_at) || Time.current
+    )
+    render json: WinePackageSerializer.new(@package.reload, request.base_url, viewer: current_user).as_json
+  end
+
+  # POST /api/v1/wine_packages/:id/withdraw
+  #
+  # Withdraws a pending (requested) producer request — the package is cancelled
+  # through the ordinary workflow, editors are notified and the timeline
+  # records the withdrawal.
+  def withdraw
+    WinePackages::WithdrawRequest.call(@package, user: current_user)
+    render json: WinePackageSerializer.new(@package.reload, request.base_url, viewer: current_user).as_json
+  end
+
+  # GET /api/v1/wine_packages/:id/timeline
+  #
+  # Merged, viewer-scoped activity timeline: application milestones (submitted,
+  # accepted, rejected, arrival confirmed, review published ...) plus the raw
+  # carrier tracking events. Producer viewers never see editorial-only entries.
+  def timeline
+    render json: { events: WinePackages::Timeline.events(@package, viewer: current_user) }
+  end
+
+  # GET /api/v1/wine_packages/:id/progress
+  #
+  # Safe aggregate editorial progress for the producer dashboard: overall
+  # status, per-item review statuses and the published/total counts. Never
+  # ships draft review content, scores or internal notes.
+  def progress
+    render json: {
+      id: @package.id,
+      status: @package.status,
+      review_progress: @package.review_progress,
+      items: @package.wine_package_items.map { |item|
+        {
+          id: item.id,
+          label: item.label,
+          review_status: item.review&.status,
+          reviewed: item.reviewed?,
+          pending_review: item.pending_review?
+        }
+      }
+    }
   end
 
   # --- Workflow actions ---------------------------------------------------
@@ -127,47 +215,73 @@ class Api::V1::WinePackagesController < ApplicationController
     WinePackages::MarkArrived.call(
       @package,
       at: parsed_time(:arrived_at) || Time.current,
-      deadline: parsed_date(:review_deadline)
+      deadline: parsed_date(:review_deadline),
+      actor: current_user
     )
     WinePackages::CheckCompletion.call(@package)
 
-    render json: WinePackageSerializer.new(@package.reload, request.base_url).as_json
+    render json: WinePackageSerializer.new(@package.reload, request.base_url, viewer: current_user).as_json
   end
 
   def mark_in_transit
-    @package.mark_in_transit!
-    render json: WinePackageSerializer.new(@package, request.base_url).as_json
+    @package.mark_in_transit!(actor: current_user)
+    render json: WinePackageSerializer.new(@package, request.base_url, viewer: current_user).as_json
   end
 
   def mark_completed
-    WinePackages::MarkCompleted.call(@package, at: parsed_time(:reviewed_at) || Time.current)
-    render json: WinePackageSerializer.new(@package, request.base_url).as_json
+    WinePackages::MarkCompleted.call(@package, at: parsed_time(:reviewed_at) || Time.current, actor: current_user)
+    render json: WinePackageSerializer.new(@package.reload, request.base_url, viewer: current_user).as_json
   end
 
   def reopen
-    @package.reopen!
-    render json: WinePackageSerializer.new(@package, request.base_url).as_json
+    @package.reopen!(actor: current_user)
+    render json: WinePackageSerializer.new(@package, request.base_url, viewer: current_user).as_json
   end
 
   def cancel
-    @package.cancel!
-    render json: WinePackageSerializer.new(@package, request.base_url).as_json
+    @package.cancel!(actor: current_user)
+    render json: WinePackageSerializer.new(@package, request.base_url, viewer: current_user).as_json
   end
 
   def accept
     @package.accept!(by: current_user)
-    render json: WinePackageSerializer.new(@package, request.base_url).as_json
+    WinePackages::Notifications::Lifecycle.deliver!(@package, event: "accepted", actor: current_user)
+    render json: WinePackageSerializer.new(@package.reload, request.base_url, viewer: current_user).as_json
   end
 
   def reject
     @package.reject!(by: current_user, reason: params[:rejection_reason])
-    render json: WinePackageSerializer.new(@package, request.base_url).as_json
+    WinePackages::Notifications::Lifecycle.deliver!(@package, event: "rejected", actor: current_user)
+    render json: WinePackageSerializer.new(@package.reload, request.base_url, viewer: current_user).as_json
   end
 
   private
 
   def serialize_packages(packages)
-    packages.map { |package| WinePackageListSerializer.new(package, request.base_url).as_json }
+    packages.map { |package| WinePackageListSerializer.new(package, request.base_url, viewer: current_user).as_json }
+  end
+
+  # True when the caller is NOT a wine manager but IS an active owner/manager
+  # member of the producer they are creating a package for (issue #199). Such a
+  # caller opens a producer-managed draft: source is forced to producer_request
+  # and the requester is recorded; no reviewer may be self-assigned.
+  def producer_creator?
+    return false if current_user.nil? || current_user.wine_manager?
+
+    producer_id = params.dig(:wine_package, :producer_id).presence
+    return false unless producer_id
+
+    ProducerMembership.where(
+      user_id: current_user.id,
+      producer_id: producer_id,
+      membership_type: ProducerMembership::EDITABLE_TYPES
+    ).exists?
+  end
+
+  def package_producer_member?
+    return false unless current_user
+
+    WinePackagePolicy.new(current_user, @package).producer_member?
   end
 
   # Raw `status` param (it is deliberately not permitted through package_params).
@@ -180,14 +294,15 @@ class Api::V1::WinePackagesController < ApplicationController
     case entry_status
     when "announced"
       package.announced_at ||= Time.current
-      package.transition_to!("announced")
+      package.transition_to!("announced", actor: current_user)
     when "requested"
-      package.request!
+      package.request!(actor: current_user)
     when "arrived"
       WinePackages::MarkArrived.call(
         package,
         at: package.arrived_at || Time.current,
-        deadline: package.review_deadline
+        deadline: package.review_deadline,
+        actor: current_user
       )
     end
   end
@@ -225,6 +340,29 @@ class Api::V1::WinePackagesController < ApplicationController
   # belongs to the workflow.
   def update_params
     package_params.to_h.symbolize_keys.except(:source)
+  end
+
+  # Producer-managed creation (issue #199): editorial-only fields (reviewer,
+  # notes, tracking snapshot, source, arrival data) are never assignable from
+  # the producer side, and wine lines may only propose catalogue vintages or
+  # name wines that are not registered yet.
+  def producer_create_params
+    params.require(:wine_package).permit(
+      :producer_id, :expected_at, :producer_reference, :producer_notes,
+      :shipping_notes,
+      wine_package_items_attributes: [
+        :vintage_id, :proposed_wine_name, :proposed_vintage_year,
+        :quantity, :review_requested, :condition, :notes
+      ]
+    )
+  end
+
+  # Producer-editable fields on an existing package (drafts only — the policy
+  # enforces the state). `notes` stays editorial-only.
+  def producer_update_params
+    params.require(:wine_package).permit(
+      :expected_at, :producer_reference, :producer_notes, :shipping_notes
+    )
   end
 
   # Workflow actions accept the timestamp either at the top level or nested

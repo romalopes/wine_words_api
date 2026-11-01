@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_29_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_01_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -511,7 +511,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_29_120000) do
     t.index ["recipient_id", "notification_event_id"], name: "index_notifications_on_recipient_and_event", unique: true, where: "(notification_event_id IS NOT NULL)"
     t.index ["recipient_id", "read_at"], name: "index_notifications_on_recipient_id_and_read_at"
     t.index ["recipient_id"], name: "index_notifications_on_recipient_id"
-    t.index ["wine_package_id", "notification_type", "scheduled_date"], name: "index_notifications_on_package_type_and_scheduled_date", unique: true
+    t.index ["wine_package_id", "notification_type", "scheduled_date", "recipient_id"], name: "index_notifications_on_package_type_date_recipient", unique: true, where: "(wine_package_id IS NOT NULL)"
     t.index ["wine_package_id"], name: "index_notifications_on_wine_package_id"
   end
 
@@ -648,8 +648,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_29_120000) do
     t.string "carrier", limit: 64
     t.datetime "created_at", null: false
     t.datetime "delivered_at"
+    t.date "dispatch_date"
     t.datetime "estimated_delivery_at"
     t.string "number", limit: 128
+    t.integer "parcel_count"
     t.string "provider", limit: 64, default: "manual", null: false
     t.string "status", limit: 64
     t.datetime "status_updated_at"
@@ -1029,10 +1031,44 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_29_120000) do
     t.index ["wine_id"], name: "index_wine_grapes_on_wine_id"
   end
 
+  create_table "wine_package_attachments", force: :cascade do |t|
+    t.string "attachment_type", default: "other", null: false
+    t.string "caption"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "uploaded_by_id", null: false
+    t.string "visibility", default: "shared", null: false
+    t.bigint "wine_package_id", null: false
+    t.bigint "wine_package_item_id"
+    t.index ["uploaded_by_id"], name: "index_wine_package_attachments_on_uploaded_by_id"
+    t.index ["wine_package_id", "attachment_type"], name: "idx_on_wine_package_id_attachment_type_34ccea2d07"
+    t.index ["wine_package_id"], name: "index_wine_package_attachments_on_wine_package_id"
+    t.index ["wine_package_item_id"], name: "index_wine_package_attachments_on_wine_package_item_id"
+  end
+
+  create_table "wine_package_events", force: :cascade do |t|
+    t.bigint "actor_id"
+    t.datetime "created_at", null: false
+    t.string "description"
+    t.string "event_type", null: false
+    t.string "idempotency_key"
+    t.jsonb "metadata", default: {}, null: false
+    t.datetime "occurred_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "visibility", default: "shared", null: false
+    t.bigint "wine_package_id", null: false
+    t.index ["actor_id"], name: "index_wine_package_events_on_actor_id"
+    t.index ["wine_package_id", "idempotency_key"], name: "idx_on_wine_package_id_idempotency_key_154572622a", unique: true, where: "(idempotency_key IS NOT NULL)"
+    t.index ["wine_package_id", "occurred_at"], name: "index_wine_package_events_on_wine_package_id_and_occurred_at"
+    t.index ["wine_package_id"], name: "index_wine_package_events_on_wine_package_id"
+  end
+
   create_table "wine_package_items", force: :cascade do |t|
     t.string "condition", limit: 64
     t.datetime "created_at", null: false
     t.text "notes"
+    t.integer "proposed_vintage_year"
+    t.string "proposed_wine_name", limit: 255
     t.integer "quantity", default: 1, null: false
     t.datetime "received_at"
     t.bigint "review_id"
@@ -1056,17 +1092,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_29_120000) do
     t.datetime "delivered_at"
     t.datetime "estimated_delivery_at"
     t.date "expected_at"
+    t.text "internal_notes"
     t.text "notes"
     t.bigint "producer_id", null: false
+    t.text "producer_notes"
+    t.string "producer_reference", limit: 128
     t.datetime "rejected_at"
     t.bigint "rejected_by_id"
     t.text "rejection_reason"
     t.datetime "requested_at"
+    t.bigint "requested_by_id"
     t.date "review_deadline"
     t.datetime "reviewed_at"
     t.bigint "reviewer_id"
+    t.text "shipping_notes"
     t.string "source", limit: 32, default: "manual", null: false
     t.string "status", limit: 32, default: "draft", null: false
+    t.datetime "submitted_at"
     t.string "tracking_carrier", limit: 64
     t.string "tracking_number", limit: 128
     t.string "tracking_status", limit: 64
@@ -1077,6 +1119,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_29_120000) do
     t.index ["created_by_id"], name: "index_wine_packages_on_created_by_id"
     t.index ["producer_id"], name: "index_wine_packages_on_producer_id"
     t.index ["rejected_by_id"], name: "index_wine_packages_on_rejected_by_id"
+    t.index ["requested_by_id"], name: "index_wine_packages_on_requested_by_id"
     t.index ["review_deadline"], name: "index_wine_packages_on_review_deadline"
     t.index ["reviewer_id"], name: "index_wine_packages_on_reviewer_id"
     t.index ["status"], name: "index_wine_packages_on_status"
@@ -1255,6 +1298,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_29_120000) do
   add_foreign_key "wine_categories", "wines"
   add_foreign_key "wine_grapes", "grapes"
   add_foreign_key "wine_grapes", "wines"
+  add_foreign_key "wine_package_attachments", "users", column: "uploaded_by_id"
+  add_foreign_key "wine_package_attachments", "wine_package_items"
+  add_foreign_key "wine_package_attachments", "wine_packages"
+  add_foreign_key "wine_package_events", "users", column: "actor_id"
+  add_foreign_key "wine_package_events", "wine_packages"
   add_foreign_key "wine_package_items", "reviews"
   add_foreign_key "wine_package_items", "vintages"
   add_foreign_key "wine_package_items", "wine_packages"
@@ -1262,6 +1310,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_29_120000) do
   add_foreign_key "wine_packages", "users", column: "accepted_by_id"
   add_foreign_key "wine_packages", "users", column: "created_by_id"
   add_foreign_key "wine_packages", "users", column: "rejected_by_id"
+  add_foreign_key "wine_packages", "users", column: "requested_by_id"
   add_foreign_key "wine_packages", "users", column: "reviewer_id"
   add_foreign_key "wine_profile_taste_parameters", "taste_parameters"
   add_foreign_key "wine_profile_taste_parameters", "wine_profiles"

@@ -1,9 +1,14 @@
 # Lean serializer used by Api::V1::WinePackagesController#index only. Ships the
 # fields the packages list renders (and filters on) without the item detail.
+#
+# Issue #199 additions: producer-side lifecycle metadata (requested_by_id,
+# submitted_at) is always included; when called with a producer `viewer:`, the
+# editorial fields (reviewer identity) are withheld.
 class WinePackageListSerializer
-  def initialize(wine_package, base_url = nil)
+  def initialize(wine_package, base_url = nil, viewer: nil)
     @package = wine_package
     @base_url = base_url
+    @viewer = viewer
   end
 
   def as_json
@@ -15,7 +20,9 @@ class WinePackageListSerializer
       producer_name: @package.producer&.name,
       producer_slug: @package.producer&.slug,
       reviewer_id: @package.reviewer_id,
-      reviewer_name: @package.reviewer&.display_name || @package.reviewer&.email,
+      reviewer_name: reviewer_name,
+      requested_by_id: @package.requested_by_id,
+      submitted_at: iso(@package.submitted_at),
       status: @package.status,
       source: @package.source,
       expected_at: date(@package.expected_at),
@@ -35,6 +42,19 @@ class WinePackageListSerializer
   end
 
   private
+
+  # The assigned reviewer's identity stays editorial-only in producer views.
+  def reviewer_name
+    return nil unless editorial_viewer?
+
+    @package.reviewer&.display_name || @package.reviewer&.email
+  end
+
+  def editorial_viewer?
+    return true if @viewer.nil?
+
+    @viewer.catalogue_manager? || @viewer.id == @package.reviewer_id
+  end
 
   def iso(time)
     time&.iso8601

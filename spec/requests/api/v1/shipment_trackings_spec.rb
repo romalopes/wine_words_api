@@ -55,10 +55,12 @@ RSpec.describe "Api::V1::ShipmentTrackings", type: :request do
                                               "external_id" => "e1")
     end
 
-    it "is forbidden for an unrelated user" do
+    # Unauthorized viewers get a 404 rather than a 403 so the endpoint never
+    # reveals that a package exists (same contract as the package show action).
+    it "is not found for an unrelated user" do
       sign_in outsider
       get tracking_url
-      expect(response).to have_http_status(:forbidden)
+      expect(response).to have_http_status(:not_found)
     end
   end
 

@@ -28,6 +28,18 @@ class ProducerMembership < ApplicationRecord
   scope :owners, -> { where(membership_type: "owner") }
   scope :managers, -> { where(membership_type: "manager") }
   scope :contributors, -> { where(membership_type: "contributor") }
+  # Active management memberships (owner/manager) — the only rows that grant
+  # producer-side package management rights (issue #199).
+  scope :managing, -> { where(membership_type: EDITABLE_TYPES) }
+
+  # Producer ids the user actively manages (owner/manager). Used by the
+  # wine-package policy scope and the WinePackage#managed_by_producer_member?
+  # predicate; a contributor/follower never matches.
+  def self.managing_producer_ids_for(user)
+    return ProducerMembership.none unless user
+
+    where(user_id: user.id).managing.select(:producer_id)
+  end
 
   def owner?
     membership_type == "owner"

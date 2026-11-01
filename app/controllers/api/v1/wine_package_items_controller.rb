@@ -13,7 +13,10 @@ class Api::V1::WinePackageItemsController < ApplicationController
                 create_review: "wine_package_item.review_created"
 
   before_action :set_package
-  before_action :ensure_package_manageable!
+  # Wine lines: producers may add/edit/remove lines only while the request is
+  # still a draft (issue #199 §2); review creation stays editorial-only.
+  before_action :ensure_package_items_manageable!, only: %i[create update destroy]
+  before_action :ensure_package_editorial_manageable!, only: [ :create_review ]
   before_action :set_item, only: [ :update, :destroy, :create_review ]
 
   rescue_from WinePackages::Error, with: :render_workflow_error
@@ -87,11 +90,27 @@ class Api::V1::WinePackageItemsController < ApplicationController
     render json: { error: "Wine package item not found" }, status: :not_found
   end
 
+  # Wine-line fields: editors manage the full set (including the review link
+  # and receipt timestamps); producer members manage their draft lines only —
+  # including proposing wines that are not in the catalogue yet (issue #199),
+  # but never the review linkage or internal receipt bookkeeping.
   def item_params
-    params.require(:item).permit(
-      :vintage_id, :quantity, :review_requested, :condition, :notes,
-      :received_at, :review_id
-    )
+    if package_producer_member?
+      params.require(:item).permit(
+        :vintage_id, :proposed_wine_name, :proposed_vintage_year,
+        :quantity, :review_requested, :condition, :notes
+      )
+    else
+      params.require(:item).permit(
+        :vintage_id, :proposed_wine_name, :proposed_vintage_year,
+        :quantity, :review_requested, :condition, :notes,
+        :received_at, :review_id
+      )
+    end
+  end
+
+  def package_producer_member?
+    WinePackagePolicy.new(current_user, @package).producer_member?
   end
 
   def review_params

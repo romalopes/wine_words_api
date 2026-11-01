@@ -239,6 +239,8 @@ Rails.application.routes.draw do
 
       # --- Wine packages: the reviewing workflow ---------------------------
       # CRUD plus explicit workflow actions — never a free-form status write.
+      # Issue #199 adds the producer-facing lifecycle (submit/withdraw), the
+      # read-only timeline/progress projections and typed attachments.
       resources :wine_packages do
         member do
           post :mark_arrived
@@ -248,6 +250,12 @@ Rails.application.routes.draw do
           post :cancel
           post :accept
           post :reject
+          # Producer request lifecycle (issue #199).
+          post :submit
+          post :withdraw
+          # Read-only projections for the producer dashboard.
+          get :timeline
+          get :progress
         end
 
         # The wine lines of a package (nested CRUD; create_review starts the
@@ -258,6 +266,11 @@ Rails.application.routes.draw do
           member { post :create_review }
         end
 
+        # Typed attachments per package (and per item, via :wine_package_item_id).
+        resources :attachments,
+                  controller: "wine_package_attachments",
+                  only: [:index, :create, :destroy]
+
         # Tracking is a singleton per package: read it, upsert it, refresh it
         # from the resolved carrier provider.
         resource :shipment_tracking,
@@ -266,6 +279,7 @@ Rails.application.routes.draw do
           post :refresh
         end
       end
+
 
       # The signed-in user's own notifications (deadline reminders).
       resources :notifications, only: [:index] do
