@@ -59,6 +59,15 @@ services:
         value: "5"
       - key: APP_HOST
         sync: false # set in the dashboard
+      # Extra hostnames accepted by ActionDispatch::HostAuthorization, in
+      # addition to RENDER_EXTERNAL_HOSTNAME (auto-injected) and APP_HOST.
+      # List every custom domain AND every legacy *.onrender.com alias that
+      # Render still routes to this service; anything missing gets a bare 403
+      # with "Blocked hosts: <host>" in the logs.
+      # Example:
+      #   wine-prediction-api-mq4a.onrender.com,wine-words-api.onrender.com,api.wine-words.beachvolleyballhub.com
+      - key: ALLOWED_HOSTS
+        sync: false # set in the dashboard
       - key: TEST_ACCESS_PASSWORD
         sync: false # set in the dashboard — private test-access gate
       - key: TEST_ACCESS_TOKEN_EXPIRATION
