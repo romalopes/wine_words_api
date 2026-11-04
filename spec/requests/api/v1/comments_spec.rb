@@ -63,6 +63,20 @@ RSpec.describe "Api::V1::Comments", type: :request do
       expect(record.comments.count).to eq(1)
     end
 
+    it "replays a create idempotently for the same signed-in user" do
+      sign_in other
+      headers = { "Idempotency-Key" => SecureRandom.uuid }
+
+      post path, params: { comment: { body: "Created once" } }, headers: headers
+      first_id = JSON.parse(response.body).fetch("id")
+      post path, params: { comment: { body: "Changed retry body" } }, headers: headers
+
+      expect(response).to have_http_status(:ok)
+      expect(JSON.parse(response.body).fetch("id")).to eq(first_id)
+      expect(record.comments.where(user: other).count).to eq(1)
+      expect(record.comments.find(first_id).body).to eq("Created once")
+    end
+
     it "rejects an empty body" do
       sign_in other
       post path, params: { comment: { body: "" } }
@@ -219,6 +233,23 @@ RSpec.describe "Api::V1::Comments", type: :request do
       foreign = Comment.create!(user: owner, commentable: article, body: "On an article.")
       invalid = Comment.new(user: other, commentable: wine, parent: foreign, body: "Sneaky")
       expect(invalid).not_to be_valid
+    end
+  end
+
+  describe "reply idempotency" do
+    it "does not duplicate a reply when a client retries after an uncertain response" do
+      parent = Comment.create!(user: owner, commentable: wine, body: "Parent")
+      sign_in other
+      headers = { "Idempotency-Key" => SecureRandom.uuid }
+      path = "/api/v1/comments/#{parent.id}/replies"
+
+      post path, params: { comment: { body: "Reply once" } }, headers: headers
+      first_id = JSON.parse(response.body).fetch("id")
+      post path, params: { comment: { body: "Retry" } }, headers: headers
+
+      expect(response).to have_http_status(:ok)
+      expect(JSON.parse(response.body).fetch("id")).to eq(first_id)
+      expect(parent.replies.where(user: other).count).to eq(1)
     end
   end
 

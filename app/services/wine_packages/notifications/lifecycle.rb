@@ -85,6 +85,7 @@ module WinePackages
 
           # Reused row from an earlier delivery: make sure it is visible.
           row.update!(delivered_at: Time.current, message: message) if row.delivered_at.nil?
+          ::Notifications::WebPushDeliveryJob.perform_later(row.id)
         end
       end
 

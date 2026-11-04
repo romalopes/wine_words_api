@@ -80,3 +80,5 @@ group :development, :test do
 end
 
 gem "pundit", "~> 2.5"
+
+gem "web-push", "~> 3.1"

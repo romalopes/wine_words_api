@@ -33,9 +33,15 @@ module CommentableActions
     commentable = find_commentable
     return if commentable.nil?
 
+    if (existing = existing_idempotent_comment)
+      return render json: CommentSerializer.new(existing, permission, replies: []).as_json,
+                    status: :ok
+    end
+
     comment = commentable.comments.build(
       user: current_user,
-      body: comment_params[:body]
+      body: comment_params[:body],
+      client_operation_id: client_operation_id
     )
 
     if comment.save
@@ -45,6 +51,12 @@ module CommentableActions
     else
       validation_error(comment)
     end
+  rescue ActiveRecord::RecordNotUnique
+    existing = existing_idempotent_comment
+    raise unless existing
+
+    render json: CommentSerializer.new(existing, permission, replies: []).as_json,
+           status: :ok
   end
 
   private
@@ -84,6 +96,16 @@ module CommentableActions
 
   def comment_params
     params.require(:comment).permit(:body)
+  end
+
+  def client_operation_id
+    request.headers["Idempotency-Key"].presence
+  end
+
+  def existing_idempotent_comment
+    return if client_operation_id.blank?
+
+    current_user.comments.find_by(client_operation_id: client_operation_id)
   end
 
   def serialize_thread(scope)

@@ -297,6 +297,9 @@ Rails.application.routes.draw do
         end
         member { patch :mark_read }
       end
+      resources :push_subscriptions, only: [ :index, :create, :destroy ] do
+        collection { get :vapid_public_key }
+      end
 
       # --- Follows (issue #192) -------------------------------------------- #
       # The signed-in user's subscriptions to Producers / Wines / Reviews /

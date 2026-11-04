@@ -93,6 +93,7 @@ class User < ApplicationRecord
                                        dependent: :nullify
   has_many :notifications, foreign_key: :recipient_id, dependent: :destroy
   has_one :notification_preference, class_name: "NotificationPreference", dependent: :destroy
+  has_many :push_subscriptions, dependent: :destroy
   has_many :follows, dependent: :destroy
   has_many :followed_producers, through: :follows, source: :followable, source_type: "Producer"
   has_many :followed_wines, through: :follows, source: :followable, source_type: "Wine"

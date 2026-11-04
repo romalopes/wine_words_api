@@ -93,9 +93,10 @@ class Api::V1::AccountsController < ApplicationController
   private
 
   def preference_params
-    permitted = params.permit(:follow_in_app, :follow_email, :digest_cadence).to_h
+    permitted = params.permit(:follow_in_app, :follow_email, :push_enabled, :digest_cadence).to_h
     permitted[:follow_in_app] = ActiveModel::Type::Boolean.new.cast(permitted[:follow_in_app]) if permitted.key?(:follow_in_app)
     permitted[:follow_email] = ActiveModel::Type::Boolean.new.cast(permitted[:follow_email]) if permitted.key?(:follow_email)
+    permitted[:push_enabled] = ActiveModel::Type::Boolean.new.cast(permitted[:push_enabled]) if permitted.key?(:push_enabled)
     permitted
   end
 

@@ -63,6 +63,7 @@ class WinePackages::SendReviewDeadlineNotificationsJob < ApplicationJob
 
     WinePackagesMailer.review_deadline_notification(notification).deliver_now
     notification.mark_sent!
+    Notifications::WebPushDeliveryJob.perform_later(notification.id)
   end
 
   def package_active?(package)
