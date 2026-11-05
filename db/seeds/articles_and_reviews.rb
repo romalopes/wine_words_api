@@ -189,6 +189,8 @@ ActiveRecord::Base.transaction do
                        .to_a
 
   articles.each_with_index do |article, idx|
+    next if no_review_vintages.empty?
+
     count  = idx.zero? ? 2 : 1
     picks  = count.times.map { |j| no_review_vintages[(idx + j) % no_review_vintages.size] }
     picks.uniq.each do |vintage|
