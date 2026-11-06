@@ -5,7 +5,7 @@ require "rails_helper"
 RSpec.describe AppVersion do
   describe ".VERSION" do
     it "returns the application version as a string" do
-      expect(AppVersion::VERSION).to eq("0.0.21")
+      expect(AppVersion::VERSION).to eq("0.0.22")
     end
 
     it "is a non-empty string" do
