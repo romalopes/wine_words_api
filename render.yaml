@@ -98,7 +98,7 @@ services:
     # The service's dashboard port must therefore be 80.
 
   - type: pserv # Render "Background Worker"
-    name: wine-prediction-worker
+    name: wine-words-worker
     runtime: docker
     plan: starter
     region: singapore
