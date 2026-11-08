@@ -33,7 +33,7 @@ class Grape < ApplicationRecord
   def self.find_by_name_or_synonym(name)
     return nil if name.blank?
     # Exact match (case-insensitive)
-    exact = where('lower(name) = ?', name.downcase).first
+    exact = where("lower(name) = ?", name.downcase).first
     return exact if exact
     # Fallback to ILIKE search on name and synonyms (same as used in /grapes search)
     pattern = "%#{name}%"

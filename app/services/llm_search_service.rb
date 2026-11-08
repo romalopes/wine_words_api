@@ -65,7 +65,7 @@ class LlmSearchService
 
   def fallback_result
     # When Ollama is down, fall back to the raw query as both name and region hint
-    { name_hints: [@query], region_hints: [@query], color: nil, style_notes: [], raw_query: @query }
+    { name_hints: [ @query ], region_hints: [ @query ], color: nil, style_notes: [], raw_query: @query }
   end
 
   def build_result(llm_json)

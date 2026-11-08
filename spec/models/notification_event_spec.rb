@@ -18,7 +18,7 @@ RSpec.describe NotificationEvent, type: :model do
       subject_id: review.id,
       actor_id: actor.id,
       occurred_at: Time.current,
-      affected_targets: [{ "type" => "Review", "id" => review.id }],
+      affected_targets: [ { "type" => "Review", "id" => review.id } ],
       metadata: { subject_label: review.title, subject_slug: review.slug },
       idempotency_key: "review.published.Review.#{review.id}"
     }.merge(attrs))

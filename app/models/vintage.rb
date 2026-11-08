@@ -25,7 +25,7 @@ class Vintage < ApplicationRecord
   delegate :name, to: :wine, prefix: true, allow_nil: true
 
   def name
-    [wine&.name, year].compact.join(" ")
+    [ wine&.name, year ].compact.join(" ")
   end
 
   def slug

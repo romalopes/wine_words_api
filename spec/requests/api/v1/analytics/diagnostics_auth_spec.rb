@@ -17,7 +17,7 @@ RSpec.describe "Analytics Diagnostics Authorization", type: :request do
     Article.create!(title: "Test #{SecureRandom.hex(3)}", user: user, status: "published")
   end
 
-  let(:admin) { create_user("admin", roles: ["Admin"]) }
+  let(:admin) { create_user("admin", roles: [ "Admin" ]) }
   let(:regular_user) { create_user("user") }
   let(:article) { create_article(admin) }
 

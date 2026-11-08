@@ -59,7 +59,7 @@ class Api::V1::ArticleProjectNotebooksController < ApplicationController
       @article_project.article_project_reviews.create!(review: review)
     end
 
-    render json: ReviewSerializer.new(review, request.base_url, liked_ids: Likes.liked_ids_for([review], current_user)).as_json,
+    render json: ReviewSerializer.new(review, request.base_url, liked_ids: Likes.liked_ids_for([ review ], current_user)).as_json,
            status: :created
   end
 

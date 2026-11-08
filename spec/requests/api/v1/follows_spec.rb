@@ -201,14 +201,14 @@ RSpec.describe "Api::V1::Follows", type: :request do
     it "batch-reports which ids the user follows" do
       Follow.create!(user: user, followable: wine)
 
-      get "/api/v1/follows/statuses", params: { followable_type: "Wine", ids: [wine.id, wine2.id] }
+      get "/api/v1/follows/statuses", params: { followable_type: "Wine", ids: [ wine.id, wine2.id ] }
 
       expect(response).to have_http_status(:ok)
       expect(JSON.parse(response.body)["followed_ids"]).to contain_exactly(wine.id)
     end
 
     it "rejects an invalid type" do
-      get "/api/v1/follows/statuses", params: { followable_type: "Vintage", ids: [vintage.id] }
+      get "/api/v1/follows/statuses", params: { followable_type: "Vintage", ids: [ vintage.id ] }
 
       expect(response).to have_http_status(:bad_request)
     end

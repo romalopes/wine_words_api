@@ -14,8 +14,8 @@ class CreateSubscriptionBillingPrices < ActiveRecord::Migration[8.1]
     end
 
     add_index :subscription_billing_prices,
-              [:provider, :provider_price_id], unique: true
+              [ :provider, :provider_price_id ], unique: true
     add_index :subscription_billing_prices,
-              [:subscription_id, :provider], unique: true
+              [ :subscription_id, :provider ], unique: true
   end
 end

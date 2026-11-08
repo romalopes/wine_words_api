@@ -31,7 +31,7 @@ module Api
           token: token,
           impersonating: true,
           effective_user: user_json(target_user),
-          real_user: user_json(real_current_user),
+          real_user: user_json(real_current_user)
         }
       end
 
@@ -50,7 +50,7 @@ module Api
           token: token,
           impersonating: false,
           effective_user: user_json(real_current_user),
-          real_user: user_json(real_current_user),
+          real_user: user_json(real_current_user)
         }
       end
 
@@ -62,7 +62,7 @@ module Api
           render json: {
             impersonating: true,
             effective_user: target_user ? user_json(target_user) : nil,
-            real_user: user_json(real_current_user),
+            real_user: user_json(real_current_user)
           }
         else
           render json: { impersonating: false, effective_user: nil, real_user: user_json(real_current_user) }

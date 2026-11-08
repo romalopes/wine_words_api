@@ -3,8 +3,8 @@ class RegionsController < ActionController::Base
   include RequireLogin
   include Impersonable
 
-  before_action :set_region, only: [:show, :edit, :update, :destroy, :link_wine]
-  before_action :ensure_manager!, only: [:new, :edit, :create, :update, :destroy]
+  before_action :set_region, only: [ :show, :edit, :update, :destroy, :link_wine ]
+  before_action :ensure_manager!, only: [ :new, :edit, :create, :update, :destroy ]
 
   def index
     @countries_tree = Region.build_tree

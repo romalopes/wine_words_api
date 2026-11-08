@@ -46,17 +46,17 @@ class CreateAnalyticsEvents < ActiveRecord::Migration[8.1]
 
     # Composite index for daily rollup query (Phase 3/6)
     add_index :analytics_events,
-              [:viewable_type, :viewable_id, :viewed_at],
+              [ :viewable_type, :viewable_id, :viewed_at ],
               name: "idx_analytics_events_content_time"
 
     # Identity + time for account erasure & visitor cleanup
     add_index :analytics_events,
-              [:identity, :viewed_at],
+              [ :identity, :viewed_at ],
               name: "idx_analytics_events_identity_time"
 
     # Deduplication support (advisory lock key components)
     add_index :analytics_events,
-              [:viewable_type, :viewable_id, :identity, :viewed_at],
+              [ :viewable_type, :viewable_id, :identity, :viewed_at ],
               unique: true,
               name: "idx_analytics_events_dedup",
               where: "accepted = true"
@@ -69,7 +69,7 @@ class CreateAnalyticsEvents < ActiveRecord::Migration[8.1]
 
     # Polymorphic association index (optional, for reverse lookups)
     add_index :analytics_events,
-              [:viewable_type, :viewable_id],
+              [ :viewable_type, :viewable_id ],
               name: "idx_analytics_events_viewable"
   end
 end

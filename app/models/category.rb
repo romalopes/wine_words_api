@@ -20,7 +20,7 @@ class Category < ApplicationRecord
   SORT_ORDER_COLUMNS = {
     for_wine: :sort_order_wine,
     for_review: :sort_order_review,
-    for_article: :sort_order_article,
+    for_article: :sort_order_article
   }.freeze
 
   before_validation :generate_slug

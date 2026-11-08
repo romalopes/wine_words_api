@@ -9,7 +9,7 @@ class CreateArticleProjectNotebooks < ActiveRecord::Migration[8.1]
     end
 
     add_index :article_project_notebooks,
-              [:article_project_vintage_id, :position],
+              [ :article_project_vintage_id, :position ],
               name: "index_article_project_notebooks_on_vintage_and_position"
   end
 end

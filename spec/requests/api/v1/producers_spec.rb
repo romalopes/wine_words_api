@@ -43,8 +43,8 @@ RSpec.describe "Api::V1::Producers", type: :request do
       founded_year: 1844,
       active: true,
       website: "https://penfolds.com",
-      region_ids: [region_sa.id],
-      grape_ids: [grape_shiraz.id, grape_riesling.id]
+      region_ids: [ region_sa.id ],
+      grape_ids: [ grape_shiraz.id, grape_riesling.id ]
     }
   end
 
@@ -79,8 +79,8 @@ RSpec.describe "Api::V1::Producers", type: :request do
 
       it "dedupes repeated region and grape ids" do
         attrs = producer_attributes.merge(
-          region_ids: [region_sa.id, region_sa.id],
-          grape_ids: [grape_shiraz.id, grape_shiraz.id]
+          region_ids: [ region_sa.id, region_sa.id ],
+          grape_ids: [ grape_shiraz.id, grape_shiraz.id ]
         )
         post "/api/v1/producers", params: { producer: attrs }, as: :json
         expect(response).to have_http_status(:created)
@@ -89,7 +89,7 @@ RSpec.describe "Api::V1::Producers", type: :request do
       end
 
       it "rejects a region outside the producer's country" do
-        attrs = producer_attributes.merge(region_ids: [region_marlborough.id])
+        attrs = producer_attributes.merge(region_ids: [ region_marlborough.id ])
         post "/api/v1/producers", params: { producer: attrs }, as: :json
         expect(response).to have_http_status(:unprocessable_entity)
         expect(JSON.parse(response.body)["errors"].join).to match(/country/i)
@@ -124,7 +124,7 @@ RSpec.describe "Api::V1::Producers", type: :request do
         )
         expect(body["address"]["country"]["code"]).to eq("AU")
         expect(body["country"]["code"]).to eq("AU")
-        expect(body["grapes"].map { |g| g["name"] }).to match_array(["Shiraz", "Riesling"])
+        expect(body["grapes"].map { |g| g["name"] }).to match_array([ "Shiraz", "Riesling" ])
       end
 
       it "creates the nested address with a default country" do
@@ -177,10 +177,10 @@ RSpec.describe "Api::V1::Producers", type: :request do
       matching.regions << region_sa
       matching.grapes << grape_shiraz
       Producer.create!(name: "Other Estate", country: australia)
-      [{ region_id: region_sa.id }, { grape_id: grape_shiraz.id }].each do |filter|
+      [ { region_id: region_sa.id }, { grape_id: grape_shiraz.id } ].each do |filter|
         get "/api/v1/producers", params: filter.merge(page: 1, per_page: 20)
         expect(response).to have_http_status(:ok)
-        expect(JSON.parse(response.body).fetch("items").map { |item| item["id"] }).to eq([matching.id])
+        expect(JSON.parse(response.body).fetch("items").map { |item| item["id"] }).to eq([ matching.id ])
       end
     end
 
@@ -188,7 +188,7 @@ RSpec.describe "Api::V1::Producers", type: :request do
       3.times do |i|
         producer = Producer.create!(name: "Batch Estate #{i}", country: australia)
         producer.regions << region_sa
-        producer.grapes << [grape_shiraz, grape_riesling]
+        producer.grapes << [ grape_shiraz, grape_riesling ]
         producer.logo.attach(logo_file)
         image = producer.images.create!
         image.file.attach(logo_file)
@@ -246,7 +246,7 @@ RSpec.describe "Api::V1::Producers", type: :request do
     let!(:producer) do
       Producer.create!(producer_attributes.except(:region_ids, :grape_ids)).tap do |p|
         p.regions << region_sa
-        p.grapes << [grape_shiraz, grape_riesling]
+        p.grapes << [ grape_shiraz, grape_riesling ]
       end
     end
 
@@ -335,7 +335,7 @@ RSpec.describe "Api::V1::Producers", type: :request do
 
     it "replaces relationships" do
       patch "/api/v1/producers/#{producer.slug}",
-            params: { producer: { region_ids: [region_sa.id], grape_ids: [grape_riesling.id] } },
+            params: { producer: { region_ids: [ region_sa.id ], grape_ids: [ grape_riesling.id ] } },
             as: :json
       producer.reload
       expect(producer.grapes).to contain_exactly(grape_riesling)

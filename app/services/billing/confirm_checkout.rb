@@ -98,7 +98,7 @@ module Billing
 
       plan = ::Subscription.find_by(id: subscription_id) if subscription_id.present?
       billing_price = SubscriptionBillingPrice.find_by(id: billing_price_id) if billing_price_id.present?
-      return [plan || billing_price&.subscription, billing_price] if plan || billing_price
+      return [ plan || billing_price&.subscription, billing_price ] if plan || billing_price
 
       price_id = nil
       if provider_sub_id.present?
@@ -112,10 +112,10 @@ module Billing
 
       if price_id.present?
         billing_price = SubscriptionBillingPrice.active.for_provider(:stripe).find_by(provider_price_id: price_id)
-        return [billing_price&.subscription, billing_price] if billing_price
+        return [ billing_price&.subscription, billing_price ] if billing_price
       end
 
-      [nil, nil]
+      [ nil, nil ]
     end
     private_class_method :resolve_plan
   end

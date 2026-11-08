@@ -132,7 +132,7 @@ RSpec.describe Follow, type: :model do
       user2 = User.create!(first_name: "Concurrent2", email: "concurrent2@example.com", password: "password123")
 
       threads = 2.times.map do |i|
-        Thread.new { Follow.create!(user: [user1, user2][i], followable: producer) }
+        Thread.new { Follow.create!(user: [ user1, user2 ][i], followable: producer) }
       end
       results = threads.map(&:value)
       successes = results.select { |r| r.is_a?(Follow) }

@@ -116,7 +116,7 @@ class LoginDetailsCollector
     geo = Geolocation::Provider.resolve(client_ip)
     return UNKNOWN if geo.nil?
 
-    [geo[:city], geo[:region], geo[:country]].compact.reject(&:blank?).join(", ").presence || UNKNOWN
+    [ geo[:city], geo[:region], geo[:country] ].compact.reject(&:blank?).join(", ").presence || UNKNOWN
   rescue StandardError => e
     log_degradation("location", e)
     UNKNOWN

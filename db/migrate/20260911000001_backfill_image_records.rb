@@ -17,7 +17,7 @@ class BackfillImageRecords < ActiveRecord::Migration[8.1]
       .where(name: "images", record_type: IMAGEABLE_TYPES.keys)
       .order(:record_type, :record_id, :created_at, :id)
 
-    attachments.group_by { |a| [a.record_type, a.record_id] }.each do |(type, id), group|
+    attachments.group_by { |a| [ a.record_type, a.record_id ] }.each do |(type, id), group|
       klass = IMAGEABLE_TYPES[type]
       record = klass&.find_by(id: id)
       next unless record

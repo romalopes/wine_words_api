@@ -3,8 +3,8 @@ class GrapesController < ActionController::Base
   include RequireLogin
   include Impersonable
 
-  before_action :set_grape, only: [:show, :edit, :update, :destroy, :link_wine, :producers]
-  before_action :ensure_grape_manager!, only: [:new, :edit, :create, :update, :destroy]
+  before_action :set_grape, only: [ :show, :edit, :update, :destroy, :link_wine, :producers ]
+  before_action :ensure_grape_manager!, only: [ :new, :edit, :create, :update, :destroy ]
 
   def link_wine
     unless current_user&.wine_manager?
@@ -31,7 +31,7 @@ class GrapesController < ActionController::Base
     @producer_count = producer_scope.count
     @producer_total_pages = (@producer_count.to_f / per_page).ceil
     @producer_page = (params[:producer_page] || 1).to_i
-    @producer_page = 1 if @producer_page < 1 || @producer_page > [@producer_total_pages, 1].max
+    @producer_page = 1 if @producer_page < 1 || @producer_page > [ @producer_total_pages, 1 ].max
     @producers = producer_scope
       .limit(per_page)
       .offset((@producer_page - 1) * per_page)

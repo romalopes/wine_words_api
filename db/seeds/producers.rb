@@ -45,13 +45,13 @@ ALL_PRODUCERS = [
     name: "Unknown Producer",
     slug: "unknown-producer",
     legal_name: "Unkown Producer",
-    country_id: "Australia",
+    country_id: "Australia"
   },
   {
     name: "Pedlidis",
     slug: "pedlidis",
     legal_name: "Pedlidis Family Wines",
-    regions: ["Barossa Valley"],
+    regions: [ "Barossa Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -62,13 +62,13 @@ ALL_PRODUCERS = [
     website: "https://www.pedlidiswines.com.au",
     logo_url: "https://www.pedlidiswines.com.au/assets/logo.png",
     founded_year: 2015,
-    grapes: ["Riesling", "Shiraz", "Grenache", "Mataro"]
+    grapes: [ "Riesling", "Shiraz", "Grenache", "Mataro" ]
   },
   {
     name: "Alkina Wine Estate",
     slug: "alkina-wine-estate",
     legal_name: "Alkina Wine Estate Pty Ltd",
-    regions: ["Barossa Valley"],
+    regions: [ "Barossa Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -79,12 +79,12 @@ ALL_PRODUCERS = [
     website: "https://www.alkinawine.com",
     logo_url: "https://www.alkinawine.com/assets/logo.png",
     founded_year: 2015,
-    grapes: ["Grenache", "Shiraz", "Mataro"]
+    grapes: [ "Grenache", "Shiraz", "Mataro" ]
   },
   {
     name: "Sami-Odi",
     slug: "sami-odi",
-    regions: ["Barossa Valley"],
+    regions: [ "Barossa Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -95,12 +95,12 @@ ALL_PRODUCERS = [
     website: "https://www.sami-odi.com",
     logo_url: "https://www.sami-odi.com/logo.png",
     founded_year: 2007,
-    grapes: ["Syrah"]
+    grapes: [ "Syrah" ]
   },
   {
     name: "Marco Lubiana",
     slug: "marco-lubiana",
-    regions: ["Derwent Valley", "Huon Valley"],
+    regions: [ "Derwent Valley", "Huon Valley" ],
     state: "Tasmania",
     country_id: "Australia",
     address: nil,
@@ -111,12 +111,12 @@ ALL_PRODUCERS = [
     website: "https://www.marcolubiana.com.au",
     logo_url: "https://www.marcolubiana.com.au/assets/logo.png",
     founded_year: 2018,
-    grapes: ["Chardonnay", "Pinot Noir"]
+    grapes: [ "Chardonnay", "Pinot Noir" ]
   },
   {
     name: "Dr Edge",
     slug: "dr-edge",
-    regions: ["Tamar Valley"],
+    regions: [ "Tamar Valley" ],
     state: "Tasmania",
     country_id: "Australia",
     address: nil,
@@ -127,12 +127,12 @@ ALL_PRODUCERS = [
     website: "https://www.dredge.com.au",
     logo_url: "https://www.dredge.com.au/logo.png",
     founded_year: 2015,
-    grapes: ["Pinot Noir", "Chardonnay", "Riesling"]
+    grapes: [ "Pinot Noir", "Chardonnay", "Riesling" ]
   },
   {
     name: "Place of Changing Winds",
     slug: "place-of-changing-winds",
-    regions: ["Macedon Ranges"],
+    regions: [ "Macedon Ranges" ],
     state: "Victoria",
     country_id: "Australia",
     address: nil,
@@ -143,12 +143,12 @@ ALL_PRODUCERS = [
     website: "https://www.placeofchangingwinds.com.au",
     logo_url: "https://www.placeofchangingwinds.com.au/assets/logo.png",
     founded_year: 2012,
-    grapes: ["Pinot Noir", "Syrah", "Chardonnay"]
+    grapes: [ "Pinot Noir", "Syrah", "Chardonnay" ]
   },
   {
     name: "Mayer Wines",
     slug: "mayer-wines",
-    regions: ["Yarra Valley"],
+    regions: [ "Yarra Valley" ],
     state: "Victoria",
     country_id: "Australia",
     address: nil,
@@ -159,12 +159,12 @@ ALL_PRODUCERS = [
     website: "https://www.timo-mayer.com.au",
     logo_url: "https://www.timo-mayer.com.au/logo.png",
     founded_year: 2000,
-    grapes: ["Pinot Noir", "Nebbiolo", "Chardonnay", "Gamay"]
+    grapes: [ "Pinot Noir", "Nebbiolo", "Chardonnay", "Gamay" ]
   },
   {
     name: "Luke Lambert",
     slug: "luke-lambert",
-    regions: ["Yarra Valley"],
+    regions: [ "Yarra Valley" ],
     state: "Victoria",
     country_id: "Australia",
     address: nil,
@@ -175,12 +175,12 @@ ALL_PRODUCERS = [
     website: "https://www.lukelambertwines.com.au",
     logo_url: "https://www.lukelambertwines.com.au/logo.png",
     founded_year: 2004,
-    grapes: ["Syrah", "Nebbiolo", "Chardonnay"]
+    grapes: [ "Syrah", "Nebbiolo", "Chardonnay" ]
   },
   {
     name: "Standish Wine Company",
     slug: "standish-wine-company",
-    regions: ["Barossa Valley"],
+    regions: [ "Barossa Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -191,12 +191,12 @@ ALL_PRODUCERS = [
     website: "https://www.standishwineco.com",
     logo_url: "https://www.standishwineco.com/logo.png",
     founded_year: 1999,
-    grapes: ["Shiraz"]
+    grapes: [ "Shiraz" ]
   },
   {
     name: "Frankland Estate",
     slug: "frankland-estate",
-    regions: ["Great Southern"],
+    regions: [ "Great Southern" ],
     state: "Western Australia",
     country_id: "Australia",
     address: nil,
@@ -207,14 +207,14 @@ ALL_PRODUCERS = [
     website: "https://www.franklandestate.com.au",
     logo_url: "https://www.franklandestate.com.au/assets/logo.png",
     founded_year: 1988,
-    grapes: ["Riesling", "Shiraz", "Cabernet Sauvignon"]
+    grapes: [ "Riesling", "Shiraz", "Cabernet Sauvignon" ]
   },
 
   # --- EXISTING PRODUCERS (EXTENDED WITH LOGO FIELD) ---
   {
     name: "Penfolds",
     slug: "penfolds",
-    regions: ["Barossa Valley"],
+    regions: [ "Barossa Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -225,13 +225,13 @@ ALL_PRODUCERS = [
     website: "https://www.penfolds.com",
     logo_url: "https://www.penfolds.com/on/demandware.static/-/Sites-penfolds-Library/default/dw104ed556/images/logo.png",
     founded_year: 1844,
-    grapes: ["Shiraz", "Cabernet Sauvignon", "Grenache", "Chardonnay"]
+    grapes: [ "Shiraz", "Cabernet Sauvignon", "Grenache", "Chardonnay" ]
   },
   {
     name: "Henschke",
     slug: "henschke",
     legal_name: "C.A. Henschke & Co.",
-    regions: ["Eden Valley"],
+    regions: [ "Eden Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -242,13 +242,13 @@ ALL_PRODUCERS = [
     website: "https://www.henschke.com.au",
     logo_url: "https://www.henschke.com.au/assets/logo.png",
     founded_year: 1868,
-    grapes: ["Shiraz", "Cabernet Sauvignon", "Riesling", "Semillon"]
+    grapes: [ "Shiraz", "Cabernet Sauvignon", "Riesling", "Semillon" ]
   },
   {
     name: "Yalumba",
     slug: "yalumba",
     legal_name: "S. Smith & Son Pty Ltd",
-    regions: ["Barossa Valley"],
+    regions: [ "Barossa Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -259,12 +259,12 @@ ALL_PRODUCERS = [
     website: "https://www.yalumba.com",
     logo_url: "https://www.yalumba.com/assets/logo.png",
     founded_year: 1849,
-    grapes: ["Shiraz", "Viognier", "Cabernet Sauvignon", "Grenache"]
+    grapes: [ "Shiraz", "Viognier", "Cabernet Sauvignon", "Grenache" ]
   },
   {
     name: "Torbreck Vintners",
     slug: "torbreck-vintners",
-    regions: ["Barossa Valley"],
+    regions: [ "Barossa Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -275,12 +275,12 @@ ALL_PRODUCERS = [
     website: "https://www.torbreck.com",
     logo_url: "https://www.torbreck.com/logo.png",
     founded_year: 1994,
-    grapes: ["Shiraz", "Grenache", "Mourvèdre", "Viognier"]
+    grapes: [ "Shiraz", "Grenache", "Mourvèdre", "Viognier" ]
   },
   {
     name: "Grant Burge",
     slug: "grant-burge",
-    regions: ["Barossa Valley"],
+    regions: [ "Barossa Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -291,12 +291,12 @@ ALL_PRODUCERS = [
     website: "https://www.grantburgewines.com.au",
     logo_url: "https://www.grantburgewines.com.au/logo.png",
     founded_year: 1988,
-    grapes: ["Shiraz", "Cabernet Sauvignon", "Riesling"]
+    grapes: [ "Shiraz", "Cabernet Sauvignon", "Riesling" ]
   },
   {
     name: "Peter Lehmann Wines",
     slug: "peter-lehmann-wines",
-    regions: ["Barossa Valley"],
+    regions: [ "Barossa Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -307,12 +307,12 @@ ALL_PRODUCERS = [
     website: "https://www.peterlehmannwines.com",
     logo_url: "https://www.peterlehmannwines.com/logo.png",
     founded_year: 1979,
-    grapes: ["Shiraz", "Riesling", "Semillon", "Grenache"]
+    grapes: [ "Shiraz", "Riesling", "Semillon", "Grenache" ]
   },
   {
     name: "Rockford Wines",
     slug: "rockford-wines",
-    regions: ["Barossa Valley"],
+    regions: [ "Barossa Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -323,12 +323,12 @@ ALL_PRODUCERS = [
     website: "https://www.rockfordwines.com.au",
     logo_url: "https://www.rockfordwines.com.au/logo.png",
     founded_year: 1984,
-    grapes: ["Shiraz", "Grenache", "Semillon"]
+    grapes: [ "Shiraz", "Grenache", "Semillon" ]
   },
   {
     name: "Charles Melton Wines",
     slug: "charles-melton-wines",
-    regions: ["Barossa Valley"],
+    regions: [ "Barossa Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -339,12 +339,12 @@ ALL_PRODUCERS = [
     website: "https://www.charlesmeltonwines.com.au",
     logo_url: "https://www.charlesmeltonwines.com.au/logo.png",
     founded_year: 1984,
-    grapes: ["Shiraz", "Grenache", "Mourvèdre"]
+    grapes: [ "Shiraz", "Grenache", "Mourvèdre" ]
   },
   {
     name: "Elderton Wines",
     slug: "elderton-wines",
-    regions: ["Barossa Valley"],
+    regions: [ "Barossa Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -355,12 +355,12 @@ ALL_PRODUCERS = [
     website: "https://eldertonwines.com.au",
     logo_url: "https://eldertonwines.com.au/logo.png",
     founded_year: 1982,
-    grapes: ["Shiraz", "Cabernet Sauvignon"]
+    grapes: [ "Shiraz", "Cabernet Sauvignon" ]
   },
   {
     name: "Chateau Tanunda",
     slug: "chateau-tanunda",
-    regions: ["Barossa Valley"],
+    regions: [ "Barossa Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -371,12 +371,12 @@ ALL_PRODUCERS = [
     website: "https://www.chateautanunda.com",
     logo_url: "https://www.chateautanunda.com/logo.png",
     founded_year: 1890,
-    grapes: ["Shiraz", "Grenache", "Cabernet Sauvignon"]
+    grapes: [ "Shiraz", "Grenache", "Cabernet Sauvignon" ]
   },
   {
     name: "St Hallett",
     slug: "st-hallett",
-    regions: ["Barossa Valley"],
+    regions: [ "Barossa Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -387,13 +387,13 @@ ALL_PRODUCERS = [
     website: "https://www.sthallett.com.au",
     logo_url: "https://www.sthallett.com.au/logo.png",
     founded_year: 1944,
-    grapes: ["Shiraz", "Grenache"]
+    grapes: [ "Shiraz", "Grenache" ]
   },
   {
     name: "Jacob's Creek (Orlando Wines)",
     slug: "jacob-s-creek-orlando-wines",
     legal_name: "Pernod Ricard Winemakers",
-    regions: ["Barossa Valley"],
+    regions: [ "Barossa Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -404,12 +404,12 @@ ALL_PRODUCERS = [
     website: "https://www.jacobscreek.com",
     logo_url: "https://www.jacobscreek.com/logo.png",
     founded_year: 1847,
-    grapes: ["Shiraz", "Chardonnay", "Cabernet Sauvignon", "Riesling"]
+    grapes: [ "Shiraz", "Chardonnay", "Cabernet Sauvignon", "Riesling" ]
   },
   {
     name: "Wolf Blass",
     slug: "wolf-blass",
-    regions: ["Barossa Valley"],
+    regions: [ "Barossa Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -420,12 +420,12 @@ ALL_PRODUCERS = [
     website: "https://www.wolfblass.com",
     logo_url: "https://www.wolfblass.com/logo.png",
     founded_year: 1966,
-    grapes: ["Shiraz", "Cabernet Sauvignon", "Chardonnay"]
+    grapes: [ "Shiraz", "Cabernet Sauvignon", "Chardonnay" ]
   },
   {
     name: "Seppeltsfield",
     slug: "seppeltsfield",
-    regions: ["Barossa Valley"],
+    regions: [ "Barossa Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -436,12 +436,12 @@ ALL_PRODUCERS = [
     website: "https://www.seppeltsfield.com.au",
     logo_url: "https://www.seppeltsfield.com.au/logo.png",
     founded_year: 1851,
-    grapes: ["Shiraz", "Grenache", "Mourvèdre"]
+    grapes: [ "Shiraz", "Grenache", "Mourvèdre" ]
   },
   {
     name: "Two Hands Wines",
     slug: "two-hands-wines",
-    regions: ["Barossa Valley"],
+    regions: [ "Barossa Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -452,12 +452,12 @@ ALL_PRODUCERS = [
     website: "https://www.twohandswines.com",
     logo_url: "https://www.twohandswines.com/logo.png",
     founded_year: 1999,
-    grapes: ["Shiraz", "Grenache"]
+    grapes: [ "Shiraz", "Grenache" ]
   },
   {
     name: "Turkey Flat",
     slug: "turkey-flat",
-    regions: ["Barossa Valley"],
+    regions: [ "Barossa Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -468,12 +468,12 @@ ALL_PRODUCERS = [
     website: "https://www.turkeyflat.com.au",
     logo_url: "https://www.turkeyflat.com.au/logo.png",
     founded_year: 1990,
-    grapes: ["Shiraz", "Grenache", "Mourvèdre", "Rosé blend"]
+    grapes: [ "Shiraz", "Grenache", "Mourvèdre", "Rosé blend" ]
   },
   {
     name: "Langmeil Winery",
     slug: "langmeil-winery",
-    regions: ["Barossa Valley"],
+    regions: [ "Barossa Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -484,12 +484,12 @@ ALL_PRODUCERS = [
     website: "https://www.langmeilwinery.com.au",
     logo_url: "https://www.langmeilwinery.com.au/logo.png",
     founded_year: 1996,
-    grapes: ["Shiraz", "Grenache", "Cabernet Sauvignon"]
+    grapes: [ "Shiraz", "Grenache", "Cabernet Sauvignon" ]
   },
   {
     name: "Kalleske",
     slug: "kalleske",
-    regions: ["Barossa Valley"],
+    regions: [ "Barossa Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -500,12 +500,12 @@ ALL_PRODUCERS = [
     website: "https://www.kalleske.com",
     logo_url: "https://www.kalleske.com/logo.png",
     founded_year: 2004,
-    grapes: ["Shiraz", "Grenache", "Zinfandel"]
+    grapes: [ "Shiraz", "Grenache", "Zinfandel" ]
   },
   {
     name: "Spinifex Wines",
     slug: "spinifex-wines",
-    regions: ["Barossa Valley"],
+    regions: [ "Barossa Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -516,12 +516,12 @@ ALL_PRODUCERS = [
     website: "https://www.spinifexwines.com.au",
     logo_url: "https://www.spinifexwines.com.au/logo.png",
     founded_year: 2001,
-    grapes: ["Shiraz", "Grenache", "Mourvèdre", "Cinsault"]
+    grapes: [ "Shiraz", "Grenache", "Mourvèdre", "Cinsault" ]
   },
   {
     name: "Teusner Wines",
     slug: "teusner-wines",
-    regions: ["Barossa Valley"],
+    regions: [ "Barossa Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -532,12 +532,12 @@ ALL_PRODUCERS = [
     website: "https://www.teusner.com.au",
     logo_url: "https://www.teusner.com.au/logo.png",
     founded_year: 2001,
-    grapes: ["Shiraz", "Grenache", "Mourvèdre"]
+    grapes: [ "Shiraz", "Grenache", "Mourvèdre" ]
   },
   {
     name: "Glaetzer Wines",
     slug: "glaetzer-wines",
-    regions: ["Barossa Valley"],
+    regions: [ "Barossa Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -548,13 +548,13 @@ ALL_PRODUCERS = [
     website: "https://www.glaetzer.com",
     logo_url: "https://www.glaetzer.com/logo.png",
     founded_year: 1996,
-    grapes: ["Shiraz", "Grenache"]
+    grapes: [ "Shiraz", "Grenache" ]
   },
   {
     name: "d'Arenberg",
     slug: "d-arenberg",
     legal_name: "d'Arenberg Pty Ltd",
-    regions: ["McLaren Vale"],
+    regions: [ "McLaren Vale" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -565,12 +565,12 @@ ALL_PRODUCERS = [
     website: "https://www.darenberg.com.au",
     logo_url: "https://www.darenberg.com.au/logo.png",
     founded_year: 1912,
-    grapes: ["Shiraz", "Grenache", "Chardonnay", "Cabernet Sauvignon"]
+    grapes: [ "Shiraz", "Grenache", "Chardonnay", "Cabernet Sauvignon" ]
   },
   {
     name: "Wirra Wirra",
     slug: "wirra-wirra",
-    regions: ["McLaren Vale"],
+    regions: [ "McLaren Vale" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -581,12 +581,12 @@ ALL_PRODUCERS = [
     website: "https://www.wirrawirra.com",
     logo_url: "https://www.wirrawirra.com/logo.png",
     founded_year: 1894,
-    grapes: ["Shiraz", "Cabernet Sauvignon", "Grenache"]
+    grapes: [ "Shiraz", "Cabernet Sauvignon", "Grenache" ]
   },
   {
     name: "Chapel Hill",
     slug: "chapel-hill",
-    regions: ["McLaren Vale"],
+    regions: [ "McLaren Vale" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -597,12 +597,12 @@ ALL_PRODUCERS = [
     website: "https://www.chapelhillwine.com.au",
     logo_url: "https://www.chapelhillwine.com.au/logo.png",
     founded_year: 1979,
-    grapes: ["Shiraz", "Cabernet Sauvignon"]
+    grapes: [ "Shiraz", "Cabernet Sauvignon" ]
   },
   {
     name: "Coriole",
     slug: "coriole",
-    regions: ["McLaren Vale"],
+    regions: [ "McLaren Vale" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -613,12 +613,12 @@ ALL_PRODUCERS = [
     website: "https://www.coriole.com",
     logo_url: "https://www.coriole.com/logo.png",
     founded_year: 1967,
-    grapes: ["Shiraz", "Sangiovese", "Fiano"]
+    grapes: [ "Shiraz", "Sangiovese", "Fiano" ]
   },
   {
     name: "S.C. Pannell",
     slug: "s-c-pannell",
-    regions: ["McLaren Vale"],
+    regions: [ "McLaren Vale" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -629,12 +629,12 @@ ALL_PRODUCERS = [
     website: "https://www.pannell.com.au",
     logo_url: "https://www.pannell.com.au/logo.png",
     founded_year: 2004,
-    grapes: ["Grenache", "Shiraz", "Nebbiolo", "Tempranillo"]
+    grapes: [ "Grenache", "Shiraz", "Nebbiolo", "Tempranillo" ]
   },
   {
     name: "Yangarra Estate Vineyard",
     slug: "yangarra-estate-vineyard",
-    regions: ["McLaren Vale"],
+    regions: [ "McLaren Vale" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -645,12 +645,12 @@ ALL_PRODUCERS = [
     website: "https://www.yangarra.com",
     logo_url: "https://www.yangarra.com/logo.png",
     founded_year: 2000,
-    grapes: ["Grenache", "Shiraz", "Roussanne"]
+    grapes: [ "Grenache", "Shiraz", "Roussanne" ]
   },
   {
     name: "Gemtree Wines",
     slug: "gemtree-wines",
-    regions: ["McLaren Vale"],
+    regions: [ "McLaren Vale" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -661,12 +661,12 @@ ALL_PRODUCERS = [
     website: "https://www.gemtreewines.com",
     logo_url: "https://www.gemtreewines.com/logo.png",
     founded_year: 1998,
-    grapes: ["Shiraz", "Grenache", "Cabernet Sauvignon"]
+    grapes: [ "Shiraz", "Grenache", "Cabernet Sauvignon" ]
   },
   {
     name: "Kay Brothers",
     slug: "kay-brothers",
-    regions: ["McLaren Vale"],
+    regions: [ "McLaren Vale" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -677,12 +677,12 @@ ALL_PRODUCERS = [
     website: "https://www.kaybrothersamerywines.com",
     logo_url: "https://www.kaybrothersamerywines.com/logo.png",
     founded_year: 1890,
-    grapes: ["Shiraz", "Grenache"]
+    grapes: [ "Shiraz", "Grenache" ]
   },
   {
     name: "Clarendon Hills",
     slug: "clarendon-hills",
-    regions: ["McLaren Vale"],
+    regions: [ "McLaren Vale" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -693,12 +693,12 @@ ALL_PRODUCERS = [
     website: "https://www.clarendonhills.com.au",
     logo_url: "https://www.clarendonhills.com.au/logo.png",
     founded_year: 1989,
-    grapes: ["Grenache", "Shiraz"]
+    grapes: [ "Grenache", "Shiraz" ]
   },
   {
     name: "Ochota Barrels",
     slug: "ochota-barrels",
-    regions: ["McLaren Vale", "Adelaide Hills"],
+    regions: [ "McLaren Vale", "Adelaide Hills" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -709,12 +709,12 @@ ALL_PRODUCERS = [
     website: "https://www.ochotabarrels.com",
     logo_url: "https://www.ochotabarrels.com/logo.png",
     founded_year: 2008,
-    grapes: ["Grenache", "Syrah", "Pinot Noir"]
+    grapes: [ "Grenache", "Syrah", "Pinot Noir" ]
   },
   {
     name: "Brash Higgins",
     slug: "brash-higgins",
-    regions: ["McLaren Vale"],
+    regions: [ "McLaren Vale" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -725,13 +725,13 @@ ALL_PRODUCERS = [
     website: "https://www.brashhiggins.com",
     logo_url: "https://www.brashhiggins.com/logo.png",
     founded_year: 2008,
-    grapes: ["Nero d'Avola", "Shiraz", "Grenache"]
+    grapes: [ "Nero d'Avola", "Shiraz", "Grenache" ]
   },
   {
     name: "Hardys",
     slug: "hardys",
     legal_name: "Accolade Wines Australia Limited",
-    regions: ["McLaren Vale"],
+    regions: [ "McLaren Vale" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -742,12 +742,12 @@ ALL_PRODUCERS = [
     website: "https://www.hardyswines.com",
     logo_url: "https://www.hardyswines.com/logo.png",
     founded_year: 1853,
-    grapes: ["Shiraz", "Cabernet Sauvignon", "Chardonnay"]
+    grapes: [ "Shiraz", "Cabernet Sauvignon", "Chardonnay" ]
   },
   {
     name: "Grosset Wines",
     slug: "grosset-wines",
-    regions: ["Clare Valley"],
+    regions: [ "Clare Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -758,12 +758,12 @@ ALL_PRODUCERS = [
     website: "https://www.grosset.com.au",
     logo_url: "https://www.grosset.com.au/logo.png",
     founded_year: 1981,
-    grapes: ["Riesling", "Pinot Noir", "Cabernet Sauvignon"]
+    grapes: [ "Riesling", "Pinot Noir", "Cabernet Sauvignon" ]
   },
   {
     name: "Jim Barry Wines",
     slug: "jim-barry-wines",
-    regions: ["Clare Valley"],
+    regions: [ "Clare Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -774,12 +774,12 @@ ALL_PRODUCERS = [
     website: "https://www.jimbarry.com",
     logo_url: "https://www.jimbarry.com/logo.png",
     founded_year: 1959,
-    grapes: ["Shiraz", "Riesling", "Cabernet Sauvignon"]
+    grapes: [ "Shiraz", "Riesling", "Cabernet Sauvignon" ]
   },
   {
     name: "Kilikanoon Wines",
     slug: "kilikanoon-wines",
-    regions: ["Clare Valley"],
+    regions: [ "Clare Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -790,13 +790,13 @@ ALL_PRODUCERS = [
     website: "https://www.kilikanoon.com.au",
     logo_url: "https://www.kilikanoon.com.au/logo.png",
     founded_year: 1997,
-    grapes: ["Shiraz", "Riesling", "Grenache"]
+    grapes: [ "Shiraz", "Riesling", "Grenache" ]
   },
   {
     name: "Taylors Wines (Wakefield)",
     slug: "taylors-wines-wakefield",
     legal_name: "Taylors Wines Pty Ltd",
-    regions: ["Clare Valley"],
+    regions: [ "Clare Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -807,12 +807,12 @@ ALL_PRODUCERS = [
     website: "https://www.taylorswines.com.au",
     logo_url: "https://www.taylorswines.com.au/logo.png",
     founded_year: 1969,
-    grapes: ["Shiraz", "Cabernet Sauvignon", "Riesling"]
+    grapes: [ "Shiraz", "Cabernet Sauvignon", "Riesling" ]
   },
   {
     name: "Pikes Wines",
     slug: "pikes-wines",
-    regions: ["Clare Valley"],
+    regions: [ "Clare Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -823,12 +823,12 @@ ALL_PRODUCERS = [
     website: "https://www.pikeswines.com.au",
     logo_url: "https://www.pikeswines.com.au/logo.png",
     founded_year: 1984,
-    grapes: ["Riesling", "Shiraz"]
+    grapes: [ "Riesling", "Shiraz" ]
   },
   {
     name: "Mount Horrocks",
     slug: "mount-horrocks",
-    regions: ["Clare Valley"],
+    regions: [ "Clare Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -839,12 +839,12 @@ ALL_PRODUCERS = [
     website: "https://www.mounthorrocks.com",
     logo_url: "https://www.mounthorrocks.com/logo.png",
     founded_year: 1982,
-    grapes: ["Riesling", "Shiraz", "Semillon"]
+    grapes: [ "Riesling", "Shiraz", "Semillon" ]
   },
   {
     name: "Skillogalee",
     slug: "skillogalee",
-    regions: ["Clare Valley"],
+    regions: [ "Clare Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -855,12 +855,12 @@ ALL_PRODUCERS = [
     website: "https://www.skillogalee.com",
     logo_url: "https://www.skillogalee.com/logo.png",
     founded_year: 1970,
-    grapes: ["Riesling", "Shiraz", "Cabernet Sauvignon"]
+    grapes: [ "Riesling", "Shiraz", "Cabernet Sauvignon" ]
   },
   {
     name: "Pewsey Vale",
     slug: "pewsey-vale",
-    regions: ["Eden Valley"],
+    regions: [ "Eden Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -871,12 +871,12 @@ ALL_PRODUCERS = [
     website: "https://www.pewseyvale.com",
     logo_url: "https://www.pewseyvale.com/logo.png",
     founded_year: 1847,
-    grapes: ["Riesling"]
+    grapes: [ "Riesling" ]
   },
   {
     name: "Heggies Vineyard",
     slug: "heggies-vineyard",
-    regions: ["Eden Valley"],
+    regions: [ "Eden Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -887,12 +887,12 @@ ALL_PRODUCERS = [
     website: "https://www.heggiesvineyard.com",
     logo_url: "https://www.heggiesvineyard.com/logo.png",
     founded_year: 1971,
-    grapes: ["Riesling", "Chardonnay", "Viognier"]
+    grapes: [ "Riesling", "Chardonnay", "Viognier" ]
   },
   {
     name: "Shaw + Smith",
     slug: "shaw-smith",
-    regions: ["Adelaide Hills"],
+    regions: [ "Adelaide Hills" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -903,12 +903,12 @@ ALL_PRODUCERS = [
     website: "https://www.shawandsmith.com",
     logo_url: "https://www.shawandsmith.com/logo.png",
     founded_year: 1989,
-    grapes: ["Sauvignon Blanc", "Chardonnay", "Shiraz", "Pinot Noir"]
+    grapes: [ "Sauvignon Blanc", "Chardonnay", "Shiraz", "Pinot Noir" ]
   },
   {
     name: "Ashton Hills",
     slug: "ashton-hills",
-    regions: ["Adelaide Hills"],
+    regions: [ "Adelaide Hills" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -919,12 +919,12 @@ ALL_PRODUCERS = [
     website: "https://www.ashtonhills.com.au",
     logo_url: "https://www.ashtonhills.com.au/logo.png",
     founded_year: 1982,
-    grapes: ["Pinot Noir", "Riesling"]
+    grapes: [ "Pinot Noir", "Riesling" ]
   },
   {
     name: "The Lane Vineyard",
     slug: "the-lane-vineyard",
-    regions: ["Adelaide Hills"],
+    regions: [ "Adelaide Hills" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -935,12 +935,12 @@ ALL_PRODUCERS = [
     website: "https://www.thelane.com.au",
     logo_url: "https://www.thelane.com.au/logo.png",
     founded_year: 1993,
-    grapes: ["Chardonnay", "Shiraz", "Sauvignon Blanc"]
+    grapes: [ "Chardonnay", "Shiraz", "Sauvignon Blanc" ]
   },
   {
     name: "Bird in Hand",
     slug: "bird-in-hand",
-    regions: ["Adelaide Hills"],
+    regions: [ "Adelaide Hills" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -951,12 +951,12 @@ ALL_PRODUCERS = [
     website: "https://www.birdinhand.com.au",
     logo_url: "https://www.birdinhand.com.au/logo.png",
     founded_year: 1997,
-    grapes: ["Chardonnay", "Shiraz", "Pinot Noir"]
+    grapes: [ "Chardonnay", "Shiraz", "Pinot Noir" ]
   },
   {
     name: "Petaluma",
     slug: "petaluma",
-    regions: ["Adelaide Hills"],
+    regions: [ "Adelaide Hills" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -967,12 +967,12 @@ ALL_PRODUCERS = [
     website: "https://www.petaluma.com.au",
     logo_url: "https://www.petaluma.com.au/logo.png",
     founded_year: 1976,
-    grapes: ["Chardonnay", "Riesling", "Shiraz"]
+    grapes: [ "Chardonnay", "Riesling", "Shiraz" ]
   },
   {
     name: "Wynns Coonawarra Estate",
     slug: "wynns-coonawarra-estate",
-    regions: ["Coonawarra"],
+    regions: [ "Coonawarra" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -983,12 +983,12 @@ ALL_PRODUCERS = [
     website: "https://www.wynns.com.au",
     logo_url: "https://www.wynns.com.au/logo.png",
     founded_year: 1891,
-    grapes: ["Cabernet Sauvignon", "Shiraz", "Riesling"]
+    grapes: [ "Cabernet Sauvignon", "Shiraz", "Riesling" ]
   },
   {
     name: "Katnook Estate",
     slug: "katnook-estate",
-    regions: ["Coonawarra"],
+    regions: [ "Coonawarra" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -999,12 +999,12 @@ ALL_PRODUCERS = [
     website: "https://www.katnookestate.com",
     logo_url: "https://www.katnookestate.com/logo.png",
     founded_year: 1979,
-    grapes: ["Cabernet Sauvignon", "Shiraz", "Chardonnay"]
+    grapes: [ "Cabernet Sauvignon", "Shiraz", "Chardonnay" ]
   },
   {
     name: "Parker Coonawarra Estate",
     slug: "parker-coonawarra-estate",
-    regions: ["Coonawarra"],
+    regions: [ "Coonawarra" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -1015,12 +1015,12 @@ ALL_PRODUCERS = [
     website: "https://www.parkercoonawarraestate.com.au",
     logo_url: "https://www.parkercoonawarraestate.com.au/logo.png",
     founded_year: 1985,
-    grapes: ["Cabernet Sauvignon"]
+    grapes: [ "Cabernet Sauvignon" ]
   },
   {
     name: "Balnaves of Coonawarra",
     slug: "balnaves-of-coonawarra",
-    regions: ["Coonawarra"],
+    regions: [ "Coonawarra" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -1031,12 +1031,12 @@ ALL_PRODUCERS = [
     website: "https://www.balnaves.com.au",
     logo_url: "https://www.balnaves.com.au/logo.png",
     founded_year: 1975,
-    grapes: ["Cabernet Sauvignon", "Shiraz"]
+    grapes: [ "Cabernet Sauvignon", "Shiraz" ]
   },
   {
     name: "Leconfield",
     slug: "leconfield",
-    regions: ["Coonawarra"],
+    regions: [ "Coonawarra" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -1047,12 +1047,12 @@ ALL_PRODUCERS = [
     website: "https://www.leconfieldwines.com",
     logo_url: "https://www.leconfieldwines.com/logo.png",
     founded_year: 1974,
-    grapes: ["Cabernet Sauvignon", "Shiraz", "Riesling"]
+    grapes: [ "Cabernet Sauvignon", "Shiraz", "Riesling" ]
   },
   {
     name: "Cullen Wines",
     slug: "cullen-wines",
-    regions: ["Margaret River"],
+    regions: [ "Margaret River" ],
     state: "Western Australia",
     country_id: "Australia",
     address: nil,
@@ -1063,12 +1063,12 @@ ALL_PRODUCERS = [
     website: "https://www.cullenwines.com.au",
     logo_url: "https://www.cullenwines.com.au/logo.png",
     founded_year: 1971,
-    grapes: ["Cabernet Sauvignon", "Sauvignon Blanc", "Chardonnay", "Semillon"]
+    grapes: [ "Cabernet Sauvignon", "Sauvignon Blanc", "Chardonnay", "Semillon" ]
   },
   {
     name: "Vasse Felix",
     slug: "vasse-felix",
-    regions: ["Margaret River"],
+    regions: [ "Margaret River" ],
     state: "Western Australia",
     country_id: "Australia",
     address: nil,
@@ -1079,12 +1079,12 @@ ALL_PRODUCERS = [
     website: "https://www.vassefelix.com.au",
     logo_url: "https://www.vassefelix.com.au/logo.png",
     founded_year: 1967,
-    grapes: ["Cabernet Sauvignon", "Chardonnay", "Shiraz"]
+    grapes: [ "Cabernet Sauvignon", "Chardonnay", "Shiraz" ]
   },
   {
     name: "Leeuwin Estate",
     slug: "leeuwin-estate",
-    regions: ["Margaret River"],
+    regions: [ "Margaret River" ],
     state: "Western Australia",
     country_id: "Australia",
     address: nil,
@@ -1095,12 +1095,12 @@ ALL_PRODUCERS = [
     website: "https://www.leeuwinestate.com.au",
     logo_url: "https://www.leeuwinestate.com.au/logo.png",
     founded_year: 1974,
-    grapes: ["Chardonnay", "Cabernet Sauvignon", "Riesling"]
+    grapes: [ "Chardonnay", "Cabernet Sauvignon", "Riesling" ]
   },
   {
     name: "Moss Wood",
     slug: "moss-wood",
-    regions: ["Margaret River"],
+    regions: [ "Margaret River" ],
     state: "Western Australia",
     country_id: "Australia",
     address: nil,
@@ -1111,12 +1111,12 @@ ALL_PRODUCERS = [
     website: "https://www.mosswood.com.au",
     logo_url: "https://www.mosswood.com.au/logo.png",
     founded_year: 1969,
-    grapes: ["Cabernet Sauvignon", "Semillon", "Chardonnay"]
+    grapes: [ "Cabernet Sauvignon", "Semillon", "Chardonnay" ]
   },
   {
     name: "Voyager Estate",
     slug: "voyager-estate",
-    regions: ["Margaret River"],
+    regions: [ "Margaret River" ],
     state: "Western Australia",
     country_id: "Australia",
     address: nil,
@@ -1127,12 +1127,12 @@ ALL_PRODUCERS = [
     website: "https://www.voyagerestate.com.au",
     logo_url: "https://www.voyagerestate.com.au/logo.png",
     founded_year: 1978,
-    grapes: ["Chardonnay", "Cabernet Sauvignon", "Sauvignon Blanc"]
+    grapes: [ "Chardonnay", "Cabernet Sauvignon", "Sauvignon Blanc" ]
   },
   {
     name: "Woodlands",
     slug: "woodlands",
-    regions: ["Margaret River"],
+    regions: [ "Margaret River" ],
     state: "Western Australia",
     country_id: "Australia",
     address: nil,
@@ -1143,12 +1143,12 @@ ALL_PRODUCERS = [
     website: "https://www.woodlandswines.com",
     logo_url: "https://www.woodlandswines.com/logo.png",
     founded_year: 1973,
-    grapes: ["Cabernet Sauvignon", "Merlot"]
+    grapes: [ "Cabernet Sauvignon", "Merlot" ]
   },
   {
     name: "Xanadu Wines",
     slug: "xanadu-wines",
-    regions: ["Margaret River"],
+    regions: [ "Margaret River" ],
     state: "Western Australia",
     country_id: "Australia",
     address: nil,
@@ -1159,12 +1159,12 @@ ALL_PRODUCERS = [
     website: "https://www.xanaduwines.com",
     logo_url: "https://www.xanaduwines.com/logo.png",
     founded_year: 1977,
-    grapes: ["Cabernet Sauvignon", "Chardonnay", "Sauvignon Blanc"]
+    grapes: [ "Cabernet Sauvignon", "Chardonnay", "Sauvignon Blanc" ]
   },
   {
     name: "Fraser Gallop Estate",
     slug: "fraser-gallop-estate",
-    regions: ["Margaret River"],
+    regions: [ "Margaret River" ],
     state: "Western Australia",
     country_id: "Australia",
     address: nil,
@@ -1175,12 +1175,12 @@ ALL_PRODUCERS = [
     website: "https://www.frasergallop.com.au",
     logo_url: "https://www.frasergallop.com.au/logo.png",
     founded_year: 1999,
-    grapes: ["Cabernet Sauvignon", "Chardonnay"]
+    grapes: [ "Cabernet Sauvignon", "Chardonnay" ]
   },
   {
     name: "Pierro",
     slug: "pierro",
-    regions: ["Margaret River"],
+    regions: [ "Margaret River" ],
     state: "Western Australia",
     country_id: "Australia",
     address: nil,
@@ -1191,12 +1191,12 @@ ALL_PRODUCERS = [
     website: "https://www.pierro.com.au",
     logo_url: "https://www.pierro.com.au/logo.png",
     founded_year: 1979,
-    grapes: ["Chardonnay", "Cabernet Sauvignon", "Semillon"]
+    grapes: [ "Chardonnay", "Cabernet Sauvignon", "Semillon" ]
   },
   {
     name: "Cape Mentelle",
     slug: "cape-mentelle",
-    regions: ["Margaret River"],
+    regions: [ "Margaret River" ],
     state: "Western Australia",
     country_id: "Australia",
     address: nil,
@@ -1207,12 +1207,12 @@ ALL_PRODUCERS = [
     website: "https://www.capementelle.com.au",
     logo_url: "https://www.capementelle.com.au/logo.png",
     founded_year: 1970,
-    grapes: ["Cabernet Sauvignon", "Shiraz", "Sauvignon Blanc"]
+    grapes: [ "Cabernet Sauvignon", "Shiraz", "Sauvignon Blanc" ]
   },
   {
     name: "Howard Park",
     slug: "howard-park",
-    regions: ["Margaret River", "Great Southern"],
+    regions: [ "Margaret River", "Great Southern" ],
     state: "Western Australia",
     country_id: "Australia",
     address: nil,
@@ -1223,12 +1223,12 @@ ALL_PRODUCERS = [
     website: "https://www.howardparkwines.com.au",
     logo_url: "https://www.howardparkwines.com.au/logo.png",
     founded_year: 1986,
-    grapes: ["Riesling", "Cabernet Sauvignon", "Chardonnay"]
+    grapes: [ "Riesling", "Cabernet Sauvignon", "Chardonnay" ]
   },
   {
     name: "Plantagenet Wines",
     slug: "plantagenet-wines",
-    regions: ["Great Southern"],
+    regions: [ "Great Southern" ],
     state: "Western Australia",
     country_id: "Australia",
     address: nil,
@@ -1239,12 +1239,12 @@ ALL_PRODUCERS = [
     website: "https://www.plantagenetwines.com",
     logo_url: "https://www.plantagenetwines.com/logo.png",
     founded_year: 1974,
-    grapes: ["Riesling", "Shiraz", "Cabernet Sauvignon"]
+    grapes: [ "Riesling", "Shiraz", "Cabernet Sauvignon" ]
   },
   {
     name: "Domaine Naturaliste",
     slug: "domaine-naturaliste",
-    regions: ["Margaret River"],
+    regions: [ "Margaret River" ],
     state: "Western Australia",
     country_id: "Australia",
     address: nil,
@@ -1255,12 +1255,12 @@ ALL_PRODUCERS = [
     website: "https://www.domainenaturaliste.com",
     logo_url: "https://www.domainenaturaliste.com/logo.png",
     founded_year: 2007,
-    grapes: ["Cabernet Sauvignon", "Chardonnay", "Syrah"]
+    grapes: [ "Cabernet Sauvignon", "Chardonnay", "Syrah" ]
   },
   {
     name: "Giaconda",
     slug: "giaconda",
-    regions: ["Beechworth"],
+    regions: [ "Beechworth" ],
     state: "Victoria",
     country_id: "Australia",
     address: nil,
@@ -1271,12 +1271,12 @@ ALL_PRODUCERS = [
     website: "https://www.giaconda.com.au",
     logo_url: "https://www.giaconda.com.au/logo.png",
     founded_year: 1985,
-    grapes: ["Chardonnay", "Shiraz", "Pinot Noir"]
+    grapes: [ "Chardonnay", "Shiraz", "Pinot Noir" ]
   },
   {
     name: "Yering Station",
     slug: "yering-station",
-    regions: ["Yarra Valley"],
+    regions: [ "Yarra Valley" ],
     state: "Victoria",
     country_id: "Australia",
     address: nil,
@@ -1287,12 +1287,12 @@ ALL_PRODUCERS = [
     website: "https://www.yering.com",
     logo_url: "https://www.yering.com/logo.png",
     founded_year: 1838,
-    grapes: ["Chardonnay", "Pinot Noir", "Shiraz"]
+    grapes: [ "Chardonnay", "Pinot Noir", "Shiraz" ]
   },
   {
     name: "Mount Mary",
     slug: "mount-mary",
-    regions: ["Yarra Valley"],
+    regions: [ "Yarra Valley" ],
     state: "Victoria",
     country_id: "Australia",
     address: nil,
@@ -1303,12 +1303,12 @@ ALL_PRODUCERS = [
     website: "https://www.mountmary.com.au",
     logo_url: "https://www.mountmary.com.au/logo.png",
     founded_year: 1971,
-    grapes: ["Cabernet Sauvignon", "Chardonnay", "Pinot Noir"]
+    grapes: [ "Cabernet Sauvignon", "Chardonnay", "Pinot Noir" ]
   },
   {
     name: "Yarra Yering",
     slug: "yarra-yering",
-    regions: ["Yarra Valley"],
+    regions: [ "Yarra Valley" ],
     state: "Victoria",
     country_id: "Australia",
     address: nil,
@@ -1319,13 +1319,13 @@ ALL_PRODUCERS = [
     website: "https://www.yarrayering.com",
     logo_url: "https://www.yarrayering.com/logo.png",
     founded_year: 1969,
-    grapes: ["Cabernet Sauvignon", "Shiraz", "Pinot Noir"]
+    grapes: [ "Cabernet Sauvignon", "Shiraz", "Pinot Noir" ]
   },
   {
     name: "De Bortoli",
     slug: "de-bortoli",
     legal_name: "De Bortoli Wines Pty Ltd",
-    regions: ["Yarra Valley", "Riverina"],
+    regions: [ "Yarra Valley", "Riverina" ],
     state: "Victoria / New South Wales",
     country_id: "Australia",
     address: nil,
@@ -1336,12 +1336,12 @@ ALL_PRODUCERS = [
     website: "https://www.debortoli.com.au",
     logo_url: "https://www.debortoli.com.au/logo.png",
     founded_year: 1928,
-    grapes: ["Chardonnay", "Pinot Noir", "Semillon", "Shiraz"]
+    grapes: [ "Chardonnay", "Pinot Noir", "Semillon", "Shiraz" ]
   },
   {
     name: "Coldstream Hills",
     slug: "coldstream-hills",
-    regions: ["Yarra Valley"],
+    regions: [ "Yarra Valley" ],
     state: "Victoria",
     country_id: "Australia",
     address: nil,
@@ -1352,12 +1352,12 @@ ALL_PRODUCERS = [
     website: "https://www.coldstreamhills.com.au",
     logo_url: "https://www.coldstreamhills.com.au/logo.png",
     founded_year: 1985,
-    grapes: ["Chardonnay", "Pinot Noir"]
+    grapes: [ "Chardonnay", "Pinot Noir" ]
   },
   {
     name: "Oakridge Wines",
     slug: "oakridge-wines",
-    regions: ["Yarra Valley"],
+    regions: [ "Yarra Valley" ],
     state: "Victoria",
     country_id: "Australia",
     address: nil,
@@ -1368,12 +1368,12 @@ ALL_PRODUCERS = [
     website: "https://www.oakridgewines.com.au",
     logo_url: "https://www.oakridgewines.com.au/logo.png",
     founded_year: 1978,
-    grapes: ["Chardonnay", "Pinot Noir", "Cabernet Sauvignon"]
+    grapes: [ "Chardonnay", "Pinot Noir", "Cabernet Sauvignon" ]
   },
   {
     name: "Giant Steps",
     slug: "giant-steps",
-    regions: ["Yarra Valley"],
+    regions: [ "Yarra Valley" ],
     state: "Victoria",
     country_id: "Australia",
     address: nil,
@@ -1384,12 +1384,12 @@ ALL_PRODUCERS = [
     website: "https://www.giantstepswine.com.au",
     logo_url: "https://www.giantstepswine.com.au/logo.png",
     founded_year: 1997,
-    grapes: ["Chardonnay", "Pinot Noir"]
+    grapes: [ "Chardonnay", "Pinot Noir" ]
   },
   {
     name: "TarraWarra Estate",
     slug: "tarrawarra-estate",
-    regions: ["Yarra Valley"],
+    regions: [ "Yarra Valley" ],
     state: "Victoria",
     country_id: "Australia",
     address: nil,
@@ -1400,12 +1400,12 @@ ALL_PRODUCERS = [
     website: "https://www.tarrawarra.com.au",
     logo_url: "https://www.tarrawarra.com.au/logo.png",
     founded_year: 1983,
-    grapes: ["Chardonnay", "Pinot Noir", "Shiraz"]
+    grapes: [ "Chardonnay", "Pinot Noir", "Shiraz" ]
   },
   {
     name: "Mac Forbes",
     slug: "mac-forbes",
-    regions: ["Yarra Valley"],
+    regions: [ "Yarra Valley" ],
     state: "Victoria",
     country_id: "Australia",
     address: nil,
@@ -1416,12 +1416,12 @@ ALL_PRODUCERS = [
     website: "https://www.macforbes.com",
     logo_url: "https://www.macforbes.com/logo.png",
     founded_year: 2004,
-    grapes: ["Pinot Noir", "Chardonnay", "Riesling"]
+    grapes: [ "Pinot Noir", "Chardonnay", "Riesling" ]
   },
   {
     name: "Tahbilk",
     slug: "tahbilk",
-    regions: ["Nagambie Lakes"],
+    regions: [ "Nagambie Lakes" ],
     state: "Victoria",
     country_id: "Australia",
     address: nil,
@@ -1432,12 +1432,12 @@ ALL_PRODUCERS = [
     website: "https://www.tahbilk.com.au",
     logo_url: "https://www.tahbilk.com.au/logo.png",
     founded_year: 1860,
-    grapes: ["Shiraz", "Marsanne", "Cabernet Sauvignon"]
+    grapes: [ "Shiraz", "Marsanne", "Cabernet Sauvignon" ]
   },
   {
     name: "Mitchelton",
     slug: "mitchelton",
-    regions: ["Nagambie Lakes"],
+    regions: [ "Nagambie Lakes" ],
     state: "Victoria",
     country_id: "Australia",
     address: nil,
@@ -1448,12 +1448,12 @@ ALL_PRODUCERS = [
     website: "https://www.mitchelton.com.au",
     logo_url: "https://www.mitchelton.com.au/logo.png",
     founded_year: 1969,
-    grapes: ["Marsanne", "Shiraz", "Cabernet Sauvignon"]
+    grapes: [ "Marsanne", "Shiraz", "Cabernet Sauvignon" ]
   },
   {
     name: "Jasper Hill",
     slug: "jasper-hill",
-    regions: ["Heathcote"],
+    regions: [ "Heathcote" ],
     state: "Victoria",
     country_id: "Australia",
     address: nil,
@@ -1464,13 +1464,13 @@ ALL_PRODUCERS = [
     website: "https://www.jasperhillwine.com.au",
     logo_url: "https://www.jasperhillwine.com.au/logo.png",
     founded_year: 1975,
-    grapes: ["Shiraz", "Cabernet Sauvignon"]
+    grapes: [ "Shiraz", "Cabernet Sauvignon" ]
   },
   {
     name: "Brown Brothers",
     slug: "brown-brothers",
     legal_name: "Brown Brothers Milawa Vineyard Pty Ltd",
-    regions: ["King Valley"],
+    regions: [ "King Valley" ],
     state: "Victoria",
     country_id: "Australia",
     address: nil,
@@ -1481,12 +1481,12 @@ ALL_PRODUCERS = [
     website: "https://www.brownbrothers.com.au",
     logo_url: "https://www.brownbrothers.com.au/logo.png",
     founded_year: 1889,
-    grapes: ["Shiraz", "Chardonnay", "Riesling", "Prosecco (Glera)"]
+    grapes: [ "Shiraz", "Chardonnay", "Riesling", "Prosecco (Glera)" ]
   },
   {
     name: "Campbells Wines",
     slug: "campbells-wines",
-    regions: ["Rutherglen"],
+    regions: [ "Rutherglen" ],
     state: "Victoria",
     country_id: "Australia",
     address: nil,
@@ -1497,12 +1497,12 @@ ALL_PRODUCERS = [
     website: "https://www.campbellswines.com.au",
     logo_url: "https://www.campbellswines.com.au/logo.png",
     founded_year: 1870,
-    grapes: ["Shiraz", "Muscat", "Durif"]
+    grapes: [ "Shiraz", "Muscat", "Durif" ]
   },
   {
     name: "All Saints Estate",
     slug: "all-saints-estate",
-    regions: ["Rutherglen"],
+    regions: [ "Rutherglen" ],
     state: "Victoria",
     country_id: "Australia",
     address: nil,
@@ -1513,12 +1513,12 @@ ALL_PRODUCERS = [
     website: "https://www.allsaintswine.com.au",
     logo_url: "https://www.allsaintswine.com.au/logo.png",
     founded_year: 1864,
-    grapes: ["Shiraz", "Muscat", "Durif"]
+    grapes: [ "Shiraz", "Muscat", "Durif" ]
   },
   {
     name: "Stanton & Killeen",
     slug: "stanton-and-killeen",
-    regions: ["Rutherglen"],
+    regions: [ "Rutherglen" ],
     state: "Victoria",
     country_id: "Australia",
     address: nil,
@@ -1529,12 +1529,12 @@ ALL_PRODUCERS = [
     website: "https://www.stantonandkilleenwines.com.au",
     logo_url: "https://www.stantonandkilleenwines.com.au/logo.png",
     founded_year: 1875,
-    grapes: ["Shiraz", "Durif", "Muscat"]
+    grapes: [ "Shiraz", "Durif", "Muscat" ]
   },
   {
     name: "Bindi Wines",
     slug: "bindi-wines",
-    regions: ["Macedon Ranges"],
+    regions: [ "Macedon Ranges" ],
     state: "Victoria",
     country_id: "Australia",
     address: nil,
@@ -1545,12 +1545,12 @@ ALL_PRODUCERS = [
     website: "https://www.bindiwines.com.au",
     logo_url: "https://www.bindiwines.com.au/logo.png",
     founded_year: 1988,
-    grapes: ["Pinot Noir", "Chardonnay"]
+    grapes: [ "Pinot Noir", "Chardonnay" ]
   },
   {
     name: "Paringa Estate",
     slug: "paringa-estate",
-    regions: ["Mornington Peninsula"],
+    regions: [ "Mornington Peninsula" ],
     state: "Victoria",
     country_id: "Australia",
     address: nil,
@@ -1561,12 +1561,12 @@ ALL_PRODUCERS = [
     website: "https://www.paringaestate.com.au",
     logo_url: "https://www.paringaestate.com.au/logo.png",
     founded_year: 1985,
-    grapes: ["Pinot Noir", "Chardonnay", "Shiraz"]
+    grapes: [ "Pinot Noir", "Chardonnay", "Shiraz" ]
   },
   {
     name: "Ten Minutes by Tractor",
     slug: "ten-minutes-by-tractor",
-    regions: ["Mornington Peninsula"],
+    regions: [ "Mornington Peninsula" ],
     state: "Victoria",
     country_id: "Australia",
     address: nil,
@@ -1577,12 +1577,12 @@ ALL_PRODUCERS = [
     website: "https://www.tenminutesbytractor.com.au",
     logo_url: "https://www.tenminutesbytractor.com.au/logo.png",
     founded_year: 1999,
-    grapes: ["Pinot Noir", "Chardonnay"]
+    grapes: [ "Pinot Noir", "Chardonnay" ]
   },
   {
     name: "Kooyong",
     slug: "kooyong",
-    regions: ["Mornington Peninsula"],
+    regions: [ "Mornington Peninsula" ],
     state: "Victoria",
     country_id: "Australia",
     address: nil,
@@ -1593,12 +1593,12 @@ ALL_PRODUCERS = [
     website: "https://www.kooyong.com",
     logo_url: "https://www.kooyong.com/logo.png",
     founded_year: 1996,
-    grapes: ["Pinot Noir", "Chardonnay"]
+    grapes: [ "Pinot Noir", "Chardonnay" ]
   },
   {
     name: "Moorooduc Estate",
     slug: "moorooduc-estate",
-    regions: ["Mornington Peninsula"],
+    regions: [ "Mornington Peninsula" ],
     state: "Victoria",
     country_id: "Australia",
     address: nil,
@@ -1609,12 +1609,12 @@ ALL_PRODUCERS = [
     website: "https://www.moorooducestate.com.au",
     logo_url: "https://www.moorooducestate.com.au/logo.png",
     founded_year: 1983,
-    grapes: ["Pinot Noir", "Chardonnay"]
+    grapes: [ "Pinot Noir", "Chardonnay" ]
   },
   {
     name: "Main Ridge Estate",
     slug: "main-ridge-estate",
-    regions: ["Mornington Peninsula"],
+    regions: [ "Mornington Peninsula" ],
     state: "Victoria",
     country_id: "Australia",
     address: nil,
@@ -1625,12 +1625,12 @@ ALL_PRODUCERS = [
     website: "https://www.mre.com.au",
     logo_url: "https://www.mre.com.au/logo.png",
     founded_year: 1975,
-    grapes: ["Pinot Noir", "Chardonnay"]
+    grapes: [ "Pinot Noir", "Chardonnay" ]
   },
   {
     name: "Tyrrell's Wines",
     slug: "tyrrell-s-wines",
-    regions: ["Hunter Valley"],
+    regions: [ "Hunter Valley" ],
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
@@ -1641,12 +1641,12 @@ ALL_PRODUCERS = [
     website: "https://www.tyrrells.com.au",
     logo_url: "https://www.tyrrells.com.au/logo.png",
     founded_year: 1858,
-    grapes: ["Semillon", "Shiraz", "Chardonnay"]
+    grapes: [ "Semillon", "Shiraz", "Chardonnay" ]
   },
   {
     name: "Brokenwood Wines",
     slug: "brokenwood-wines",
-    regions: ["Hunter Valley"],
+    regions: [ "Hunter Valley" ],
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
@@ -1657,13 +1657,13 @@ ALL_PRODUCERS = [
     website: "https://www.brokenwood.com.au",
     logo_url: "https://www.brokenwood.com.au/logo.png",
     founded_year: 1970,
-    grapes: ["Semillon", "Shiraz", "Cabernet Sauvignon"]
+    grapes: [ "Semillon", "Shiraz", "Cabernet Sauvignon" ]
   },
   {
     name: "Mount Pleasant (McWilliam's)",
     slug: "mount-pleasant-mcwilliam-s",
     legal_name: "McWilliam's Wines Group Pty Ltd",
-    regions: ["Hunter Valley"],
+    regions: [ "Hunter Valley" ],
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
@@ -1674,12 +1674,12 @@ ALL_PRODUCERS = [
     website: "https://www.mountpleasantwines.com.au",
     logo_url: "https://www.mountpleasantwines.com.au/logo.png",
     founded_year: 1880,
-    grapes: ["Semillon", "Shiraz"]
+    grapes: [ "Semillon", "Shiraz" ]
   },
   {
     name: "Tulloch",
     slug: "tulloch",
-    regions: ["Hunter Valley"],
+    regions: [ "Hunter Valley" ],
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
@@ -1690,12 +1690,12 @@ ALL_PRODUCERS = [
     website: "https://www.tullochwines.com",
     logo_url: "https://www.tullochwines.com/logo.png",
     founded_year: 1895,
-    grapes: ["Semillon", "Shiraz"]
+    grapes: [ "Semillon", "Shiraz" ]
   },
   {
     name: "Lake's Folly",
     slug: "lake-s-folly",
-    regions: ["Hunter Valley"],
+    regions: [ "Hunter Valley" ],
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
@@ -1706,12 +1706,12 @@ ALL_PRODUCERS = [
     website: "https://www.lakesfolly.com.au",
     logo_url: "https://www.lakesfolly.com.au/logo.png",
     founded_year: 1963,
-    grapes: ["Cabernet Sauvignon", "Chardonnay"]
+    grapes: [ "Cabernet Sauvignon", "Chardonnay" ]
   },
   {
     name: "Clonakilla",
     slug: "clonakilla",
-    regions: ["Canberra District"],
+    regions: [ "Canberra District" ],
     state: "New South Wales / ACT",
     country_id: "Australia",
     address: nil,
@@ -1722,12 +1722,12 @@ ALL_PRODUCERS = [
     website: "https://www.clonakilla.com.au",
     logo_url: "https://www.clonakilla.com.au/logo.png",
     founded_year: 1971,
-    grapes: ["Shiraz", "Viognier", "Riesling"]
+    grapes: [ "Shiraz", "Viognier", "Riesling" ]
   },
   {
     name: "Mount Majura Vineyard",
     slug: "mount-majura-vineyard",
-    regions: ["Canberra District"],
+    regions: [ "Canberra District" ],
     state: "Australian Capital Territory",
     country_id: "Australia",
     address: nil,
@@ -1738,12 +1738,12 @@ ALL_PRODUCERS = [
     website: "https://www.mountmajura.com.au",
     logo_url: "https://www.mountmajura.com.au/logo.png",
     founded_year: 1988,
-    grapes: ["Tempranillo", "Riesling", "Shiraz"]
+    grapes: [ "Tempranillo", "Riesling", "Shiraz" ]
   },
   {
     name: "Freycinet Vineyard",
     slug: "freycinet-vineyard",
-    regions: ["East Coast Tasmania"],
+    regions: [ "East Coast Tasmania" ],
     state: "Tasmania",
     country_id: "Australia",
     address: nil,
@@ -1754,12 +1754,12 @@ ALL_PRODUCERS = [
     website: "https://www.freycinetvineyard.com.au",
     logo_url: "https://www.freycinetvineyard.com.au/logo.png",
     founded_year: 1980,
-    grapes: ["Pinot Noir", "Chardonnay", "Riesling"]
+    grapes: [ "Pinot Noir", "Chardonnay", "Riesling" ]
   },
   {
     name: "Josef Chromy Wines",
     slug: "josef-chromy-wines",
-    regions: ["Tamar Valley"],
+    regions: [ "Tamar Valley" ],
     state: "Tasmania",
     country_id: "Australia",
     address: nil,
@@ -1770,12 +1770,12 @@ ALL_PRODUCERS = [
     website: "https://www.josefchromy.com.au",
     logo_url: "https://www.josefchromy.com.au/logo.png",
     founded_year: 2004,
-    grapes: ["Pinot Noir", "Chardonnay", "Riesling"]
+    grapes: [ "Pinot Noir", "Chardonnay", "Riesling" ]
   },
   {
     name: "Bay of Fires",
     slug: "bay-of-fires",
-    regions: ["North East Tasmania"],
+    regions: [ "North East Tasmania" ],
     state: "Tasmania",
     country_id: "Australia",
     address: nil,
@@ -1786,12 +1786,12 @@ ALL_PRODUCERS = [
     website: "https://www.bayoffireswines.com.au",
     logo_url: "https://www.bayoffireswines.com.au/logo.png",
     founded_year: 2001,
-    grapes: ["Pinot Noir", "Chardonnay", "Sparkling blend"]
+    grapes: [ "Pinot Noir", "Chardonnay", "Sparkling blend" ]
   },
   {
     name: "Tolpuddle Vineyard",
     slug: "tolpuddle-vineyard",
-    regions: ["Coal River Valley"],
+    regions: [ "Coal River Valley" ],
     state: "Tasmania",
     country_id: "Australia",
     address: nil,
@@ -1802,12 +1802,12 @@ ALL_PRODUCERS = [
     website: "https://www.tolpuddlevineyard.com",
     logo_url: "https://www.tolpuddlevineyard.com/logo.png",
     founded_year: 2011,
-    grapes: ["Chardonnay", "Pinot Noir"]
+    grapes: [ "Chardonnay", "Pinot Noir" ]
   },
   {
     name: "Stefano Lubiana",
     slug: "stefano-lubiana",
-    regions: ["Derwent Valley"],
+    regions: [ "Derwent Valley" ],
     state: "Tasmania",
     country_id: "Australia",
     address: nil,
@@ -1818,12 +1818,12 @@ ALL_PRODUCERS = [
     website: "https://www.slw.com.au",
     logo_url: "https://www.slw.com.au/logo.png",
     founded_year: 1990,
-    grapes: ["Pinot Noir", "Chardonnay", "Sparkling blend"]
+    grapes: [ "Pinot Noir", "Chardonnay", "Sparkling blend" ]
   },
   {
     name: "Domaine A",
     slug: "domaine-a",
-    regions: ["Coal River Valley"],
+    regions: [ "Coal River Valley" ],
     state: "Tasmania",
     country_id: "Australia",
     address: nil,
@@ -1834,12 +1834,12 @@ ALL_PRODUCERS = [
     website: "https://www.domaine-a.com.au",
     logo_url: "https://www.domaine-a.com.au/logo.png",
     founded_year: 1973,
-    grapes: ["Cabernet Sauvignon", "Pinot Noir"]
+    grapes: [ "Cabernet Sauvignon", "Pinot Noir" ]
   },
   {
     name: "Pooley Wines",
     slug: "pooley-wines",
-    regions: ["Coal River Valley"],
+    regions: [ "Coal River Valley" ],
     state: "Tasmania",
     country_id: "Australia",
     address: nil,
@@ -1850,12 +1850,12 @@ ALL_PRODUCERS = [
     website: "https://www.pooleywines.com.au",
     logo_url: "https://www.pooleywines.com.au/logo.png",
     founded_year: 1985,
-    grapes: ["Riesling", "Pinot Noir", "Chardonnay"]
+    grapes: [ "Riesling", "Pinot Noir", "Chardonnay" ]
   },
   {
     name: "Best's Wines",
     slug: "best-s-wines",
-    regions: ["Great Western"],
+    regions: [ "Great Western" ],
     state: "Victoria",
     country_id: "Australia",
     address: nil,
@@ -1866,12 +1866,12 @@ ALL_PRODUCERS = [
     website: "https://www.bestswines.com",
     logo_url: "https://www.bestswines.com/logo.png",
     founded_year: 1866,
-    grapes: ["Shiraz", "Riesling", "Cabernet Sauvignon"]
+    grapes: [ "Shiraz", "Riesling", "Cabernet Sauvignon" ]
   },
   {
     name: "Seppelt",
     slug: "seppelt",
-    regions: ["Grampians"],
+    regions: [ "Grampians" ],
     state: "Victoria",
     country_id: "Australia",
     address: nil,
@@ -1882,12 +1882,12 @@ ALL_PRODUCERS = [
     website: "https://www.seppelt.com.au",
     logo_url: "https://www.seppelt.com.au/logo.png",
     founded_year: 1851,
-    grapes: ["Shiraz", "Sparkling Shiraz"]
+    grapes: [ "Shiraz", "Sparkling Shiraz" ]
   },
   {
     name: "Craiglee",
     slug: "craiglee",
-    regions: ["Sunbury"],
+    regions: [ "Sunbury" ],
     state: "Victoria",
     country_id: "Australia",
     address: nil,
@@ -1898,12 +1898,12 @@ ALL_PRODUCERS = [
     website: "https://www.craiglee.com.au",
     logo_url: "https://www.craiglee.com.au/logo.png",
     founded_year: 1976,
-    grapes: ["Shiraz"]
+    grapes: [ "Shiraz" ]
   },
   {
     name: "Bannockburn Vineyards",
     slug: "bannockburn-vineyards",
-    regions: ["Geelong"],
+    regions: [ "Geelong" ],
     state: "Victoria",
     country_id: "Australia",
     address: nil,
@@ -1914,12 +1914,12 @@ ALL_PRODUCERS = [
     website: "https://www.bannockburnvineyards.com",
     logo_url: "https://www.bannockburnvineyards.com/logo.png",
     founded_year: 1974,
-    grapes: ["Pinot Noir", "Chardonnay", "Shiraz"]
+    grapes: [ "Pinot Noir", "Chardonnay", "Shiraz" ]
   },
   {
     name: "Scotchmans Hill",
     slug: "scotchmans-hill",
-    regions: ["Geelong"],
+    regions: [ "Geelong" ],
     state: "Victoria",
     country_id: "Australia",
     address: nil,
@@ -1930,12 +1930,12 @@ ALL_PRODUCERS = [
     website: "https://www.scotchmanshill.com.au",
     logo_url: "https://www.scotchmanshill.com.au/logo.png",
     founded_year: 1982,
-    grapes: ["Pinot Noir", "Chardonnay"]
+    grapes: [ "Pinot Noir", "Chardonnay" ]
   },
   {
     name: "Punt Road Wines",
     slug: "punt-road-wines",
-    regions: ["Yarra Valley"],
+    regions: [ "Yarra Valley" ],
     state: "Victoria",
     country_id: "Australia",
     address: nil,
@@ -1946,12 +1946,12 @@ ALL_PRODUCERS = [
     website: "https://www.puntroad.com.au",
     logo_url: "https://www.puntroad.com.au/logo.png",
     founded_year: 2000,
-    grapes: ["Pinot Noir", "Chardonnay", "Cabernet Sauvignon"]
+    grapes: [ "Pinot Noir", "Chardonnay", "Cabernet Sauvignon" ]
   },
   {
     name: "De Iuliis",
     slug: "de-iuliis",
-    regions: ["Hunter Valley"],
+    regions: [ "Hunter Valley" ],
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
@@ -1962,12 +1962,12 @@ ALL_PRODUCERS = [
     website: "https://www.dewine.com.au",
     logo_url: "https://www.dewine.com.au/logo.png",
     founded_year: 1990,
-    grapes: ["Semillon", "Shiraz"]
+    grapes: [ "Semillon", "Shiraz" ]
   },
   {
     name: "Audrey Wilkinson",
     slug: "audrey-wilkinson",
-    regions: ["Hunter Valley"],
+    regions: [ "Hunter Valley" ],
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
@@ -1978,12 +1978,12 @@ ALL_PRODUCERS = [
     website: "https://www.audreywilkinson.com.au",
     logo_url: "https://www.audreywilkinson.com.au/logo.png",
     founded_year: 1866,
-    grapes: ["Semillon", "Shiraz"]
+    grapes: [ "Semillon", "Shiraz" ]
   },
   {
     name: "Margan Wines",
     slug: "margan-wines",
-    regions: ["Hunter Valley"],
+    regions: [ "Hunter Valley" ],
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
@@ -1994,12 +1994,12 @@ ALL_PRODUCERS = [
     website: "https://www.margan.com.au",
     logo_url: "https://www.margan.com.au/logo.png",
     founded_year: 1997,
-    grapes: ["Semillon", "Shiraz", "Barbera"]
+    grapes: [ "Semillon", "Shiraz", "Barbera" ]
   },
   {
     name: "Tempus Two",
     slug: "tempus-two",
-    regions: ["Hunter Valley"],
+    regions: [ "Hunter Valley" ],
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
@@ -2010,12 +2010,12 @@ ALL_PRODUCERS = [
     website: "https://www.tempustwo.com.au",
     logo_url: "https://www.tempustwo.com.au/logo.png",
     founded_year: 1997,
-    grapes: ["Semillon", "Shiraz", "Verdelho"]
+    grapes: [ "Semillon", "Shiraz", "Verdelho" ]
   },
   {
     name: "Thomas Wines",
     slug: "thomas-wines",
-    regions: ["Hunter Valley"],
+    regions: [ "Hunter Valley" ],
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
@@ -2026,12 +2026,12 @@ ALL_PRODUCERS = [
     website: "https://www.thomaswines.com.au",
     logo_url: "https://www.thomaswines.com.au/logo.png",
     founded_year: 1997,
-    grapes: ["Semillon", "Shiraz"]
+    grapes: [ "Semillon", "Shiraz" ]
   },
   {
     name: "Meerea Park",
     slug: "meerea-park",
-    regions: ["Hunter Valley"],
+    regions: [ "Hunter Valley" ],
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
@@ -2042,12 +2042,12 @@ ALL_PRODUCERS = [
     website: "https://www.meereapark.com.au",
     logo_url: "https://www.meereapark.com.au/logo.png",
     founded_year: 1991,
-    grapes: ["Semillon", "Shiraz"]
+    grapes: [ "Semillon", "Shiraz" ]
   },
   {
     name: "Keith Tulloch Wine",
     slug: "keith-tulloch-wine",
-    regions: ["Hunter Valley"],
+    regions: [ "Hunter Valley" ],
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
@@ -2058,12 +2058,12 @@ ALL_PRODUCERS = [
     website: "https://www.keithtullochwine.com.au",
     logo_url: "https://www.keithtullochwine.com.au/logo.png",
     founded_year: 1997,
-    grapes: ["Semillon", "Shiraz"]
+    grapes: [ "Semillon", "Shiraz" ]
   },
   {
     name: "Scarborough Wine Co",
     slug: "scarborough-wine-co",
-    regions: ["Hunter Valley"],
+    regions: [ "Hunter Valley" ],
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
@@ -2074,12 +2074,12 @@ ALL_PRODUCERS = [
     website: "https://www.scarboroughwine.com.au",
     logo_url: "https://www.scarboroughwine.com.au/logo.png",
     founded_year: 1987,
-    grapes: ["Chardonnay", "Semillon"]
+    grapes: [ "Chardonnay", "Semillon" ]
   },
   {
     name: "Logan Wines",
     slug: "logan-wines",
-    regions: ["Orange"],
+    regions: [ "Orange" ],
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
@@ -2090,12 +2090,12 @@ ALL_PRODUCERS = [
     website: "https://www.loganwines.com.au",
     logo_url: "https://www.loganwines.com.au/logo.png",
     founded_year: 1997,
-    grapes: ["Chardonnay", "Pinot Noir", "Shiraz"]
+    grapes: [ "Chardonnay", "Pinot Noir", "Shiraz" ]
   },
   {
     name: "Printhie Wines",
     slug: "printhie-wines",
-    regions: ["Orange"],
+    regions: [ "Orange" ],
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
@@ -2106,12 +2106,12 @@ ALL_PRODUCERS = [
     website: "https://www.printhiewines.com.au",
     logo_url: "https://www.printhiewines.com.au/logo.png",
     founded_year: 1996,
-    grapes: ["Chardonnay", "Pinot Noir", "Shiraz"]
+    grapes: [ "Chardonnay", "Pinot Noir", "Shiraz" ]
   },
   {
     name: "Robert Oatley Vineyards",
     slug: "robert-oatley-vineyards",
-    regions: ["Mudgee"],
+    regions: [ "Mudgee" ],
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
@@ -2122,12 +2122,12 @@ ALL_PRODUCERS = [
     website: "https://www.robertoatley.com.au",
     logo_url: "https://www.robertoatley.com.au/logo.png",
     founded_year: 2006,
-    grapes: ["Chardonnay", "Shiraz", "Cabernet Sauvignon"]
+    grapes: [ "Chardonnay", "Shiraz", "Cabernet Sauvignon" ]
   },
   {
     name: "Huntington Estate",
     slug: "huntington-estate",
-    regions: ["Mudgee"],
+    regions: [ "Mudgee" ],
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
@@ -2138,12 +2138,12 @@ ALL_PRODUCERS = [
     website: "https://www.huntingtonestate.com.au",
     logo_url: "https://www.huntingtonestate.com.au/logo.png",
     founded_year: 1969,
-    grapes: ["Shiraz", "Cabernet Sauvignon"]
+    grapes: [ "Shiraz", "Cabernet Sauvignon" ]
   },
   {
     name: "Lowe Wines",
     slug: "lowe-wines",
-    regions: ["Mudgee"],
+    regions: [ "Mudgee" ],
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
@@ -2154,12 +2154,12 @@ ALL_PRODUCERS = [
     website: "https://www.lowewine.com.au",
     logo_url: "https://www.lowewine.com.au/logo.png",
     founded_year: 1987,
-    grapes: ["Shiraz", "Zinfandel"]
+    grapes: [ "Shiraz", "Zinfandel" ]
   },
   {
     name: "Nick O'Leary Wines",
     slug: "nick-o-leary-wines",
-    regions: ["Canberra District"],
+    regions: [ "Canberra District" ],
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
@@ -2170,12 +2170,12 @@ ALL_PRODUCERS = [
     website: "https://www.nickolearywines.com.au",
     logo_url: "https://www.nickolearywines.com.au/logo.png",
     founded_year: 2005,
-    grapes: ["Riesling", "Shiraz"]
+    grapes: [ "Riesling", "Shiraz" ]
   },
   {
     name: "Lark Hill",
     slug: "lark-hill",
-    regions: ["Canberra District"],
+    regions: [ "Canberra District" ],
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
@@ -2186,12 +2186,12 @@ ALL_PRODUCERS = [
     website: "https://www.larkhillwine.com.au",
     logo_url: "https://www.larkhillwine.com.au/logo.png",
     founded_year: 1978,
-    grapes: ["Riesling", "Pinot Noir"]
+    grapes: [ "Riesling", "Pinot Noir" ]
   },
   {
     name: "Helm Wines",
     slug: "helm-wines",
-    regions: ["Canberra District"],
+    regions: [ "Canberra District" ],
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
@@ -2202,12 +2202,12 @@ ALL_PRODUCERS = [
     website: "https://www.helmwines.com.au",
     logo_url: "https://www.helmwines.com.au/logo.png",
     founded_year: 1973,
-    grapes: ["Riesling", "Cabernet Sauvignon"]
+    grapes: [ "Riesling", "Cabernet Sauvignon" ]
   },
   {
     name: "Ravensworth",
     slug: "ravensworth",
-    regions: ["Canberra District"],
+    regions: [ "Canberra District" ],
     state: "New South Wales",
     country_id: "Australia",
     address: nil,
@@ -2218,12 +2218,12 @@ ALL_PRODUCERS = [
     website: "https://www.ravensworthwines.com.au",
     logo_url: "https://www.ravensworthwines.com.au/logo.png",
     founded_year: 2000,
-    grapes: ["Shiraz", "Marsanne", "Sangiovese"]
+    grapes: [ "Shiraz", "Marsanne", "Sangiovese" ]
   },
   {
     name: "Ngeringa",
     slug: "ngeringa",
-    regions: ["Adelaide Hills"],
+    regions: [ "Adelaide Hills" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -2234,12 +2234,12 @@ ALL_PRODUCERS = [
     website: "https://www.ngeringa.com",
     logo_url: "https://www.ngeringa.com/logo.png",
     founded_year: 2001,
-    grapes: ["Syrah", "Pinot Noir", "Viognier"]
+    grapes: [ "Syrah", "Pinot Noir", "Viognier" ]
   },
   {
     name: "Deviation Road",
     slug: "deviation-road",
-    regions: ["Adelaide Hills"],
+    regions: [ "Adelaide Hills" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -2250,12 +2250,12 @@ ALL_PRODUCERS = [
     website: "https://www.deviationroad.com",
     logo_url: "https://www.deviationroad.com/logo.png",
     founded_year: 2004,
-    grapes: ["Pinot Noir", "Chardonnay", "Sparkling blend"]
+    grapes: [ "Pinot Noir", "Chardonnay", "Sparkling blend" ]
   },
   {
     name: "Nepenthe",
     slug: "nepenthe",
-    regions: ["Adelaide Hills"],
+    regions: [ "Adelaide Hills" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -2266,12 +2266,12 @@ ALL_PRODUCERS = [
     website: "https://www.nepenthe.com.au",
     logo_url: "https://www.nepenthe.com.au/logo.png",
     founded_year: 1994,
-    grapes: ["Sauvignon Blanc", "Chardonnay", "Pinot Gris"]
+    grapes: [ "Sauvignon Blanc", "Chardonnay", "Pinot Gris" ]
   },
   {
     name: "Hahndorf Hill Winery",
     slug: "hahndorf-hill-winery",
-    regions: ["Adelaide Hills"],
+    regions: [ "Adelaide Hills" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -2282,12 +2282,12 @@ ALL_PRODUCERS = [
     website: "https://www.hahndorfhillwinery.com.au",
     logo_url: "https://www.hahndorfhillwinery.com.au/logo.png",
     founded_year: 2002,
-    grapes: ["Gewürztraminer", "Blaufränkisch", "Grüner Veltliner"]
+    grapes: [ "Gewürztraminer", "Blaufränkisch", "Grüner Veltliner" ]
   },
   {
     name: "Barossa Valley Estate",
     slug: "barossa-valley-estate",
-    regions: ["Barossa Valley"],
+    regions: [ "Barossa Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -2298,12 +2298,12 @@ ALL_PRODUCERS = [
     website: "https://www.bvestate.com.au",
     logo_url: "https://www.bvestate.com.au/logo.png",
     founded_year: 1985,
-    grapes: ["Shiraz", "Cabernet Sauvignon"]
+    grapes: [ "Shiraz", "Cabernet Sauvignon" ]
   },
   {
     name: "Bethany Wines",
     slug: "bethany-wines",
-    regions: ["Barossa Valley"],
+    regions: [ "Barossa Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -2314,12 +2314,12 @@ ALL_PRODUCERS = [
     website: "https://www.bethany.com.au",
     logo_url: "https://www.bethany.com.au/logo.png",
     founded_year: 1977,
-    grapes: ["Shiraz", "Grenache", "Riesling"]
+    grapes: [ "Shiraz", "Grenache", "Riesling" ]
   },
   {
     name: "Schild Estate",
     slug: "schild-estate",
-    regions: ["Barossa Valley"],
+    regions: [ "Barossa Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -2330,12 +2330,12 @@ ALL_PRODUCERS = [
     website: "https://www.schildestate.com.au",
     logo_url: "https://www.schildestate.com.au/logo.png",
     founded_year: 1998,
-    grapes: ["Shiraz", "Grenache"]
+    grapes: [ "Shiraz", "Grenache" ]
   },
   {
     name: "Saltram",
     slug: "saltram",
-    regions: ["Barossa Valley"],
+    regions: [ "Barossa Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -2346,12 +2346,12 @@ ALL_PRODUCERS = [
     website: "https://www.saltramwines.com.au",
     logo_url: "https://www.saltramwines.com.au/logo.png",
     founded_year: 1859,
-    grapes: ["Shiraz", "Cabernet Sauvignon"]
+    grapes: [ "Shiraz", "Cabernet Sauvignon" ]
   },
   {
     name: "Hentley Farm",
     slug: "hentley-farm",
-    regions: ["Barossa Valley"],
+    regions: [ "Barossa Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -2362,12 +2362,12 @@ ALL_PRODUCERS = [
     website: "https://www.hentleyfarm.com.au",
     logo_url: "https://www.hentleyfarm.com.au/logo.png",
     founded_year: 1997,
-    grapes: ["Shiraz", "Grenache", "Cabernet Sauvignon"]
+    grapes: [ "Shiraz", "Grenache", "Cabernet Sauvignon" ]
   },
   {
     name: "Dutschke Wines",
     slug: "dutschke-wines",
-    regions: ["Barossa Valley"],
+    regions: [ "Barossa Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -2378,12 +2378,12 @@ ALL_PRODUCERS = [
     website: "https://www.dutschkewines.com",
     logo_url: "https://www.dutschkewines.com/logo.png",
     founded_year: 1990,
-    grapes: ["Shiraz", "Grenache"]
+    grapes: [ "Shiraz", "Grenache" ]
   },
   {
     name: "First Drop Wines",
     slug: "first-drop-wines",
-    regions: ["Barossa Valley"],
+    regions: [ "Barossa Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -2394,12 +2394,12 @@ ALL_PRODUCERS = [
     website: "https://www.firstdropwines.com",
     logo_url: "https://www.firstdropwines.com/logo.png",
     founded_year: 2005,
-    grapes: ["Shiraz", "Grenache", "Sangiovese"]
+    grapes: [ "Shiraz", "Grenache", "Sangiovese" ]
   },
   {
     name: "Thorn-Clarke Wines",
     slug: "thorn-clarke-wines",
-    regions: ["Barossa Valley"],
+    regions: [ "Barossa Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -2410,12 +2410,12 @@ ALL_PRODUCERS = [
     website: "https://www.thornclarkewines.com",
     logo_url: "https://www.thornclarkewines.com/logo.png",
     founded_year: 1998,
-    grapes: ["Shiraz", "Cabernet Sauvignon"]
+    grapes: [ "Shiraz", "Cabernet Sauvignon" ]
   },
   {
     name: "Rusden Wines",
     slug: "rusden-wines",
-    regions: ["Barossa Valley"],
+    regions: [ "Barossa Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -2426,12 +2426,12 @@ ALL_PRODUCERS = [
     website: "https://www.rusdenwines.com.au",
     logo_url: "https://www.rusdenwines.com.au/logo.png",
     founded_year: 1979,
-    grapes: ["Shiraz", "Grenache", "Mourvèdre"]
+    grapes: [ "Shiraz", "Grenache", "Mourvèdre" ]
   },
   {
     name: "Sons of Eden",
     slug: "sons-of-eden",
-    regions: ["Barossa Valley", "Eden Valley"],
+    regions: [ "Barossa Valley", "Eden Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -2442,12 +2442,12 @@ ALL_PRODUCERS = [
     website: "https://www.sonsofeden.com",
     logo_url: "https://www.sonsofeden.com/logo.png",
     founded_year: 2000,
-    grapes: ["Shiraz", "Riesling", "Grenache"]
+    grapes: [ "Shiraz", "Riesling", "Grenache" ]
   },
   {
     name: "Cirillo Estate Wines",
     slug: "cirillo-estate-wines",
-    regions: ["Barossa Valley"],
+    regions: [ "Barossa Valley" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -2458,12 +2458,12 @@ ALL_PRODUCERS = [
     website: "https://www.cirilloestate.com",
     logo_url: "https://www.cirilloestate.com/logo.png",
     founded_year: 2002,
-    grapes: ["Grenache", "Shiraz"]
+    grapes: [ "Grenache", "Shiraz" ]
   },
   {
     name: "Dandelion Vineyards",
     slug: "dandelion-vineyards",
-    regions: ["Barossa Valley", "McLaren Vale"],
+    regions: [ "Barossa Valley", "McLaren Vale" ],
     state: "South Australia",
     country_id: "Australia",
     address: nil,
@@ -2474,7 +2474,7 @@ ALL_PRODUCERS = [
     website: "https://www.dandelionvineyards.com.au",
     logo_url: "https://www.dandelionvineyards.com.au/logo.png",
     founded_year: 2009,
-    grapes: ["Shiraz", "Grenache", "Riesling"]
+    grapes: [ "Shiraz", "Grenache", "Riesling" ]
   }
 ].freeze
 
@@ -2482,7 +2482,6 @@ puts ALL_PRODUCERS.size
 current_country_id_name = "Australia"
 country = Country.find_by(name: "Australia")
 ALL_PRODUCERS.each_with_index do |attrs, index|
-
   puts "- Seeding producer: #{attrs[:name]}"
   if attrs[:country_id] != current_country_id_name
     current_country_id_name = attrs[:country_id]

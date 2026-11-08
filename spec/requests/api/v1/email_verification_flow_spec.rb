@@ -29,7 +29,7 @@ RSpec.describe "Email verification flow", type: :request do
 
   def token_from_last_mail
     mail = ActionMailer::Base.deliveries.last
-    source = mail.multipart? ? [mail.text_part&.decoded, mail.html_part&.decoded].join : mail.body.to_s
+    source = mail.multipart? ? [ mail.text_part&.decoded, mail.html_part&.decoded ].join : mail.body.to_s
     source[/token=([A-Za-z0-9_\-]+)/, 1]
   end
 
@@ -52,7 +52,7 @@ RSpec.describe "Email verification flow", type: :request do
       expect(user.email_verification_expires_at).to be_within(5.seconds).of(24.hours.from_now)
 
       mail = ActionMailer::Base.deliveries.last
-      expect(mail.to).to eq([email])
+      expect(mail.to).to eq([ email ])
       expect(mail.subject).to include("Verify your email")
     end
 

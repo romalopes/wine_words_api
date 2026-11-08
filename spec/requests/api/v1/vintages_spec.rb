@@ -55,7 +55,7 @@ RSpec.describe "Vintage price (price_cents)", type: :request do
   describe "nested vintages_attributes (WineForm path)" do
     it "saves price on create via nested attributes" do
       patch "/api/v1/wines/#{wine.slug}",
-            params: { wine: { vintages_attributes: [{ year: 2019, price: "31.10", no_vintage: false }] } },
+            params: { wine: { vintages_attributes: [ { year: 2019, price: "31.10", no_vintage: false } ] } },
             as: :json
 
       expect(response).to have_http_status(:ok)
@@ -65,7 +65,7 @@ RSpec.describe "Vintage price (price_cents)", type: :request do
     it "updates the price of an existing vintage" do
       vintage = wine.vintages.create!(year: 2018, price: "20.00")
       patch "/api/v1/wines/#{wine.slug}",
-            params: { wine: { vintages_attributes: [{ id: vintage.id, year: 2018, price: "25.50" }] } },
+            params: { wine: { vintages_attributes: [ { id: vintage.id, year: 2018, price: "25.50" } ] } },
             as: :json
 
       expect(response).to have_http_status(:ok)

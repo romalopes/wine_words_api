@@ -6,6 +6,6 @@ class CreateArticleProjectReviews < ActiveRecord::Migration[8.1]
       t.timestamps
     end
 
-    add_index :article_project_reviews, [:article_project_id, :review_id], unique: true
+    add_index :article_project_reviews, [ :article_project_id, :review_id ], unique: true
   end
 end

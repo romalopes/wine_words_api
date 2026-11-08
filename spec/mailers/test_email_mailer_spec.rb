@@ -35,7 +35,7 @@ RSpec.describe TestEmailMailer, type: :mailer do
     mail = described_class.test_email(to: recipient, content: content,
                                       transport: transport, subject: subject)
 
-    expect(mail.to).to eq([recipient])
+    expect(mail.to).to eq([ recipient ])
     expect(mail.cc).to be_nil
     expect(mail.bcc).to be_nil
   end

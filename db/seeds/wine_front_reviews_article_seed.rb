@@ -182,7 +182,7 @@ ActiveRecord::Base.transaction do
     # The actual `attach_wine_image!` call is after the transaction block.
     if image_url_raw.present? && !wine.images.exists?
       unless $front_seed_pending_images.any? { |wid, _| wid == wine.id }
-        $front_seed_pending_images << [wine.id, image_url_raw]
+        $front_seed_pending_images << [ wine.id, image_url_raw ]
       end
     end
 

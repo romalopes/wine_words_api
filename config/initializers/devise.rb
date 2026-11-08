@@ -28,7 +28,7 @@ Devise.setup do |config|
   config.mailer_sender = MailSender.from
 
   # Configure the class responsible to send e-mails.
-  config.mailer = 'CustomDeviseMailer'
+  config.mailer = "CustomDeviseMailer"
 
   # Configure the parent class responsible to send e-mails.
   # config.parent_mailer = 'ActionMailer::Base'
@@ -37,7 +37,7 @@ Devise.setup do |config|
   # Load and configure the ORM. Supports :active_record (default) and
   # :mongoid (bson_ext recommended) by default. Other ORMs may be
   # available as additional gems.
-  require 'devise/orm/active_record'
+  require "devise/orm/active_record"
 
   # ==> Configuration for any authentication mechanism
   # Configure which keys are used when authenticating a user. The default is
@@ -59,12 +59,12 @@ Devise.setup do |config|
   # Configure which authentication keys should be case-insensitive.
   # These keys will be downcased upon creating or modifying a user and when used
   # to authenticate or find a user. Default is :email.
-  config.case_insensitive_keys = [:email]
+  config.case_insensitive_keys = [ :email ]
 
   # Configure which authentication keys should have whitespace stripped.
   # These keys will have whitespace before and after removed upon creating or
   # modifying a user and when used to authenticate or find a user. Default is :email.
-  config.strip_whitespace_keys = [:email]
+  config.strip_whitespace_keys = [ :email ]
 
   # Tell if authentication through request.params is enabled. True by default.
   # It can be set to an array that will enable params authentication only for the
@@ -98,7 +98,7 @@ Devise.setup do |config|
   # Notice that if you are skipping storage for all authentication paths, you
   # may want to disable generating routes to Devise's sessions controller by
   # passing skip: :sessions to `devise_for` in your config/routes.rb
-  config.skip_session_storage = [:http_auth]
+  config.skip_session_storage = [ :http_auth ]
 
   # By default, Devise cleans up the CSRF token on authentication to
   # avoid CSRF token fixation attacks. This means that, when using AJAX
@@ -322,21 +322,21 @@ Devise.setup do |config|
     # instead of the default 30 minutes.
     jwt.expiration_time = 100.years.to_i
     jwt.dispatch_requests = [
-      ['POST', %r{^/api/v1/auth/sign_in$}],
-      ['POST', %r{^/api/v1/auth/sign_up$}],
-      ['PATCH', %r{^/api/v1/auth/password$}],
+      [ "POST", %r{^/api/v1/auth/sign_in$} ],
+      [ "POST", %r{^/api/v1/auth/sign_up$} ],
+      [ "PATCH", %r{^/api/v1/auth/password$} ],
       # Social sign-in. Each provider endpoint signs the resolved User in with
       # the *same* Devise/Warden scope, so devise-jwt issues the same JWT and
       # the React app sees one identical authentication response regardless of
       # how the person signed in. Identity-linking endpoints are deliberately
       # absent: connecting a provider must not mint a new session.
-      ['POST', %r{^/api/v1/auth/google$}],
-      ['POST', %r{^/api/v1/auth/apple$}],
-      ['POST', %r{^/api/v1/auth/microsoft$}],
-      ['POST', %r{^/api/v1/auth/facebook$}]
+      [ "POST", %r{^/api/v1/auth/google$} ],
+      [ "POST", %r{^/api/v1/auth/apple$} ],
+      [ "POST", %r{^/api/v1/auth/microsoft$} ],
+      [ "POST", %r{^/api/v1/auth/facebook$} ]
     ]
     jwt.revocation_requests = [
-      ['DELETE', %r{^/api/v1/auth/sign_out$}]
+      [ "DELETE", %r{^/api/v1/auth/sign_out$} ]
     ]
   end
 

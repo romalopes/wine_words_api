@@ -31,7 +31,7 @@ RSpec.describe "Wine HTML create flow", type: :request do
     expect(response).to redirect_to(wine_path(Wine.find_by(name: "Penfolds Pinot Noir")))
     wine = Wine.find_by(name: "Penfolds Pinot Noir")
     expect(wine.wine_profile).to eq(profile)
-    expect(wine.wine_taste_parameters.pluck(:score)).to eq([4, 2])
+    expect(wine.wine_taste_parameters.pluck(:score)).to eq([ 4, 2 ])
   end
 
   it "leaves copied taste rows intact when no taste parameters are submitted" do
@@ -43,17 +43,17 @@ RSpec.describe "Wine HTML create flow", type: :request do
     wine = Wine.find_by(name: "My New Pinot")
     expect(wine.wine_profile).to eq(profile)
     expect(wine.wine_taste_parameters.count).to eq(1)
-    expect(wine.wine_taste_parameters.pluck(:score)).to eq([4])
+    expect(wine.wine_taste_parameters.pluck(:score)).to eq([ 4 ])
   end
 
   it "leaves taste parameters unchanged when the user submits any of them" do
     profile = AutoAssignHelpers.make_profile("Pinot Noir")
     profile.wine_profile_taste_parameters.create!(taste_parameter: acidity, score: 4)
 
-    post "/wines", params: { wine: { name: "Pinot Noir with score", color: "Red", producer_id: producer.id, wine_taste_parameters_attributes: [{ taste_parameter_id: acidity.id, score: 2 }] } }
+    post "/wines", params: { wine: { name: "Pinot Noir with score", color: "Red", producer_id: producer.id, wine_taste_parameters_attributes: [ { taste_parameter_id: acidity.id, score: 2 } ] } }
 
     wine = Wine.find_by(name: "Pinot Noir with score")
     expect(wine.wine_profile).to be_nil
-    expect(wine.wine_taste_parameters.pluck(:score)).to eq([2])
+    expect(wine.wine_taste_parameters.pluck(:score)).to eq([ 2 ])
   end
 end

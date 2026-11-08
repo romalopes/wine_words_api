@@ -45,13 +45,13 @@ RSpec.describe "Wine list query efficiency", type: :request do
     capture_queries("/api/v1/wines/grouped", { per_group: 1 })
     groups = JSON.parse(response.body).index_by { |group| group["category"] }
     expect(groups["Featured"]["count"]).to eq(3)
-    expect(groups["Featured"]["wines"].map { |wine| wine["name"] }).to eq(["Wine 0"])
+    expect(groups["Featured"]["wines"].map { |wine| wine["name"] }).to eq([ "Wine 0" ])
     expect(groups["Classic"]["count"]).to eq(1)
     expect(groups["Uncategorised"]["count"]).to eq(1)
     expect(groups["Featured"]["wines"].first["images"].size).to eq(1)
   end
 
-  ["/api/v1/wines/grouped", "/api/v1/wines"].each do |path|
+  [ "/api/v1/wines/grouped", "/api/v1/wines" ].each do |path|
     it "batches image and category queries for #{path}" do
       category = Category.create!(name: "Featured")
       3.times { |i| make_wine("Wine #{i}").categories << category }

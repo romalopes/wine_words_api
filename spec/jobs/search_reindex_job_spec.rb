@@ -52,12 +52,12 @@ RSpec.describe SearchReindexJob do
     it "makes the new name findable and retires the old one" do
       wine = create_wine("Granmutter")
       review = create_review(wine)
-      expect(Review.text_search("granmutter").pluck(:id)).to eq([review.id])
+      expect(Review.text_search("granmutter").pluck(:id)).to eq([ review.id ])
 
       wine.update!(name: "Tarnhide")
       commit(wine)
 
-      expect(Review.text_search("tarnhide").pluck(:id)).to eq([review.id])
+      expect(Review.text_search("tarnhide").pluck(:id)).to eq([ review.id ])
       expect(Review.text_search("granmutter")).to be_empty
     end
 
@@ -80,7 +80,7 @@ RSpec.describe SearchReindexJob do
       region.update!(name: "Wolloga Paddocks")
       commit(region)
 
-      expect(Review.text_search("wolloga").pluck(:id)).to eq([review.id])
+      expect(Review.text_search("wolloga").pluck(:id)).to eq([ review.id ])
       expect(Review.text_search("barossa")).to be_empty
     end
 
@@ -91,12 +91,12 @@ RSpec.describe SearchReindexJob do
       ArticleTag.create!(article: article, tag: tag)
       # The join refreshes the vector itself, so the tag is searchable without a
       # second save of the article.
-      expect(Article.text_search("vermeer").pluck(:id)).to eq([article.id])
+      expect(Article.text_search("vermeer").pluck(:id)).to eq([ article.id ])
 
       tag.update!(name: "rembrandt")
       commit(tag)
 
-      expect(Article.text_search("rembrandt").pluck(:id)).to eq([article.id])
+      expect(Article.text_search("rembrandt").pluck(:id)).to eq([ article.id ])
       expect(Article.text_search("vermeer")).to be_empty
     end
   end
@@ -142,7 +142,7 @@ RSpec.describe SearchReindexJob do
       wine.update!(name: "Tarnhide")
 
       expect { enqueue_only(wine) }
-        .to have_enqueued_job(SearchReindexJob).with("Review", [review.id])
+        .to have_enqueued_job(SearchReindexJob).with("Review", [ review.id ])
       expect(untouched.reload.searchable.to_s).not_to include("tarnhide")
     end
 
@@ -157,7 +157,7 @@ RSpec.describe SearchReindexJob do
       # otherwise demand one job carrying both argument lists.
       queued = enqueued_jobs.select { |job| job[:job] == SearchReindexJob }
       expect(queued.map { |job| job[:args] })
-        .to contain_exactly(["Review", [review.id]], ["Article", [article.id]])
+        .to contain_exactly([ "Review", [ review.id ] ], [ "Article", [ article.id ] ])
     end
 
     it "stays quiet when nothing a vector depends on changed" do
@@ -179,15 +179,15 @@ RSpec.describe SearchReindexJob do
 
   describe "#perform" do
     it "will not constantise a class outside the searchable whitelist" do
-      expect { described_class.perform_now("User", [author.id]) }.not_to raise_error
-      expect { described_class.perform_now("Object", [1]) }.not_to raise_error
+      expect { described_class.perform_now("User", [ author.id ]) }.not_to raise_error
+      expect { described_class.perform_now("Object", [ 1 ]) }.not_to raise_error
     end
 
     it "ignores ids whose rows have already gone" do
       wine = create_wine("Granmutter")
       review = create_review(wine)
 
-      expect { described_class.perform_now("Review", [review.id, 999_999]) }.not_to raise_error
+      expect { described_class.perform_now("Review", [ review.id, 999_999 ]) }.not_to raise_error
       expect(Review.find(review.id).searchable).to be_present
     end
   end

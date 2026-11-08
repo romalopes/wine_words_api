@@ -5,7 +5,7 @@ class Follow < ApplicationRecord
   belongs_to :followable, polymorphic: true
 
   validates :followable_type, inclusion: { in: ALLOWED_TYPES }
-  validates :user_id, uniqueness: { scope: [:followable_type, :followable_id] }
+  validates :user_id, uniqueness: { scope: [ :followable_type, :followable_id ] }
 
   scope :for_type, ->(type) { where(followable_type: type) }
   scope :recent, -> { order(created_at: :desc) }

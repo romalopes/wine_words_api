@@ -60,7 +60,7 @@ wine_countries_data = [
   { name: "Egypt",          code: "EG", continent: "Africa",        flag_emoji: "🇪🇬", is_wine_country: true },
   { name: "Ethiopia",       code: "ET", continent: "Africa",        flag_emoji: "🇪🇹", is_wine_country: false },
   { name: "Zimbabwe",       code: "ZW", continent: "Africa",        flag_emoji: "🇿🇼", is_wine_country: false },
-  { name: "Namibia",        code: "NA", continent: "Africa",        flag_emoji: "🇳🇦", is_wine_country: false },
+  { name: "Namibia",        code: "NA", continent: "Africa",        flag_emoji: "🇳🇦", is_wine_country: false }
 ]
 
 # Remaining countries of the world with population > 1 million that are not
@@ -183,7 +183,7 @@ other_countries_data = [
   { name: "Papua New Guinea",           code: "PG", continent: "Oceania", flag_emoji: "🇵🇬", is_wine_country: false },
 
   # No Continent
-  { name: "Unknown Country",            code: "UN", continent: "No Continent", flag_emoji: "🇺🇳", is_wine_country: false },
+  { name: "Unknown Country",            code: "UN", continent: "No Continent", flag_emoji: "🇺🇳", is_wine_country: false }
 ]
 
 

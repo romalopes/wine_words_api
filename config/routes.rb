@@ -155,13 +155,13 @@ Rails.application.routes.draw do
           get :grouped
           get :advanced_search
         end
-        resource :like, only: [:create, :destroy], controller: "wine_likes"
-        resources :comments, only: [:index, :create], controller: "wine_comments"
-        resources :vintages, only: [:create] do
-          resources :reviews, only: [:index, :create]
+        resource :like, only: [ :create, :destroy ], controller: "wine_likes"
+        resources :comments, only: [ :index, :create ], controller: "wine_comments"
+        resources :vintages, only: [ :create ] do
+          resources :reviews, only: [ :index, :create ]
         end
       end
-      resources :reviews, only: [:index, :show, :update, :destroy] do
+      resources :reviews, only: [ :index, :show, :update, :destroy ] do
         collection do
           get :my_reviews
           get :grouped
@@ -171,11 +171,11 @@ Rails.application.routes.draw do
           # one's categories.
           get :related
         end
-        resource :like, only: [:create, :destroy], controller: "review_likes"
-        resources :comments, only: [:index, :create], controller: "review_comments"
+        resource :like, only: [ :create, :destroy ], controller: "review_likes"
+        resources :comments, only: [ :index, :create ], controller: "review_comments"
       end
-      resources :sources, only: [:index]
-      resources :articles, only: [:index, :show, :create, :update, :destroy] do
+      resources :sources, only: [ :index ]
+      resources :articles, only: [ :index, :show, :create, :update, :destroy ] do
         collection do
           get :my_articles
           get :grouped
@@ -185,16 +185,16 @@ Rails.application.routes.draw do
           # this one's categories.
           get :related
         end
-        resource :like, only: [:create, :destroy], controller: "article_likes"
-        resources :comments, only: [:index, :create], controller: "article_comments"
+        resource :like, only: [ :create, :destroy ], controller: "article_likes"
+        resources :comments, only: [ :index, :create ], controller: "article_comments"
       end
-      resources :article_projects, only: [:index, :show, :create, :update, :destroy] do
+      resources :article_projects, only: [ :index, :show, :create, :update, :destroy ] do
         collection { get :lookup }
         resources :article_project_vintages, only: [] do
           resources :notebooks,
                     controller: "article_project_notebooks",
                     param: :notebook_id,
-                    only: [:index, :create, :show, :update, :destroy] do
+                    only: [ :index, :create, :show, :update, :destroy ] do
             member { post :review, action: :create_review }
           end
         end
@@ -202,10 +202,10 @@ Rails.application.routes.draw do
       # Comments that are not nested under a commentable: replying to a comment,
       # and editing / soft-deleting one. A reply inherits its commentable from the
       # parent comment, so the client never supplies a commentable_type/id.
-      resources :comments, only: [:update, :destroy] do
-        resources :replies, only: [:create], controller: "comments", action: :create_reply
+      resources :comments, only: [ :update, :destroy ] do
+        resources :replies, only: [ :create ], controller: "comments", action: :create_reply
       end
-      resources :categories, only: [:index, :show, :create, :update, :destroy] do
+      resources :categories, only: [ :index, :show, :create, :update, :destroy ] do
         collection do
           get :counts
           patch :reorder
@@ -270,27 +270,27 @@ Rails.application.routes.draw do
         # ordinary review flow from a line).
         resources :items,
                   controller: "wine_package_items",
-                  only: [:create, :update, :destroy] do
+                  only: [ :create, :update, :destroy ] do
           member { post :create_review }
         end
 
         # Typed attachments per package (and per item, via :wine_package_item_id).
         resources :attachments,
                   controller: "wine_package_attachments",
-                  only: [:index, :create, :destroy]
+                  only: [ :index, :create, :destroy ]
 
         # Tracking is a singleton per package: read it, upsert it, refresh it
         # from the resolved carrier provider.
         resource :shipment_tracking,
                  controller: "shipment_trackings",
-                 only: [:show, :update] do
+                 only: [ :show, :update ] do
           post :refresh
         end
       end
 
 
       # The signed-in user's own notifications (deadline reminders).
-      resources :notifications, only: [:index] do
+      resources :notifications, only: [ :index ] do
         collection do
           patch :mark_all_read
           get :unread_count
@@ -305,7 +305,7 @@ Rails.application.routes.draw do
       # The signed-in user's subscriptions to Producers / Wines / Reviews /
       # Articles. `status` answers "am I following this target?" for detail
       # pages; `statuses` batch-answers it for list pages.
-      resources :follows, only: [:index, :create, :destroy] do
+      resources :follows, only: [ :index, :create, :destroy ] do
         collection do
           get :status
           get :statuses
@@ -374,10 +374,10 @@ Rails.application.routes.draw do
           delete :hard_delete
           post :reactivate
         end
-        get :producer_memberships, to: 'producer_memberships#index'
-        post :producer_memberships, to: 'producer_memberships#create'
-        patch 'producer_memberships/:id', to: 'producer_memberships#update'
-        delete 'producer_memberships/:id', to: 'producer_memberships#destroy'
+        get :producer_memberships, to: "producer_memberships#index"
+        post :producer_memberships, to: "producer_memberships#create"
+        patch "producer_memberships/:id", to: "producer_memberships#update"
+        delete "producer_memberships/:id", to: "producer_memberships#destroy"
         resources :invitations, controller: "account_invitations", only: [ :index, :create ] do
           collection do
             post :resend
@@ -393,7 +393,7 @@ Rails.application.routes.draw do
       # User impersonation (admin only): start, stop, and status check.
       # A single resource gives us create (POST /impersonations),
       # destroy (DELETE /impersonations), and a custom status endpoint.
-      resource :impersonation, controller: "impersonations", only: [:create, :destroy, :show] do
+      resource :impersonation, controller: "impersonations", only: [ :create, :destroy, :show ] do
         get :status, on: :collection, action: :show
       end
 
@@ -401,8 +401,8 @@ Rails.application.routes.draw do
       # Configuration page — audit-log persistence toggle plus the email-test
       # settings. Custom (user-added) settings are managed through the nested
       # settings resource.
-      resource :configuration, controller: "configurations", only: [:show, :update] do
-        resources :settings, only: [:index, :create, :update, :destroy], module: "configuration"
+      resource :configuration, controller: "configurations", only: [ :show, :update ] do
+        resources :settings, only: [ :index, :create, :update, :destroy ], module: "configuration"
       end
 
       get "account", to: "accounts#show"
@@ -412,8 +412,7 @@ Rails.application.routes.draw do
       get "account/producers", to: "accounts#my_producers"
       get "account/notification_preferences", to: "accounts#show_notification_preferences"
       patch "account/notification_preferences", to: "accounts#update_notification_preferences"
-      resources :subscriptions, only: [:index, :show, :create, :update, :destroy]
+      resources :subscriptions, only: [ :index, :show, :create, :update, :destroy ]
     end
   end
-
 end

@@ -101,7 +101,7 @@ RSpec.describe TextSearchable do
   describe "searching a weighted vector" do
     it "matches fields the ILIKE implementation never looked at" do
       in_body = create_article("Regional overview", body: "Shiraz dominates the plantings here.")
-      create_article("Harvest diary", tag_names: ["vineyard"])
+      create_article("Harvest diary", tag_names: [ "vineyard" ])
 
       expect(Article.text_search("shiraz").pluck(:title)).to contain_exactly(in_body.title)
       expect(Article.text_search("vineyard").pluck(:title)).to contain_exactly("Harvest diary")
@@ -128,14 +128,14 @@ RSpec.describe TextSearchable do
       ranked = Article.text_search("shiraz").ordered_for_search("relevance", ranked: true)
       # `to_a` rather than `pluck`, which replaces the SELECT list and would drop
       # the `rank` alias the ordering refers to.
-      expect(ranked.map(&:title)).to eq(["Shiraz showcase", "Regional overview"])
+      expect(ranked.map(&:title)).to eq([ "Shiraz showcase", "Regional overview" ])
     end
 
     it "leaves the scope untouched when the term is not searchable" do
       create_article("Chardonnay, chilled")
 
-      expect(Article.text_search("c").pluck(:title)).to eq(["Chardonnay, chilled"])
-      expect(Article.text_search(" & : ' !").pluck(:title)).to eq(["Chardonnay, chilled"])
+      expect(Article.text_search("c").pluck(:title)).to eq([ "Chardonnay, chilled" ])
+      expect(Article.text_search(" & : ' !").pluck(:title)).to eq([ "Chardonnay, chilled" ])
     end
 
     it "returns nothing for a searchable term that matches nothing" do

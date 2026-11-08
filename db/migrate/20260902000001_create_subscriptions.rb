@@ -36,7 +36,7 @@ class CreateSubscriptions < ActiveRecord::Migration[8.1]
       t.timestamps
     end
     add_index :subscription_subscription_features,
-              [:subscription_id, :subscription_feature_id],
+              [ :subscription_id, :subscription_feature_id ],
               unique: true, name: "index_sub_sub_features_on_sub_and_feature"
 
     create_table :user_subscriptions do |t|
@@ -49,7 +49,7 @@ class CreateSubscriptions < ActiveRecord::Migration[8.1]
 
       t.timestamps
     end
-    add_index :user_subscriptions, [:user_id, :status]
+    add_index :user_subscriptions, [ :user_id, :status ]
 
     add_reference :users, :subscription, foreign_key: true
   end

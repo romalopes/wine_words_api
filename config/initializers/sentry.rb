@@ -1,7 +1,7 @@
 # Initialize Sentry only if DSN is provided
-if ENV['SENTRY_DSN'].present?
+if ENV["SENTRY_DSN"].present?
   Sentry.init do |config|
-    config.dsn = ENV['SENTRY_DSN']
+    config.dsn = ENV["SENTRY_DSN"]
     config.environment = Rails.env.to_s
     config.release = AppVersion::VERSION rescue nil
 
@@ -9,12 +9,12 @@ if ENV['SENTRY_DSN'].present?
     config.traces_sample_rate = Rails.env.production? ? 0.05 : 1.0
 
     # Breadcrumbs logging
-    config.breadcrumbs_logger = [:active_support_logger, :http_logger]
+    config.breadcrumbs_logger = [ :active_support_logger, :http_logger ]
 
     # Exclude expected exceptions that are not server errors
     config.excluded_exceptions += [
-      'ActionController::RoutingError',
-      'ActiveRecord::RecordNotFound'
+      "ActionController::RoutingError",
+      "ActiveRecord::RecordNotFound"
     ]
 
     # Scrub sensitive data from events
@@ -23,7 +23,7 @@ if ENV['SENTRY_DSN'].present?
       if event.request && event.request.params.is_a?(Hash)
         event.request.params.each do |key, value|
           if key.to_s.match?(/^(password|password_confirmation|token|reset_token|stripe_token|credit_card|cc_number)$/i)
-            event.request.params[key] = '[FILTERED]'
+            event.request.params[key] = "[FILTERED]"
           end
         end
       end
@@ -32,7 +32,7 @@ if ENV['SENTRY_DSN'].present?
       if event.request && event.request.headers.is_a?(Hash)
         event.request.headers.each do |key, value|
           if key.to_s.match?(/^(authorization|cookie|x-test-access-token)$/i)
-            event.request.headers[key] = '[FILTERED]'
+            event.request.headers[key] = "[FILTERED]"
           end
         end
       end
@@ -41,7 +41,7 @@ if ENV['SENTRY_DSN'].present?
       if event.user && event.user.is_a?(Hash)
         event.user.each do |key, value|
           if key.to_s.match?(/^(email|username|ip_address)$/i)
-            event.user[key] = '[FILTERED]'
+            event.user[key] = "[FILTERED]"
           end
         end
       end

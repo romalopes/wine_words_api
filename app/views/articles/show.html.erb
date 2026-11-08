@@ -13,11 +13,13 @@
 
   <h1><%= @article.title %></h1>
   <p class="lede">
-    <%= [
-      (@article.categories.any? ? @article.categories.map { |c| link_to c.name, return_to_link(category_path(c)), class: "text-link" }.join(", ").html_safe : nil),
-      "by #{@article.user.display_name.presence || @article.user.email}",
-      @article.published_at&.strftime("%B %d, %Y")
-    ].compact.join(" · ").html_safe %>
+    <%= safe_join(
+      [
+        (@article.categories.any? ? safe_join(@article.categories.map { |c| link_to c.name, return_to_link(category_path(c)), class: "text-link" }, ", ") : nil),
+        "by #{@article.user.display_name.presence || @article.user.email}",
+        @article.published_at&.strftime("%B %d, %Y")
+      ].compact, " · "
+    ) %>
     <span class="tag"><%= @article.status %></span>
     <%= deadline_badge(@article) %>
     <% @article.tags.each do |tag| %>

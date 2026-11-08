@@ -10,7 +10,7 @@ class CreateBillingEvents < ActiveRecord::Migration[8.1]
       t.timestamps
     end
 
-    add_index :billing_events, [:provider, :provider_event_id], unique: true
+    add_index :billing_events, [ :provider, :provider_event_id ], unique: true
     add_index :billing_events, :processed_at, where: "processed_at IS NULL"
   end
 end

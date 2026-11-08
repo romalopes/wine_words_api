@@ -11,7 +11,7 @@ class CreateSolidQueueProcessAndRecurringTables < ActiveRecord::Migration[8.1]
       t.string :name, null: false
 
       t.index :last_heartbeat_at, name: "index_solid_queue_processes_on_last_heartbeat_at"
-      t.index [:name, :supervisor_id],
+      t.index [ :name, :supervisor_id ],
               name: "index_solid_queue_processes_on_name_and_supervisor_id",
               unique: true
       t.index :supervisor_id, name: "index_solid_queue_processes_on_supervisor_id"
@@ -52,7 +52,7 @@ class CreateSolidQueueProcessAndRecurringTables < ActiveRecord::Migration[8.1]
       t.index :job_id,
               name: "index_solid_queue_recurring_executions_on_job_id",
               unique: true
-      t.index [:task_key, :run_at],
+      t.index [ :task_key, :run_at ],
               name: "index_solid_queue_recurring_executions_on_task_key_and_run_at",
               unique: true
     end
@@ -65,7 +65,7 @@ class CreateSolidQueueProcessAndRecurringTables < ActiveRecord::Migration[8.1]
       t.datetime :updated_at, null: false
 
       t.index :expires_at, name: "index_solid_queue_semaphores_on_expires_at"
-      t.index [:key, :value], name: "index_solid_queue_semaphores_on_key_and_value"
+      t.index [ :key, :value ], name: "index_solid_queue_semaphores_on_key_and_value"
       t.index :key, name: "index_solid_queue_semaphores_on_key", unique: true
     end
 

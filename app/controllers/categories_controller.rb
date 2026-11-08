@@ -2,9 +2,9 @@ class CategoriesController < ActionController::Base
   layout "application"
   include RequireLogin
 
-  before_action :set_current_user, only: [:reorder]
-  before_action :require_login, only: [:reorder]
-  before_action :set_category, only: [:show, :edit, :update, :destroy]
+  before_action :set_current_user, only: [ :reorder ]
+  before_action :require_login, only: [ :reorder ]
+  before_action :set_category, only: [ :show, :edit, :update, :destroy ]
 
   def index
     @categories = Category.order(:name)
@@ -55,7 +55,7 @@ class CategoriesController < ActionController::Base
     column = {
       "wine" => :sort_order_wine,
       "review" => :sort_order_review,
-      "article" => :sort_order_article,
+      "article" => :sort_order_article
     }[params[:type].to_s]
     return head :bad_request unless column
 

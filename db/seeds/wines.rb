@@ -17,8 +17,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Pedlidis",
     sparkling: false,
-    grapes: ["Riesling"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Riesling" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2021, 2022, 2023]
   },
   {
@@ -31,8 +31,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Pedlidis",
     sparkling: false,
-    grapes: ["Shiraz", "Grenache"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Shiraz", "Grenache" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2019, 2020, 2021]
   },
 
@@ -47,8 +47,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Alkina Wine Estate",
     sparkling: false,
-    grapes: ["Grenache"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Grenache" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2020, 2021, 2022]
   },
   {
@@ -61,8 +61,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Alkina Wine Estate",
     sparkling: false,
-    grapes: ["Grenache", "Shiraz", "Mataro"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Grenache", "Shiraz", "Mataro" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2019, 2020, 2021]
   },
 
@@ -77,8 +77,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Sami-Odi",
     sparkling: false,
-    grapes: ["Syrah"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Syrah" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2020, 2021, 2022]
   },
   {
@@ -91,8 +91,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Sami-Odi",
     sparkling: false,
-    grapes: ["Syrah"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Syrah" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2018, 2019, 2020]
   },
 
@@ -107,8 +107,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Marco Lubiana",
     sparkling: false,
-    grapes: ["Chardonnay"],
-    regions: ["Huon Valley"],
+    grapes: [ "Chardonnay" ],
+    regions: [ "Huon Valley" ]
     # # vintages: [2021, 2022, 2023]
   },
   {
@@ -121,8 +121,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Marco Lubiana",
     sparkling: false,
-    grapes: ["Pinot Noir"],
-    regions: ["Derwent Valley"],
+    grapes: [ "Pinot Noir" ],
+    regions: [ "Derwent Valley" ]
     # # vintages: [2020, 2021, 2022]
   },
 
@@ -137,8 +137,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Dr Edge",
     sparkling: false,
-    grapes: ["Pinot Noir"],
-    regions: ["Tamar Valley"],
+    grapes: [ "Pinot Noir" ],
+    regions: [ "Tamar Valley" ]
     # # vintages: [2021, 2022, 2023]
   },
   {
@@ -151,8 +151,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Dr Edge",
     sparkling: false,
-    grapes: ["Riesling"],
-    regions: ["Tamar Valley"],
+    grapes: [ "Riesling" ],
+    regions: [ "Tamar Valley" ]
     # # vintages: [2021, 2022, 2023]
   },
 
@@ -167,8 +167,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Place of Changing Winds",
     sparkling: false,
-    grapes: ["Pinot Noir"],
-    regions: ["Macedon Ranges"],
+    grapes: [ "Pinot Noir" ],
+    regions: [ "Macedon Ranges" ]
     # # vintages: [2019, 2020, 2021]
   },
   {
@@ -181,8 +181,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Place of Changing Winds",
     sparkling: false,
-    grapes: ["Syrah"],
-    regions: ["Macedon Ranges"],
+    grapes: [ "Syrah" ],
+    regions: [ "Macedon Ranges" ]
     # # vintages: [2020, 2021, 2022]
   },
 
@@ -197,8 +197,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Mayer Wines",
     sparkling: false,
-    grapes: ["Pinot Noir"],
-    regions: ["Yarra Valley"],
+    grapes: [ "Pinot Noir" ],
+    regions: [ "Yarra Valley" ]
     # # vintages: [2021, 2022, 2023]
   },
   {
@@ -211,8 +211,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Mayer Wines",
     sparkling: false,
-    grapes: ["Chardonnay"],
-    regions: ["Yarra Valley"],
+    grapes: [ "Chardonnay" ],
+    regions: [ "Yarra Valley" ]
     # # vintages: [2021, 2022, 2023]
   },
 
@@ -227,8 +227,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Luke Lambert",
     sparkling: false,
-    grapes: ["Syrah"],
-    regions: ["Yarra Valley"],
+    grapes: [ "Syrah" ],
+    regions: [ "Yarra Valley" ]
     # # vintages: [2020, 2021, 2022]
   },
   {
@@ -241,8 +241,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Luke Lambert",
     sparkling: false,
-    grapes: ["Nebbiolo"],
-    regions: ["Yarra Valley"],
+    grapes: [ "Nebbiolo" ],
+    regions: [ "Yarra Valley" ]
     # # vintages: [2019, 2020, 2021]
   },
 
@@ -257,8 +257,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Standish Wine Company",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2018, 2019, 2020]
   },
   {
@@ -271,8 +271,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Standish Wine Company",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2018, 2019, 2020]
   },
 
@@ -287,8 +287,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Frankland Estate",
     sparkling: false,
-    grapes: ["Riesling"],
-    regions: ["Great Southern"],
+    grapes: [ "Riesling" ],
+    regions: [ "Great Southern" ]
     # # vintages: [2021, 2022, 2023]
   },
   {
@@ -301,8 +301,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Frankland Estate",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Great Southern"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Great Southern" ]
     # # vintages: [2019, 2020, 2021]
   },
 
@@ -317,8 +317,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Penfolds",
     sparkling: false,
-    grapes: ["Shiraz", "Cabernet Sauvignon"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Shiraz", "Cabernet Sauvignon" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2017, 2018, 2019]
   },
   {
@@ -331,8 +331,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Penfolds",
     sparkling: false,
-    grapes: ["Cabernet Sauvignon", "Shiraz"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Cabernet Sauvignon", "Shiraz" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2019, 2020, 2021]
   },
 
@@ -347,8 +347,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Henschke",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Eden Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Eden Valley" ]
     # # vintages: [2016, 2017, 2018]
   },
   {
@@ -361,8 +361,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Henschke",
     sparkling: false,
-    grapes: ["Riesling"],
-    regions: ["Eden Valley"],
+    grapes: [ "Riesling" ],
+    regions: [ "Eden Valley" ]
     # # vintages: [2021, 2022, 2023]
   },
 
@@ -377,8 +377,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Yalumba",
     sparkling: false,
-    grapes: ["Cabernet Sauvignon", "Shiraz"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Cabernet Sauvignon", "Shiraz" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2018, 2019, 2020]
   },
   {
@@ -391,8 +391,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Yalumba",
     sparkling: false,
-    grapes: ["Viognier"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Viognier" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2020, 2021, 2022]
   },
 
@@ -407,8 +407,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Torbreck Vintners",
     sparkling: false,
-    grapes: ["Shiraz", "Viognier"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Shiraz", "Viognier" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2018, 2019, 2020]
   },
   {
@@ -421,8 +421,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Torbreck Vintners",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2021, 2022, 2023]
   },
 
@@ -437,8 +437,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Grant Burge",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2016, 2017, 2018]
   },
   {
@@ -451,8 +451,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Grant Burge",
     sparkling: false,
-    grapes: ["Grenache", "Shiraz"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Grenache", "Shiraz" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2019, 2020, 2021]
   },
 
@@ -467,8 +467,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Peter Lehmann Wines",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2016, 2017, 2018]
   },
   {
@@ -481,8 +481,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Peter Lehmann Wines",
     sparkling: false,
-    grapes: ["Riesling"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Riesling" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2015, 2016, 2017]
   },
 
@@ -497,8 +497,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Rockford Wines",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2018, 2019, 2020]
   },
   {
@@ -511,8 +511,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Rockford Wines",
     sparkling: false,
-    grapes: ["Semillon"], # Note: unique Alicante fruit, recorded blend base
-    regions: ["Barossa Valley"],
+    grapes: [ "Semillon" ], # Note: unique Alicante fruit, recorded blend base
+    regions: [ "Barossa Valley" ]
     # # vintages: [2022, 2023]
   },
 
@@ -527,8 +527,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Charles Melton Wines",
     sparkling: false,
-    grapes: ["Grenache", "Shiraz", "Mourvèdre"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Grenache", "Shiraz", "Mourvèdre" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2018, 2019, 2020]
   },
   {
@@ -541,8 +541,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Charles Melton Wines",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2018, 2019, 2020]
   },
 
@@ -557,8 +557,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Elderton Wines",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2017, 2018, 2019]
   },
   {
@@ -571,8 +571,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Elderton Wines",
     sparkling: false,
-    grapes: ["Cabernet Sauvignon"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Cabernet Sauvignon" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2018, 2019, 2020]
   },
 
@@ -587,8 +587,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Chateau Tanunda",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2017, 2018, 2019]
   },
   {
@@ -601,8 +601,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Chateau Tanunda",
     sparkling: false,
-    grapes: ["Grenache"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Grenache" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2020, 2021, 2022]
   },
 
@@ -617,8 +617,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "St Hallett",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2017, 2018, 2019]
   },
   {
@@ -631,8 +631,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "St Hallett",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2021, 2022, 2023]
   },
 
@@ -647,8 +647,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Jacob's Creek (Orlando Wines)",
     sparkling: false,
-    grapes: ["Riesling"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Riesling" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2021, 2022, 2023]
   },
   {
@@ -661,8 +661,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Jacob's Creek (Orlando Wines)",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2021, 2022, 2023]
   },
 
@@ -677,8 +677,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Wolf Blass",
     sparkling: false,
-    grapes: ["Cabernet Sauvignon", "Shiraz"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Cabernet Sauvignon", "Shiraz" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2018, 2019, 2020]
   },
   {
@@ -691,8 +691,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Wolf Blass",
     sparkling: false,
-    grapes: ["Chardonnay"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Chardonnay" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2022, 2023]
   },
 
@@ -707,8 +707,8 @@ WINE_SEEDS = [
     volume_ml: 375,
     producer_name: "Seppeltsfield",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [1920, 1921, 1922]
   },
   {
@@ -721,8 +721,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Seppeltsfield",
     sparkling: false,
-    grapes: ["Grenache"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Grenache" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2021, 2022, 2023]
   },
 
@@ -737,8 +737,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Two Hands Wines",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2019, 2020, 2021]
   },
   {
@@ -751,8 +751,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Two Hands Wines",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2017, 2018, 2019]
   },
 
@@ -767,8 +767,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Turkey Flat",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2018, 2019, 2020]
   },
   {
@@ -781,8 +781,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Turkey Flat",
     sparkling: false,
-    grapes: ["Rosé blend"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Rosé blend" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2022, 2023]
   },
 
@@ -797,8 +797,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Langmeil Winery",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2017, 2018, 2019]
   },
   {
@@ -811,8 +811,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Langmeil Winery",
     sparkling: false,
-    grapes: ["Shiraz", "Grenache"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Shiraz", "Grenache" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2020, 2021, 2022]
   },
 
@@ -827,8 +827,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Kalleske",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2018, 2019, 2020]
   },
   {
@@ -841,8 +841,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Kalleske",
     sparkling: false,
-    grapes: ["Grenache", "Shiraz"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Grenache", "Shiraz" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2021, 2022, 2023]
   },
 
@@ -857,8 +857,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Spinifex Wines",
     sparkling: false,
-    grapes: ["Grenache", "Shiraz"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Grenache", "Shiraz" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2021, 2022, 2023]
   },
   {
@@ -871,8 +871,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Spinifex Wines",
     sparkling: false,
-    grapes: ["Shiraz", "Mourvèdre"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Shiraz", "Mourvèdre" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2018, 2019, 2020]
   },
 
@@ -887,8 +887,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Teusner Wines",
     sparkling: false,
-    grapes: ["Grenache", "Mourvèdre", "Shiraz"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Grenache", "Mourvèdre", "Shiraz" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2019, 2020, 2021]
   },
   {
@@ -901,8 +901,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Teusner Wines",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2018, 2019, 2020]
   },
 
@@ -917,8 +917,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Glaetzer Wines",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2018, 2019, 2020]
   },
   {
@@ -931,8 +931,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Glaetzer Wines",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Barossa Valley" ]
     # # vintages: [2018, 2019, 2020]
   },
 
@@ -947,8 +947,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "d'Arenberg",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["McLaren Vale"],
+    grapes: [ "Shiraz" ],
+    regions: [ "McLaren Vale" ]
     # # vintages: [2017, 2018, 2019]
   },
   {
@@ -961,8 +961,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "d'Arenberg",
     sparkling: false,
-    grapes: ["Viognier"],
-    regions: ["McLaren Vale"],
+    grapes: [ "Viognier" ],
+    regions: [ "McLaren Vale" ]
     # # vintages: [2021, 2022, 2023]
   },
 
@@ -977,8 +977,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Wirra Wirra",
     sparkling: false,
-    grapes: ["Cabernet Sauvignon", "Shiraz"],
-    regions: ["McLaren Vale"],
+    grapes: [ "Cabernet Sauvignon", "Shiraz" ],
+    regions: [ "McLaren Vale" ]
     # # vintages: [2019, 2020, 2021]
   },
   {
@@ -991,8 +991,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Wirra Wirra",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["McLaren Vale"],
+    grapes: [ "Shiraz" ],
+    regions: [ "McLaren Vale" ]
     # # vintages: [2017, 2018, 2019]
   },
 
@@ -1007,8 +1007,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Chapel Hill",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["McLaren Vale"],
+    grapes: [ "Shiraz" ],
+    regions: [ "McLaren Vale" ]
     # vintages: [2018, 2019, 2020]
   },
   {
@@ -1021,8 +1021,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Chapel Hill",
     sparkling: false,
-    grapes: ["Cabernet Sauvignon"],
-    regions: ["McLaren Vale"],
+    grapes: [ "Cabernet Sauvignon" ],
+    regions: [ "McLaren Vale" ]
     # vintages: [2019, 2020, 2021]
   },
 
@@ -1037,8 +1037,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Coriole",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["McLaren Vale"],
+    grapes: [ "Shiraz" ],
+    regions: [ "McLaren Vale" ]
     # vintages: [2016, 2017, 2018]
   },
   {
@@ -1051,8 +1051,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Coriole",
     sparkling: false,
-    grapes: ["Sangiovese"],
-    regions: ["McLaren Vale"],
+    grapes: [ "Sangiovese" ],
+    regions: [ "McLaren Vale" ]
     # vintages: [2021, 2022, 2023]
   },
 
@@ -1067,8 +1067,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "S.C. Pannell",
     sparkling: false,
-    grapes: ["Grenache"],
-    regions: ["McLaren Vale"],
+    grapes: [ "Grenache" ],
+    regions: [ "McLaren Vale" ]
     # vintages: [2019, 2020, 2021]
   },
   {
@@ -1081,8 +1081,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "S.C. Pannell",
     sparkling: false,
-    grapes: ["Shiraz", "Tempranillo"],
-    regions: ["McLaren Vale"],
+    grapes: [ "Shiraz", "Tempranillo" ],
+    regions: [ "McLaren Vale" ]
     # vintages: [2020, 2021, 2022]
   },
 
@@ -1097,8 +1097,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Yangarra Estate Vineyard",
     sparkling: false,
-    grapes: ["Grenache"],
-    regions: ["McLaren Vale"],
+    grapes: [ "Grenache" ],
+    regions: [ "McLaren Vale" ]
     # vintages: [2017, 2018, 2019]
   },
   {
@@ -1111,8 +1111,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Yangarra Estate Vineyard",
     sparkling: false,
-    grapes: ["Roussanne"],
-    regions: ["McLaren Vale"],
+    grapes: [ "Roussanne" ],
+    regions: [ "McLaren Vale" ]
     # vintages: [2020, 2021, 2022]
   },
 
@@ -1127,8 +1127,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Gemtree Wines",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["McLaren Vale"],
+    grapes: [ "Shiraz" ],
+    regions: [ "McLaren Vale" ]
     # vintages: [2020, 2021, 2022]
   },
   {
@@ -1141,8 +1141,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Gemtree Wines",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["McLaren Vale"],
+    grapes: [ "Shiraz" ],
+    regions: [ "McLaren Vale" ]
     # vintages: [2019, 2020, 2021]
   },
 
@@ -1157,8 +1157,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Kay Brothers",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["McLaren Vale"],
+    grapes: [ "Shiraz" ],
+    regions: [ "McLaren Vale" ]
     # vintages: [2017, 2018, 2019]
   },
   {
@@ -1171,8 +1171,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Kay Brothers",
     sparkling: false,
-    grapes: ["Grenache"],
-    regions: ["McLaren Vale"],
+    grapes: [ "Grenache" ],
+    regions: [ "McLaren Vale" ]
     # vintages: [2019, 2020, 2021]
   },
 
@@ -1187,8 +1187,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Clarendon Hills",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["McLaren Vale"],
+    grapes: [ "Shiraz" ],
+    regions: [ "McLaren Vale" ]
     # vintages: [2016, 2017, 2018]
   },
   {
@@ -1201,8 +1201,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Clarendon Hills",
     sparkling: false,
-    grapes: ["Grenache"],
-    regions: ["McLaren Vale"],
+    grapes: [ "Grenache" ],
+    regions: [ "McLaren Vale" ]
     # vintages: [2017, 2018, 2019]
   },
 
@@ -1217,8 +1217,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Ochota Barrels",
     sparkling: false,
-    grapes: ["Grenache"],
-    regions: ["McLaren Vale"],
+    grapes: [ "Grenache" ],
+    regions: [ "McLaren Vale" ]
     # vintages: [2021, 2022, 2023]
   },
   {
@@ -1231,8 +1231,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Ochota Barrels",
     sparkling: false,
-    grapes: ["Syrah"],
-    regions: ["Adelaide Hills"],
+    grapes: [ "Syrah" ],
+    regions: [ "Adelaide Hills" ]
     # vintages: [2021, 2022, 2023]
   },
 
@@ -1247,8 +1247,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Brash Higgins",
     sparkling: false,
-    grapes: ["Nero d'Avola"],
-    regions: ["McLaren Vale"],
+    grapes: [ "Nero d'Avola" ],
+    regions: [ "McLaren Vale" ]
     # vintages: [2020, 2021, 2022]
   },
   {
@@ -1261,8 +1261,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Brash Higgins",
     sparkling: false,
-    grapes: ["Shiraz"], # recorded style blend match
-    regions: ["McLaren Vale"],
+    grapes: [ "Shiraz" ], # recorded style blend match
+    regions: [ "McLaren Vale" ]
     # vintages: [2019, 2020, 2021]
   },
 
@@ -1277,8 +1277,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Hardys",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["McLaren Vale"],
+    grapes: [ "Shiraz" ],
+    regions: [ "McLaren Vale" ]
     # vintages: [2017, 2018, 2019]
   },
   {
@@ -1291,8 +1291,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Hardys",
     sparkling: false,
-    grapes: ["Chardonnay"],
-    regions: ["McLaren Vale"],
+    grapes: [ "Chardonnay" ],
+    regions: [ "McLaren Vale" ]
     # vintages: [2021, 2022, 2023]
   },
 
@@ -1307,8 +1307,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Grosset Wines",
     sparkling: false,
-    grapes: ["Riesling"],
-    regions: ["Clare Valley"],
+    grapes: [ "Riesling" ],
+    regions: [ "Clare Valley" ]
     # vintages: [2021, 2022, 2023]
   },
   {
@@ -1321,8 +1321,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Grosset Wines",
     sparkling: false,
-    grapes: ["Cabernet Sauvignon"],
-    regions: ["Clare Valley"],
+    grapes: [ "Cabernet Sauvignon" ],
+    regions: [ "Clare Valley" ]
     # vintages: [2018, 2019, 2020]
   },
 
@@ -1337,8 +1337,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Jim Barry Wines",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Clare Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Clare Valley" ]
     # vintages: [2016, 2017, 2018]
   },
   {
@@ -1351,8 +1351,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Jim Barry Wines",
     sparkling: false,
-    grapes: ["Riesling"],
-    regions: ["Clare Valley"],
+    grapes: [ "Riesling" ],
+    regions: [ "Clare Valley" ]
     # vintages: [2021, 2022, 2023]
   },
 
@@ -1367,8 +1367,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Kilikanoon Wines",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Clare Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Clare Valley" ]
     # vintages: [2017, 2018, 2019]
   },
   {
@@ -1381,8 +1381,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Kilikanoon Wines",
     sparkling: false,
-    grapes: ["Riesling"],
-    regions: ["Clare Valley"],
+    grapes: [ "Riesling" ],
+    regions: [ "Clare Valley" ]
     # vintages: [2021, 2022, 2023]
   },
 
@@ -1397,8 +1397,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Taylors Wines (Wakefield)",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Clare Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Clare Valley" ]
     # vintages: [2017, 2018, 2019]
   },
   {
@@ -1411,8 +1411,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Taylors Wines (Wakefield)",
     sparkling: false,
-    grapes: ["Cabernet Sauvignon"],
-    regions: ["Clare Valley"],
+    grapes: [ "Cabernet Sauvignon" ],
+    regions: [ "Clare Valley" ]
     # vintages: [2020, 2021, 2022]
   },
 
@@ -1427,8 +1427,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Pikes Wines",
     sparkling: false,
-    grapes: ["Riesling"],
-    regions: ["Clare Valley"],
+    grapes: [ "Riesling" ],
+    regions: [ "Clare Valley" ]
     # vintages: [2021, 2022, 2023]
   },
   {
@@ -1441,8 +1441,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Pikes Wines",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Clare Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Clare Valley" ]
     # vintages: [2018, 2019, 2020]
   },
 
@@ -1457,8 +1457,8 @@ WINE_SEEDS = [
     volume_ml: 375,
     producer_name: "Mount Horrocks",
     sparkling: false,
-    grapes: ["Riesling"],
-    regions: ["Clare Valley"],
+    grapes: [ "Riesling" ],
+    regions: [ "Clare Valley" ]
     # vintages: [2021, 2022, 2023]
   },
   {
@@ -1471,8 +1471,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Mount Horrocks",
     sparkling: false,
-    grapes: ["Riesling"],
-    regions: ["Clare Valley"],
+    grapes: [ "Riesling" ],
+    regions: [ "Clare Valley" ]
     # vintages: [2021, 2022, 2023]
   },
 
@@ -1487,8 +1487,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Skillogalee",
     sparkling: false,
-    grapes: ["Riesling"],
-    regions: ["Clare Valley"],
+    grapes: [ "Riesling" ],
+    regions: [ "Clare Valley" ]
     # vintages: [2020, 2021, 2022]
   },
   {
@@ -1501,8 +1501,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Skillogalee",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Clare Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Clare Valley" ]
     # vintages: [2019, 2020, 2021]
   },
 
@@ -1517,8 +1517,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Pewsey Vale",
     sparkling: false,
-    grapes: ["Riesling"],
-    regions: ["Eden Valley"],
+    grapes: [ "Riesling" ],
+    regions: [ "Eden Valley" ]
     # vintages: [2021, 2022, 2023]
   },
   {
@@ -1531,8 +1531,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Pewsey Vale",
     sparkling: false,
-    grapes: ["Riesling"],
-    regions: ["Eden Valley"],
+    grapes: [ "Riesling" ],
+    regions: [ "Eden Valley" ]
     # vintages: [2016, 2017, 2018]
   },
 
@@ -1547,8 +1547,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Heggies Vineyard",
     sparkling: false,
-    grapes: ["Chardonnay"],
-    regions: ["Eden Valley"],
+    grapes: [ "Chardonnay" ],
+    regions: [ "Eden Valley" ]
     # vintages: [2020, 2021, 2022]
   },
   {
@@ -1561,8 +1561,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Heggies Vineyard",
     sparkling: false,
-    grapes: ["Viognier"],
-    regions: ["Eden Valley"],
+    grapes: [ "Viognier" ],
+    regions: [ "Eden Valley" ]
     # vintages: [2021, 2022, 2023]
   },
 
@@ -1577,8 +1577,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Shaw + Smith",
     sparkling: false,
-    grapes: ["Sauvignon Blanc"],
-    regions: ["Adelaide Hills"],
+    grapes: [ "Sauvignon Blanc" ],
+    regions: [ "Adelaide Hills" ]
     # vintages: [2022, 2023]
   },
   {
@@ -1591,8 +1591,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Shaw + Smith",
     sparkling: false,
-    grapes: ["Chardonnay"],
-    regions: ["Adelaide Hills"],
+    grapes: [ "Chardonnay" ],
+    regions: [ "Adelaide Hills" ]
     # vintages: [2020, 2021, 2022]
   },
 
@@ -1607,8 +1607,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Ashton Hills",
     sparkling: false,
-    grapes: ["Pinot Noir"],
-    regions: ["Adelaide Hills"],
+    grapes: [ "Pinot Noir" ],
+    regions: [ "Adelaide Hills" ]
     # vintages: [2019, 2020, 2021]
   },
   {
@@ -1621,8 +1621,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Ashton Hills",
     sparkling: false,
-    grapes: ["Riesling"],
-    regions: ["Adelaide Hills"],
+    grapes: [ "Riesling" ],
+    regions: [ "Adelaide Hills" ]
     # vintages: [2021, 2022, 2023]
   },
 
@@ -1637,8 +1637,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "The Lane Vineyard",
     sparkling: false,
-    grapes: ["Chardonnay"],
-    regions: ["Adelaide Hills"],
+    grapes: [ "Chardonnay" ],
+    regions: [ "Adelaide Hills" ]
     # vintages: [2020, 2021, 2022]
   },
   {
@@ -1651,8 +1651,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "The Lane Vineyard",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Adelaide Hills"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Adelaide Hills" ]
     # vintages: [2019, 2020, 2021]
   },
 
@@ -1667,8 +1667,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Bird in Hand",
     sparkling: false,
-    grapes: ["Chardonnay"],
-    regions: ["Adelaide Hills"],
+    grapes: [ "Chardonnay" ],
+    regions: [ "Adelaide Hills" ]
     # vintages: [2019, 2020, 2021]
   },
   {
@@ -1681,8 +1681,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Bird in Hand",
     sparkling: true,
-    grapes: ["Pinot Noir"],
-    regions: ["Adelaide Hills"],
+    grapes: [ "Pinot Noir" ],
+    regions: [ "Adelaide Hills" ]
     # vintages: [2022, 2023]
   },
 
@@ -1697,8 +1697,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Petaluma",
     sparkling: false,
-    grapes: ["Riesling"],
-    regions: ["Adelaide Hills"],
+    grapes: [ "Riesling" ],
+    regions: [ "Adelaide Hills" ]
     # vintages: [2021, 2022, 2023]
   },
   {
@@ -1711,8 +1711,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Petaluma",
     sparkling: false,
-    grapes: ["Chardonnay"],
-    regions: ["Adelaide Hills"],
+    grapes: [ "Chardonnay" ],
+    regions: [ "Adelaide Hills" ]
     # vintages: [2020, 2021, 2022]
   },
 
@@ -1727,8 +1727,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Wynns Coonawarra Estate",
     sparkling: false,
-    grapes: ["Cabernet Sauvignon"],
-    regions: ["Coonawarra"],
+    grapes: [ "Cabernet Sauvignon" ],
+    regions: [ "Coonawarra" ]
     # vintages: [2015, 2016, 2018]
   },
   {
@@ -1741,8 +1741,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Wynns Coonawarra Estate",
     sparkling: false,
-    grapes: ["Cabernet Sauvignon"],
-    regions: ["Coonawarra"],
+    grapes: [ "Cabernet Sauvignon" ],
+    regions: [ "Coonawarra" ]
     # vintages: [2019, 2020, 2021]
   },
 
@@ -1757,8 +1757,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Katnook Estate",
     sparkling: false,
-    grapes: ["Cabernet Sauvignon"],
-    regions: ["Coonawarra"],
+    grapes: [ "Cabernet Sauvignon" ],
+    regions: [ "Coonawarra" ]
     # vintages: [2015, 2016, 2017]
   },
   {
@@ -1771,8 +1771,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Katnook Estate",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Coonawarra"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Coonawarra" ]
     # vintages: [2020, 2021, 2022]
   },
 
@@ -1787,8 +1787,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Parker Coonawarra Estate",
     sparkling: false,
-    grapes: ["Cabernet Sauvignon"],
-    regions: ["Coonawarra"],
+    grapes: [ "Cabernet Sauvignon" ],
+    regions: [ "Coonawarra" ]
     # vintages: [2016, 2018, 2019]
   },
   {
@@ -1801,8 +1801,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Parker Coonawarra Estate",
     sparkling: false,
-    grapes: ["Cabernet Sauvignon"],
-    regions: ["Coonawarra"],
+    grapes: [ "Cabernet Sauvignon" ],
+    regions: [ "Coonawarra" ]
     # vintages: [2019, 2020, 2021]
   },
 
@@ -1817,8 +1817,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Balnaves of Coonawarra",
     sparkling: false,
-    grapes: ["Cabernet Sauvignon"],
-    regions: ["Coonawarra"],
+    grapes: [ "Cabernet Sauvignon" ],
+    regions: [ "Coonawarra" ]
     # vintages: [2016, 2017, 2018]
   },
   {
@@ -1831,8 +1831,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Balnaves of Coonawarra",
     sparkling: false,
-    grapes: ["Cabernet Sauvignon"],
-    regions: ["Coonawarra"],
+    grapes: [ "Cabernet Sauvignon" ],
+    regions: [ "Coonawarra" ]
     # vintages: [2019, 2020, 2021]
   },
 
@@ -1847,8 +1847,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Leconfield",
     sparkling: false,
-    grapes: ["Cabernet Sauvignon"],
-    regions: ["Coonawarra"],
+    grapes: [ "Cabernet Sauvignon" ],
+    regions: [ "Coonawarra" ]
     # vintages: [2018, 2019, 2020]
   },
   {
@@ -1861,8 +1861,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Leconfield",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Coonawarra"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Coonawarra" ]
     # vintages: [2019, 2020, 2021]
   },
 
@@ -1877,8 +1877,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Cullen Wines",
     sparkling: false,
-    grapes: ["Cabernet Sauvignon", "Sauvignon Blanc"],
-    regions: ["Margaret River"],
+    grapes: [ "Cabernet Sauvignon", "Sauvignon Blanc" ],
+    regions: [ "Margaret River" ]
     # vintages: [2018, 2019, 2020]
   },
   {
@@ -1891,8 +1891,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Cullen Wines",
     sparkling: false,
-    grapes: ["Chardonnay"],
-    regions: ["Margaret River"],
+    grapes: [ "Chardonnay" ],
+    regions: [ "Margaret River" ]
     # vintages: [2019, 2020, 2021]
   },
 
@@ -1907,8 +1907,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Vasse Felix",
     sparkling: false,
-    grapes: ["Cabernet Sauvignon"],
-    regions: ["Margaret River"],
+    grapes: [ "Cabernet Sauvignon" ],
+    regions: [ "Margaret River" ]
     # vintages: [2017, 2018, 2019]
   },
   {
@@ -1921,8 +1921,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Vasse Felix",
     sparkling: false,
-    grapes: ["Chardonnay"],
-    regions: ["Margaret River"],
+    grapes: [ "Chardonnay" ],
+    regions: [ "Margaret River" ]
     # vintages: [2020, 2021, 2022]
   },
 
@@ -1937,8 +1937,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Leeuwin Estate",
     sparkling: false,
-    grapes: ["Chardonnay"],
-    regions: ["Margaret River"],
+    grapes: [ "Chardonnay" ],
+    regions: [ "Margaret River" ]
     # vintages: [2018, 2019, 2020]
   },
   {
@@ -1951,8 +1951,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Leeuwin Estate",
     sparkling: false,
-    grapes: ["Cabernet Sauvignon"],
-    regions: ["Margaret River"],
+    grapes: [ "Cabernet Sauvignon" ],
+    regions: [ "Margaret River" ]
     # vintages: [2017, 2018, 2019]
   },
 
@@ -1967,8 +1967,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Moss Wood",
     sparkling: false,
-    grapes: ["Cabernet Sauvignon"],
-    regions: ["Margaret River"],
+    grapes: [ "Cabernet Sauvignon" ],
+    regions: [ "Margaret River" ]
     # vintages: [2018, 2019, 2020]
   },
   {
@@ -1981,8 +1981,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Moss Wood",
     sparkling: false,
-    grapes: ["Semillon"],
-    regions: ["Margaret River"],
+    grapes: [ "Semillon" ],
+    regions: [ "Margaret River" ]
     # vintages: [2021, 2022, 2023]
   },
 
@@ -1997,8 +1997,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Voyager Estate",
     sparkling: false,
-    grapes: ["Cabernet Sauvignon"],
-    regions: ["Margaret River"],
+    grapes: [ "Cabernet Sauvignon" ],
+    regions: [ "Margaret River" ]
     # vintages: [2017, 2018, 2020]
   },
   {
@@ -2011,8 +2011,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Voyager Estate",
     sparkling: false,
-    grapes: ["Chardonnay"],
-    regions: ["Margaret River"],
+    grapes: [ "Chardonnay" ],
+    regions: [ "Margaret River" ]
     # vintages: [2020, 2021, 2022]
   },
 
@@ -2027,8 +2027,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Woodlands",
     sparkling: false,
-    grapes: ["Cabernet Sauvignon"],
-    regions: ["Margaret River"],
+    grapes: [ "Cabernet Sauvignon" ],
+    regions: [ "Margaret River" ]
     # vintages: [2018, 2019, 2020]
   },
   {
@@ -2041,8 +2041,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Woodlands",
     sparkling: false,
-    grapes: ["Cabernet Sauvignon", "Merlot"],
-    regions: ["Margaret River"],
+    grapes: [ "Cabernet Sauvignon", "Merlot" ],
+    regions: [ "Margaret River" ]
     # vintages: [2018, 2019, 2020]
   },
 
@@ -2057,8 +2057,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Xanadu Wines",
     sparkling: false,
-    grapes: ["Cabernet Sauvignon"],
-    regions: ["Margaret River"],
+    grapes: [ "Cabernet Sauvignon" ],
+    regions: [ "Margaret River" ]
     # vintages: [2018, 2019, 2020]
   },
   {
@@ -2071,8 +2071,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Xanadu Wines",
     sparkling: false,
-    grapes: ["Chardonnay"],
-    regions: ["Margaret River"],
+    grapes: [ "Chardonnay" ],
+    regions: [ "Margaret River" ]
     # vintages: [2020, 2021, 2022]
   },
 
@@ -2087,8 +2087,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Fraser Gallop Estate",
     sparkling: false,
-    grapes: ["Cabernet Sauvignon"],
-    regions: ["Margaret River"],
+    grapes: [ "Cabernet Sauvignon" ],
+    regions: [ "Margaret River" ]
     # vintages: [2018, 2019, 2020]
   },
   {
@@ -2101,8 +2101,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Fraser Gallop Estate",
     sparkling: false,
-    grapes: ["Chardonnay"],
-    regions: ["Margaret River"],
+    grapes: [ "Chardonnay" ],
+    regions: [ "Margaret River" ]
     # vintages: [2021, 2022, 2023]
   },
 
@@ -2117,8 +2117,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Pierro",
     sparkling: false,
-    grapes: ["Chardonnay"],
-    regions: ["Margaret River"],
+    grapes: [ "Chardonnay" ],
+    regions: [ "Margaret River" ]
     # vintages: [2020, 2021, 2022]
   },
   {
@@ -2131,8 +2131,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Pierro",
     sparkling: false,
-    grapes: ["Semillon", "Chardonnay"],
-    regions: ["Margaret River"],
+    grapes: [ "Semillon", "Chardonnay" ],
+    regions: [ "Margaret River" ]
     # vintages: [2021, 2022, 2023]
   },
 
@@ -2147,8 +2147,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Cape Mentelle",
     sparkling: false,
-    grapes: ["Cabernet Sauvignon"],
-    regions: ["Margaret River"],
+    grapes: [ "Cabernet Sauvignon" ],
+    regions: [ "Margaret River" ]
     # vintages: [2017, 2018, 2019]
   },
   {
@@ -2161,8 +2161,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Cape Mentelle",
     sparkling: false,
-    grapes: ["Sauvignon Blanc", "Cabernet Sauvignon"],
-    regions: ["Margaret River"],
+    grapes: [ "Sauvignon Blanc", "Cabernet Sauvignon" ],
+    regions: [ "Margaret River" ]
     # vintages: [2021, 2022, 2023]
   },
 
@@ -2177,8 +2177,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Howard Park",
     sparkling: false,
-    grapes: ["Cabernet Sauvignon"],
-    regions: ["Margaret River", "Great Southern"],
+    grapes: [ "Cabernet Sauvignon" ],
+    regions: [ "Margaret River", "Great Southern" ]
     # vintages: [2017, 2018, 2019]
   },
   {
@@ -2191,8 +2191,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Howard Park",
     sparkling: false,
-    grapes: ["Riesling"],
-    regions: ["Great Southern"],
+    grapes: [ "Riesling" ],
+    regions: [ "Great Southern" ]
     # vintages: [2021, 2022, 2023]
   },
 
@@ -2207,8 +2207,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Plantagenet Wines",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Great Southern"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Great Southern" ]
     # vintages: [2019, 2020, 2021]
   },
   {
@@ -2221,8 +2221,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Plantagenet Wines",
     sparkling: false,
-    grapes: ["Riesling"],
-    regions: ["Great Southern"],
+    grapes: [ "Riesling" ],
+    regions: [ "Great Southern" ]
     # vintages: [2021, 2022, 2023]
   },
 
@@ -2237,8 +2237,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Domaine Naturaliste",
     sparkling: false,
-    grapes: ["Cabernet Sauvignon"],
-    regions: ["Margaret River"],
+    grapes: [ "Cabernet Sauvignon" ],
+    regions: [ "Margaret River" ]
     # vintages: [2018, 2019, 2020]
   },
   {
@@ -2251,8 +2251,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Domaine Naturaliste",
     sparkling: false,
-    grapes: ["Chardonnay"],
-    regions: ["Margaret River"],
+    grapes: [ "Chardonnay" ],
+    regions: [ "Margaret River" ]
     # vintages: [2020, 2021, 2022]
   },
 
@@ -2267,8 +2267,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Giaconda",
     sparkling: false,
-    grapes: ["Chardonnay"],
-    regions: ["Beechworth"],
+    grapes: [ "Chardonnay" ],
+    regions: [ "Beechworth" ]
     # vintages: [2018, 2019, 2021]
   },
   {
@@ -2281,8 +2281,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Giaconda",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Beechworth"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Beechworth" ]
     # vintages: [2017, 2018, 2019]
   },
 
@@ -2297,8 +2297,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Yering Station",
     sparkling: false,
-    grapes: ["Chardonnay"],
-    regions: ["Yarra Valley"],
+    grapes: [ "Chardonnay" ],
+    regions: [ "Yarra Valley" ]
     # vintages: [2019, 2020, 2021]
   },
   {
@@ -2311,8 +2311,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Yering Station",
     sparkling: false,
-    grapes: ["Pinot Noir"],
-    regions: ["Yarra Valley"],
+    grapes: [ "Pinot Noir" ],
+    regions: [ "Yarra Valley" ]
     # vintages: [2019, 2020, 2021]
   },
 
@@ -2327,8 +2327,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Mount Mary",
     sparkling: false,
-    grapes: ["Cabernet Sauvignon", "Chardonnay"],
-    regions: ["Yarra Valley"],
+    grapes: [ "Cabernet Sauvignon", "Chardonnay" ],
+    regions: [ "Yarra Valley" ]
     # vintages: [2018, 2019, 2020]
   },
   {
@@ -2341,8 +2341,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Mount Mary",
     sparkling: false,
-    grapes: ["Chardonnay"],
-    regions: ["Yarra Valley"],
+    grapes: [ "Chardonnay" ],
+    regions: [ "Yarra Valley" ]
     # vintages: [2019, 2020, 2021]
   },
 
@@ -2357,8 +2357,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Yarra Yering",
     sparkling: false,
-    grapes: ["Cabernet Sauvignon"],
-    regions: ["Yarra Valley"],
+    grapes: [ "Cabernet Sauvignon" ],
+    regions: [ "Yarra Valley" ]
     # vintages: [2017, 2018, 2019]
   },
   {
@@ -2371,8 +2371,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Yarra Yering",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Yarra Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Yarra Valley" ]
     # vintages: [2017, 2018, 2019]
   },
 
@@ -2387,8 +2387,8 @@ WINE_SEEDS = [
     volume_ml: 375,
     producer_name: "De Bortoli",
     sparkling: false,
-    grapes: ["Semillon"],
-    regions: ["Yarra Valley", "Riverina"],
+    grapes: [ "Semillon" ],
+    regions: [ "Yarra Valley", "Riverina" ]
     # vintages: [2018, 2019, 2020]
   },
   {
@@ -2401,8 +2401,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "De Bortoli",
     sparkling: false,
-    grapes: ["Pinot Noir"],
-    regions: ["Yarra Valley", "Riverina"],
+    grapes: [ "Pinot Noir" ],
+    regions: [ "Yarra Valley", "Riverina" ]
     # vintages: [2020, 2021, 2022]
   },
 
@@ -2417,8 +2417,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Coldstream Hills",
     sparkling: false,
-    grapes: ["Chardonnay"],
-    regions: ["Yarra Valley"],
+    grapes: [ "Chardonnay" ],
+    regions: [ "Yarra Valley" ]
     # vintages: [2019, 2020, 2021]
   },
   {
@@ -2431,8 +2431,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Coldstream Hills",
     sparkling: false,
-    grapes: ["Pinot Noir"],
-    regions: ["Yarra Valley"],
+    grapes: [ "Pinot Noir" ],
+    regions: [ "Yarra Valley" ]
     # vintages: [2019, 2020, 2021]
   },
 
@@ -2447,8 +2447,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Oakridge Wines",
     sparkling: false,
-    grapes: ["Chardonnay"],
-    regions: ["Yarra Valley"],
+    grapes: [ "Chardonnay" ],
+    regions: [ "Yarra Valley" ]
     # vintages: [2019, 2020, 2021]
   },
   {
@@ -2461,8 +2461,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Oakridge Wines",
     sparkling: false,
-    grapes: ["Pinot Noir"],
-    regions: ["Yarra Valley"],
+    grapes: [ "Pinot Noir" ],
+    regions: [ "Yarra Valley" ]
     # vintages: [2020, 2021, 2022]
   },
 
@@ -2477,8 +2477,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Giant Steps",
     sparkling: false,
-    grapes: ["Pinot Noir"],
-    regions: ["Yarra Valley"],
+    grapes: [ "Pinot Noir" ],
+    regions: [ "Yarra Valley" ]
     # vintages: [2020, 2021, 2022]
   },
   {
@@ -2491,8 +2491,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Giant Steps",
     sparkling: false,
-    grapes: ["Chardonnay"],
-    regions: ["Yarra Valley"],
+    grapes: [ "Chardonnay" ],
+    regions: [ "Yarra Valley" ]
     # vintages: [2020, 2021, 2022]
   },
 
@@ -2507,8 +2507,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "TarraWarra Estate",
     sparkling: false,
-    grapes: ["Chardonnay"],
-    regions: ["Yarra Valley"],
+    grapes: [ "Chardonnay" ],
+    regions: [ "Yarra Valley" ]
     # vintages: [2019, 2020, 2021]
   },
   {
@@ -2521,8 +2521,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "TarraWarra Estate",
     sparkling: false,
-    grapes: ["Pinot Noir"],
-    regions: ["Yarra Valley"],
+    grapes: [ "Pinot Noir" ],
+    regions: [ "Yarra Valley" ]
     # vintages: [2018, 2019, 2020]
   },
 
@@ -2537,8 +2537,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Mac Forbes",
     sparkling: false,
-    grapes: ["Pinot Noir"],
-    regions: ["Yarra Valley"],
+    grapes: [ "Pinot Noir" ],
+    regions: [ "Yarra Valley" ]
     # vintages: [2021, 2022, 2023]
   },
   {
@@ -2551,8 +2551,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Mac Forbes",
     sparkling: false,
-    grapes: ["Riesling"],
-    regions: ["Yarra Valley"],
+    grapes: [ "Riesling" ],
+    regions: [ "Yarra Valley" ]
     # vintages: [2021, 2022, 2023]
   },
 
@@ -2567,8 +2567,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Tahbilk",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Nagambie Lakes"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Nagambie Lakes" ]
     # vintages: [2015, 2016, 2017]
   },
   {
@@ -2581,8 +2581,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Tahbilk",
     sparkling: false,
-    grapes: ["Marsanne"],
-    regions: ["Nagambie Lakes"],
+    grapes: [ "Marsanne" ],
+    regions: [ "Nagambie Lakes" ]
     # vintages: [2015, 2016, 2017]
   },
 
@@ -2597,8 +2597,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Mitchelton",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Nagambie Lakes"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Nagambie Lakes" ]
     # vintages: [2018, 2019, 2020]
   },
   {
@@ -2611,8 +2611,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Mitchelton",
     sparkling: false,
-    grapes: ["Marsanne"],
-    regions: ["Nagambie Lakes"],
+    grapes: [ "Marsanne" ],
+    regions: [ "Nagambie Lakes" ]
     # vintages: [2021, 2022, 2023]
   },
 
@@ -2627,8 +2627,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Jasper Hill",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Heathcote"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Heathcote" ]
     # vintages: [2018, 2019, 2020]
   },
   {
@@ -2641,8 +2641,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Jasper Hill",
     sparkling: false,
-    grapes: ["Shiraz", "Cabernet Sauvignon"],
-    regions: ["Heathcote"],
+    grapes: [ "Shiraz", "Cabernet Sauvignon" ],
+    regions: [ "Heathcote" ]
     # vintages: [2018, 2019, 2020]
   },
 
@@ -2657,8 +2657,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Brown Brothers",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["King Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "King Valley" ]
     # vintages: [2017, 2018, 2019]
   },
   {
@@ -2671,8 +2671,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Brown Brothers",
     sparkling: true,
-    grapes: ["Prosecco (Glera)"],
-    regions: ["King Valley"],
+    grapes: [ "Prosecco (Glera)" ],
+    regions: [ "King Valley" ]
     # vintages: [2022, 2023]
   },
 
@@ -2687,8 +2687,8 @@ WINE_SEEDS = [
     volume_ml: 375,
     producer_name: "Campbells Wines",
     sparkling: false,
-    grapes: ["Muscat"],
-    regions: ["Rutherglen"],
+    grapes: [ "Muscat" ],
+    regions: [ "Rutherglen" ]
     # vintages: [2010, 2015, 2020]
   },
   {
@@ -2701,8 +2701,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Campbells Wines",
     sparkling: false,
-    grapes: ["Durif"],
-    regions: ["Rutherglen"],
+    grapes: [ "Durif" ],
+    regions: [ "Rutherglen" ]
     # vintages: [2018, 2019, 2020]
   },
 
@@ -2717,8 +2717,8 @@ WINE_SEEDS = [
     volume_ml: 375,
     producer_name: "All Saints Estate",
     sparkling: false,
-    grapes: ["Muscat"],
-    regions: ["Rutherglen"],
+    grapes: [ "Muscat" ],
+    regions: [ "Rutherglen" ]
     # vintages: [2012, 2016, 2020]
   },
   {
@@ -2731,8 +2731,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "All Saints Estate",
     sparkling: false,
-    grapes: ["Durif"],
-    regions: ["Rutherglen"],
+    grapes: [ "Durif" ],
+    regions: [ "Rutherglen" ]
     # vintages: [2018, 2019, 2020]
   },
 
@@ -2747,8 +2747,8 @@ WINE_SEEDS = [
     volume_ml: 375,
     producer_name: "Stanton & Killeen",
     sparkling: false,
-    grapes: ["Muscat"],
-    regions: ["Rutherglen"],
+    grapes: [ "Muscat" ],
+    regions: [ "Rutherglen" ]
     # vintages: [2015, 2018, 2021]
   },
   {
@@ -2761,8 +2761,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Stanton & Killeen",
     sparkling: false,
-    grapes: ["Durif"],
-    regions: ["Rutherglen"],
+    grapes: [ "Durif" ],
+    regions: [ "Rutherglen" ]
     # vintages: [2019, 2020, 2021]
   },
 
@@ -2777,8 +2777,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Bindi Wines",
     sparkling: false,
-    grapes: ["Pinot Noir"],
-    regions: ["Macedon Ranges"],
+    grapes: [ "Pinot Noir" ],
+    regions: [ "Macedon Ranges" ]
     # vintages: [2019, 2020, 2021]
   },
   {
@@ -2791,8 +2791,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Bindi Wines",
     sparkling: false,
-    grapes: ["Chardonnay"],
-    regions: ["Macedon Ranges"],
+    grapes: [ "Chardonnay" ],
+    regions: [ "Macedon Ranges" ]
     # vintages: [2019, 2020, 2021]
   },
 
@@ -2807,8 +2807,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Paringa Estate",
     sparkling: false,
-    grapes: ["Pinot Noir"],
-    regions: ["Mornington Peninsula"],
+    grapes: [ "Pinot Noir" ],
+    regions: [ "Mornington Peninsula" ]
     # vintages: [2019, 2020, 2021]
   },
   {
@@ -2821,8 +2821,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Paringa Estate",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Mornington Peninsula"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Mornington Peninsula" ]
     # vintages: [2018, 2019, 2020]
   },
 
@@ -2837,8 +2837,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Ten Minutes by Tractor",
     sparkling: false,
-    grapes: ["Pinot Noir"],
-    regions: ["Mornington Peninsula"],
+    grapes: [ "Pinot Noir" ],
+    regions: [ "Mornington Peninsula" ]
     # vintages: [2019, 2020, 2021]
   },
   {
@@ -2851,8 +2851,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Ten Minutes by Tractor",
     sparkling: false,
-    grapes: ["Chardonnay"],
-    regions: ["Mornington Peninsula"],
+    grapes: [ "Chardonnay" ],
+    regions: [ "Mornington Peninsula" ]
     # vintages: [2019, 2020, 2021]
   },
 
@@ -2867,8 +2867,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Kooyong",
     sparkling: false,
-    grapes: ["Pinot Noir"],
-    regions: ["Mornington Peninsula"],
+    grapes: [ "Pinot Noir" ],
+    regions: [ "Mornington Peninsula" ]
     # vintages: [2019, 2020, 2021]
   },
   {
@@ -2881,8 +2881,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Kooyong",
     sparkling: false,
-    grapes: ["Chardonnay"],
-    regions: ["Mornington Peninsula"],
+    grapes: [ "Chardonnay" ],
+    regions: [ "Mornington Peninsula" ]
     # vintages: [2019, 2020, 2021]
   },
 
@@ -2897,8 +2897,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Moorooduc Estate",
     sparkling: false,
-    grapes: ["Pinot Noir"],
-    regions: ["Mornington Peninsula"],
+    grapes: [ "Pinot Noir" ],
+    regions: [ "Mornington Peninsula" ]
     # vintages: [2019, 2020, 2021]
   },
   {
@@ -2911,8 +2911,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Moorooduc Estate",
     sparkling: false,
-    grapes: ["Chardonnay"],
-    regions: ["Mornington Peninsula"],
+    grapes: [ "Chardonnay" ],
+    regions: [ "Mornington Peninsula" ]
     # vintages: [2019, 2020, 2021]
   },
 
@@ -2927,8 +2927,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Main Ridge Estate",
     sparkling: false,
-    grapes: ["Pinot Noir"],
-    regions: ["Mornington Peninsula"],
+    grapes: [ "Pinot Noir" ],
+    regions: [ "Mornington Peninsula" ]
     # vintages: [2019, 2020, 2021]
   },
   {
@@ -2941,8 +2941,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Main Ridge Estate",
     sparkling: false,
-    grapes: ["Chardonnay"],
-    regions: ["Mornington Peninsula"],
+    grapes: [ "Chardonnay" ],
+    regions: [ "Mornington Peninsula" ]
     # vintages: [2019, 2020, 2021]
   },
 
@@ -2957,8 +2957,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Tyrrell's Wines",
     sparkling: false,
-    grapes: ["Semillon"],
-    regions: ["Hunter Valley"],
+    grapes: [ "Semillon" ],
+    regions: [ "Hunter Valley" ]
     # vintages: [2015, 2016, 2017]
   },
   {
@@ -2971,8 +2971,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Tyrrell's Wines",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Hunter Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Hunter Valley" ]
     # vintages: [2017, 2018, 2019]
   },
 
@@ -2987,8 +2987,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Brokenwood Wines",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Hunter Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Hunter Valley" ]
     # vintages: [2017, 2018, 2019]
   },
   {
@@ -3001,8 +3001,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Brokenwood Wines",
     sparkling: false,
-    grapes: ["Semillon"],
-    regions: ["Hunter Valley"],
+    grapes: [ "Semillon" ],
+    regions: [ "Hunter Valley" ]
     # vintages: [2015, 2016, 2017]
   },
 
@@ -3017,8 +3017,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Mount Pleasant (McWilliam's)",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Hunter Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Hunter Valley" ]
     # vintages: [2017, 2018, 2019]
   },
   {
@@ -3031,8 +3031,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Mount Pleasant (McWilliam's)",
     sparkling: false,
-    grapes: ["Semillon"],
-    regions: ["Hunter Valley"],
+    grapes: [ "Semillon" ],
+    regions: [ "Hunter Valley" ]
     # vintages: [2014, 2015, 2017]
   },
 
@@ -3047,8 +3047,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Tulloch",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Hunter Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Hunter Valley" ]
     # vintages: [2018, 2019, 2020]
   },
   {
@@ -3061,8 +3061,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Tulloch",
     sparkling: false,
-    grapes: ["Semillon"],
-    regions: ["Hunter Valley"],
+    grapes: [ "Semillon" ],
+    regions: [ "Hunter Valley" ]
     # vintages: [2021, 2022, 2023]
   },
 
@@ -3077,8 +3077,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Lake's Folly",
     sparkling: false,
-    grapes: ["Cabernet Sauvignon"],
-    regions: ["Hunter Valley"],
+    grapes: [ "Cabernet Sauvignon" ],
+    regions: [ "Hunter Valley" ]
     # vintages: [2018, 2019, 2020]
   },
   {
@@ -3091,8 +3091,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Lake's Folly",
     sparkling: false,
-    grapes: ["Chardonnay"],
-    regions: ["Hunter Valley"],
+    grapes: [ "Chardonnay" ],
+    regions: [ "Hunter Valley" ]
     # vintages: [2020, 2021, 2022]
   },
 
@@ -3107,8 +3107,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Clonakilla",
     sparkling: false,
-    grapes: ["Shiraz", "Viognier"],
-    regions: ["Canberra District"],
+    grapes: [ "Shiraz", "Viognier" ],
+    regions: [ "Canberra District" ]
     # vintages: [2019, 2021, 2022]
   },
   {
@@ -3121,8 +3121,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Clonakilla",
     sparkling: false,
-    grapes: ["Riesling"],
-    regions: ["Canberra District"],
+    grapes: [ "Riesling" ],
+    regions: [ "Canberra District" ]
     # vintages: [2021, 2022, 2023]
   },
 
@@ -3137,8 +3137,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Mount Majura Vineyard",
     sparkling: false,
-    grapes: ["Tempranillo"],
-    regions: ["Canberra District"],
+    grapes: [ "Tempranillo" ],
+    regions: [ "Canberra District" ]
     # vintages: [2019, 2020, 2021]
   },
   {
@@ -3151,8 +3151,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Mount Majura Vineyard",
     sparkling: false,
-    grapes: ["Tempranillo", "Shiraz"],
-    regions: ["Canberra District"],
+    grapes: [ "Tempranillo", "Shiraz" ],
+    regions: [ "Canberra District" ]
     # vintages: [2020, 2021, 2022]
   },
 
@@ -3167,8 +3167,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Freycinet Vineyard",
     sparkling: false,
-    grapes: ["Pinot Noir"],
-    regions: ["East Coast Tasmania"],
+    grapes: [ "Pinot Noir" ],
+    regions: [ "East Coast Tasmania" ]
     # vintages: [2019, 2020, 2021]
   },
   {
@@ -3181,8 +3181,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Freycinet Vineyard",
     sparkling: false,
-    grapes: ["Chardonnay"],
-    regions: ["East Coast Tasmania"],
+    grapes: [ "Chardonnay" ],
+    regions: [ "East Coast Tasmania" ]
     # vintages: [2020, 2021, 2022]
   },
 
@@ -3197,8 +3197,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Josef Chromy Wines",
     sparkling: false,
-    grapes: ["Pinot Noir"],
-    regions: ["Tamar Valley"],
+    grapes: [ "Pinot Noir" ],
+    regions: [ "Tamar Valley" ]
     # vintages: [2018, 2019, 2020]
   },
   {
@@ -3211,8 +3211,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Josef Chromy Wines",
     sparkling: true,
-    grapes: ["Chardonnay", "Pinot Noir"],
-    regions: ["Tamar Valley"],
+    grapes: [ "Chardonnay", "Pinot Noir" ],
+    regions: [ "Tamar Valley" ]
     # vintages: [2021, 2022, 2023]
   },
 
@@ -3227,8 +3227,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Bay of Fires",
     sparkling: false,
-    grapes: ["Pinot Noir"],
-    regions: ["North East Tasmania"],
+    grapes: [ "Pinot Noir" ],
+    regions: [ "North East Tasmania" ]
     # vintages: [2020, 2021, 2022]
   },
   {
@@ -3241,8 +3241,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Bay of Fires",
     sparkling: false,
-    grapes: ["Chardonnay"],
-    regions: ["North East Tasmania"],
+    grapes: [ "Chardonnay" ],
+    regions: [ "North East Tasmania" ]
     # vintages: [2020, 2021, 2022]
   },
 
@@ -3257,8 +3257,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Tolpuddle Vineyard",
     sparkling: false,
-    grapes: ["Pinot Noir"],
-    regions: ["Coal River Valley"],
+    grapes: [ "Pinot Noir" ],
+    regions: [ "Coal River Valley" ]
     # vintages: [2020, 2021, 2022]
   },
   {
@@ -3271,8 +3271,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Tolpuddle Vineyard",
     sparkling: false,
-    grapes: ["Chardonnay"],
-    regions: ["Coal River Valley"],
+    grapes: [ "Chardonnay" ],
+    regions: [ "Coal River Valley" ]
     # vintages: [2020, 2021, 2022]
   },
 
@@ -3287,8 +3287,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Stefano Lubiana",
     sparkling: false,
-    grapes: ["Pinot Noir"],
-    regions: ["Derwent Valley"],
+    grapes: [ "Pinot Noir" ],
+    regions: [ "Derwent Valley" ]
     # vintages: [2019, 2020, 2021]
   },
   {
@@ -3301,8 +3301,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Stefano Lubiana",
     sparkling: true,
-    grapes: ["Chardonnay", "Pinot Noir"],
-    regions: ["Derwent Valley"],
+    grapes: [ "Chardonnay", "Pinot Noir" ],
+    regions: [ "Derwent Valley" ]
     # vintages: [2015, 2016, 2017]
   },
 
@@ -3317,8 +3317,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Domaine A",
     sparkling: false,
-    grapes: ["Cabernet Sauvignon"],
-    regions: ["Coal River Valley"],
+    grapes: [ "Cabernet Sauvignon" ],
+    regions: [ "Coal River Valley" ]
     # vintages: [2011, 2012, 2013]
   },
   {
@@ -3331,8 +3331,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Domaine A",
     sparkling: false,
-    grapes: ["Pinot Noir"],
-    regions: ["Coal River Valley"],
+    grapes: [ "Pinot Noir" ],
+    regions: [ "Coal River Valley" ]
     # vintages: [2015, 2016, 2017]
   },
 
@@ -3347,8 +3347,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Pooley Wines",
     sparkling: false,
-    grapes: ["Riesling"],
-    regions: ["Coal River Valley"],
+    grapes: [ "Riesling" ],
+    regions: [ "Coal River Valley" ]
     # vintages: [2021, 2022, 2023]
   },
   {
@@ -3361,8 +3361,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Pooley Wines",
     sparkling: false,
-    grapes: ["Pinot Noir"],
-    regions: ["Coal River Valley"],
+    grapes: [ "Pinot Noir" ],
+    regions: [ "Coal River Valley" ]
     # vintages: [2020, 2021, 2022]
   },
 
@@ -3377,8 +3377,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Best's Wines",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Great Western"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Great Western" ]
     # vintages: [2017, 2018, 2019]
   },
   {
@@ -3391,8 +3391,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Best's Wines",
     sparkling: false,
-    grapes: ["Riesling"],
-    regions: ["Great Western"],
+    grapes: [ "Riesling" ],
+    regions: [ "Great Western" ]
     # vintages: [2021, 2022, 2023]
   },
 
@@ -3407,8 +3407,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Seppelt",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Grampians"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Grampians" ]
     # vintages: [2018, 2019, 2020]
   },
   {
@@ -3421,8 +3421,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Seppelt",
     sparkling: true,
-    grapes: ["Sparkling Shiraz"],
-    regions: ["Grampians"],
+    grapes: [ "Sparkling Shiraz" ],
+    regions: [ "Grampians" ]
     # vintages: [2019, 2020, 2021]
   },
 
@@ -3437,8 +3437,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Craiglee",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Sunbury"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Sunbury" ]
     # vintages: [2017, 2018, 2019]
   },
   {
@@ -3451,8 +3451,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Craiglee",
     sparkling: false,
-    grapes: ["Shiraz"], # default grape matching set
-    regions: ["Sunbury"],
+    grapes: [ "Shiraz" ], # default grape matching set
+    regions: [ "Sunbury" ]
     # vintages: [2020, 2021, 2022]
   },
 
@@ -3467,8 +3467,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Bannockburn Vineyards",
     sparkling: false,
-    grapes: ["Pinot Noir"],
-    regions: ["Geelong"],
+    grapes: [ "Pinot Noir" ],
+    regions: [ "Geelong" ]
     # vintages: [2019, 2020, 2021]
   },
   {
@@ -3481,8 +3481,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Bannockburn Vineyards",
     sparkling: false,
-    grapes: ["Chardonnay"],
-    regions: ["Geelong"],
+    grapes: [ "Chardonnay" ],
+    regions: [ "Geelong" ]
     # vintages: [2019, 2020, 2021]
   },
 
@@ -3497,8 +3497,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Scotchmans Hill",
     sparkling: false,
-    grapes: ["Pinot Noir"],
-    regions: ["Geelong"],
+    grapes: [ "Pinot Noir" ],
+    regions: [ "Geelong" ]
     # vintages: [2020, 2021, 2022]
   },
   {
@@ -3511,8 +3511,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Scotchmans Hill",
     sparkling: false,
-    grapes: ["Chardonnay"],
-    regions: ["Geelong"],
+    grapes: [ "Chardonnay" ],
+    regions: [ "Geelong" ]
     # vintages: [2020, 2021, 2022]
   },
 
@@ -3527,8 +3527,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Punt Road Wines",
     sparkling: false,
-    grapes: ["Pinot Noir"],
-    regions: ["Yarra Valley"],
+    grapes: [ "Pinot Noir" ],
+    regions: [ "Yarra Valley" ]
     # vintages: [2021, 2022, 2023]
   },
   {
@@ -3541,8 +3541,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Punt Road Wines",
     sparkling: false,
-    grapes: ["Chardonnay"],
-    regions: ["Yarra Valley"],
+    grapes: [ "Chardonnay" ],
+    regions: [ "Yarra Valley" ]
     # vintages: [2021, 2022, 2023]
   },
 
@@ -3557,8 +3557,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "De Iuliis",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Hunter Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Hunter Valley" ]
     # vintages: [2018, 2019, 2021]
   },
   {
@@ -3571,8 +3571,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "De Iuliis",
     sparkling: false,
-    grapes: ["Semillon"],
-    regions: ["Hunter Valley"],
+    grapes: [ "Semillon" ],
+    regions: [ "Hunter Valley" ]
     # vintages: [2021, 2022, 2023]
   },
 
@@ -3587,8 +3587,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Audrey Wilkinson",
     sparkling: false,
-    grapes: ["Semillon"],
-    regions: ["Hunter Valley"],
+    grapes: [ "Semillon" ],
+    regions: [ "Hunter Valley" ]
     # vintages: [2021, 2022, 2023]
   },
   {
@@ -3601,8 +3601,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Audrey Wilkinson",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Hunter Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Hunter Valley" ]
     # vintages: [2017, 2018, 2019]
   },
 
@@ -3617,8 +3617,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Margan Wines",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Hunter Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Hunter Valley" ]
     # vintages: [2018, 2019, 2021]
   },
   {
@@ -3631,8 +3631,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Margan Wines",
     sparkling: false,
-    grapes: ["Semillon"],
-    regions: ["Hunter Valley"],
+    grapes: [ "Semillon" ],
+    regions: [ "Hunter Valley" ]
     # vintages: [2021, 2022, 2023]
   },
 
@@ -3647,8 +3647,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Tempus Two",
     sparkling: false,
-    grapes: ["Semillon"],
-    regions: ["Hunter Valley"],
+    grapes: [ "Semillon" ],
+    regions: [ "Hunter Valley" ]
     # vintages: [2021, 2022, 2023]
   },
   {
@@ -3661,8 +3661,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Tempus Two",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Hunter Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Hunter Valley" ]
     # vintages: [2018, 2019, 2021]
   },
 
@@ -3677,8 +3677,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Thomas Wines",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Hunter Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Hunter Valley" ]
     # vintages: [2018, 2019, 2021]
   },
   {
@@ -3691,8 +3691,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Thomas Wines",
     sparkling: false,
-    grapes: ["Semillon"],
-    regions: ["Hunter Valley"],
+    grapes: [ "Semillon" ],
+    regions: [ "Hunter Valley" ]
     # vintages: [2021, 2022, 2023]
   },
 
@@ -3707,8 +3707,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Meerea Park",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Hunter Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Hunter Valley" ]
     # vintages: [2017, 2018, 2019]
   },
   {
@@ -3721,8 +3721,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Meerea Park",
     sparkling: false,
-    grapes: ["Semillon"],
-    regions: ["Hunter Valley"],
+    grapes: [ "Semillon" ],
+    regions: [ "Hunter Valley" ]
     # vintages: [2021, 2022, 2023]
   },
 
@@ -3737,8 +3737,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Keith Tulloch Wine",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Hunter Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Hunter Valley" ]
     # vintages: [2018, 2019, 2021]
   },
   {
@@ -3751,8 +3751,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Keith Tulloch Wine",
     sparkling: false,
-    grapes: ["Semillon"],
-    regions: ["Hunter Valley"],
+    grapes: [ "Semillon" ],
+    regions: [ "Hunter Valley" ]
     # vintages: [2021, 2022, 2023]
   },
 
@@ -3767,8 +3767,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Scarborough Wine Co",
     sparkling: false,
-    grapes: ["Chardonnay"],
-    regions: ["Hunter Valley"],
+    grapes: [ "Chardonnay" ],
+    regions: [ "Hunter Valley" ]
     # vintages: [2020, 2021, 2022]
   },
   {
@@ -3781,8 +3781,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Scarborough Wine Co",
     sparkling: false,
-    grapes: ["Semillon"],
-    regions: ["Hunter Valley"],
+    grapes: [ "Semillon" ],
+    regions: [ "Hunter Valley" ]
     # vintages: [2021, 2022, 2023]
   },
 
@@ -3797,8 +3797,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Logan Wines",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Orange"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Orange" ]
     # vintages: [2019, 2021, 2022]
   },
   {
@@ -3811,8 +3811,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Logan Wines",
     sparkling: false,
-    grapes: ["Pinot Noir"],
-    regions: ["Orange"],
+    grapes: [ "Pinot Noir" ],
+    regions: [ "Orange" ]
     # vintages: [2021, 2022, 2023]
   },
 
@@ -3827,8 +3827,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Printhie Wines",
     sparkling: true,
-    grapes: ["Chardonnay", "Pinot Noir"],
-    regions: ["Orange"],
+    grapes: [ "Chardonnay", "Pinot Noir" ],
+    regions: [ "Orange" ]
     # vintages: [2021, 2022, 2023]
   },
   {
@@ -3841,8 +3841,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Printhie Wines",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Orange"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Orange" ]
     # vintages: [2019, 2021, 2022]
   },
 
@@ -3857,8 +3857,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Robert Oatley Vineyards",
     sparkling: false,
-    grapes: ["Cabernet Sauvignon"],
-    regions: ["Mudgee"],
+    grapes: [ "Cabernet Sauvignon" ],
+    regions: [ "Mudgee" ]
     # vintages: [2018, 2019, 2020]
   },
   {
@@ -3871,8 +3871,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Robert Oatley Vineyards",
     sparkling: false,
-    grapes: ["Chardonnay"],
-    regions: ["Mudgee"],
+    grapes: [ "Chardonnay" ],
+    regions: [ "Mudgee" ]
     # vintages: [2021, 2022, 2023]
   },
 
@@ -3887,8 +3887,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Huntington Estate",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Mudgee"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Mudgee" ]
     # vintages: [2017, 2018, 2019]
   },
   {
@@ -3901,8 +3901,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Huntington Estate",
     sparkling: false,
-    grapes: ["Cabernet Sauvignon"],
-    regions: ["Mudgee"],
+    grapes: [ "Cabernet Sauvignon" ],
+    regions: [ "Mudgee" ]
     # vintages: [2017, 2018, 2019]
   },
 
@@ -3917,8 +3917,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Lowe Wines",
     sparkling: false,
-    grapes: ["Zinfandel"],
-    regions: ["Mudgee"],
+    grapes: [ "Zinfandel" ],
+    regions: [ "Mudgee" ]
     # vintages: [2018, 2019, 2021]
   },
   {
@@ -3931,8 +3931,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Lowe Wines",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Mudgee"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Mudgee" ]
     # vintages: [2018, 2019, 2021]
   },
 
@@ -3947,8 +3947,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Nick O'Leary Wines",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Canberra District"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Canberra District" ]
     # vintages: [2018, 2019, 2021]
   },
   {
@@ -3961,8 +3961,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Nick O'Leary Wines",
     sparkling: false,
-    grapes: ["Riesling"],
-    regions: ["Canberra District"],
+    grapes: [ "Riesling" ],
+    regions: [ "Canberra District" ]
     # vintages: [2021, 2022, 2023]
   },
 
@@ -3977,8 +3977,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Lark Hill",
     sparkling: false,
-    grapes: ["Riesling"], # Recorded base profile association
-    regions: ["Canberra District"],
+    grapes: [ "Riesling" ], # Recorded base profile association
+    regions: [ "Canberra District" ]
     # vintages: [2021, 2022, 2023]
   },
   {
@@ -3991,8 +3991,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Lark Hill",
     sparkling: false,
-    grapes: ["Pinot Noir"],
-    regions: ["Canberra District"],
+    grapes: [ "Pinot Noir" ],
+    regions: [ "Canberra District" ]
     # vintages: [2021, 2022, 2023]
   },
 
@@ -4007,8 +4007,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Helm Wines",
     sparkling: false,
-    grapes: ["Riesling"],
-    regions: ["Canberra District"],
+    grapes: [ "Riesling" ],
+    regions: [ "Canberra District" ]
     # vintages: [2021, 2022, 2023]
   },
   {
@@ -4021,8 +4021,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Helm Wines",
     sparkling: false,
-    grapes: ["Cabernet Sauvignon"],
-    regions: ["Canberra District"],
+    grapes: [ "Cabernet Sauvignon" ],
+    regions: [ "Canberra District" ]
     # vintages: [2018, 2019, 2021]
   },
 
@@ -4037,8 +4037,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Ravensworth",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Canberra District"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Canberra District" ]
     # vintages: [2019, 2021, 2022]
   },
   {
@@ -4051,8 +4051,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Ravensworth",
     sparkling: false,
-    grapes: ["Marsanne"],
-    regions: ["Canberra District"],
+    grapes: [ "Marsanne" ],
+    regions: [ "Canberra District" ]
     # vintages: [2020, 2021, 2022]
   },
 
@@ -4067,8 +4067,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Ngeringa",
     sparkling: false,
-    grapes: ["Syrah"],
-    regions: ["Adelaide Hills"],
+    grapes: [ "Syrah" ],
+    regions: [ "Adelaide Hills" ]
     # vintages: [2019, 2020, 2021]
   },
   {
@@ -4081,8 +4081,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Ngeringa",
     sparkling: false,
-    grapes: ["Viognier"], # matched within producer domain set
-    regions: ["Adelaide Hills"],
+    grapes: [ "Viognier" ], # matched within producer domain set
+    regions: [ "Adelaide Hills" ]
     # vintages: [2020, 2021, 2022]
   },
 
@@ -4097,8 +4097,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Deviation Road",
     sparkling: true,
-    grapes: ["Chardonnay"],
-    regions: ["Adelaide Hills"],
+    grapes: [ "Chardonnay" ],
+    regions: [ "Adelaide Hills" ]
     # vintages: [2015, 2016, 2017]
   },
   {
@@ -4111,8 +4111,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Deviation Road",
     sparkling: true,
-    grapes: ["Pinot Noir", "Sparkling blend"],
-    regions: ["Adelaide Hills"],
+    grapes: [ "Pinot Noir", "Sparkling blend" ],
+    regions: [ "Adelaide Hills" ]
     # vintages: [2021, 2022, 2023]
   },
 
@@ -4127,8 +4127,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Nepenthe",
     sparkling: false,
-    grapes: ["Chardonnay"],
-    regions: ["Adelaide Hills"],
+    grapes: [ "Chardonnay" ],
+    regions: [ "Adelaide Hills" ]
     # vintages: [2020, 2021, 2022]
   },
   {
@@ -4141,8 +4141,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Nepenthe",
     sparkling: false,
-    grapes: ["Sauvignon Blanc"],
-    regions: ["Adelaide Hills"],
+    grapes: [ "Sauvignon Blanc" ],
+    regions: [ "Adelaide Hills" ]
     # vintages: [2022, 2023]
   },
 
@@ -4157,8 +4157,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Hahndorf Hill Winery",
     sparkling: false,
-    grapes: ["Grüner Veltliner"],
-    regions: ["Adelaide Hills"],
+    grapes: [ "Grüner Veltliner" ],
+    regions: [ "Adelaide Hills" ]
     # vintages: [2021, 2022, 2023]
   },
   {
@@ -4171,8 +4171,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Hahndorf Hill Winery",
     sparkling: false,
-    grapes: ["Blaufränkisch"],
-    regions: ["Adelaide Hills"],
+    grapes: [ "Blaufränkisch" ],
+    regions: [ "Adelaide Hills" ]
     # vintages: [2019, 2020, 2021]
   },
 
@@ -4187,8 +4187,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Barossa Valley Estate",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Barossa Valley" ]
     # vintages: [2017, 2018, 2019]
   },
   {
@@ -4201,8 +4201,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Barossa Valley Estate",
     sparkling: false,
-    grapes: ["Cabernet Sauvignon"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Cabernet Sauvignon" ],
+    regions: [ "Barossa Valley" ]
     # vintages: [2020, 2021, 2022]
   },
 
@@ -4217,8 +4217,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Bethany Wines",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Barossa Valley" ]
     # vintages: [2017, 2018, 2019]
   },
   {
@@ -4231,8 +4231,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Bethany Wines",
     sparkling: false,
-    grapes: ["Grenache"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Grenache" ],
+    regions: [ "Barossa Valley" ]
     # vintages: [2020, 2021, 2022]
   },
 
@@ -4247,8 +4247,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Schild Estate",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Barossa Valley" ]
     # vintages: [2017, 2018, 2019]
   },
   {
@@ -4261,8 +4261,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Schild Estate",
     sparkling: false,
-    grapes: ["Grenache"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Grenache" ],
+    regions: [ "Barossa Valley" ]
     # vintages: [2020, 2021, 2022]
   },
 
@@ -4277,8 +4277,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Saltram",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Barossa Valley" ]
     # vintages: [2017, 2018, 2019]
   },
   {
@@ -4291,8 +4291,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Saltram",
     sparkling: false,
-    grapes: ["Cabernet Sauvignon"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Cabernet Sauvignon" ],
+    regions: [ "Barossa Valley" ]
     # vintages: [2019, 2020, 2021]
   },
 
@@ -4307,8 +4307,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Hentley Farm",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Barossa Valley" ]
     # vintages: [2017, 2018, 2019]
   },
   {
@@ -4321,8 +4321,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Hentley Farm",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Barossa Valley" ]
     # vintages: [2019, 2020, 2021]
   },
 
@@ -4337,8 +4337,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Dutschke Wines",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Barossa Valley" ]
     # vintages: [2017, 2018, 2019]
   },
   {
@@ -4351,8 +4351,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Dutschke Wines",
     sparkling: false,
-    grapes: ["Grenache"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Grenache" ],
+    regions: [ "Barossa Valley" ]
     # vintages: [2019, 2020, 2021]
   },
 
@@ -4367,8 +4367,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "First Drop Wines",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Barossa Valley" ]
     # vintages: [2021, 2022, 2023]
   },
   {
@@ -4381,8 +4381,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "First Drop Wines",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Barossa Valley" ]
     # vintages: [2018, 2019, 2020]
   },
 
@@ -4397,8 +4397,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Thorn-Clarke Wines",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Barossa Valley" ]
     # vintages: [2017, 2018, 2019]
   },
   {
@@ -4411,8 +4411,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Thorn-Clarke Wines",
     sparkling: false,
-    grapes: ["Cabernet Sauvignon"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Cabernet Sauvignon" ],
+    regions: [ "Barossa Valley" ]
     # vintages: [2019, 2020, 2021]
   },
 
@@ -4427,8 +4427,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Rusden Wines",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Barossa Valley" ]
     # vintages: [2018, 2019, 2020]
   },
   {
@@ -4441,8 +4441,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Rusden Wines",
     sparkling: false,
-    grapes: ["Grenache"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Grenache" ],
+    regions: [ "Barossa Valley" ]
     # vintages: [2019, 2020, 2021]
   },
 
@@ -4457,8 +4457,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Sons of Eden",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Barossa Valley", "Eden Valley"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Barossa Valley", "Eden Valley" ]
     # vintages: [2018, 2019, 2020]
   },
   {
@@ -4471,8 +4471,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Sons of Eden",
     sparkling: false,
-    grapes: ["Riesling"],
-    regions: ["Barossa Valley", "Eden Valley"],
+    grapes: [ "Riesling" ],
+    regions: [ "Barossa Valley", "Eden Valley" ]
     # vintages: [2021, 2022, 2023]
   },
 
@@ -4487,8 +4487,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Cirillo Estate Wines",
     sparkling: false,
-    grapes: ["Grenache"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Grenache" ],
+    regions: [ "Barossa Valley" ]
     # vintages: [2017, 2018, 2019]
   },
   {
@@ -4501,8 +4501,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Cirillo Estate Wines",
     sparkling: false,
-    grapes: ["Grenache"],
-    regions: ["Barossa Valley"],
+    grapes: [ "Grenache" ],
+    regions: [ "Barossa Valley" ]
     # vintages: [2021, 2022, 2023]
   },
 
@@ -4517,8 +4517,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Dandelion Vineyards",
     sparkling: false,
-    grapes: ["Shiraz"],
-    regions: ["Barossa Valley", "McLaren Vale"],
+    grapes: [ "Shiraz" ],
+    regions: [ "Barossa Valley", "McLaren Vale" ]
     # vintages: [2020, 2021, 2022]
   },
   {
@@ -4531,8 +4531,8 @@ WINE_SEEDS = [
     volume_ml: 750,
     producer_name: "Dandelion Vineyards",
     sparkling: false,
-    grapes: ["Riesling"],
-    regions: ["Barossa Valley", "McLaren Vale"],
+    grapes: [ "Riesling" ],
+    regions: [ "Barossa Valley", "McLaren Vale" ]
     # vintages: [2021, 2022, 2023]
   }
 ].freeze
@@ -4588,7 +4588,6 @@ WINE_SEEDS.each_with_index do |attrs, index|
   wine.save!
 
   puts "Seeded wine: #{wine.name} (#{producer.name})"
-
 end
 
 puts "Done seeding wines!  Total wines seeded: #{Wine.count}"

@@ -21,6 +21,6 @@ RSpec.describe "Api::V1::Categories index", type: :request do
     get "/api/v1/categories", params: { type: "review" }
 
     expect(response).to have_http_status(:ok)
-    expect(JSON.parse(response.body).map { |c| c["name"] }).to eq(["Index Cat"])
+    expect(JSON.parse(response.body).map { |c| c["name"] }).to eq([ "Index Cat" ])
   end
 end

@@ -43,12 +43,12 @@ class Api::V1::NotificationsController < ApplicationController
                         .delivered
                         .unread
                         .count
-    
+
     # Browser-cache for 30 seconds. Per-user data, so `private` keeps shared
     # caches (Cloudflare, proxies) from ever storing one user's badge count.
     response.headers["Cache-Control"] = "private, max-age=30"
     response.headers["ETag"] = %("#{count}")
-    
+
     # The count itself is the representation, so a matching ETag is enough to
     # answer a revalidation without serializing a response body. Do not emit a
     # dynamic Last-Modified value here: changing it on every request defeats
@@ -56,7 +56,7 @@ class Api::V1::NotificationsController < ApplicationController
     if request.headers["If-None-Match"] == %("#{count}")
       head :not_modified and return
     end
-    
+
     render json: { unread_count: count }
   end
 
@@ -73,7 +73,6 @@ class Api::V1::NotificationsController < ApplicationController
   def mark_all_read
     marked = current_user.notifications.unread.delivered.update_all(read_at: Time.current)
     render json: { marked: marked }
-
   end
 private
 

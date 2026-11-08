@@ -53,7 +53,7 @@ RSpec.describe "Api::V1::Wines", type: :request do
       body = JSON.parse(response.body)
       expect(body["total_count"]).to eq(2)
       expect(body["total_pages"]).to eq(2)
-      expect(body["items"].map { |wine| wine["slug"] }).to eq([wine_two.slug])
+      expect(body["items"].map { |wine| wine["slug"] }).to eq([ wine_two.slug ])
     end
 
     it "returns no wines for a nonexistent producer" do

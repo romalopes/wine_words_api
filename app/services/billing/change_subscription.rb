@@ -143,7 +143,7 @@ module Billing
                      "#{change.upgrade? ? " (prorated charge when invoiced)" : " (scheduled at next renewal)"}",
         action: change.upgrade? ? "subscription.upgrade" : "subscription.downgrade_scheduled",
         user: user,
-        objects: [user, change.from_subscription, change.to_subscription, change]
+        objects: [ user, change.from_subscription, change.to_subscription, change ]
       )
     end
   end

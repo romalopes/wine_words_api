@@ -42,7 +42,7 @@ RSpec.describe "Api::V1::Wines", type: :request do
     end
 
     it "prefers an exact profile name match over grape matching" do
-      wine_profile = AutoAssignHelpers.make_profile("Malbec", ["Malbec"], "Red")
+      wine_profile = AutoAssignHelpers.make_profile("Malbec", [ "Malbec" ], "Red")
       AutoAssignHelpers.make_profile("Cabernet Sauvignon")
 
       post "/api/v1/wines", params: { wine: { name: "Catena Malbec", color: "Red", producer_id: producer.id } }, as: :json
@@ -53,7 +53,7 @@ RSpec.describe "Api::V1::Wines", type: :request do
 
     it "falls back to grape matching when the name does not match" do
       AutoAssignHelpers.make_profile("Grenache")
-      gsm = AutoAssignHelpers.make_profile("GSM", ["Grenache", "Shiraz", "Muscat"])
+      gsm = AutoAssignHelpers.make_profile("GSM", [ "Grenache", "Shiraz", "Muscat" ])
       gsm.wine_profile_taste_parameters.create!(taste_parameter: acidity, score: 3)
       AutoAssignHelpers.make_profile("Riesling")
 
@@ -78,12 +78,12 @@ RSpec.describe "Api::V1::Wines", type: :request do
       profile = AutoAssignHelpers.make_profile("Pinot Noir")
       profile.wine_profile_taste_parameters.create!(taste_parameter: acidity, score: 4)
 
-      post "/api/v1/wines", params: { wine: { name: "Pinot Noir with score", color: "Red", producer_id: producer.id, wine_profile_id: profile.id, wine_taste_parameters_attributes: [{ taste_parameter_id: acidity.id, score: 1 }] } }, as: :json
+      post "/api/v1/wines", params: { wine: { name: "Pinot Noir with score", color: "Red", producer_id: producer.id, wine_profile_id: profile.id, wine_taste_parameters_attributes: [ { taste_parameter_id: acidity.id, score: 1 } ] } }, as: :json
 
       expect(response).to have_http_status(:created)
       wine = Wine.find_by!(name: "Pinot Noir with score")
       expect(wine.wine_profile).to eq(profile)
-      expect(wine.wine_taste_parameters.pluck(:score)).to eq([1])
+      expect(wine.wine_taste_parameters.pluck(:score)).to eq([ 1 ])
     end
 
     it "honours an explicit wine_profile_id and copies from that profile" do

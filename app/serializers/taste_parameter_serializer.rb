@@ -13,8 +13,7 @@ class TasteParameterSerializer
       # five-level UI. They are derived from the canonical labels.
       low: @taste_parameter.label_1,
       high: @taste_parameter.label_5,
-      help: @taste_parameter.help,
+      help: @taste_parameter.help
     }
   end
-
 end

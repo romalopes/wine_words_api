@@ -6,7 +6,7 @@ class ReplaceArticleWinesWithArticleVintages < ActiveRecord::Migration[8.0]
 
       t.timestamps
     end
-    add_index :article_vintages, [:article_id, :vintage_id], unique: true
+    add_index :article_vintages, [ :article_id, :vintage_id ], unique: true
 
     drop_table :article_wines
   end

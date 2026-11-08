@@ -9,7 +9,7 @@ class Api::V1::BillingController < ApplicationController
   end
 
   def log_objects
-    [current_user, Subscription.find_by(id: params[:subscription_id])].compact
+    [ current_user, Subscription.find_by(id: params[:subscription_id]) ].compact
   end
 
   # POST /api/v1/billing/checkout

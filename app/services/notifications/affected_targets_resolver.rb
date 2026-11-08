@@ -23,7 +23,7 @@ module Notifications
       when Article then article_targets
       when Wine then wine_targets
       when Vintage then wine_targets(@subject.wine)
-      when Producer then [target("Producer", @subject.id)]
+      when Producer then [ target("Producer", @subject.id) ]
       else
         raise ArgumentError, "unknown event subject #{@subject.class.name}"
       end
@@ -47,7 +47,7 @@ module Notifications
     end
 
     def article_targets
-      targets = [target("Article", @subject.id)]
+      targets = [ target("Article", @subject.id) ]
 
       @subject.vintages.includes(wine: :producer).find_each do |vintage|
         wine = vintage.wine
@@ -57,7 +57,7 @@ module Notifications
 
       @subject.producers.find_each { |producer| targets << target("Producer", producer.id) }
 
-      targets.uniq { |t| [t["type"], t["id"]] }
+      targets.uniq { |t| [ t["type"], t["id"] ] }
     end
 
     def wine_targets(wine = @subject)

@@ -2,7 +2,7 @@ class TagsController < ActionController::Base
   layout "application"
   include RequireLogin
 
-  before_action :set_tag, only: [:show, :edit, :update, :destroy]
+  before_action :set_tag, only: [ :show, :edit, :update, :destroy ]
 
   def index
     @tags = Tag.order(:name)

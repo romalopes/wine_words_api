@@ -20,35 +20,35 @@ RSpec.describe Notifications, type: :service do
 
   describe Notifications::AffectedTargetsResolver do
     def targets(subject)
-      described_class.new(subject).resolve.map { |t| [t["type"], t["id"]] }
+      described_class.new(subject).resolve.map { |t| [ t["type"], t["id"] ] }
     end
 
     it "propagates a review to its wine and producer" do
       expect(targets(review)).to contain_exactly(
-        ["Review", review.id], ["Wine", wine.id], ["Producer", producer.id]
+        [ "Review", review.id ], [ "Wine", wine.id ], [ "Producer", producer.id ]
       )
     end
 
     it "propagates an article to linked wines and direct + inherited producers" do
       expect(targets(article)).to contain_exactly(
-        ["Article", article.id], ["Wine", wine.id], ["Producer", producer.id]
+        [ "Article", article.id ], [ "Wine", wine.id ], [ "Producer", producer.id ]
       )
     end
 
     it "propagates a wine to itself and its producer" do
       expect(targets(wine)).to contain_exactly(
-        ["Wine", wine.id], ["Producer", producer.id]
+        [ "Wine", wine.id ], [ "Producer", producer.id ]
       )
     end
 
     it "propagates a vintage to its wine and producer" do
       expect(targets(vintage)).to contain_exactly(
-        ["Wine", wine.id], ["Producer", producer.id]
+        [ "Wine", wine.id ], [ "Producer", producer.id ]
       )
     end
 
     it "propagates a producer to itself" do
-      expect(targets(producer)).to contain_exactly(["Producer", producer.id])
+      expect(targets(producer)).to contain_exactly([ "Producer", producer.id ])
     end
 
     it "rejects an unknown subject" do
@@ -118,7 +118,7 @@ RSpec.describe Notifications, type: :service do
 
       recipients = resolver_for(publish_event).resolve
 
-      expect(recipients.sort).to eq([follower.id, other_follower.id].sort)
+      expect(recipients.sort).to eq([ follower.id, other_follower.id ].sort)
       expect(recipients).not_to include(actor.id)
     end
 
@@ -139,7 +139,7 @@ RSpec.describe Notifications, type: :service do
     it "includes a user following only one of several targets" do
       Follow.create!(user: other_follower, followable: producer)
 
-      expect(resolver_for(publish_event).resolve).to eq([other_follower.id])
+      expect(resolver_for(publish_event).resolve).to eq([ other_follower.id ])
     end
   end
 

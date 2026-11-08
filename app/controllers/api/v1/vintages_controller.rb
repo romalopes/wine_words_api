@@ -7,11 +7,11 @@ class Api::V1::VintagesController < ApplicationController
   end
 
   def log_objects
-    [@vintage_record, @wine].compact
+    [ @vintage_record, @wine ].compact
   end
 
   before_action :authenticate_user!
-  before_action :set_wine, only: [:create]
+  before_action :set_wine, only: [ :create ]
   # Only Admins, Editors and Reviewers may add vintages.
 
   # POST /api/v1/wines/:wine_id/vintages

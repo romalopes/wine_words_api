@@ -34,7 +34,7 @@ RSpec.describe "Api::V1::ArticleProjects", type: :request do
         article_project: {
           name: "  Nebbiolo guide  ",
           created_by_id: editor.id,
-          article_project_producers_attributes: [{ producer_id: producer.id, request_confirmed: true }]
+          article_project_producers_attributes: [ { producer_id: producer.id, request_confirmed: true } ]
         }
       }
 
@@ -55,7 +55,7 @@ RSpec.describe "Api::V1::ArticleProjects", type: :request do
       get "/api/v1/article_projects"
 
       expect(response).to have_http_status(:ok)
-      expect(JSON.parse(response.body).map { |item| item["id"] }).to eq([own_project.id])
+      expect(JSON.parse(response.body).map { |item| item["id"] }).to eq([ own_project.id ])
 
       get "/api/v1/article_projects/#{hidden_project.id}"
       expect(response).to have_http_status(:not_found)
@@ -84,7 +84,7 @@ RSpec.describe "Api::V1::ArticleProjects", type: :request do
 
       get "/api/v1/article_projects/lookup", params: { kind: "article", q: "nebbiolo" }
       expect(response).to have_http_status(:ok)
-      expect(JSON.parse(response.body).map { |row| row["id"] }).to eq([own_article.id])
+      expect(JSON.parse(response.body).map { |row| row["id"] }).to eq([ own_article.id ])
 
       get "/api/v1/article_projects/lookup", params: { kind: "vintage", q: "nebbiolo", producer_id: producer.id }
       expect(response).to have_http_status(:ok)
@@ -92,7 +92,7 @@ RSpec.describe "Api::V1::ArticleProjects", type: :request do
 
       get "/api/v1/article_projects/lookup", params: { kind: "review", q: "nebbiolo" }
       expect(response).to have_http_status(:ok)
-      expect(JSON.parse(response.body).map { |row| row["id"] }).to eq([own_review.id])
+      expect(JSON.parse(response.body).map { |row| row["id"] }).to eq([ own_review.id ])
     end
   end
 
@@ -122,7 +122,7 @@ RSpec.describe "Api::V1::ArticleProjects", type: :request do
       patch "/api/v1/article_projects/#{own_project.id}", as: :json, params: {
         article_project: {
           lock_version: own_project.lock_version,
-          article_project_producers_attributes: [{ id: foreign_join.id, contacted: true }]
+          article_project_producers_attributes: [ { id: foreign_join.id, contacted: true } ]
         }
       }
 

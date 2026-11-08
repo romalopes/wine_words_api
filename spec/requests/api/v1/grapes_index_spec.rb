@@ -82,14 +82,14 @@ RSpec.describe "Api::V1::Grapes", type: :request do
       get "/api/v1/grapes", params: { sort: "wines_count", per_page: 20 }
       expect(response).to have_http_status(:ok)
       items = JSON.parse(response.body)
-      expect(items.map { |g| g["slug"] }).to eq([b.slug, a.slug, c.slug])
-      expect(items.map { |g| g["wines_count"] }).to eq([2, 1, 0])
+      expect(items.map { |g| g["slug"] }).to eq([ b.slug, a.slug, c.slug ])
+      expect(items.map { |g| g["wines_count"] }).to eq([ 2, 1, 0 ])
 
       get "/api/v1/grapes", params: { sort: "producers_count", per_page: 20 }
       expect(response).to have_http_status(:ok)
       items = JSON.parse(response.body)
-      expect(items.map { |g| g["slug"] }).to eq([c.slug, b.slug, a.slug])
-      expect(items.map { |g| g["producers_count"] }).to eq([3, 1, 0])
+      expect(items.map { |g| g["slug"] }).to eq([ c.slug, b.slug, a.slug ])
+      expect(items.map { |g| g["producers_count"] }).to eq([ 3, 1, 0 ])
     end
 
     it "keeps the relevance default when sort is missing or unknown" do
@@ -107,18 +107,18 @@ RSpec.describe "Api::V1::Grapes", type: :request do
 
     it "filters by name, synonym and origin country via ?q=" do
       chardonnay = Grape.create!(name: "Chardonnay", origin_country: "France")
-      chardonnay.update!(synonyms: ["Chablis Blanc"])
+      chardonnay.update!(synonyms: [ "Chablis Blanc" ])
       Grape.create!(name: "Merlot", origin_country: "France")
 
       get "/api/v1/grapes", params: { q: "chard", page: 1, per_page: 20 }
       expect(response).to have_http_status(:ok)
       expect(JSON.parse(response.body)["items"].map { |g| g["slug"] })
-        .to eq([chardonnay.slug])
+        .to eq([ chardonnay.slug ])
 
       # Synonym match (case-insensitive).
       get "/api/v1/grapes", params: { q: "CHABLIS", page: 1, per_page: 20 }
       expect(JSON.parse(response.body)["items"].map { |g| g["slug"] })
-        .to eq([chardonnay.slug])
+        .to eq([ chardonnay.slug ])
 
       # Origin-country match hits both French grapes.
       get "/api/v1/grapes", params: { q: "france", page: 1, per_page: 20 }

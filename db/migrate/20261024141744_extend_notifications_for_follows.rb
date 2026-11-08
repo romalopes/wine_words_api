@@ -11,7 +11,7 @@ class ExtendNotificationsForFollows < ActiveRecord::Migration[8.1]
     # (recipient, event). Package reminders keep their existing
     # (wine_package, type, scheduled_date) index — NULLs are distinct in
     # PostgreSQL, so the partial index never conflicts with them.
-    add_index :notifications, [:recipient_id, :notification_event_id],
+    add_index :notifications, [ :recipient_id, :notification_event_id ],
               unique: true,
               where: "notification_event_id IS NOT NULL",
               name: :index_notifications_on_recipient_and_event

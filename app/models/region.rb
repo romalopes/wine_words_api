@@ -29,10 +29,10 @@ class Region < ApplicationRecord
   def self.build_tree
     # Get all regions with their countries
     all_regions = includes(:country).order(:name)
-    
+
     # Get wine counts per region (region_id => count) in a single query
     wine_counts = WineRegion.group(:region_id).count
-    
+
     # Group by country and build tree structure
     countries = Country.includes(:regions).order(:name)
 
@@ -87,7 +87,7 @@ class Region < ApplicationRecord
     country = current.country
 
     path << {
-      type: 'country',
+      type: "country",
       id: country.id,
       slug: country.slug,
       name: country.name,
@@ -99,7 +99,7 @@ class Region < ApplicationRecord
     ancestors = []
     while current.parent
       ancestors << {
-        type: 'region',
+        type: "region",
         id: current.parent.id,
         slug: current.parent.slug,
         name: current.parent.name,
@@ -111,15 +111,15 @@ class Region < ApplicationRecord
     end
 
     # Reverse to get correct order (country -> ... -> current region)
-    path + ancestors.reverse + [{
-      type: 'region',
+    path + ancestors.reverse + [ {
+      type: "region",
       id: self.id,
       slug: self.slug,
       name: self.name,
       is_state: self.is_state,
       is_appellation: self.is_appellation,
       parent_id: self.parent_id
-    }]
+    } ]
   end
 
   def display_name

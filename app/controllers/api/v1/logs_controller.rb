@@ -101,7 +101,7 @@ class Api::V1::LogsController < ApplicationController
     return [] unless File.exist?(path)
 
     # Use tail to read the last `count` lines efficiently.
-    IO.popen(["tail", "-n", count.to_s, path.to_s], err: [:child, :out]) do |io|
+    IO.popen([ "tail", "-n", count.to_s, path.to_s ], err: [ :child, :out ]) do |io|
       io.read
     end.lines.map(&:chomp)
   rescue StandardError

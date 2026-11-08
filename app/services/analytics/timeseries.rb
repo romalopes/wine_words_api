@@ -38,9 +38,9 @@ module Analytics
           bucket_end = (cursor + 1.month).beginning_of_month
           bucket_end = @period.end_at if bucket_end > @period.end_at
         else
-          bucket_end = [cursor + bucket_seconds, @period.end_at].min
+          bucket_end = [ cursor + bucket_seconds, @period.end_at ].min
         end
-        edges << [cursor, bucket_end]
+        edges << [ cursor, bucket_end ]
         cursor = bucket_end
       end
 
@@ -50,7 +50,7 @@ module Analytics
       wine_ids    = @scope.wines.pluck(:id)
 
       events = []
-      [["Article", article_ids], ["Review", review_ids], ["Wine", wine_ids]].each do |type, ids|
+      [ [ "Article", article_ids ], [ "Review", review_ids ], [ "Wine", wine_ids ] ].each do |type, ids|
         next if ids.empty?
         events += Analytics::Event.accepted
           .where(viewable_type: type, viewable_id: ids)
@@ -68,7 +68,7 @@ module Analytics
           bucket_start: start_at.iso8601,
           bucket_end: end_at.iso8601,
           views: bucket_views,
-          unique_viewers: bucket_unique,
+          unique_viewers: bucket_unique
         }
       end
 
@@ -78,7 +78,7 @@ module Analytics
         buckets: buckets,
         total_views: total_views,
         grouping: grouping,
-        period: @period.metadata.merge(scope: @scope.scope_label),
+        period: @period.metadata.merge(scope: @scope.scope_label)
       }
     end
 
@@ -89,7 +89,7 @@ module Analytics
         buckets: [],
         total_views: 0,
         grouping: "day",
-        period: @period.metadata.merge(scope: @scope.scope_label),
+        period: @period.metadata.merge(scope: @scope.scope_label)
       }
     end
   end

@@ -33,10 +33,10 @@ module Billing
         session = ::Stripe::Checkout::Session.create(
           mode: "subscription",
           customer: customer.provider_customer_id,
-          line_items: [{
+          line_items: [ {
             price: billing_price.provider_price_id,
             quantity: 1
-          }],
+          } ],
           success_url: success_url,
           cancel_url: cancel_url,
           metadata: {
@@ -103,7 +103,7 @@ module Billing
           # https://docs.stripe.com/api/invoices/create_preview). Note: the line-level
           # subscription_item_details and invoice_item_details are NOT expandable on
           # this endpoint, so we rely on the parent chain.
-          expand: ["lines.data.parent"]
+          expand: [ "lines.data.parent" ]
         )
 
         # Amount due today = the prorations only.
@@ -176,13 +176,13 @@ module Billing
           # customer its hosted URL to pay.
           subscription = ::Stripe::Subscription.update(
             provider_sub.id,
-            items: [{ id: item.id, price: target_price.provider_price_id }],
+            items: [ { id: item.id, price: target_price.provider_price_id } ],
             proration_behavior: "always_invoice",
             # Match the clock used by preview_change so the customer is billed
             # exactly the proration they were shown.
             proration_date: Time.current.to_i,
             payment_behavior: "allow_incomplete",
-            expand: ["latest_invoice"],
+            expand: [ "latest_invoice" ],
             metadata: {
               from_subscription_id: user.subscription_id,
               to_subscription_id: target_subscription.id,
@@ -236,7 +236,7 @@ module Billing
           # "now" is only valid for a freshly created schedule; an existing
           # schedule must keep its current phase's original start date.
           first_phase = {
-            items: [{ price: current_price_id, quantity: quantity }],
+            items: [ { price: current_price_id, quantity: quantity } ],
             end_date: period[:end]&.to_i
           }
           first_phase[:start_date] = existing_start || "now"
@@ -245,7 +245,7 @@ module Billing
             schedule_to_use_id,
             phases: [
               first_phase,
-              { items: [{ price: target_price.provider_price_id, quantity: 1 }] }
+              { items: [ { price: target_price.provider_price_id, quantity: 1 } ] }
             ]
           )
           {
@@ -361,7 +361,7 @@ module Billing
       def proration_line?(line)
         parent = line.respond_to?(:parent) ? line.parent : nil
         parent_details = if parent
-          [parent.try(:subscription_item_details), parent.try(:invoice_item_details)]
+          [ parent.try(:subscription_item_details), parent.try(:invoice_item_details) ]
         else
           []
         end

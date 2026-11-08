@@ -5,6 +5,6 @@ class CreateWineGrapesJoinTable < ActiveRecord::Migration[8.1]
       t.references :grape, null: false, foreign_key: true
       t.timestamps
     end
-    add_index :wine_grapes, [:wine_id, :grape_id], unique: true
+    add_index :wine_grapes, [ :wine_id, :grape_id ], unique: true
   end
 end

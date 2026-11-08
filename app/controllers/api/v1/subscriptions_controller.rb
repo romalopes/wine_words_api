@@ -6,7 +6,7 @@ class Api::V1::SubscriptionsController < ApplicationController
   end
 
   def log_objects
-    [@subscription].compact
+    [ @subscription ].compact
   end
 
   # Public read of visible+active plans; Admins also see hidden/inactive ones.
@@ -69,7 +69,7 @@ class Api::V1::SubscriptionsController < ApplicationController
     params.require(:subscription).permit(
       :name, :slug, :description, :popular, :visible, :active,
       :is_default, :position, :monthly_price_cents, :yearly_price_cents, :currency,
-      subscription_subscription_features_attributes: [:id, :subscription_feature_id, :position, :_destroy]
+      subscription_subscription_features_attributes: [ :id, :subscription_feature_id, :position, :_destroy ]
     )
   end
 

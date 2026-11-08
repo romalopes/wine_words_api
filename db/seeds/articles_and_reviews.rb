@@ -81,7 +81,7 @@ ActiveRecord::Base.transaction do
     end
 
     current_year = Time.current.year
-    existing_keys = random_vintages.map { |v| [v.wine_id, v.year] }.to_set
+    existing_keys = random_vintages.map { |v| [ v.wine_id, v.year ] }.to_set
 
     created = 0
     attempts = 0
@@ -90,11 +90,11 @@ ActiveRecord::Base.transaction do
     while created < needed && attempts < max_attempts
       wine = wines.sample
       year = rand(1900..current_year)
-      next if existing_keys.include?([wine.id, year])
+      next if existing_keys.include?([ wine.id, year ])
 
       begin
         Vintage.create!(wine: wine, year: year)
-        existing_keys.add([wine.id, year])
+        existing_keys.add([ wine.id, year ])
         created += 1
       rescue ActiveRecord::RecordInvalid
         # retry with a different wine / year combo
@@ -148,10 +148,10 @@ ActiveRecord::Base.transaction do
 
   article_review_assignments = {
     articles[0] => (0...20).to_a,        # all 20 reviews
-    articles[1] => [0, 1, 2, 3, 4],
-    articles[2] => [4, 5, 6, 7, 8],
-    articles[3] => [9, 10, 11, 12, 13],
-    articles[4] => [15, 16, 17, 18, 19]
+    articles[1] => [ 0, 1, 2, 3, 4 ],
+    articles[2] => [ 4, 5, 6, 7, 8 ],
+    articles[3] => [ 9, 10, 11, 12, 13 ],
+    articles[4] => [ 15, 16, 17, 18, 19 ]
   }
 
   article_review_assignments.each do |article, indices|
@@ -165,12 +165,12 @@ ActiveRecord::Base.transaction do
   # ---------------------------------------------------------------------------
   review_producer_ids = chosen.map { |c| c[:producer].id }.uniq
   other_producers = Producer.where.not(id: review_producer_ids).order(:id).to_a
-  half = [other_producers.size / 2, 1].max
+  half = [ other_producers.size / 2, 1 ].max
 
   articles.each_with_index do |article, idx|
     pick1 = other_producers[idx % other_producers.size]
     pick2 = other_producers[(idx + half) % other_producers.size]
-    [pick1, pick2].uniq.each do |producer|
+    [ pick1, pick2 ].uniq.each do |producer|
       ArticleProducer.find_or_create_by!(article: article, producer: producer)
     end
   end

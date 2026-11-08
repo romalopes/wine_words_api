@@ -27,7 +27,7 @@ RSpec.describe Image, type: :model do
       second = Image.create!(imageable: article, file: uploaded_png)
       expect(first.position).to eq(1)
       expect(second.position).to eq(2)
-      expect(article.images.ordered.map(&:position)).to eq([1, 2])
+      expect(article.images.ordered.map(&:position)).to eq([ 1, 2 ])
     end
   end
 
@@ -53,8 +53,8 @@ RSpec.describe Image, type: :model do
       a = Image.create!(imageable: article, file: uploaded_png)
       b = Image.create!(imageable: article, file: uploaded_png)
       c = Image.create!(imageable: article, file: uploaded_png)
-      Image.reorder!(article, [c.id, a.id, b.id])
-      expect(article.images.ordered.map(&:id)).to eq([c.id, a.id, b.id])
+      Image.reorder!(article, [ c.id, a.id, b.id ])
+      expect(article.images.ordered.map(&:id)).to eq([ c.id, a.id, b.id ])
       expect(c.reload.position).to eq(1)
     end
   end

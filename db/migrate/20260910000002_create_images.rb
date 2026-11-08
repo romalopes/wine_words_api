@@ -8,10 +8,10 @@ class CreateImages < ActiveRecord::Migration[8.1]
       t.timestamps
     end
 
-    add_index :images, [:imageable_type, :imageable_id]
+    add_index :images, [ :imageable_type, :imageable_id ]
     # Ordering lookup: imageable + position.
     add_index :images,
-              [:imageable_type, :imageable_id, :position],
+              [ :imageable_type, :imageable_id, :position ],
               name: "index_images_on_imageable_and_position"
   end
 end

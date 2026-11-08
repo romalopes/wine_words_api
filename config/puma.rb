@@ -52,5 +52,3 @@ else
   web_concurrency = Integer(ENV.fetch("WEB_CONCURRENCY", "0"))
   workers(web_concurrency > 1 ? web_concurrency : 0)
 end
-
-

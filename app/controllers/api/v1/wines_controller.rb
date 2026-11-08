@@ -7,14 +7,14 @@ class Api::V1::WinesController < ApplicationController
   end
 
   def log_objects
-    [@wine, @wine&.producer].compact
+    [ @wine, @wine&.producer ].compact
   end
 
 
   # Wine management (create/update/destroy) is restricted to signed-in Admins,
   # Editors and Reviewers (= User#wine_manager?); reading stays public.
-  before_action :authenticate_user!, only: [:create, :update, :destroy]
-  skip_before_action :authenticate_user!, only: [:index, :show, :search, :advanced_search]
+  before_action :authenticate_user!, only: [ :create, :update, :destroy ]
+  skip_before_action :authenticate_user!, only: [ :index, :show, :search, :advanced_search ]
 
   def index
     wines = Wine.eager_load(:producer).preload(:grapes, :regions, :categories, images: { file_attachment: :blob }).order(:name)
@@ -54,7 +54,7 @@ class Api::V1::WinesController < ApplicationController
 
     # One window-function query returns up to `per_group` wines per category
     # (a wine with several categories yields one row per category).
-    rows = Wine.find_by_sql([<<~SQL, per_group])
+    rows = Wine.find_by_sql([ <<~SQL, per_group ])
       SELECT sub.* FROM (
         SELECT wines.id, COALESCE(wc.category_id, 0) AS grouped_cat_id,
                COUNT(*) OVER (PARTITION BY COALESCE(wc.category_id, 0)) AS grouped_count,
@@ -90,11 +90,11 @@ class Api::V1::WinesController < ApplicationController
       groups[cat_id] << WineListSerializer.new(wines_by_id[row.id], request.base_url, vintage_counts, liked_ids: liked_ids).as_json
     end
 
-    category_counts = rows.to_h { |row| [row.grouped_cat_id, row.grouped_count.to_i] }
+    category_counts = rows.to_h { |row| [ row.grouped_cat_id, row.grouped_count.to_i ] }
     uncategorised_count = category_counts.fetch(0, 0)
 
     categories = Category.where(id: groups.keys.compact).to_a
-    ordered = categories.select { |c| c.sort_order_wine.present? }.sort_by { |c| [c.sort_order_wine, c.name.to_s] }
+    ordered = categories.select { |c| c.sort_order_wine.present? }.sort_by { |c| [ c.sort_order_wine, c.name.to_s ] }
     unordered = categories.reject { |c| c.sort_order_wine.present? }.sort_by { |c| c.name.to_s }
 
     result = (ordered + unordered).map do |cat|
@@ -129,11 +129,11 @@ class Api::V1::WinesController < ApplicationController
                          wine_taste_parameters: :taste_parameter)
     wine = scope.find_by(slug: params[:id]) || scope.find(params[:id])
     ActiveRecord::Associations::Preloader.new(
-      records: [wine], associations: :images,
+      records: [ wine ], associations: :images,
       scope: Image.eager_load(file_attachment: :blob)
     ).call
     review_counts = Review.where(vintage_id: wine.vintages.map(&:id)).group(:vintage_id).count
-    liked_ids = Likes.liked_ids_for([wine], current_user)
+    liked_ids = Likes.liked_ids_for([ wine ], current_user)
     render json: WineSerializer.new(wine, request.base_url, liked_ids: liked_ids,
                                     review_counts: review_counts, user: current_user).as_json
   rescue ActiveRecord::RecordNotFound
@@ -149,7 +149,7 @@ class Api::V1::WinesController < ApplicationController
         event_type: "wine.created", subject: @wine, actor: current_user
       )
       render json: WineSerializer.new(@wine, request.base_url,
-                                      liked_ids: Likes.liked_ids_for([@wine], current_user),
+                                      liked_ids: Likes.liked_ids_for([ @wine ], current_user),
                                       user: current_user).as_json, status: :created
     else
       render json: { errors: @wine.errors.full_messages }, status: :unprocessable_entity
@@ -167,7 +167,7 @@ class Api::V1::WinesController < ApplicationController
         )
       end
       render json: WineSerializer.new(@wine, request.base_url,
-                                      liked_ids: Likes.liked_ids_for([@wine], current_user),
+                                      liked_ids: Likes.liked_ids_for([ @wine ], current_user),
                                       user: current_user).as_json
     else
       render json: { errors: @wine.errors.full_messages }, status: :unprocessable_entity
@@ -321,8 +321,8 @@ class Api::V1::WinesController < ApplicationController
       grape_ids: [],
       region_ids: [],
       category_ids: [],
-      vintages_attributes: [:id, :year, :prompt, :price, :no_vintage, :_destroy],
-      wine_taste_parameters_attributes: [:id, :taste_parameter_id, :taste_parameter_slug, :score, :_destroy]
+      vintages_attributes: [ :id, :year, :prompt, :price, :no_vintage, :_destroy ],
+      wine_taste_parameters_attributes: [ :id, :taste_parameter_id, :taste_parameter_slug, :score, :_destroy ]
     )
 
     # Convert taste_parameter_slug to taste_parameter_id

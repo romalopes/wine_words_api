@@ -55,7 +55,7 @@ module Analytics
 
     def base_metrics(content)
       type = @content_type
-      ids = [@content_id]
+      ids = [ @content_id ]
 
       views = Analytics::Event.accepted
         .where(viewable_type: type, viewable_id: ids)
@@ -97,21 +97,21 @@ module Analytics
         comments: comments,
         replies: replies,
         engagement_rate: engagement_rate,
-        engagement_denominator_zero: views.zero?,
+        engagement_denominator_zero: views.zero?
       }
     end
 
     def timeseries_buckets(content, grouping)
       type = @content_type
-      ids = [@content_id]
+      ids = [ @content_id ]
 
       # Build bucket edges
       bucket_seconds = grouping == "day" ? 1.day : 1.week
       edges = []
       cursor = @period.start_at
       while cursor < @period.end_at
-        bucket_end = [cursor + bucket_seconds, @period.end_at].min
-        edges << [cursor, bucket_end]
+        bucket_end = [ cursor + bucket_seconds, @period.end_at ].min
+        edges << [ cursor, bucket_end ]
         cursor = bucket_end
       end
 
@@ -166,7 +166,7 @@ module Analytics
           likes: bucket_likes_count,
           comments: bucket_comments_count,
           replies: bucket_replies_count,
-          engagement_rate: engagement,
+          engagement_rate: engagement
         }
       end
     end

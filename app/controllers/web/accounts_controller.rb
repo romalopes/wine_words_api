@@ -45,7 +45,7 @@ class Web::AccountsController < Web::BaseController
   def account_params
     permitted = params.require(:account).permit(
       :first_name, :last_name, :phone, :date_of_birth,
-      account_address_attributes: [:street_address, :city, :state, :postal_code, :country_id]
+      account_address_attributes: [ :street_address, :city, :state, :postal_code, :country_id ]
     ).to_h
     if (addr = permitted[:account_address_attributes])
       addr = @account.account_address || AccountAddress.new
@@ -56,5 +56,4 @@ class Web::AccountsController < Web::BaseController
     end
     permitted
   end
-
 end

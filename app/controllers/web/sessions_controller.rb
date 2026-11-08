@@ -13,7 +13,7 @@ module Web
     end
 
     def log_objects
-      [@audit_user].compact
+      [ @audit_user ].compact
     end
 
     def remember_user_for_audit

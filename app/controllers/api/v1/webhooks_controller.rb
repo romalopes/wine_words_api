@@ -337,7 +337,7 @@ class Api::V1::WebhooksController < ActionController::Base
       method: request&.request_method || "POST",
       path: request&.path || "webhook/stripe",
       request_id: @stripe_event&.id,
-      objects: [user, from_plan, to_plan, provider_sub_id].compact
+      objects: [ user, from_plan, to_plan, provider_sub_id ].compact
     )
   end
 end

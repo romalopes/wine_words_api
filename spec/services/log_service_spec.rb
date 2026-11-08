@@ -57,7 +57,7 @@ RSpec.describe LogService do
         description: "Updated producer",
         action: "update",
         user: user,
-        objects: [producer]
+        objects: [ producer ]
       )
 
       object = log.log_objects.sole
@@ -70,7 +70,7 @@ RSpec.describe LogService do
       log = LogService.log(
         description: "Deleted producer",
         action: "destroy",
-        objects: [["Producer", 424_242, "Old Producer"]]
+        objects: [ [ "Producer", 424_242, "Old Producer" ] ]
       )
 
       object = log.log_objects.sole
@@ -85,7 +85,7 @@ RSpec.describe LogService do
       log = LogService.log(
         description: "Mixed",
         action: "update",
-        objects: [nil, "not-a-record", producer]
+        objects: [ nil, "not-a-record", producer ]
       )
 
       expect(log).to be_persisted

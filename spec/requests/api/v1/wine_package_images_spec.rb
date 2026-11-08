@@ -44,7 +44,7 @@ RSpec.describe "WinePackage images", type: :request do
 
   describe "POST /api/v1/images (imageable_type=wine_package)" do
     it "attaches multiple images" do
-      upload_images(package, [png_upload("a.png"), png_upload("b.png")])
+      upload_images(package, [ png_upload("a.png"), png_upload("b.png") ])
       expect(response).to have_http_status(:ok)
       expect(package.reload.images.count).to eq(2)
       body = JSON.parse(response.body)
@@ -56,26 +56,26 @@ RSpec.describe "WinePackage images", type: :request do
       FileUtils.mkdir_p(dir)
       path = dir.join("evil.txt")
       File.write(path, "not an image")
-      upload_images(package, [fixture_file_upload(path, "text/plain")])
+      upload_images(package, [ fixture_file_upload(path, "text/plain") ])
       expect(response).to have_http_status(:unprocessable_entity)
       expect(package.reload.images.count).to eq(0)
     end
 
     it "adds images without removing existing ones" do
-      upload_images(package, [png_upload("first.png")])
-      upload_images(package, [png_upload("second.png")])
+      upload_images(package, [ png_upload("first.png") ])
+      upload_images(package, [ png_upload("second.png") ])
       expect(package.reload.images.count).to eq(2)
       expect(package.images.ordered.map { |i| i.file.filename.to_s })
-        .to eq(["first.png", "second.png"])
+        .to eq([ "first.png", "second.png" ])
     end
 
     it "allows a reviewer to manage images for their own package" do
-      upload_images(package, [png_upload("rev.png")], actor: reviewer)
+      upload_images(package, [ png_upload("rev.png") ], actor: reviewer)
       expect(response).to have_http_status(:ok)
     end
 
     it "forbids a user who is neither catalogue manager nor the reviewer" do
-      upload_images(package, [png_upload("nope.png")], actor: outsider)
+      upload_images(package, [ png_upload("nope.png") ], actor: outsider)
       expect(response).to have_http_status(:forbidden)
       expect(package.reload.images.count).to eq(0)
     end
@@ -83,7 +83,7 @@ RSpec.describe "WinePackage images", type: :request do
 
   describe "DELETE /api/v1/images/:id" do
     it "removes one image, keeping the others and the package intact" do
-      upload_images(package, [png_upload("one.png"), png_upload("two.png")])
+      upload_images(package, [ png_upload("one.png"), png_upload("two.png") ])
       first = package.reload.images.ordered.first
 
       sign_in admin
@@ -92,12 +92,12 @@ RSpec.describe "WinePackage images", type: :request do
              headers: { "Accept" => "application/json" }
 
       expect(response).to have_http_status(:no_content)
-      expect(package.reload.images.ordered.map { |i| i.file.filename.to_s }).to eq(["two.png"])
+      expect(package.reload.images.ordered.map { |i| i.file.filename.to_s }).to eq([ "two.png" ])
       expect(WinePackage.exists?(package.id)).to be true
     end
 
     it "forbids an outsider from deleting" do
-      upload_images(package, [png_upload("keep.png")])
+      upload_images(package, [ png_upload("keep.png") ])
       image = package.reload.images.first
 
       sign_in outsider
@@ -121,7 +121,7 @@ RSpec.describe "WinePackage images", type: :request do
     end
 
     it "exposes all attached images with the rich contract" do
-      upload_images(package, [png_upload("x.png"), png_upload("y.png")])
+      upload_images(package, [ png_upload("x.png"), png_upload("y.png") ])
       sign_in admin
       get "/api/v1/wine_packages/#{package.id}", as: :json
       body = JSON.parse(response.body)

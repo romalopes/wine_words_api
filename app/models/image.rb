@@ -34,7 +34,7 @@ class Image < ApplicationRecord
     ordered = Array(ordered_ids).flatten.map(&:to_i).uniq
     transaction do
       images = imageable.images.to_a
-      by_id  = images.to_h { |img| [img.id, img] }
+      by_id  = images.to_h { |img| [ img.id, img ] }
 
       ordered.each_with_index do |id, idx|
         by_id[id]&.update!(position: idx + 1)

@@ -41,7 +41,7 @@ class Api::V1::HealthController < ApplicationController
   # GET /api/v1/health/detailed — admin-only diagnostic endpoint.
   def detailed
     # For testing Sentry in non-production environments
-    if params[:sentry_test] == 'true' && Rails.env != 'production'
+    if params[:sentry_test] == "true" && Rails.env != "production"
       raise RuntimeError, "Sentry test error triggered by API Health endpoint"
     end
 
@@ -204,7 +204,7 @@ class Api::V1::HealthController < ApplicationController
       # Build an ordered list of transports to try (without duplicates)
       transports_to_try = []
       requested = requested_transport.to_s.strip.downcase
-      automatic = ["brevo", "resend", "smtp", "file"]
+      automatic = [ "brevo", "resend", "smtp", "file" ]
 
       if requested.present? && requested != "auto"
         transports_to_try << requested unless transports_to_try.include?(requested)
@@ -246,7 +246,7 @@ class Api::V1::HealthController < ApplicationController
       status: "delivered",
       configured_transport: configured_transport,
       effective_transport: MailTransport.effective_transport_name(ENV, logger: Rails.logger),
-      recipients: [to],
+      recipients: [ to ],
       message: "Test e-mail delivered to #{to} via #{used_transport}.",
       delivered_at: Time.current.utc.iso8601
     }, status: :ok

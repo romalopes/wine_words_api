@@ -16,7 +16,7 @@ RSpec.describe "Api::V1::Images", type: :request do
   describe "POST /api/v1/images" do
     it "attaches uploaded images and returns the rich contract" do
       post "/api/v1/images",
-           params: { imageable_type: "article", imageable_id: article.id, images: [uploaded_file] },
+           params: { imageable_type: "article", imageable_id: article.id, images: [ uploaded_file ] },
            headers: { "Accept" => "application/json" }
 
       expect(response).to have_http_status(:ok)
@@ -24,13 +24,13 @@ RSpec.describe "Api::V1::Images", type: :request do
       expect(body["images"]).to be_an(Array)
       expect(body["images"].first).to include("id", "url", "filename", "content_type", "position", "primary")
       expect(article.reload.images.count).to eq(1)
-      expect(body["uploaded_image_ids"]).to eq([article.images.first.id])
+      expect(body["uploaded_image_ids"]).to eq([ article.images.first.id ])
     end
 
     it "identifies only this request's uploads when the gallery already has images" do
       existing = Image.create!(imageable: article, file: attached_png)
       post "/api/v1/images",
-           params: { imageable_type: "article", imageable_id: article.id, images: [uploaded_file] },
+           params: { imageable_type: "article", imageable_id: article.id, images: [ uploaded_file ] },
            headers: { "Accept" => "application/json" }
 
       expect(response).to have_http_status(:ok)
@@ -62,10 +62,10 @@ RSpec.describe "Api::V1::Images", type: :request do
       a = Image.create!(imageable: article, file: attached_png)
       b = Image.create!(imageable: article, file: attached_png)
       patch "/api/v1/images/reorder",
-            params: { imageable_type: "article", imageable_id: article.id, image_ids: [b.id, a.id] },
+            params: { imageable_type: "article", imageable_id: article.id, image_ids: [ b.id, a.id ] },
             headers: { "Accept" => "application/json" }
       expect(response).to have_http_status(:ok)
-      expect(article.images.ordered.map(&:id)).to eq([b.id, a.id])
+      expect(article.images.ordered.map(&:id)).to eq([ b.id, a.id ])
     end
   end
 

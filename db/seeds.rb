@@ -73,4 +73,3 @@ load Rails.root.join('db', 'seeds', 'producers.rb').to_s
 
 
 puts "\n\n\n\n\n\nSeeds created successfully!"
-

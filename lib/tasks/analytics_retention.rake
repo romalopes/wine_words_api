@@ -12,7 +12,7 @@
 namespace :analytics do
   namespace :retention do
     desc "Clean up old analytics events (dry-run by default)"
-    task :cleanup, [:dry_run, :batch_size, :retention_days, :max_batches] => :environment do |t, args|
+    task :cleanup, [ :dry_run, :batch_size, :retention_days, :max_batches ] => :environment do |t, args|
       dry_run = args[:dry_run] != "false" # default true for safety
       batch_size = args[:batch_size]&.to_i
       retention_days = args[:retention_days]&.to_i
@@ -43,7 +43,7 @@ namespace :analytics do
     end
 
     desc "Show retention status without modifying data"
-    task :status, [:retention_days] => :environment do |t, args|
+    task :status, [ :retention_days ] => :environment do |t, args|
       retention_days = args[:retention_days]&.to_i
 
       puts "=== Analytics Retention Status ==="
@@ -59,7 +59,7 @@ namespace :analytics do
     end
 
     desc "Show scheduler guidance for retention cleanup"
-    task :guidance => :environment do
+    task guidance: :environment do
       puts "=== Analytics Retention Scheduler Guidance ==="
       puts ""
 

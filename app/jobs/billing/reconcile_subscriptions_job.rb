@@ -59,7 +59,7 @@ class Billing::ReconcileSubscriptionsJob < ApplicationJob
       action: "subscription.reconciled",
       user: user_sub.user,
       path: "background/job/reconcile_subscriptions",
-      objects: [user_sub.user, plan]
+      objects: [ user_sub.user, plan ]
     )
   end
 end

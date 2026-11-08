@@ -7,14 +7,14 @@ class Api::V1::ProducersController < ApplicationController
   end
 
   def log_objects
-    [@producer, @producer&.address].compact
+    [ @producer, @producer&.address ].compact
   end
 
-  skip_before_action :authenticate_user!, only: [:index, :show, :search]
+  skip_before_action :authenticate_user!, only: [ :index, :show, :search ]
 
   # `set_producer` must run before the producer-aware gates: they inspect
   # @producer to resolve membership-based edit rights (issue #191).
-  before_action :set_producer, only: [:show, :update, :destroy, :attach_logo, :remove_logo, :link_wine]
+  before_action :set_producer, only: [ :show, :update, :destroy, :attach_logo, :remove_logo, :link_wine ]
   # Creating and deleting producers stays a catalogue-manager action: Admins,
   # Editors and Reviewers may create, but only Admins/Editors may delete.
   def index
@@ -96,14 +96,14 @@ class Api::V1::ProducersController < ApplicationController
     authorize @producer, :attach_logo?
     file = params[:logo]
     unless file.respond_to?(:tempfile) || file.respond_to?(:read)
-      return render json: { errors: ["Logo file is missing"] }, status: :unprocessable_entity
+      return render json: { errors: [ "Logo file is missing" ] }, status: :unprocessable_entity
     end
     unless Producer::ALLOWED_LOGO_TYPES.include?(file.content_type)
-      return render json: { errors: ["Logo must be an image (PNG, JPEG, GIF, WEBP or SVG)"] },
+      return render json: { errors: [ "Logo must be an image (PNG, JPEG, GIF, WEBP or SVG)" ] },
                     status: :unprocessable_entity
     end
     if file.size > Producer::MAX_LOGO_SIZE
-      return render json: { errors: ["Logo must be smaller than 10 MB"] }, status: :unprocessable_entity
+      return render json: { errors: [ "Logo must be smaller than 10 MB" ] }, status: :unprocessable_entity
     end
 
     @producer.logo.purge if @producer.logo.attached?
@@ -174,7 +174,7 @@ class Api::V1::ProducersController < ApplicationController
       :instagram, :facebook, :legal_name, :phone,
       :founded_year, :active, :country_id,
       region_ids: [], grape_ids: [],
-      address_attributes: [:id, :street_address, :city, :state, :postal_code, :country_id, :_destroy]
+      address_attributes: [ :id, :street_address, :city, :state, :postal_code, :country_id, :_destroy ]
     )
     # Dedupe so duplicate submissions can't break the unique join indices.
     permitted[:region_ids] = permitted[:region_ids].map(&:to_i).uniq if permitted.key?(:region_ids)
@@ -232,7 +232,6 @@ class Api::V1::ProducersController < ApplicationController
       images: image_urls(producer),
       wines_count: wines_count || producer.wines.count
     }
-
   end
 
   def ordered_by_name(association)
@@ -266,7 +265,7 @@ class Api::V1::ProducersController < ApplicationController
 
   def image_urls(record)
     images = record.images
-    ordered = images.loaded? ? images.sort_by { |image| [image.position.to_i, image.id] } : images.ordered
+    ordered = images.loaded? ? images.sort_by { |image| [ image.position.to_i, image.id ] } : images.ordered
     ordered.filter_map do |image|
       Rails.application.routes.url_helpers.rails_blob_url(
         image.file.blob,

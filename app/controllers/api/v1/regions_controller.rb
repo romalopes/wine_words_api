@@ -6,13 +6,13 @@ class Api::V1::RegionsController < ApplicationController
   end
 
   def log_objects
-    [@region, @region&.country].compact
+    [ @region, @region&.country ].compact
   end
 
   # Regions are read publicly (used by the wine-form picker).
   # Create/update/destroy is restricted to wine managers.
-  before_action :authenticate_user!, except: [:index, :show, :tree]
-  before_action :set_region, only: [:update, :destroy, :link_wine, :link_producer]
+  before_action :authenticate_user!, except: [ :index, :show, :tree ]
+  before_action :set_region, only: [ :update, :destroy, :link_wine, :link_producer ]
 
   def index
     regions = Region.includes(:country).order(:name)
@@ -33,7 +33,7 @@ class Api::V1::RegionsController < ApplicationController
                     .where(slug: params[:id])
                     .or(Region.includes(:country, parent: :country).where(id: params[:id]))
                     .first
-    
+
     if region
       authorize region
       render json: region_with_path(region)
@@ -49,12 +49,12 @@ class Api::V1::RegionsController < ApplicationController
       slug: region.slug,
       name: region.name,
       country_id: region.country_id,
-      country: region.country ? { 
-        id: region.country.id, 
+      country: region.country ? {
+        id: region.country.id,
         slug: region.country.slug,
-        name: region.country.name, 
-        code: region.country.code, 
-        flag_emoji: region.country.flag_emoji 
+        name: region.country.name,
+        code: region.country.code,
+        flag_emoji: region.country.flag_emoji
       } : nil,
       parent_id: region.parent_id,
       parent_name: region.parent_id ? region.parent&.name : nil,
@@ -130,12 +130,11 @@ class Api::V1::RegionsController < ApplicationController
       parent_id: region.parent_id,
       parent_name: region.parent_id ? region.parent&.name : nil,
       is_state: region.is_state,
-      is_appellation: region.is_appellation,
+      is_appellation: region.is_appellation
     }
   end
 
   def region_params
     params.require(:region).permit(:name, :country_id, :parent_id, :is_state, :is_appellation)
   end
-
 end

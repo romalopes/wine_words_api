@@ -104,7 +104,7 @@ RSpec.describe "Api::V1::Registrations", type: :request do
       expect(log).to be_present
       expect(log.description).to include("newuser")
       expect(log.user.email).to eq("newuser@example.com")
-      expect(log.log_objects.map(&:object_type)).to eq(["User"])
+      expect(log.log_objects.map(&:object_type)).to eq([ "User" ])
       expect(log.log_objects.first.object_id).to eq(User.find_by(email: "newuser@example.com").id)
     end
 

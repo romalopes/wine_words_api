@@ -76,11 +76,11 @@ RSpec.describe "Api::V1::Logs", type: :request do
       it "clamps lines <= 0 to 500" do
         # The outer describe takes a string, so `described_class` is nil here —
         # name the controller explicitly.
-        allow_any_instance_of(Api::V1::LogsController).to receive(:recent_log_lines).with(500).and_return(["line1", "line2"])
+        allow_any_instance_of(Api::V1::LogsController).to receive(:recent_log_lines).with(500).and_return([ "line1", "line2" ])
         get "/api/v1/logs", params: { lines: 0 }
         expect(response).to have_http_status(:ok)
         body = JSON.parse(response.body)
-        expect(body["logs"]).to eq(["line1", "line2"])
+        expect(body["logs"]).to eq([ "line1", "line2" ])
       end
     end
   end

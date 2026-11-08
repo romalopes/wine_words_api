@@ -15,7 +15,7 @@ class ImageService
   end
 
   # Removes one of `record`'s images by Image id. Purges the underlying blob and
-  #, if the removed image was primary, promotes the next remaining image.
+  # , if the removed image was primary, promotes the next remaining image.
   def self.remove(record, image_id)
     image = record.images.find_by(id: image_id)
     return unless image

@@ -4,7 +4,7 @@ class VintagesController < ActionController::Base
   include RequireLogin
 
   # Only Admins, Editors and Reviewers may add/edit/delete vintages.
-  before_action :deny_unless_wine_manager!, only: [:new, :create, :edit, :update, :destroy]
+  before_action :deny_unless_wine_manager!, only: [ :new, :create, :edit, :update, :destroy ]
   helper_method :can_manage_wines?
 
   def index

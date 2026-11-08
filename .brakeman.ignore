@@ -1,0 +1,64 @@
+{
+  "ignored_warnings": [
+    {
+      "confidence": "Weak",
+      "warning_type": "SQL Injection",
+      "check": "SQL",
+      "file": "app/models/analytics/event.rb",
+      "line": 54,
+      "message": "Possible SQL injection",
+      "code": "where(:identity => (\"#{\"account:\"}#{account_id}\")).update_all(\"identity = ?, visitor_key = NULL\", \"#{\"visitor:\"}#{\"erased-\"}#{account_id}\")",
+      "note": "False positive: bind variables used, identity prefix constants are safe"
+    },
+    {
+      "confidence": "Weak",
+      "warning_type": "SQL Injection",
+      "check": "SQL",
+      "file": "app/models/analytics/event.rb",
+      "line": 63,
+      "message": "Possible SQL injection",
+      "code": "where(:identity => (\"#{\"visitor:\"}#{visitor_id}\")).update_all(\"identity = ?, visitor_key = NULL\", \"#{\"visitor:\"}#{\"erased-\"}#{visitor_id}\")",
+      "note": "False positive: bind variables used, identity prefix constants are safe"
+    },
+    {
+      "confidence": "Weak",
+      "warning_type": "SQL Injection",
+      "check": "SQL",
+      "file": "app/models/analytics/event.rb",
+      "line": 81,
+      "message": "Possible SQL injection",
+      "code": "where(:identity => identity).update_all(\"identity = ?, visitor_key = NULL\", \"#{\"visitor:\"}#{\"erased-\"}#{identity.split(\":\").last}\")",
+      "note": "False positive: identity validated via regex before this point, bind variable used for update value"
+    },
+    {
+      "confidence": "High",
+      "warning_type": "SQL Injection",
+      "check": "SQL",
+      "file": "app/controllers/api/v1/articles_controller.rb",
+      "line": 81,
+      "message": "Possible SQL injection",
+      "code": "Article.find_by_sql([\"SELECT sub.* FROM (\\n  SELECT DISTINCT a.id, a.title, a.abstract, a.status,\\n         a.user_id, a.created_at, a.updated_at,\\n         COALESCE(ac.category_id, 0) AS grouped_cat_id,\\n         COUNT(*) OVER (PARTITION BY COALESCE(ac.category_id, 0)) AS grouped_count,\\n         ROW_NUMBER() OVER (\\n           PARTITION BY COALESCE(ac.category_id, 0)\\n           ORDER BY #{Article.search_order_sql(params[:sort], :ranked => ranked_search?(search_term), :columns => \"a.\")}\\n         ) AS rn\\n  FROM (#{Article.all.visible_to(current_user).where(:status => :BRAKEMAN_SAFE_LITERAL).text_search(search_term).to_sql}) a\\n  LEFT JOIN article_categories ac ON ac.article_id = a.id\\n) sub\\nWHERE sub.rn <= ?\\nORDER BY sub.grouped_cat_id, sub.rn\\n\", (params[:per_group].to_i or 12).clamp(1, 50)])",
+      "note": "False positive: ORDER BY fragment comes from whitelisted search_order_sql, LIMIT is parameterized bind variable"
+    },
+    {
+      "confidence": "High",
+      "warning_type": "SQL Injection",
+      "check": "SQL",
+      "file": "app/controllers/api/v1/reviews_controller.rb",
+      "line": 128,
+      "message": "Possible SQL injection",
+      "code": "Review.find_by_sql([\"SELECT sub.* FROM (\\n  SELECT r.id, r.created_at,\\n         COALESCE(rc.category_id, 0) AS grouped_cat_id,\\n         COUNT(*) OVER (PARTITION BY COALESCE(rc.category_id, 0)) AS grouped_count,\\n         ROW_NUMBER() OVER (\\n           PARTITION BY COALESCE(rc.category_id, 0)\\n           ORDER BY #{Review.search_order_sql(params[:sort], :ranked => ranked_search?(search_term), :columns => \"r.\")}\\n         ) AS rn\\n  FROM (#{Review.all.visible_to(current_user).where(:user => current_user).where(:status => :BRAKEMAN_SAFE_LITERAL).text_search(search_term).to_sql}) r\\n  LEFT JOIN review_categories rc ON rc.review_id = r.id\\n) sub\\nWHERE sub.rn <= ?\\nORDER BY sub.grouped_cat_id, sub.rn\\n\", per_group])",
+      "note": "False positive: ORDER BY fragment comes from whitelisted search_order_sql, LIMIT is parameterized bind variable"
+    },
+    {
+      "confidence": "High",
+      "warning_type": "Cross-Site Scripting",
+      "check": "LinkToHref",
+      "file": "app/helpers/application_helper.rb",
+      "line": 137,
+      "message": "Unsafe parameter value in `link_to` href",
+      "code": "link_to(\"\\u2190 Back to #{(params[:returnTo].split(\"/\").reject(&:blank?).first.capitalize or \"page\")}\", params[:returnTo], :class => \"back-link\")",
+      "note": "False positive: returnTo is validated by safe_return_to? before rendering — only local paths starting with / are allowed"
+    }
+  ]
+}

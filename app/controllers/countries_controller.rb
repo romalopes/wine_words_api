@@ -3,8 +3,8 @@ class CountriesController < ActionController::Base
   include RequireLogin
   include Impersonable
 
-  before_action :set_country, only: [:show, :edit, :update, :destroy]
-  before_action :ensure_manager!, only: [:new, :edit, :create, :update, :destroy]
+  before_action :set_country, only: [ :show, :edit, :update, :destroy ]
+  before_action :ensure_manager!, only: [ :new, :edit, :create, :update, :destroy ]
 
   def index
     @countries = Country.order(:name)

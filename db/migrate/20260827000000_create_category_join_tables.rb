@@ -11,14 +11,14 @@ class CreateCategoryJoinTables < ActiveRecord::Migration[7.0]
         end
       end
 
-      [owner, :category].each do |reference|
+      [ owner, :category ].each do |reference|
         column = "#{reference}_id"
         add_index table, column unless index_exists?(table, column)
         target = reference.to_s.pluralize.to_sym
         add_foreign_key table, target, column: column unless foreign_key_exists?(table, target, column: column)
       end
 
-      columns = ["#{owner}_id", "category_id"]
+      columns = [ "#{owner}_id", "category_id" ]
       add_index table, columns, unique: true unless index_exists?(table, columns, unique: true)
     end
   end

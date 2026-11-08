@@ -4,8 +4,8 @@ module RequireLogin
   extend ActiveSupport::Concern
 
   included do
-    before_action :set_current_user, only: [:new, :edit, :create, :update, :destroy]
-    before_action :require_login, only: [:new, :edit, :create, :update, :destroy]
+    before_action :set_current_user, only: [ :new, :edit, :create, :update, :destroy ]
+    before_action :require_login, only: [ :new, :edit, :create, :update, :destroy ]
   end
 
   private

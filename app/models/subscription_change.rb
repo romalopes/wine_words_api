@@ -43,7 +43,7 @@ class SubscriptionChange < ApplicationRecord
   # The single most relevant "you are changing plans" record for the UI.
   def self.most_recent_for(user)
     user.subscription_changes
-        .where(status: [:pending, :scheduled])
+        .where(status: [ :pending, :scheduled ])
         .order(effective_at: :asc, id: :desc)
         .first
   end

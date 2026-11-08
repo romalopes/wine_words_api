@@ -85,7 +85,6 @@ RSpec.describe 'Sentry context', type: :request do
         scope = Sentry.get_current_scope
         expect(scope.tags).to eq({})
       end
-
     end
   end
 end

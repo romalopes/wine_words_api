@@ -29,6 +29,6 @@ class CreateLogs < ActiveRecord::Migration[8.1]
       t.timestamps
     end
 
-    add_index :log_objects, [:object_type, :object_id]
+    add_index :log_objects, [ :object_type, :object_id ]
   end
 end

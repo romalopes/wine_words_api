@@ -71,11 +71,11 @@ RSpec.describe "Api::V1::Health e-mail tool", type: :request do
     expect(response).to have_http_status(:ok)
     body = JSON.parse(response.body)
     expect(body).to include("status" => "delivered")
-    expect(body["recipients"]).to eq(["jane@doe.com"])
+    expect(body["recipients"]).to eq([ "jane@doe.com" ])
     expect(body["effective_transport"]).to eq("test")
 
     delivered = ActionMailer::Base.deliveries.last
-    expect(delivered.to).to eq(["jane@doe.com"])
+    expect(delivered.to).to eq([ "jane@doe.com" ])
     expect(delivered.cc).to be_nil
     expect(delivered.bcc).to be_nil
     expect(delivered.subject).to eq("Note")
