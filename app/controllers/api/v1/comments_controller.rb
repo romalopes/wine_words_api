@@ -22,6 +22,11 @@ class Api::V1::CommentsController < ApplicationController
   def create_reply
     return unless authorize_commenter
 
+    if (existing = existing_idempotent_reply)
+      return render json: CommentSerializer.new(existing, permission, replies: []).as_json,
+                    status: :ok
+    end
+
     # A reply's parent is the top-level comment of the thread, so replying to a
     # reply lands beside it in the same thread. `parent` is nil only for an
     # orphaned reply (its parent row is gone), which has no thread to join.
@@ -33,7 +38,8 @@ class Api::V1::CommentsController < ApplicationController
     reply = parent.commentable.comments.build(
       user: current_user,
       parent: parent,
-      body: reply_params[:body]
+      body: reply_params[:body],
+      client_operation_id: client_operation_id
     )
 
     if reply.save
@@ -42,6 +48,12 @@ class Api::V1::CommentsController < ApplicationController
     else
       validation_error(reply)
     end
+  rescue ActiveRecord::RecordNotUnique
+    existing = existing_idempotent_reply
+    raise unless existing
+
+    render json: CommentSerializer.new(existing, permission, replies: []).as_json,
+           status: :ok
   end
 
   # PATCH /api/v1/comments/:id — body: { comment: { body: "..." } }
@@ -69,8 +81,8 @@ class Api::V1::CommentsController < ApplicationController
   private
 
   # The same controller serves two shapes, so the id arrives under two names:
-#   PATCH|DELETE /api/v1/comments/:id
-#   POST        /api/v1/comments/:comment_id/replies
+  #   PATCH|DELETE /api/v1/comments/:id
+  #   POST        /api/v1/comments/:comment_id/replies
   def set_comment
     @comment = Comment.includes({ user: :account }, :replies).find(params[:comment_id] || params[:id])
   rescue ActiveRecord::RecordNotFound
@@ -80,6 +92,16 @@ class Api::V1::CommentsController < ApplicationController
 
   def reply_params
     params.require(:comment).permit(:body)
+  end
+
+  def client_operation_id
+    request.headers["Idempotency-Key"].presence
+  end
+
+  def existing_idempotent_reply
+    return if client_operation_id.blank?
+
+    current_user.comments.find_by(client_operation_id: client_operation_id)
   end
 
   # Same shape as reply_params, kept separate so the two writes can diverge

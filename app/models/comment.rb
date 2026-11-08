@@ -31,6 +31,10 @@ class Comment < ApplicationRecord
   validates :body,
             presence: true,
             length: { maximum: MAX_BODY_LENGTH }
+  validates :client_operation_id,
+            length: { maximum: 100 },
+            uniqueness: { scope: :user_id },
+            allow_nil: true
   validate :parent_must_be_top_level
 
   scope :visible, -> { where(deleted_at: nil) }

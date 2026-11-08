@@ -41,4 +41,3 @@ module WinePackages
     attr_reader :package, :at, :deadline, :actor
   end
 end
-

@@ -41,46 +41,46 @@ RSpec.describe "Api::V1::Articles search and sort", type: :request do
   describe "GET /api/v1/articles" do
     it "searches the whole weighted vector, not just the title" do
       create_article("Regional overview", body: "Shiraz dominates the plantings here.")
-      create_article("Harvest diary", tag_names: ["vineyard"])
+      create_article("Harvest diary", tag_names: [ "vineyard" ])
       create_article("Unrelated note")
 
-      expect(index_titles(query: "shiraz")).to eq(["Regional overview"])
-      expect(index_titles(query: "vineyard")).to eq(["Harvest diary"])
+      expect(index_titles(query: "shiraz")).to eq([ "Regional overview" ])
+      expect(index_titles(query: "vineyard")).to eq([ "Harvest diary" ])
     end
 
     it "requires every word of a multi-word term, in any field" do
       create_article("Barossa gems", body: "The best shiraz vintages live here.")
       create_article("Barossa only", body: "No grape variety named here.")
 
-      expect(index_titles(query: "barossa shiraz")).to eq(["Barossa gems"])
+      expect(index_titles(query: "barossa shiraz")).to eq([ "Barossa gems" ])
     end
 
     it "matches prefixes so a partial word still finds the whole one" do
       create_article("Chardonnay, chilled")
       create_article("Pinot Noir, cellared")
 
-      expect(index_titles(query: "char")).to eq(["Chardonnay, chilled"])
+      expect(index_titles(query: "char")).to eq([ "Chardonnay, chilled" ])
     end
 
     it "orders by relevance, putting the title hit above the body hit" do
       create_article("Regional overview", body: "Shiraz dominates the plantings here.")
       create_article("Shiraz showcase", body: "A region overview.")
 
-      expect(index_titles(query: "shiraz")).to eq(["Shiraz showcase", "Regional overview"])
+      expect(index_titles(query: "shiraz")).to eq([ "Shiraz showcase", "Regional overview" ])
     end
 
     it "accepts the deprecated `search` spelling of the term" do
       create_article("Shiraz showcase")
 
-      expect(index_titles(search: "shiraz")).to eq(["Shiraz showcase"])
+      expect(index_titles(search: "shiraz")).to eq([ "Shiraz showcase" ])
     end
 
     it "answers 200 with an unfiltered list for input that cannot be searched" do
       create_article("Shiraz showcase")
 
       # Operators used to reach to_tsquery untouched, which raised and 500ed.
-      expect(index_titles(query: " & : ' !")).to eq(["Shiraz showcase"])
-      expect(index_titles(query: "a")).to eq(["Shiraz showcase"])
+      expect(index_titles(query: " & : ' !")).to eq([ "Shiraz showcase" ])
+      expect(index_titles(query: "a")).to eq([ "Shiraz showcase" ])
     end
 
     it "counts matches correctly while paginating a search" do
@@ -100,7 +100,7 @@ RSpec.describe "Api::V1::Articles search and sort", type: :request do
       create_article("Regional overview", body: "Shiraz dominates here.", created_at: 1.day.ago)
 
       titles = index_titles(query: "shiraz", sort: "recent")
-      expect(titles).to eq(["Regional overview", oldest.title])
+      expect(titles).to eq([ "Regional overview", oldest.title ])
       expect(index_titles(query: "shiraz", sort: "oldest")).to eq(titles.reverse)
     end
 
@@ -108,7 +108,7 @@ RSpec.describe "Api::V1::Articles search and sort", type: :request do
       create_article("Old note", created_at: 2.days.ago)
       create_article("New note", created_at: 1.hour.ago)
 
-      expect(index_titles(sort: "score_high")).to eq(["New note", "Old note"])
+      expect(index_titles(sort: "score_high")).to eq([ "New note", "Old note" ])
     end
   end
 
@@ -121,23 +121,23 @@ RSpec.describe "Api::V1::Articles search and sort", type: :request do
 
     it "agrees with the feed about what matches" do
       expect(grouped_titles(query: "shiraz")).to match_array(index_titles(query: "shiraz"))
-      expect(grouped_titles(query: "barossa shiraz")).to eq(["Barossa gems"])
+      expect(grouped_titles(query: "barossa shiraz")).to eq([ "Barossa gems" ])
     end
 
     it "orders each category by relevance" do
-      expect(grouped_titles(query: "shiraz")).to eq(["Shiraz showcase", "Barossa gems"])
+      expect(grouped_titles(query: "shiraz")).to eq([ "Shiraz showcase", "Barossa gems" ])
     end
 
     it "honours the sort param inside each category" do
       expect(grouped_titles(query: "shiraz", sort: "oldest"))
-        .to eq(["Barossa gems", "Shiraz showcase"])
+        .to eq([ "Barossa gems", "Shiraz showcase" ])
     end
 
     it "keeps drafts invisible while searching" do
       create_article("Shiraz draft", status: "draft")
 
-      expect(grouped_titles(query: "shiraz")).to eq(["Shiraz showcase", "Barossa gems"])
-      expect(index_titles(query: "shiraz")).to eq(["Shiraz showcase", "Barossa gems"])
+      expect(grouped_titles(query: "shiraz")).to eq([ "Shiraz showcase", "Barossa gems" ])
+      expect(index_titles(query: "shiraz")).to eq([ "Shiraz showcase", "Barossa gems" ])
     end
 
     it "answers 200 and skips filtering for input that cannot be searched" do

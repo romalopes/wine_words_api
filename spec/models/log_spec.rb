@@ -235,8 +235,7 @@ RSpec.describe Log, type: :model do
       log3 = Log.create!(description: "third", action: "create", user: user)
 
       ordered = Log.order(created_at: :desc, id: :desc).to_a
-      expect(ordered).to eq([log3, log2, log1])
+      expect(ordered).to eq([ log3, log2, log1 ])
     end
   end
 end
-

@@ -128,16 +128,16 @@ def parse_article_page(doc, url)
   body_html = body_el&.inner_html || ''
 
   # Convert HTML <a href="...">text</a> into Markdown links before extracting plain text
-  fragment = Nokogiri::HTML::fragment(body_html)
+  fragment = Nokogiri::HTML.fragment(body_html)
   fragment.css('a').each do |a|
     href = a['href']
     next unless href
     link_text = a.text.strip
     markdown = if link_text.empty? || link_text == href
                  "[#{href}](#{href})"
-               else
+    else
                  "[#{link_text}](#{href})"
-               end
+    end
     a.replace(markdown)
   end
   body_text = fragment.text.strip
@@ -187,7 +187,7 @@ def parse_review_title(title)
     words = raw_name.split
     grape = nil
     # Try 2-word then 1-word combinations from the end (most grape varieties are 1-2 words)
-    [2, 1].each do |word_count|
+    [ 2, 1 ].each do |word_count|
       if words.length >= word_count
         candidate = words[-word_count..-1].join(' ')
         grape = Grape.find_by_name_or_synonym(candidate)

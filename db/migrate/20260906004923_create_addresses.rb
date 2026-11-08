@@ -19,7 +19,7 @@ class CreateAddresses < ActiveRecord::Migration[8.1]
     # at most one address; the country is seeded from the producer's own
     # country (Producer#set_default_country guarantees one exists).
     Producer.find_each do |producer|
-      next if [producer.address, producer.city, producer.state, producer.postal_code].all?(&:blank?)
+      next if [ producer.address, producer.city, producer.state, producer.postal_code ].all?(&:blank?)
 
       Address.create!(
         producer: producer,

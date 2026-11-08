@@ -50,7 +50,7 @@ class Api::V1::RegistrationsController < Devise::RegistrationsController
   end
 
   def log_objects
-    [audit_user].compact
+    [ audit_user ].compact
   end
 
   def sign_up_params
@@ -83,7 +83,7 @@ class Api::V1::RegistrationsController < Devise::RegistrationsController
       billing_provider: current_sub&.billing_provider,
       can_manage_billing: Billing.configured?,
       subscription_status: current_sub&.status,
-      can_access_wine_packages: user.can_access_wine_packages?,
+      can_access_wine_packages: user.can_access_wine_packages?
     }
   end
 end

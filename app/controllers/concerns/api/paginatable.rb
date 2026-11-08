@@ -52,7 +52,7 @@ module Api
         page: pagination[:page],
         per_page: pagination[:per_page],
         total_count: total_count,
-        total_pages: (total_count.to_f / pagination[:per_page]).ceil,
+        total_pages: (total_count.to_f / pagination[:per_page]).ceil
       }
       true
     end

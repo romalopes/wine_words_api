@@ -7,10 +7,10 @@ class Api::V1::WineProfilesController < ApplicationController
   end
 
   def log_objects
-    [@wine_profile].compact
+    [ @wine_profile ].compact
   end
 
-  skip_before_action :authenticate_user!, only: [:index, :show, :search]
+  skip_before_action :authenticate_user!, only: [ :index, :show, :search ]
   def index
     scope = WineProfile.includes(:profile_grapes, :profile_regions, wine_profile_taste_parameters: :taste_parameter)
     if render_paginated(scope) { |wines| wines.map { |wine| WineProfileSerializer.new(wine).as_json } }
@@ -70,7 +70,7 @@ class Api::V1::WineProfilesController < ApplicationController
     search_terms = (llm[:name_hints] + llm[:region_hints] + llm[:style_notes]).uniq.compact
 
     # Fall back to the raw query if LLM extracted nothing useful
-    search_terms = [query] if search_terms.empty?
+    search_terms = [ query ] if search_terms.empty?
 
     # ── Step 3: pg_trgm search using each extracted term ───────────────
     # Build OR conditions: any term can match name OR region
@@ -82,13 +82,13 @@ class Api::V1::WineProfilesController < ApplicationController
     search_terms.each do |term|
       # wines: match by name
       wine_conditions << "(similarity(wines.name, ?) > ? OR strict_word_similarity(?, wines.name) > ? OR word_similarity(?, wines.name) > ?)"
-      wine_values.concat([term, sim_threshold, term, sim_threshold, term, word_sim_threshold])
+      wine_values.concat([ term, sim_threshold, term, sim_threshold, term, word_sim_threshold ])
 
       # wine_profiles: match by name or regions (JSON text)
 
       profile_conditions << "(similarity(wine_profiles.name, ?) > ? OR strict_word_similarity(?, wine_profiles.name) > ? OR word_similarity(?, wine_profiles.name) > ? OR EXISTS (SELECT 1 FROM wine_profile_regions wpr JOIN regions r ON r.id = wpr.region_id WHERE wpr.wine_profile_id = wine_profiles.id AND (similarity(r.name, ?) > ? OR strict_word_similarity(?, r.name) > ? OR word_similarity(?, r.name) > ?)))"
-      profile_values.concat([term, sim_threshold, term, sim_threshold, term, word_sim_threshold,
-                              term, sim_threshold, term, sim_threshold, term, word_sim_threshold])
+      profile_values.concat([ term, sim_threshold, term, sim_threshold, term, word_sim_threshold,
+                              term, sim_threshold, term, sim_threshold, term, word_sim_threshold ])
     end
 
     # If LLM extracted a color, also filter by it
@@ -196,12 +196,11 @@ class Api::V1::WineProfilesController < ApplicationController
 
   def search
     try { search_with_llm_interpreted } rescue try { search_with_similarities }
-
   end
 
   private
 
-  PERMITTED_PARAMS = [:name, :color, :notes, :serving, {grapes: []}, {regions: []}, :parameters].freeze
+  PERMITTED_PARAMS = [ :name, :color, :notes, :serving, { grapes: [] }, { regions: [] }, :parameters ].freeze
 
   def wine_profile_params
     params.require(:wine_profile).permit(PERMITTED_PARAMS)
@@ -223,4 +222,3 @@ class Api::V1::WineProfilesController < ApplicationController
     @wine_profile.save! if @wine_profile.changed?
   end
 end
-

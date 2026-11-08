@@ -9,6 +9,6 @@ class CreateArticleProjectProducers < ActiveRecord::Migration[8.1]
       t.timestamps
     end
 
-    add_index :article_project_producers, [:article_project_id, :producer_id], unique: true
+    add_index :article_project_producers, [ :article_project_id, :producer_id ], unique: true
   end
 end

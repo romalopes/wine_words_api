@@ -80,7 +80,7 @@ class ArticleSerializer
       {
         id: v.id,
         year: v.year,
-        name: [wine&.name, v.year].compact.join(" "),
+        name: [ wine&.name, v.year ].compact.join(" "),
         wine_name: wine&.name,
         wine_slug: wine&.slug,
         region: first_region_name(wine)

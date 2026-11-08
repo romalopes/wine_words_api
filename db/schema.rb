@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_01_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_03_100000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -51,7 +51,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_000001) do
     t.index ["token_digest"], name: "index_account_invitations_on_token_digest", unique: true
     t.index ["user_id", "created_at"], name: "index_account_invitations_on_user_id_and_created_at"
     t.index ["user_id"], name: "index_account_invitations_on_user_id"
-    t.check_constraint "status::text = ANY (ARRAY['pending'::character varying, 'sent'::character varying, 'accepted'::character varying, 'revoked'::character varying]::text[])", name: "account_invitations_status_check"
+    t.check_constraint "status::text = ANY (ARRAY['pending'::character varying::text, 'sent'::character varying::text, 'accepted'::character varying::text, 'revoked'::character varying::text])", name: "account_invitations_status_check"
   end
 
   create_table "accounts", force: :cascade do |t|
@@ -324,6 +324,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_000001) do
 
   create_table "comments", force: :cascade do |t|
     t.text "body", null: false
+    t.string "client_operation_id"
     t.bigint "commentable_id", null: false
     t.string "commentable_type", null: false
     t.datetime "created_at", null: false
@@ -333,6 +334,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_000001) do
     t.bigint "user_id", null: false
     t.index ["commentable_type", "commentable_id"], name: "index_comments_on_commentable"
     t.index ["parent_id"], name: "index_comments_on_parent_id"
+    t.index ["user_id", "client_operation_id"], name: "index_comments_on_user_and_client_operation", unique: true, where: "(client_operation_id IS NOT NULL)"
     t.index ["user_id"], name: "index_comments_on_user_id"
   end
 
@@ -359,7 +361,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_000001) do
     t.index ["followable_type", "followable_id", "user_id"], name: "index_follows_on_followable_and_user"
     t.index ["user_id", "followable_type", "followable_id"], name: "index_follows_on_user_and_followable", unique: true
     t.index ["user_id"], name: "index_follows_on_user_id"
-    t.check_constraint "followable_type::text = ANY (ARRAY['Producer'::character varying, 'Wine'::character varying, 'Review'::character varying, 'Article'::character varying]::text[])", name: "follows_followable_type_check"
+    t.check_constraint "followable_type::text = ANY (ARRAY['Producer'::character varying::text, 'Wine'::character varying::text, 'Review'::character varying::text, 'Article'::character varying::text])", name: "follows_followable_type_check"
   end
 
   create_table "grape_regions", force: :cascade do |t|
@@ -480,10 +482,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_000001) do
     t.datetime "digest_last_sent_at"
     t.boolean "follow_email", default: false, null: false
     t.boolean "follow_in_app", default: true, null: false
+    t.boolean "push_enabled", default: false, null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["user_id"], name: "index_notification_preferences_on_user_id", unique: true
-    t.check_constraint "digest_cadence::text = ANY (ARRAY['none'::character varying, 'daily'::character varying, 'weekly'::character varying]::text[])", name: "notification_preferences_digest_cadence_check"
+    t.check_constraint "digest_cadence::text = ANY (ARRAY['none'::character varying::text, 'daily'::character varying::text, 'weekly'::character varying::text])", name: "notification_preferences_digest_cadence_check"
   end
 
   create_table "notifications", force: :cascade do |t|
@@ -536,7 +539,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_000001) do
     t.index ["producer_id"], name: "index_producer_memberships_on_producer_id"
     t.index ["user_id", "producer_id"], name: "index_producer_memberships_on_user_id_and_producer_id", unique: true
     t.index ["user_id"], name: "index_producer_memberships_on_user_id"
-    t.check_constraint "membership_type::text = ANY (ARRAY['owner'::character varying, 'manager'::character varying, 'contributor'::character varying]::text[])", name: "chk_membership_type"
+    t.check_constraint "membership_type::text = ANY (ARRAY['owner'::character varying::text, 'manager'::character varying::text, 'contributor'::character varying::text])", name: "chk_membership_type"
   end
 
   create_table "producer_regions", force: :cascade do |t|
@@ -567,6 +570,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_000001) do
     t.string "website"
     t.index ["name"], name: "index_producers_on_name", unique: true
     t.index ["slug"], name: "index_producers_on_slug", unique: true
+  end
+
+  create_table "push_subscriptions", force: :cascade do |t|
+    t.string "auth", null: false
+    t.datetime "created_at", null: false
+    t.text "endpoint", null: false
+    t.datetime "last_used_at"
+    t.string "p256dh", null: false
+    t.datetime "updated_at", null: false
+    t.string "user_agent"
+    t.bigint "user_id", null: false
+    t.index ["endpoint"], name: "index_push_subscriptions_on_endpoint", unique: true
+    t.index ["user_id"], name: "index_push_subscriptions_on_user_id"
   end
 
   create_table "regions", force: :cascade do |t|
@@ -997,7 +1013,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_000001) do
     t.index ["email_verification_token_digest"], name: "index_users_on_email_verification_token_digest"
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
     t.index ["subscription_id"], name: "index_users_on_subscription_id"
-    t.check_constraint "account_status::text = ANY (ARRAY['unclaimed'::character varying, 'active'::character varying, 'suspended'::character varying]::text[])", name: "users_account_status_check"
+    t.check_constraint "account_status::text = ANY (ARRAY['unclaimed'::character varying::text, 'active'::character varying::text, 'suspended'::character varying::text])", name: "users_account_status_check"
   end
 
   create_table "vintages", force: :cascade do |t|
@@ -1265,6 +1281,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_000001) do
   add_foreign_key "producer_memberships", "users", column: "created_by_id"
   add_foreign_key "producer_regions", "producers"
   add_foreign_key "producer_regions", "regions"
+  add_foreign_key "push_subscriptions", "users", on_delete: :cascade
   add_foreign_key "regions", "countries"
   add_foreign_key "regions", "regions", column: "parent_id"
   add_foreign_key "review_categories", "categories"

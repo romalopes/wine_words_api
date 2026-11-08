@@ -132,7 +132,7 @@ class Article < ApplicationRecord
   # which also means an unsaved record (no row to select from) works, because
   # every value is interpolated rather than read from the table.
   def search_vector_sql
-    tag_names = tags.pluck(:name).join(' ')
+    tag_names = tags.pluck(:name).join(" ")
     category_name = category&.name
     author_name = user&.display_name || user&.email
 

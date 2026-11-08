@@ -31,7 +31,7 @@ module Analytics
       "30d" => 30,
       "90d" => 90,
       "1y" => 365,
-      "all" => nil,
+      "all" => nil
     }.freeze
 
     # Metric definition version stamped on every reporting response.
@@ -109,7 +109,7 @@ module Analytics
         available_from: available_from&.iso8601,
         available_to: available_to&.iso8601,
         partial_history: partial_history,
-        available_history: available_history,
+        available_history: available_history
       }
     end
 

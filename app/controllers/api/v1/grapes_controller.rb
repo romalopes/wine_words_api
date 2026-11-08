@@ -17,11 +17,11 @@ class Api::V1::GrapesController < ApplicationController
   end
 
   def log_objects
-    [@grape].compact
+    [ @grape ].compact
   end
 
-  before_action :authenticate_user!, except: [:index, :show, :search]
-  before_action :set_grape, only: [:show, :update, :destroy, :link_wine]
+  before_action :authenticate_user!, except: [ :index, :show, :search ]
+  before_action :set_grape, only: [ :show, :update, :destroy, :link_wine ]
 
   def index
     scope = sorted_scope
@@ -175,5 +175,4 @@ class Api::V1::GrapesController < ApplicationController
     # and a 179 s response for chardonnay) for data no client reads.
     data
   end
-
 end

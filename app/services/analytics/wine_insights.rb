@@ -50,7 +50,7 @@ module Analytics
         grouping: grouping,
         groups: groups,
         period: @period.metadata.merge(scope: @scope.scope_label),
-        overlapping_notice: overlapping_notice(grouping),
+        overlapping_notice: overlapping_notice(grouping)
       }
     end
 private
@@ -60,7 +60,7 @@ private
       grouping: @params[:grouping] || "producer",
       groups: [],
       period: @period.metadata.merge(scope: @scope.scope_label),
-      overlapping_notice: nil,
+      overlapping_notice: nil
     }
   end
 
@@ -98,7 +98,7 @@ private
         slug: producer_slug,
         name: producer_name,
         views: views,
-        unique_viewers: unique_viewers,
+        unique_viewers: unique_viewers
       }
     end
 
@@ -115,7 +115,7 @@ private
     groups = region_ids.map do |region_id|
       wine_ids_for_region = region_to_wines[region_id]
       region_events = events.where(viewable_id: wine_ids_for_region).pluck(:viewable_id, :identity, :viewed_at)
-      
+
       region_name = regions[region_id]&.dig(1) || "Unknown Region"
       region_slug = regions[region_id]&.dig(2)
 
@@ -127,7 +127,7 @@ private
         slug: region_slug,
         name: region_name,
         views: views,
-        unique_viewers: unique_viewers,
+        unique_viewers: unique_viewers
       }
     end
 
@@ -144,7 +144,7 @@ private
     groups = grape_ids.map do |grape_id|
       wine_ids_for_grape = grape_to_wines[grape_id]
       grape_events = events.where(viewable_id: wine_ids_for_grape).pluck(:viewable_id, :identity, :viewed_at)
-      
+
       grape_name = grapes[grape_id]&.dig(1) || "Unknown Grape"
       grape_slug = grapes[grape_id]&.dig(2)
       grape_color = grapes[grape_id]&.dig(3)
@@ -158,7 +158,7 @@ private
         name: grape_name,
         color: grape_color,
         views: views,
-        unique_viewers: unique_viewers,
+        unique_viewers: unique_viewers
       }
     end
 
@@ -182,5 +182,5 @@ private
     groups.reverse! if direction == "desc"
     groups
   end
-end
+  end
 end

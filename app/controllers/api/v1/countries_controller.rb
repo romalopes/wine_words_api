@@ -6,11 +6,11 @@ class Api::V1::CountriesController < ApplicationController
   end
 
   def log_objects
-    [@country].compact
+    [ @country ].compact
   end
 
-  before_action :authenticate_user!, except: [:index, :show]
-  before_action :set_country, only: [:show, :update, :destroy]
+  before_action :authenticate_user!, except: [ :index, :show ]
+  before_action :set_country, only: [ :show, :update, :destroy ]
 
   def index
     countries = Country.order(:name)
@@ -97,12 +97,11 @@ class Api::V1::CountriesController < ApplicationController
       code: country.code,
       continent: country.continent,
       flag_emoji: country.flag_emoji,
-      is_wine_country: country.is_wine_country,
+      is_wine_country: country.is_wine_country
     }
   end
 
   def country_params
     params.require(:country).permit(:name, :code, :continent, :flag_emoji, :is_wine_country)
   end
-
 end

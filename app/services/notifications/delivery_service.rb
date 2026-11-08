@@ -51,6 +51,7 @@ module Notifications
           unique_by: :index_notifications_on_recipient_and_event
         )
         inserted += result.length
+        result.rows.flatten.each { |id| Notifications::WebPushDeliveryJob.perform_later(id) }
       end
       log_delivery(recipients.size, inserted)
       inserted

@@ -41,10 +41,10 @@ module Impersonable
     impersonated_user_id.present?
   end
 
-  # Issues a JWT for +user+. When +impersonated_user_id+ is provided, the
-  # returned token carries an +impersonated_user_id+ claim that this concern
-  # decodes on subsequent API requests. Used by the impersonation start/stop
-  # endpoints to exchange tokens.
+    # Issues a JWT for +user+. When +impersonated_user_id+ is provided, the
+    # returned token carries an +impersonated_user_id+ claim that this concern
+    # decodes on subsequent API requests. Used by the impersonation start/stop
+    # endpoints to exchange tokens.
     def issue_jwt_for(user, impersonated_user_id: nil)
     now = Time.current.to_i
     payload = user.jwt_payload.merge(

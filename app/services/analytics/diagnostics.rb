@@ -13,8 +13,8 @@ module Analytics
     # @param params [Hash] :page, :per_page, :content_type, :viewable_id, :start_date, :end_date
     # @return [Hash] { events: [...], pagination: {...}, scope_label: "..." }
     def self.accepted_events(params)
-      page = [params[:page].to_i, 1].max
-      per_page = params[:per_page].present? ? [[params[:per_page].to_i, 1].max, MAX_PER_PAGE].min : DEFAULT_PER_PAGE
+      page = [ params[:page].to_i, 1 ].max
+      per_page = params[:per_page].present? ? [ [ params[:per_page].to_i, 1 ].max, MAX_PER_PAGE ].min : DEFAULT_PER_PAGE
 
       scope = Event.accepted.order(viewed_at: :desc)
 

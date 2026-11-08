@@ -9,11 +9,11 @@ raise "SEED_PASSWORD must not be blank" if seed_password.blank?
 
 users = [
   { first_name: "Anderson", email: "romalopes@yahoo.com.br",
-    roles: ["Admin"], subscription: "free" },
+    roles: [ "Admin" ], subscription: "free" },
   { first_name: "AndersonGoogle", email: "romalopes@gmail.com",
-    roles: ["Reader"], subscription: "consumer" },
+    roles: [ "Reader" ], subscription: "consumer" },
   { first_name: "Kasia", email: "kasia@mywineadviser.com.au",
-    roles: ["Reviewer", "Editor"], subscription: "free" }
+    roles: [ "Reviewer", "Editor" ], subscription: "free" }
 ]
 
 User.transaction do

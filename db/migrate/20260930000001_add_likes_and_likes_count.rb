@@ -8,7 +8,7 @@ class AddLikesAndLikesCount < ActiveRecord::Migration[8.1]
     end
 
     add_index :likes,
-              [:user_id, :likeable_type, :likeable_id],
+              [ :user_id, :likeable_type, :likeable_id ],
               unique: true,
               name: "index_likes_on_user_and_likeable"
     # NOTE: t.references :likeable, polymorphic: true above already creates

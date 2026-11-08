@@ -83,7 +83,7 @@ class Wine < ApplicationRecord
     5000 => "5 L",
     6000 => "6 L",
     9000 => "9 L",
-    12000 => "12 L",
+    12000 => "12 L"
   }.freeze
 
   DEFAULT_VOLUME = 750
@@ -200,7 +200,7 @@ class Wine < ApplicationRecord
     # Vintage year and/or price range across the wine's vintages.
     vintage_filters = %i[vintage_year_min vintage_year_max price_min price_max]
     if vintage_filters.any? { |k| f[k].present? }
-      conds = ["vintages.wine_id = wines.id"]
+      conds = [ "vintages.wine_id = wines.id" ]
       args  = []
       conds << "vintages.year >= ?"         if f[:vintage_year_min].present?
       args  << f[:vintage_year_min]         if f[:vintage_year_min].present?
@@ -273,7 +273,7 @@ class Wine < ApplicationRecord
       slug = tp[:slug].to_s
       next if slug.blank?
       conds = []
-      args  = [slug]
+      args  = [ slug ]
       if tp[:min].present?
         conds << "wtp.score >= ?"; args << tp[:min]
       end

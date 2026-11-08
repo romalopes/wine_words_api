@@ -175,7 +175,7 @@ RSpec.describe Wine, type: :model do
     end
 
     it "links a profile whose name is contained in the wine name and copies its scores" do
-      profile = AutoAssignHelpers.make_profile("Pinot Noir", ["Pinot Noir"], "Red")
+      profile = AutoAssignHelpers.make_profile("Pinot Noir", [ "Pinot Noir" ], "Red")
       profile.wine_profile_taste_parameters.create!(taste_parameter: acidity, score: 4)
       profile.wine_profile_taste_parameters.create!(taste_parameter: body_parameter, score: 2)
 
@@ -188,7 +188,7 @@ RSpec.describe Wine, type: :model do
     end
 
     it "falls back to grape matching when the name does not match" do
-      gsm = AutoAssignHelpers.make_profile("GSM", ["Grenache", "Shiraz", "Muscat"])
+      gsm = AutoAssignHelpers.make_profile("GSM", [ "Grenache", "Shiraz", "Muscat" ])
       gsm.wine_profile_taste_parameters.create!(taste_parameter: acidity, score: 3)
       AutoAssignHelpers.make_profile("Riesling")
 
@@ -223,10 +223,10 @@ RSpec.describe Wine, type: :model do
       profile.wine_profile_taste_parameters.create!(taste_parameter: acidity, score: 4)
 
       wine = Wine.create!(name: "Existing Pinot Noir", color: "Red", producer: producer,
-                          wine_taste_parameters_attributes: [{ taste_parameter_id: acidity.id, score: 1 }])
+                          wine_taste_parameters_attributes: [ { taste_parameter_id: acidity.id, score: 1 } ])
 
       expect(wine.wine_profile).to be_nil
-      expect(wine.wine_taste_parameters.pluck(:score)).to eq([1])
+      expect(wine.wine_taste_parameters.pluck(:score)).to eq([ 1 ])
     end
   end
 end

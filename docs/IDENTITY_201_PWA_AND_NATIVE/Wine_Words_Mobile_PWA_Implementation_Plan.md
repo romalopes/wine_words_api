@@ -1,11 +1,41 @@
 # Wine Words — Mobile Web, PWA, Offline, Push and Capacitor Implementation Plan
 
-**Status:** Proposed implementation plan  
-**Date:** 2026-11-01  
-**Related issue:** [wine_words_api #127](https://github.com/romalopes/wine_words_api/issues/127)  
+**Status:** Phases 0–10 implemented; Capacitor projects generated/synced; Phase 13 mobile + cached-read scope implemented. Manual PWA/device verification and dependency-audit remediation remain.  
+**Date:** 2026-11-01 (plan) · 2026-11-03 (Phase 0 audit)  
+**Related issue:** [wine_words_api #127](https://github.com/romalopes/wine_words_api/issues/127) · [Tracking issue #201](https://github.com/romalopes/wine_words_api/issues/201)  
 **Repositories:** [Frontend](https://github.com/romalopes/wine_words_frontend) · [Rails API](https://github.com/romalopes/wine_words_api)
 
 > **Verification boundary:** This is an implementation-ready architectural plan, **not a verified file-by-file audit**. Existing notifications and notification bell are reported as implemented by the project owner; retain them. Before coding, inspect current routes, models, jobs, hooks, tests, versions, authentication, and deployment configuration. Do not assume suggested paths or API endpoints already exist.
+
+## Phase index
+
+Phase 0 audited the live repositories (see the audit document). Each numbered phase
+below has its own implementation document under [`phases/`](phases/). Implement
+**one phase at a time**, run the available checks, and pause for review between
+phases.
+
+| Phase | Document | Gate | State |
+|---|---|---|---|
+| 0 — Source audit and acceptance baseline | [`phases/phase-0-source-audit-and-acceptance-baseline.md`](phases/phase-0-source-audit-and-acceptance-baseline.md) | A | ✅ Complete |
+| 1 — Mobile navigation and responsive shell | [`phases/phase-1-mobile-navigation-and-responsive-shell.md`](phases/phase-1-mobile-navigation-and-responsive-shell.md) | A | ✅ Complete |
+| 2 — Mobile Reviews, Articles, comments and likes | [`phases/phase-2-mobile-reviews-articles-comments-likes.md`](phases/phase-2-mobile-reviews-articles-comments-likes.md) | A | ✅ Complete |
+| 3 — Mobile Finder, Quiz and More | [`phases/phase-3-mobile-finder-quiz-and-more.md`](phases/phase-3-mobile-finder-quiz-and-more.md) | A | ✅ Complete |
+| 4 — PWA installability and service-worker shell | [`phases/phase-4-pwa-installability-and-service-worker-shell.md`](phases/phase-4-pwa-installability-and-service-worker-shell.md) | B | ✅ Implemented; manual check pending |
+| 5 — Dexie schema and repository boundary | [`phases/phase-5-dexie-schema-and-repository-boundary.md`](phases/phase-5-dexie-schema-and-repository-boundary.md) | B | ✅ Complete |
+| 6 — Offline reading, Finder and Quiz | [`phases/phase-6-offline-reading-finder-and-quiz.md`](phases/phase-6-offline-reading-finder-and-quiz.md) | B | ✅ Complete |
+| 7 — Offline comments/likes and reliable sync | [`phases/phase-7-offline-comments-likes-and-reliable-sync.md`](phases/phase-7-offline-comments-likes-and-reliable-sync.md) | B | ✅ Complete |
+| 8 — Security, quality and release hardening | [`phases/phase-8-security-quality-and-release-hardening.md`](phases/phase-8-security-quality-and-release-hardening.md) | B | ⚠️ Dependency audit pending |
+| 9 — Rails notifications with Web Push | [`phases/phase-9-rails-notifications-web-push.md`](phases/phase-9-rails-notifications-web-push.md) | C | ✅ Implemented; live device test pending |
+| 10 — Mobile notification UX and preferences | [`phases/phase-10-mobile-notification-ux-and-preferences.md`](phases/phase-10-mobile-notification-ux-and-preferences.md) | C | ✅ Complete |
+| 11 — Capacitor Android | [`phases/phase-11-capacitor-android.md`](phases/phase-11-capacitor-android.md) | D | ⚠️ Scaffold/sync complete; SDK test pending |
+| 12 — Capacitor iOS | [`phases/phase-12-capacitor-ios.md`](phases/phase-12-capacitor-ios.md) | D | ⚠️ Scaffold/sync complete; Xcode test pending |
+| 13 — Wine Packages mobile and offline workflows | [`phases/phase-13-wine-packages-mobile-offline-workflows.md`](phases/phase-13-wine-packages-mobile-offline-workflows.md) | E | ✅ Mobile/cached reads; offline mutations deferred |
+
+> **How to use these documents.** The sections below remain the master reference.
+> Before starting any phase, read its phase document for the concrete task list,
+> the **tools to install** (installed only when that phase begins), files to
+> change, tests, acceptance criteria, risks and rollback. Record the outcome
+> (changed files, commands, results) back in the phase document when done.
 
 ## 1. Goals and non-goals
 

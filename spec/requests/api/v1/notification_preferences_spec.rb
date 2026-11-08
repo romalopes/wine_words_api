@@ -114,7 +114,7 @@ RSpec.describe "Notification preferences and digests", type: :request do
         .to change { ActionMailer::Base.deliveries.count }.by(1)
 
       mail = ActionMailer::Base.deliveries.last
-      expect(mail.to).to eq([follower.email])
+      expect(mail.to).to eq([ follower.email ])
       expect(mail.subject).to include("activity digest")
       expect(mail.body.encoded).to include("Digest Review 2")
 

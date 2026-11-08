@@ -12,19 +12,19 @@ class Api::V1::ReviewsController < ApplicationController
   end
 
   def log_objects
-    [@review, @review&.vintage&.wine, @review&.vintage&.wine&.producer,
-     @review&.user].compact
+    [ @review, @review&.vintage&.wine, @review&.vintage&.wine&.producer,
+     @review&.user ].compact
   end
 
-  before_action :authenticate_user!, except: [:index, :show, :grouped, :related]
+  before_action :authenticate_user!, except: [ :index, :show, :grouped, :related ]
   # Resolve @vintage for nested routes. Required for #create; optional for
   # #index (top-level feed runs without vintage params).
   # NOTE: declared ONCE — duplicate before_action declarations of the same
   # filter get merged by Rails and the last `only:`/`if:` silently wins.
   before_action :set_vintage,
-                only: [:create, :index],
+                only: [ :create, :index ],
                 if: -> { action_name == "create" || params[:vintage_id].present? }
-  before_action :set_review, only: [:show, :update, :destroy, :related]
+  before_action :set_review, only: [ :show, :update, :destroy, :related ]
 
   def index
     # When nested under a wine/vintage, only that vintage's reviews apply;
@@ -118,7 +118,7 @@ class Api::V1::ReviewsController < ApplicationController
     # Cap each category at `per_group` rows with a window function. The outer
     # ORDER BY matters: the window's own ORDER BY only decides *which* rows are
     # numbered 1..N, Postgres does not guarantee any output order without it.
-    rows = Review.find_by_sql([<<~SQL, per_group])
+    rows = Review.find_by_sql([ <<~SQL, per_group ])
       SELECT sub.* FROM (
         SELECT r.id, r.created_at,
                COALESCE(rc.category_id, 0) AS grouped_cat_id,
@@ -150,11 +150,11 @@ class Api::V1::ReviewsController < ApplicationController
 
     # Window counts are calculated before the per-group limit, over the same
     # filtered rows. Reuse them instead of issuing separate count queries.
-    category_counts = rows.to_h { |row| [row.grouped_cat_id, row.grouped_count.to_i] }
+    category_counts = rows.to_h { |row| [ row.grouped_cat_id, row.grouped_count.to_i ] }
     uncategorised_count = category_counts.fetch(0, 0)
 
     categories = Category.where(id: groups.keys.compact).to_a
-    ordered = categories.select { |c| c.sort_order_review.present? }.sort_by { |c| [c.sort_order_review, c.name.to_s] }
+    ordered = categories.select { |c| c.sort_order_review.present? }.sort_by { |c| [ c.sort_order_review, c.name.to_s ] }
     unordered = categories.reject { |c| c.sort_order_review.present? }.sort_by { |c| c.name.to_s }
 
     result = (ordered + unordered).map do |cat|
@@ -197,7 +197,7 @@ class Api::V1::ReviewsController < ApplicationController
       return render json: { error: "Not found" }, status: :not_found
     end
     authorize @review
-    render json: ReviewSerializer.new(@review, request.base_url, liked_ids: Likes.liked_ids_for([@review], current_user)).as_json
+    render json: ReviewSerializer.new(@review, request.base_url, liked_ids: Likes.liked_ids_for([ @review ], current_user)).as_json
   end
 
   # GET /api/v1/reviews/:id/related?limit=5
@@ -246,7 +246,7 @@ class Api::V1::ReviewsController < ApplicationController
 
     if review.save
       publish_review_events(review)
-      render json: ReviewSerializer.new(review, request.base_url, liked_ids: Likes.liked_ids_for([review], current_user)).as_json, status: :created
+      render json: ReviewSerializer.new(review, request.base_url, liked_ids: Likes.liked_ids_for([ review ], current_user)).as_json, status: :created
     else
       render json: { errors: review.errors.full_messages }, status: :unprocessable_entity
     end
@@ -262,7 +262,7 @@ class Api::V1::ReviewsController < ApplicationController
         return head :no_content
       end
 
-      render json: ReviewSerializer.new(@review, request.base_url, liked_ids: Likes.liked_ids_for([@review], current_user)).as_json
+      render json: ReviewSerializer.new(@review, request.base_url, liked_ids: Likes.liked_ids_for([ @review ], current_user)).as_json
     else
       render json: { errors: @review.errors.full_messages }, status: :unprocessable_entity
     end

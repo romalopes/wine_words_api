@@ -32,6 +32,7 @@ class NotificationPreference < ApplicationRecord
     {
       follow_in_app: follow_in_app,
       follow_email: follow_email,
+      push_enabled: push_enabled,
       digest_cadence: digest_cadence,
       digest_last_sent_at: digest_last_sent_at&.iso8601
     }

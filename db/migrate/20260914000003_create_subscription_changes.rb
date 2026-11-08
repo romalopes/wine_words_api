@@ -19,7 +19,7 @@ class CreateSubscriptionChanges < ActiveRecord::Migration[8.1]
     end
 
     # Idempotency: a client-supplied key can only be used once per user.
-    add_index :subscription_changes, [:user_id, :idempotency_key],
+    add_index :subscription_changes, [ :user_id, :idempotency_key ],
               unique: true, where: "idempotency_key IS NOT NULL",
               name: "index_subscription_changes_on_user_idempotency"
     # A given Stripe invoice can only complete one change.

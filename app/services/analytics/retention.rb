@@ -19,9 +19,9 @@ module Analytics
     # @return [Hash] { deleted: count, scanned: count, dry_run: bool, batches: count, cutoff_date: date }
     def self.cleanup(options = {})
       dry_run = options[:dry_run] == true
-      batch_size = [[options[:batch_size]&.to_i || DEFAULT_BATCH_SIZE, 1].max, MAX_BATCH_SIZE].min
-      retention_days = [options[:retention_days]&.to_i || DEFAULT_RETENTION_DAYS, 1].max
-      max_batches = [options[:max_batches]&.to_i || 10, 1].max
+      batch_size = [ [ options[:batch_size]&.to_i || DEFAULT_BATCH_SIZE, 1 ].max, MAX_BATCH_SIZE ].min
+      retention_days = [ options[:retention_days]&.to_i || DEFAULT_RETENTION_DAYS, 1 ].max
+      max_batches = [ options[:max_batches]&.to_i || 10, 1 ].max
 
       cutoff_date = retention_days.days.ago.to_date
       total_deleted = 0
@@ -69,7 +69,7 @@ module Analytics
     #
     # @return [Hash] { events_before_cutoff: count, cutoff_date: date, oldest_event: date, newest_event: date }
     def self.status(options = {})
-      retention_days = [options[:retention_days]&.to_i || DEFAULT_RETENTION_DAYS, 1].max
+      retention_days = [ options[:retention_days]&.to_i || DEFAULT_RETENTION_DAYS, 1 ].max
       cutoff_date = retention_days.days.ago.to_date
 
       scope = Event.accepted
@@ -112,9 +112,9 @@ module Analytics
       total_events = Event.accepted.count
       return 0 if total_events.zero?
 
-      days_with_data = [(Date.current - (Event.accepted.minimum(:viewed_at)&.to_date || Date.current)).to_i, 1].max
+      days_with_data = [ (Date.current - (Event.accepted.minimum(:viewed_at)&.to_date || Date.current)).to_i, 1 ].max
       events_per_day = total_events.to_f / days_with_data
-      events_to_clean = events_per_day * [retention_days, days_with_data].min
+      events_to_clean = events_per_day * [ retention_days, days_with_data ].min
       (events_to_clean / batch_size).ceil
     end
   end

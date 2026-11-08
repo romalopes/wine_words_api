@@ -7,11 +7,11 @@ class Api::V1::ArticlesController < ApplicationController
   end
 
   def log_objects
-    [@article].compact
+    [ @article ].compact
   end
 
-  before_action :authenticate_user!, except: [:index, :show, :grouped, :related]
-  before_action :set_article, only: [:show, :update, :destroy, :related]
+  before_action :authenticate_user!, except: [ :index, :show, :grouped, :related ]
+  before_action :set_article, only: [ :show, :update, :destroy, :related ]
   def index
     # `:categories` (through) and `:images` rather than the join rows alone:
     # the list serializer reads `article.categories`, and a through-association
@@ -70,7 +70,7 @@ class Api::V1::ArticlesController < ApplicationController
     # Cap each category at `per_group` rows with a window function. The outer
     # ORDER BY matters: the window's own ORDER BY only decides *which* rows are
     # numbered 1..N, Postgres does not guarantee any output order without it.
-    rows = Article.find_by_sql([<<~SQL, per_group])
+    rows = Article.find_by_sql([ <<~SQL, per_group ])
       SELECT sub.* FROM (
         SELECT DISTINCT a.id, a.title, a.abstract, a.status,
                a.user_id, a.created_at, a.updated_at,
@@ -99,11 +99,11 @@ class Api::V1::ArticlesController < ApplicationController
       groups[cat_id] << ArticleListSerializer.new(articles_by_id[row.id], request.base_url, liked_ids: liked_ids).as_json
     end
 
-    category_counts = rows.to_h { |row| [row.grouped_cat_id, row.grouped_count.to_i] }
+    category_counts = rows.to_h { |row| [ row.grouped_cat_id, row.grouped_count.to_i ] }
     uncategorised_count = category_counts.fetch(0, 0)
 
     categories = Category.where(id: groups.keys.compact).to_a
-    ordered = categories.select { |c| c.sort_order_article.present? }.sort_by { |c| [c.sort_order_article, c.name.to_s] }
+    ordered = categories.select { |c| c.sort_order_article.present? }.sort_by { |c| [ c.sort_order_article, c.name.to_s ] }
     unordered = categories.reject { |c| c.sort_order_article.present? }.sort_by { |c| c.name.to_s }
 
     result = (ordered + unordered).map do |cat|
@@ -134,12 +134,12 @@ class Api::V1::ArticlesController < ApplicationController
     authorize @article
 
     ActiveRecord::Associations::Preloader.new(
-      records: [@article],
+      records: [ @article ],
       associations: [ :tags, :producers, :categories, :article_reviews,
                       { vintages: { wine: :regions } },
                       { reviews: [ { user: :account }, { vintage: :wine } ] } ]
     ).call
-    image_records = [@article] + @article.reviews.to_a +
+    image_records = [ @article ] + @article.reviews.to_a +
                     @article.reviews.filter_map { |review| review.vintage&.wine }
     ActiveRecord::Associations::Preloader.new(
       records: image_records.uniq, associations: :images,
@@ -149,7 +149,7 @@ class Api::V1::ArticlesController < ApplicationController
     render json: ArticleSerializer.new(
       @article,
       request.base_url,
-      liked_ids: Likes.liked_ids_for([@article], current_user),
+      liked_ids: Likes.liked_ids_for([ @article ], current_user),
       # Fetched separately from the article's: `liked_ids_for` returns one
       # type's ids, and mixing articles with reviews in one collection would
       # return whichever type came first.
@@ -196,7 +196,7 @@ class Api::V1::ArticlesController < ApplicationController
       end
 
       publish_article_events(@article)
-      render json: ArticleSerializer.new(@article, request.base_url, liked_ids: Likes.liked_ids_for([@article], current_user)).as_json, status: :created
+      render json: ArticleSerializer.new(@article, request.base_url, liked_ids: Likes.liked_ids_for([ @article ], current_user)).as_json, status: :created
     else
       render json: { errors: @article.errors.full_messages }, status: :unprocessable_entity
     end
@@ -217,7 +217,7 @@ class Api::V1::ArticlesController < ApplicationController
         return head :no_content
       end
 
-      render json: ArticleSerializer.new(@article, request.base_url, liked_ids: Likes.liked_ids_for([@article], current_user)).as_json
+      render json: ArticleSerializer.new(@article, request.base_url, liked_ids: Likes.liked_ids_for([ @article ], current_user)).as_json
     else
       render json: { errors: @article.errors.full_messages }, status: :unprocessable_entity
     end

@@ -10,7 +10,7 @@
 namespace :analytics do
   namespace :erasure do
     desc "Erase all analytics events for an account (anonymize + clear visitor_key)"
-    task :account, [:account_id] => :environment do |t, args|
+    task :account, [ :account_id ] => :environment do |t, args|
       account_id = args[:account_id]&.to_i
       unless account_id&.positive?
         puts "Error: account_id is required and must be a positive integer"
@@ -30,7 +30,7 @@ namespace :analytics do
     end
 
     desc "Erase all analytics events for a visitor (anonymize + clear visitor_key)"
-    task :visitor, [:visitor_id] => :environment do |t, args|
+    task :visitor, [ :visitor_id ] => :environment do |t, args|
       visitor_id = args[:visitor_id]&.to_s
       unless visitor_id.present? && visitor_id.match?(/\A[0-9a-f-]{36}\z/i)
         puts "Error: visitor_id is required and must be a valid UUID"
@@ -50,7 +50,7 @@ namespace :analytics do
     end
 
     desc "Erase all analytics events by full identity string"
-    task :identity, [:identity] => :environment do |t, args|
+    task :identity, [ :identity ] => :environment do |t, args|
       identity = args[:identity]&.to_s
       unless identity.present? && identity.match?(/\A(account:\d+|visitor:[0-9a-f-]{36})\z/i)
         puts "Error: identity is required and must be in format 'account:123' or 'visitor:uuid'"

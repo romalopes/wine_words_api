@@ -6,15 +6,15 @@ class Api::V1::CategoriesController < ApplicationController
   end
 
   def log_objects
-    [@category].compact
+    [ @category ].compact
   end
 
-  skip_before_action :authenticate_user!, only: [:index, :show, :counts]
+  skip_before_action :authenticate_user!, only: [ :index, :show, :counts ]
 
   SORT_COLUMNS = {
     "wine" => :sort_order_wine,
     "review" => :sort_order_review,
-    "article" => :sort_order_article,
+    "article" => :sort_order_article
   }.freeze
 
   # Returns categories usable for a given context. Pass:
@@ -22,7 +22,7 @@ class Api::V1::CategoriesController < ApplicationController
   #   ?type=article   -> for_article categories
   #   ?type=review    -> for_review categories
   #   ?type=managed   -> all categories (Admin / Editor / Reviewer form use)
-    # Returns per-category counts for each item type, respecting the current
+  # Returns per-category counts for each item type, respecting the current
   # user's visibility scope.  Used by the React nav dropdown to show only
   # categories that have at least one linked item, along with the count.
   #
@@ -77,7 +77,7 @@ class Api::V1::CategoriesController < ApplicationController
 
     wines = category.category_wines.includes(
       wine_taste_parameters: :taste_parameter, vintages: [], producer: [],
-      grapes: [], regions: [:country]
+      grapes: [], regions: [ :country ]
     ).order(:name)
 
     reviews = category.category_reviews
@@ -260,13 +260,13 @@ class Api::V1::CategoriesController < ApplicationController
       uncategorised: {
         wine: uncategorised_wine,
         review: uncategorised_review,
-        article: uncategorised_article,
+        article: uncategorised_article
       },
       totals: {
         wine: Wine.count,
         review: (is_manager ? Review.count : Review.published.count),
-        article: (is_manager ? Article.count : Article.published.count),
-      },
+        article: (is_manager ? Article.count : Article.published.count)
+      }
     }
   end
 

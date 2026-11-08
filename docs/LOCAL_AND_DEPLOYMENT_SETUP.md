@@ -447,6 +447,43 @@ Vercel hosts, including `https://wine-words.vercel.app`, the Cloudflare Workers
 origin `https://wine-words.romalopes.workers.dev`, and local port 5173;
 a custom domain or arbitrary Vercel preview URL is not automatically allowed.
 
+### A bare `403` on every API request is host authorization, not CORS
+
+`ActionDispatch::HostAuthorization` rejects any request whose `Host` header is not
+listed in `config.hosts`. In production this returns a bare `403` and logs:
+
+```
+[ActionDispatch::HostAuthorization::DefaultResponseApp] Blocked hosts: <host>
+```
+
+This is easy to mistake for CORS, because `Rack::Cors` sits at the top of the
+middleware stack and therefore **still answers `OPTIONS` preflights with the
+correct `Access-Control-*` headers**. The preflight succeeds and the real `GET`
+fails. Distinguish the two by checking whether `OPTIONS` returns `200` while
+`GET` returns `403`.
+
+Because Render routes by hostname, every hostname that can reach the service must
+be listed. `config/environments/production.rb` combines three sources:
+
+1. `RENDER_EXTERNAL_HOSTNAME` — injected automatically by Render for the current
+   service hostname.
+2. `APP_HOST` — the canonical hostname already used for mailer URLs.
+3. `ALLOWED_HOSTS` — comma or whitespace separated extras.
+
+`ALLOWED_HOSTS` is the only place to list **legacy `*.onrender.com` aliases**.
+Render keeps routing the pre-rename hostname (for example
+`wine-prediction-api-mq4a.onrender.com`) to the service, but
+`RENDER_EXTERNAL_HOSTNAME` reports only the current name, so an alias that is not
+listed explicitly gets a `403`.
+
+Set it in the Render dashboard and in [render.yaml](../render.yaml):
+
+```
+ALLOWED_HOSTS=wine-prediction-api-mq4a.onrender.com,wine-words-api.onrender.com,api.wine-words.beachvolleyballhub.com
+```
+
+Then redeploy so the new environment variable is picked up.
+
 After configuring both platforms, verify:
 
 1. API `/up` returns success over HTTPS, and browser requests use the intended API.
@@ -461,6 +498,9 @@ After configuring both platforms, verify:
 | Problem                                | Check                                                                                                      |
 | -------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
 | API requests go to localhost on Vercel | Set Production/Preview `VITE_API_BASE_URL`, then rebuild.                                                  |
+| Every API `GET` returns `403`, preflight `OPTIONS` returns `200` | Host authorization, not CORS: add the requested hostname to `ALLOWED_HOSTS` on Render and redeploy. |
+| Logs show `Blocked hosts: <host>`      | That exact hostname is missing from `config.hosts`; legacy `*.onrender.com` aliases need explicit `ALLOWED_HOSTS` entries. |
+| Cloudflare preview calls an unexpected API host | `previews.vars` in `wrangler.jsonc` does not set the Vite bundle's API URL; set `VITE_API_BASE_URL` in the Cloudflare **build environment** and rebuild. |
 | Browser CORS error                     | Exact scheme/host/port in Rails allowlist; frontend URL env alone is insufficient.                         |
 | Rails boot says `MAIL_FROM` missing    | Set `MAIL_FROM`, even when HTTP mail transport is selected in production.                                  |
 | Database connection or migrations fail | Correct `DATABASE_URL`, credentials, network/TLS, and `pg_trgm` privileges.                                |

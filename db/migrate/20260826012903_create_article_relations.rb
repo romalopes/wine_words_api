@@ -6,7 +6,7 @@ class CreateArticleRelations < ActiveRecord::Migration[8.0]
 
       t.timestamps
     end
-    add_index :article_tags, [:article_id, :tag_id], unique: true
+    add_index :article_tags, [ :article_id, :tag_id ], unique: true
 
     create_table :article_wines do |t|
       t.references :article, null: false, foreign_key: true
@@ -14,7 +14,7 @@ class CreateArticleRelations < ActiveRecord::Migration[8.0]
 
       t.timestamps
     end
-    add_index :article_wines, [:article_id, :wine_id], unique: true
+    add_index :article_wines, [ :article_id, :wine_id ], unique: true
 
     create_table :article_producers do |t|
       t.references :article, null: false, foreign_key: true
@@ -22,7 +22,7 @@ class CreateArticleRelations < ActiveRecord::Migration[8.0]
 
       t.timestamps
     end
-    add_index :article_producers, [:article_id, :producer_id], unique: true
+    add_index :article_producers, [ :article_id, :producer_id ], unique: true
 
     create_table :article_reviews do |t|
       t.references :article, null: false, foreign_key: true
@@ -31,6 +31,6 @@ class CreateArticleRelations < ActiveRecord::Migration[8.0]
 
       t.timestamps
     end
-    add_index :article_reviews, [:article_id, :review_id], unique: true
+    add_index :article_reviews, [ :article_id, :review_id ], unique: true
   end
 end

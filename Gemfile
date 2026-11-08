@@ -76,7 +76,8 @@ group :development, :test do
 
   # RSpec testing framework
   gem "rspec-rails", "~> 7.0"
-
 end
 
 gem "pundit", "~> 2.5"
+
+gem "web-push", "~> 3.1"

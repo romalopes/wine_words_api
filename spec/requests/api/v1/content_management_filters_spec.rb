@@ -39,7 +39,7 @@ RSpec.describe "Api::V1 content management filters", type: :request do
       get path, params: { page: 1, scope: "mine", status: "draft", deadline: "overdue", query: "shiraz" }
 
       expect(response).to have_http_status(:ok)
-      expect(JSON.parse(response.body).fetch("items").map { |item| item.fetch("id") }).to eq([matching.id])
+      expect(JSON.parse(response.body).fetch("items").map { |item| item.fetch("id") }).to eq([ matching.id ])
     end
 
     it "treats today as due soon rather than overdue and excludes published and archived rows" do

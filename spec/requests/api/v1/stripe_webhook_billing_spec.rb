@@ -88,7 +88,7 @@ RSpec.describe "Stripe billing lifecycle via webhooks", type: :request do
       "object" => "subscription",
       "customer" => stripe_customer_id,
       "status" => status,
-      "items" => { "data" => [{ "price" => { "id" => billing_price.provider_price_id } }] }
+      "items" => { "data" => [ { "price" => { "id" => billing_price.provider_price_id } } ] }
     }
   end
 
@@ -369,4 +369,3 @@ RSpec.describe "Stripe billing lifecycle via webhooks", type: :request do
     end
   end
 end
-

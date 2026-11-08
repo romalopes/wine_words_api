@@ -4,16 +4,16 @@ class WinesController < ActionController::Base
   include RequireLogin
 
   # Only Admins and Reviewers may add, edit or delete wines.
-  before_action :deny_unless_wine_manager!, only: [:new, :create, :edit, :update, :destroy, :purge_image]
+  before_action :deny_unless_wine_manager!, only: [ :new, :create, :edit, :update, :destroy, :purge_image ]
   helper_method :can_manage_wines?
 
   def index
     @wines = Wine.includes(:vintages, :grapes, :regions, wine_taste_parameters: :taste_parameter).order(:name)
         if params[:category] == "Uncategorised"
       @wines = @wines.left_outer_joins(:categories).where(categories: { id: nil })
-    elsif params[:category].present?
+        elsif params[:category].present?
       @wines = @wines.joins(:categories).where(categories: { name: params[:category] })
-    end
+        end
     if params[:producer].present?
       @wines = @wines.joins(:producer).where(producers: { slug: params[:producer] })
     end
@@ -175,8 +175,8 @@ class WinesController < ActionController::Base
       grape_ids: [],
       region_ids: [],
       category_ids: [],
-      vintages_attributes: [:id, :year, :prompt, :price, :no_vintage, :_destroy],
-      wine_taste_parameters_attributes: [:id, :taste_parameter_id, :taste_parameter_slug, :score, :_destroy]
+      vintages_attributes: [ :id, :year, :prompt, :price, :no_vintage, :_destroy ],
+      wine_taste_parameters_attributes: [ :id, :taste_parameter_id, :taste_parameter_slug, :score, :_destroy ]
     )
   end
 end

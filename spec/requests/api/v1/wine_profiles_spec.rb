@@ -34,7 +34,7 @@ RSpec.describe "Api::V1::WineProfiles", type: :request do
       slug: "pinot-noir",
       name: "Pinot Noir",
       color: "Red",
-      notes: ['["cherry", "raspberry"]'],
+      notes: [ '["cherry", "raspberry"]' ],
       serving: "Pairs with roast chicken.",
     )
   end
@@ -44,14 +44,14 @@ RSpec.describe "Api::V1::WineProfiles", type: :request do
       slug: "chardonnay",
       name: "Chardonnay",
       color: "White",
-      notes: ['["apple", "citrus"]'],
+      notes: [ '["apple", "citrus"]' ],
       serving: "Pairs with creamy pasta.",
     )
   end
 
   before do
     profile_one.profile_grapes << pinot_noir
-    profile_one.profile_regions << [burgundy, oregon]
+    profile_one.profile_regions << [ burgundy, oregon ]
     profile_two.profile_grapes << chardonnay_grape
     profile_two.profile_regions << burgundy
     WineProfileTasteParameter.create!(wine_profile: profile_one, taste_parameter: taste_acidity, score: 4)
@@ -94,15 +94,15 @@ RSpec.describe "Api::V1::WineProfiles", type: :request do
       expect(first).to have_key("regions")
       expect(first["grapes"]).not_to be_nil
       expect(first["regions"]).not_to be_nil
-      expect(first["grapes"]).to eq(["Pinot Noir"])
-      expect(first["regions"]).to match_array(["Burgundy", "Oregon"])
+      expect(first["grapes"]).to eq([ "Pinot Noir" ])
+      expect(first["regions"]).to match_array([ "Burgundy", "Oregon" ])
 
       # `profile_grapes` / `profile_regions` are link objects for /grapes/:slug and /regions/:slug.
       expect(first["profile_grapes"]).to contain_exactly(
         a_hash_including("slug" => "pinot-noir", "name" => "Pinot Noir")
       )
-      expect(first["profile_regions"].map { |r| r["slug"] }).to match_array(["burgundy", "oregon"])
-      expect(first["profile_regions"].map { |r| r["name"] }).to match_array(["Burgundy", "Oregon"])
+      expect(first["profile_regions"].map { |r| r["slug"] }).to match_array([ "burgundy", "oregon" ])
+      expect(first["profile_regions"].map { |r| r["name"] }).to match_array([ "Burgundy", "Oregon" ])
     end
   end
 
@@ -128,11 +128,11 @@ RSpec.describe "Api::V1::WineProfiles", type: :request do
           slug: "tempranillo",
           name: "Tempranillo",
           color: "Red",
-          grapes: ["Tempranillo"],
-          regions: ["Rioja"],
+          grapes: [ "Tempranillo" ],
+          regions: [ "Rioja" ],
           notes: '["cherry", "leather"]',
-          serving: "Pairs with grilled lamb.",
-        },
+          serving: "Pairs with grilled lamb."
+        }
       }
     end
 

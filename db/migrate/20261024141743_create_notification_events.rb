@@ -19,7 +19,7 @@ class CreateNotificationEvents < ActiveRecord::Migration[8.1]
     end
 
     add_index :notification_events, :idempotency_key, unique: true
-    add_index :notification_events, [:subject_type, :subject_id]
+    add_index :notification_events, [ :subject_type, :subject_id ]
     add_index :notification_events, :processed_at,
               where: "processed_at IS NULL AND failed_at IS NULL",
               name: :index_notification_events_pending

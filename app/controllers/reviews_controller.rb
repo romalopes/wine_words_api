@@ -6,7 +6,7 @@ class ReviewsController < ActionController::Base
 
   helper_method :can_manage_review?
   # Only Admins, Editors and Reviewers may create reviews.
-  before_action :deny_unless_wine_manager!, only: [:new, :create]
+  before_action :deny_unless_wine_manager!, only: [ :new, :create ]
   helper_method :can_manage_wines?
 
   def index
@@ -27,9 +27,9 @@ class ReviewsController < ActionController::Base
     @reviews = base.order(published_at: :desc)
         if params[:category] == "Uncategorised"
       @reviews = @reviews.left_outer_joins(:categories).where(categories: { id: nil })
-    elsif params[:category].present?
+        elsif params[:category].present?
       @reviews = @reviews.joins(:categories).where(categories: { name: params[:category] })
-    end
+        end
   end
 
   def show
@@ -60,7 +60,7 @@ class ReviewsController < ActionController::Base
 
   def edit
     @review = Review.find_by(slug: params[:id]) || Review.find(params[:id])
-    return unless deny_unless_review_manager!(@review)
+    nil unless deny_unless_review_manager!(@review)
   end
 
   def update

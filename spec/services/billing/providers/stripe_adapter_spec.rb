@@ -28,7 +28,7 @@ RSpec.describe "Billing::Providers::Stripe change/preview", type: :model do
     item = Struct.new(:id, :price, :quantity, :current_period_start, :current_period_end)
                  .new("si_1", price, 1, period_start.to_i, period_end.to_i)
     Struct.new(:id, :customer, :status, :items)
-          .new("sub_123", "cus_123", "active", Struct.new(:data).new([item]))
+          .new("sub_123", "cus_123", "active", Struct.new(:data).new([ item ]))
   end
 
   # Minimal double of a Stripe::Subscription as returned by retrieve().
@@ -37,7 +37,7 @@ RSpec.describe "Billing::Providers::Stripe change/preview", type: :model do
     item = Struct.new(:id, :price, :quantity, :current_period_start, :current_period_end)
                  .new("si_1", price, 1, period_start.to_i, period_end.to_i)
     Struct.new(:id, :customer, :status, :items)
-          .new("sub_123", "cus_123", "active", Struct.new(:data).new([item]))
+          .new("sub_123", "cus_123", "active", Struct.new(:data).new([ item ]))
   end
 
   # Builds an invoice line-item double shaped like the real stripe >= 19 object,
@@ -52,7 +52,7 @@ RSpec.describe "Billing::Providers::Stripe change/preview", type: :model do
 
   # The upcoming invoice preview: a single proration line.
   let(:preview_invoice) do
-    lines = double("Lines", data: [proration_line_double(8_500, proration: true)])
+    lines = double("Lines", data: [ proration_line_double(8_500, proration: true) ])
     Struct.new(:amount_due, :currency, :lines).new(8_500, "aud", lines)
   end
 
@@ -99,10 +99,10 @@ RSpec.describe "Billing::Providers::Stripe change/preview", type: :model do
           customer: "cus_123",
           subscription: "sub_123",
           subscription_details: {
-            items: [{ id: "si_1", price: "price_consumer", quantity: 1 }],
+            items: [ { id: "si_1", price: "price_consumer", quantity: 1 } ],
             proration_date: kind_of(Integer)
           },
-          expand: ["lines.data.parent"]
+          expand: [ "lines.data.parent" ]
         )
       )
     end
@@ -120,7 +120,7 @@ RSpec.describe "Billing::Providers::Stripe change/preview", type: :model do
       mock_line_debit = proration_line_double(400_00, proration: true)
       mock_line_credit = proration_line_double(-240_00, proration: true)
 
-      mock_lines = double("Lines", data: [mock_line_renewal, mock_line_debit, mock_line_credit])
+      mock_lines = double("Lines", data: [ mock_line_renewal, mock_line_debit, mock_line_credit ])
       mock_preview = double("Invoice",
         lines: mock_lines,
         amount_due: 560_00,
@@ -184,11 +184,11 @@ RSpec.describe "Billing::Providers::Stripe change/preview", type: :model do
         "sub_sched_1",
         phases: [
           {
-            items: [{ price: "price_trade", quantity: 1 }],
+            items: [ { price: "price_trade", quantity: 1 } ],
             start_date: "now",
             end_date: period_end.to_i
           },
-          { items: [{ price: "price_consumer", quantity: 1 }] }
+          { items: [ { price: "price_consumer", quantity: 1 } ] }
         ]
       )
       expect(result[:effective_at]).to be_within(1.second).of(period_end)
@@ -214,7 +214,7 @@ RSpec.describe "Billing::Providers::Stripe change/preview", type: :model do
         "sub_sched_1",
         phases: [
           hash_including(start_date: period_start.to_i, end_date: period_end.to_i),
-          { items: [{ price: "price_consumer", quantity: 1 }] }
+          { items: [ { price: "price_consumer", quantity: 1 } ] }
         ]
       )
     end
@@ -251,13 +251,13 @@ RSpec.describe "Billing::Providers::Stripe change/preview", type: :model do
 
       expect(::Stripe::Subscription).to have_received(:update).with(
         "sub_123",
-        items: [{ id: "si_1", price: "price_distributor" }],
+        items: [ { id: "si_1", price: "price_distributor" } ],
         # `create_prorations` (the default) would NOT invoice now because we keep
         # the billing anchor, silently deferring the charge to the next renewal.
         proration_behavior: "always_invoice",
         proration_date: kind_of(Integer),
         payment_behavior: "allow_incomplete",
-        expand: ["latest_invoice"],
+        expand: [ "latest_invoice" ],
         metadata: {
           from_subscription_id: user.subscription_id,
           to_subscription_id: distributor.id,

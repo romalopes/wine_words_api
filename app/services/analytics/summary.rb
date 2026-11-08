@@ -54,7 +54,7 @@ module Analytics
         engagement_rate: engagement_rate,
         engagement_denominator_zero: denominator_zero,
         content_count: content_count,
-        period: @period.metadata.merge(scope: @scope.scope_label),
+        period: @period.metadata.merge(scope: @scope.scope_label)
       }
     end
 
@@ -70,7 +70,7 @@ module Analytics
         engagement_rate: 0.0,
         engagement_denominator_zero: true,
         content_count: 0,
-        period: @period.metadata.merge(scope: @scope.scope_label),
+        period: @period.metadata.merge(scope: @scope.scope_label)
       }
     end
 
@@ -85,7 +85,7 @@ module Analytics
       [
         query_block.call("Article", @scope.articles.pluck(:id)),
         query_block.call("Review",  @scope.reviews.pluck(:id)),
-        query_block.call("Wine",    @scope.wines.pluck(:id)),
+        query_block.call("Wine",    @scope.wines.pluck(:id))
       ].sum { |r| r[:count] }
     end
 

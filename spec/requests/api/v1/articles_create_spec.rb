@@ -28,8 +28,8 @@ RSpec.describe "Api::V1::Articles create", type: :request do
           tag_names: "",
           vintage_ids: [],
           review_ids: [],
-          producer_ids: [],
-        },
+          producer_ids: []
+        }
       }, as: :json
     }.to change(Article, :count).by(1)
 

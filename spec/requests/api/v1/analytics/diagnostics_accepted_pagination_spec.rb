@@ -17,7 +17,7 @@ RSpec.describe "GET /api/v1/analytics/diagnostics/accepted - Pagination", type: 
     Article.create!(title: "Test #{SecureRandom.hex(3)}", user: user, status: "published")
   end
 
-  let(:admin) { create_user("admin", roles: ["Admin"]) }
+  let(:admin) { create_user("admin", roles: [ "Admin" ]) }
   let(:article) { create_article(admin) }
 
   before { AppSetting.set!("analytics_diagnostics_enabled", true) }

@@ -4,14 +4,14 @@ class ChangeWineProfileToUseAssociations < ActiveRecord::Migration[8.1]
     create_table :wine_profile_grapes, id: false do |t|
       t.bigint :wine_profile_id, null: false
       t.bigint :grape_id, null: false
-      t.index [:wine_profile_id, :grape_id], unique: true
+      t.index [ :wine_profile_id, :grape_id ], unique: true
       t.index :grape_id
     end
 
     create_table :wine_profile_regions, id: false do |t|
       t.bigint :wine_profile_id, null: false
       t.bigint :region_id, null: false
-      t.index [:wine_profile_id, :region_id], unique: true
+      t.index [ :wine_profile_id, :region_id ], unique: true
       t.index :region_id
     end
 

@@ -121,7 +121,7 @@ class ArticlesFlowTest < ActionDispatch::IntegrationTest
           title: "Updated Title", abstract: "new abs", body: "<p>New body</p>",
           status: "published", category_id: @category.id,
           tag_names: "ruby, wine", vintage_ids: [], review_ids: [], producer_ids: [],
-          images: [fixture_file_upload("a.png", "image/png")]
+          images: [ fixture_file_upload("a.png", "image/png") ]
         }
       }
     end
@@ -172,13 +172,13 @@ class ArticlesFlowTest < ActionDispatch::IntegrationTest
       article: {
         title: "Vintage Article", abstract: "abs", body: "<p>Body</p>",
         status: "draft", category_id: @category.id,
-        vintage_ids: [vintage.id], review_ids: [review.id], producer_ids: []
+        vintage_ids: [ vintage.id ], review_ids: [ review.id ], producer_ids: []
       }
     }
     assert_response :redirect
     created = Article.find_by!(title: "Vintage Article")
-    assert_equal [vintage.id], created.vintage_ids
-    assert_equal [review.id], created.review_ids
+    assert_equal [ vintage.id ], created.vintage_ids
+    assert_equal [ review.id ], created.review_ids
     assert created.wines.include?(wine)
 
     # Show page lists the vintage and the linked review

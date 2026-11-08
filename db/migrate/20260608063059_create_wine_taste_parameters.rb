@@ -7,7 +7,7 @@ class CreateWineTasteParameters < ActiveRecord::Migration[6.1]
       t.timestamps
     end
 
-    add_index :wine_taste_parameters, [:wine_id, :taste_parameter_id], unique: true
-    add_index :wine_taste_parameters, [:taste_parameter_id, :wine_id], unique: true
+    add_index :wine_taste_parameters, [ :wine_id, :taste_parameter_id ], unique: true
+    add_index :wine_taste_parameters, [ :taste_parameter_id, :wine_id ], unique: true
   end
 end

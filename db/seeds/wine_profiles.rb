@@ -50,8 +50,8 @@ wine_profiles_data = [
     color: "red",
     notes: "A full-bodied red with blackcurrant and cedar notes.",
     serving: "Best served at 16-18°C",
-    grape_names: ["Cabernet Sauvignon"],
-    region_names: ["Bordeaux"],
+    grape_names: [ "Cabernet Sauvignon" ],
+    region_names: [ "Bordeaux" ],
     parameters: p[:cab]
   },
   {
@@ -60,8 +60,8 @@ wine_profiles_data = [
     color: "red",
     notes: "A light to medium bodied red with red fruit and earthy notes.",
     serving: "Best served at 14-16°C",
-    grape_names: ["Pinot Noir"],
-    region_names: ["Burgundy"],
+    grape_names: [ "Pinot Noir" ],
+    region_names: [ "Burgundy" ],
     parameters: p[:pinotNoir]
   },
   {
@@ -70,8 +70,8 @@ wine_profiles_data = [
     color: "white",
     notes: "A full-bodied white with citrus, butter, and oak notes.",
     serving: "Best served at 10-12°C",
-    grape_names: ["Chardonnay"],
-    region_names: ["California"],
+    grape_names: [ "Chardonnay" ],
+    region_names: [ "California" ],
     parameters: p[:chardonnay]
   },
   {
@@ -80,8 +80,8 @@ wine_profiles_data = [
     color: "white",
     notes: "A crisp white with citrus, herbal, and tropical fruit notes.",
     serving: "Best served at 8-10°C",
-    grape_names: ["Sauvignon Blanc"],
-    region_names: ["Marlborough"],
+    grape_names: [ "Sauvignon Blanc" ],
+    region_names: [ "Marlborough" ],
     parameters: p[:sauvBlanc]
   },
   {
@@ -90,8 +90,8 @@ wine_profiles_data = [
     color: "red",
     notes: "A full-bodied red with dark fruit, pepper, and spice notes.",
     serving: "Best served at 16-18°C",
-    grape_names: ["Syrah"],
-    region_names: ["Rhône Valley"],
+    grape_names: [ "Syrah" ],
+    region_names: [ "Rhône Valley" ],
     parameters: p[:syrah]
   }
 ]

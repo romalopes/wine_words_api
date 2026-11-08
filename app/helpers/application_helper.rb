@@ -33,19 +33,19 @@ module ApplicationHelper
   # path?category=<name>, which the index actions use to filter the list.
   def nav_dropdown(title, all_label, path, flag, order_column)
     join_model, item_model = case flag
-                             when :for_wine then [WineCategory, Wine]
-                             when :for_review then [ReviewCategory, Review]
-                             when :for_article then [ArticleCategory, Article]
-                             end
+    when :for_wine then [ WineCategory, Wine ]
+    when :for_review then [ ReviewCategory, Review ]
+    when :for_article then [ ArticleCategory, Article ]
+    end
 
     is_manager = current_user&.wine_manager?
 
     # Build the item scope respecting visibility
     item_scope = case flag
-                 when :for_wine then Wine.all
-                 when :for_review then is_manager ? Review.all : Review.published
-                 when :for_article then is_manager ? Article.all : Article.published
-                 end
+    when :for_wine then Wine.all
+    when :for_review then is_manager ? Review.all : Review.published
+    when :for_article then is_manager ? Article.all : Article.published
+    end
 
     categories = Category.where(flag => true).order(order_column => :asc, :name => :asc)
 
@@ -61,16 +61,16 @@ module ApplicationHelper
 
     # Count uncategorised items (no join record)
     uncategorised_count = case flag
-                          when :for_wine
+    when :for_wine
                             Wine.left_outer_joins(:wine_categories).where(wine_categories: { id: nil }).count
-                          when :for_review
+    when :for_review
                             item_scope.left_outer_joins(:review_categories).where(review_categories: { id: nil }).count
-                          when :for_article
+    when :for_article
                             item_scope.left_outer_joins(:article_categories).where(article_categories: { id: nil }).count
-                          end
+    end
 
     frame = { data: { turbo_frame: "main" } }
-    links = [link_to("#{all_label} (#{total})", path, frame)] +
+    links = [ link_to("#{all_label} (#{total})", path, frame) ] +
             categories
               .select { |c| (counts[c.id] || 0) > 0 }
               .map { |c| link_to("#{c.name} (#{counts[c.id]})", "#{path}?category=#{CGI.escape(c.name)}", frame) }
@@ -82,7 +82,7 @@ module ApplicationHelper
       safe_join(
         [
           content_tag(:summary, title),
-          content_tag(:div, safe_join(links), class: "site-nav__settings-menu"),
+          content_tag(:div, safe_join(links), class: "site-nav__settings-menu")
         ]
       )
     end
@@ -95,11 +95,11 @@ module ApplicationHelper
     order = Category.where.not(column => nil).order(column).pluck(:name, column).to_h
     grouped.sort_by do |name, _|
       if name == "Uncategorised"
-        [2, 0, name]
+        [ 2, 0, name ]
       elsif order.key?(name)
-        [0, order[name], name]
+        [ 0, order[name], name ]
       else
-        [1, 0, name]
+        [ 1, 0, name ]
       end
     end
   end
@@ -130,6 +130,7 @@ module ApplicationHelper
   # Returns nil otherwise (nothing to render).
   def back_to_source_link
     return nil if params[:returnTo].blank?
+    return nil unless safe_return_to?(params[:returnTo])
 
     source_type = params[:returnTo].split("/").reject(&:blank?).first
     label = source_type&.capitalize || "page"
@@ -142,5 +143,10 @@ module ApplicationHelper
     return false if path.blank?
     segments = path.split("/").reject(&:blank?)
     segments.length >= 2 && DETAIL_RESOURCES.include?(segments.first)
+  end
+
+  # Allow only local paths (no protocol, no host) to prevent open redirect / XSS.
+  def safe_return_to?(path)
+    path.match?(/\A\/[^\/].*\z/) && !path.include?("//")
   end
 end

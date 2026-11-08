@@ -17,7 +17,7 @@
 # re-runnable repair path is `bin/rails search:reindex`.
 class BackfillSearchableVectors < ActiveRecord::Migration[7.0]
   def up
-    [Review, Article].each do |model|
+    [ Review, Article ].each do |model|
       unless model.respond_to?(:reindex_search_vectors!)
         say "#{model.name} no longer exposes reindex_search_vectors!; skipping (run `bin/rails search:reindex`)"
         next

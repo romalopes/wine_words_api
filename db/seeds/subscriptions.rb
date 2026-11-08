@@ -16,7 +16,7 @@ feature_catalogue = [
   { slug: "republishing-rights-sme", name: "Republishing rights for small and medium enterprises" },
   { slug: "republishing-rights-large", name: "Republishing rights for large-scale trade & media" },
   { slug: "priority-support", name: "Priority email support" },
-  { slug: "api-access", name: "API access for your point-of-sale system" },
+  { slug: "api-access", name: "API access for your point-of-sale system" }
 ]
 
 features = feature_catalogue.map do |f|
@@ -45,25 +45,25 @@ plans = [
     slug: "consumer", name: "Consumer", popular: true, visible: true, active: true,
     is_default: false, position: 1, rank: 1, monthly_price_cents: nil, yearly_price_cents: 7_000,
     description: "For the everyday wine lover.",
-    features: ["full-archive-access"]
+    features: [ "full-archive-access" ]
   },
   {
     slug: "trade", name: "Trade", popular: false, visible: true, active: true,
     is_default: false, position: 2, rank: 2, monthly_price_cents: nil, yearly_price_cents: 24_000,
     description: "For hospitality and trade professionals.",
-    features: ["consumer-flexibility", "trade-benefits", "priority-support"]
+    features: [ "consumer-flexibility", "trade-benefits", "priority-support" ]
   },
   {
     slug: "distributor", name: "Distributor", popular: false, visible: true, active: true,
     is_default: false, position: 3, rank: 3, monthly_price_cents: nil, yearly_price_cents: 40_000,
     description: "For distributors and national trade.",
-    features: ["distributor-benefits", "republishing-rights-sme", "api-access"]
+    features: [ "distributor-benefits", "republishing-rights-sme", "api-access" ]
   },
   {
     slug: "retail", name: "Retail", popular: false, visible: true, active: true,
     is_default: false, position: 4, rank: 4, monthly_price_cents: nil, yearly_price_cents: 60_000,
     description: "For retailers and large-scale operators.",
-    features: ["retail-benefits", "republishing-rights-large", "priority-support", "api-access"]
+    features: [ "retail-benefits", "republishing-rights-large", "priority-support", "api-access" ]
   }
 ]
 

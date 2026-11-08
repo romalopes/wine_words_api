@@ -17,7 +17,7 @@ RSpec.describe "GET /api/v1/analytics/diagnostics/accepted - Filters", type: :re
     Article.create!(title: title, user: user, status: "published")
   end
 
-  let(:admin) { create_user("admin", roles: ["Admin"]) }
+  let(:admin) { create_user("admin", roles: [ "Admin" ]) }
   let(:article) { create_article(admin) }
   let(:visitor_id) { "550e8400-e29b-41d4-a716-446655440000" }
 

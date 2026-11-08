@@ -50,7 +50,8 @@ module Analytics
     def self.anonymize_account!(account_id)
       where(identity: "#{ACCOUNT_PREFIX}#{account_id}")
         .update_all(
-          "identity = '#{VISITOR_PREFIX}#{ERASURE_PREFIX}#{account_id}', visitor_key = NULL"
+          "identity = ?, visitor_key = NULL",
+          "#{VISITOR_PREFIX}#{ERASURE_PREFIX}#{account_id}"
         )
     end
 
@@ -58,7 +59,8 @@ module Analytics
     def self.anonymize_visitor!(visitor_id)
       where(identity: "#{VISITOR_PREFIX}#{visitor_id}")
         .update_all(
-          "identity = '#{VISITOR_PREFIX}#{ERASURE_PREFIX}#{visitor_id}', visitor_key = NULL"
+          "identity = ?, visitor_key = NULL",
+          "#{VISITOR_PREFIX}#{ERASURE_PREFIX}#{visitor_id}"
         )
     end
 
@@ -75,7 +77,8 @@ module Analytics
 
       where(identity: identity)
         .update_all(
-          "identity = '#{VISITOR_PREFIX}#{ERASURE_PREFIX}#{identity.split(':').last}', visitor_key = NULL"
+          "identity = ?, visitor_key = NULL",
+          "#{VISITOR_PREFIX}#{ERASURE_PREFIX}#{identity.split(':').last}"
         )
     end
 

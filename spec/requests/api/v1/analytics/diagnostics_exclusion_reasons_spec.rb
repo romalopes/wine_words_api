@@ -17,7 +17,7 @@ RSpec.describe "GET /api/v1/analytics/diagnostics/exclusion_reasons", type: :req
     Article.create!(title: "Test #{SecureRandom.hex(3)}", user: user, status: "published")
   end
 
-  let(:admin) { create_user("admin", roles: ["Admin"]) }
+  let(:admin) { create_user("admin", roles: [ "Admin" ]) }
   let(:regular_user) { create_user("user") }
   let(:article) { create_article(admin) }
 

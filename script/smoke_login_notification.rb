@@ -32,7 +32,7 @@ details_hash = LoginDetails.new(
 ).serializable_hash
 
 puts "1. details_hash is plain-JSON serialisable..."
-ActiveJob::Arguments.serialize([user.id, details_hash])
+ActiveJob::Arguments.serialize([ user.id, details_hash ])
 puts "   OK"
 
 puts "2. :polynomially_longer is a valid retry delay..."
@@ -74,7 +74,7 @@ while (j = ActiveJob::Base.queue_adapter.enqueued_jobs.shift)
   ActiveJob::Base.execute(j)
 end
 raise "no mail delivered, deliveries: #{ActionMailer::Base.deliveries.inspect}" if ActionMailer::Base.deliveries.empty?
-raise "wrong recipient: #{ActionMailer::Base.deliveries.first.to.inspect}" unless ActionMailer::Base.deliveries.first.to == [user.email]
+raise "wrong recipient: #{ActionMailer::Base.deliveries.first.to.inspect}" unless ActionMailer::Base.deliveries.first.to == [ user.email ]
 
 puts "   OK (delivered to #{ActionMailer::Base.deliveries.first.to.join(', ')})"
 

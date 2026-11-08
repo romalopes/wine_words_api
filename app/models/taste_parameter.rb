@@ -22,7 +22,7 @@ class TasteParameter < ApplicationRecord
   end
 
   def labels
-    LABEL_LEVELS.to_h { |level| [level.to_s, public_send("label_#{level}")] }
+    LABEL_LEVELS.to_h { |level| [ level.to_s, public_send("label_#{level}") ] }
   end
 
   private

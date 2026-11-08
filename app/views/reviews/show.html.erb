@@ -33,7 +33,7 @@
   <ul class="facts" aria-label="Review details">
     <li><strong>Status:</strong> <%= @review.status %></li>
     <% if @review.categories.any? %>
-      <li><strong>Categories:</strong> <%= @review.categories.map { |c| link_to c.name, return_to_link(category_path(c)), class: "text-link" }.join(", ").html_safe %></li>
+      <li><strong>Categories:</strong> <%= safe_join(@review.categories.map { |c| link_to c.name, return_to_link(category_path(c)), class: "text-link" }, ", ") %></li>
     <% end %>
     <% if @review.drink_from.present? || @review.drink_to.present? %>
       <% window = [@review.drink_from, "–", @review.drink_to].map(&:to_s).reject(&:blank?).join %>

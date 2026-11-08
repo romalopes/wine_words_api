@@ -16,16 +16,41 @@ Rails.application.configure do
   # config.active_storage.service = :local
   config.active_storage.service = :cloudflare_r2
 
-  # Allow specific hosts via ALLOWED_HOSTS environment variable
-  allowed_hosts = ENV.fetch('ALLOWED_HOSTS', '').split(',').map(&:strip)
-  allowed_hosts.each { |host| config.hosts << host if host.present? }
+  # --- Host authorization ---------------------------------------------------
+  # ActionDispatch::HostAuthorization rejects any request whose Host header is
+  # not listed in config.hosts. In production it returns a bare 403 and logs
+  # "Blocked hosts: <host>". That looks like a CORS failure but is not one:
+  # Rack::Cors is inserted at the top of the stack, so it still answers OPTIONS
+  # preflights with the correct Access-Control-* headers while the real GET is
+  # rejected here.
+  #
+  # Render routes by hostname, so every hostname that can reach this service
+  # must be listed. Three sources are combined:
+  #
+  #   1. RENDER_EXTERNAL_HOSTNAME - injected automatically by Render for the
+  #      service's current public hostname, so renaming a service cannot
+  #      silently start 403-ing every request.
+  #   2. ALLOWED_HOSTS - comma or whitespace separated extras: custom domains
+  #      and any legacy *.onrender.com alias Render still routes here (for
+  #      example wine-prediction-api-mq4a.onrender.com). Legacy aliases are NOT
+  #      covered by RENDER_EXTERNAL_HOSTNAME and must be listed explicitly.
+  #   3. APP_HOST - the canonical hostname already used for mailer URLs.
+  #
+  # See docs/LOCAL_AND_DEPLOYMENT_SETUP.md for the deployment checklist.
+  render_external_hostname = ENV["RENDER_EXTERNAL_HOSTNAME"].presence
+  config.hosts << render_external_hostname if render_external_hostname
 
+  app_host = ENV["APP_HOST"].presence
+  config.hosts << app_host if app_host
+
+  allowed_hosts = ENV.fetch("ALLOWED_HOSTS", "").split(/[,\s]+/).map(&:strip).reject(&:empty?)
+  allowed_hosts.each { |host| config.hosts << host }
 
   # Allow local testing in production mode
-if ENV["ALLOW_LOCALHOST_IN_PRODUCTION"] == "true"
-  config.hosts << "localhost"
-  config.hosts << "127.0.0.1"
-end
+  if ENV["ALLOW_LOCALHOST_IN_PRODUCTION"] == "true"
+    config.hosts << "localhost"
+    config.hosts << "127.0.0.1"
+  end
 
   # Cache assets for far-future expiry since they are all digest stamped.
   config.public_file_server.headers = { "cache-control" => "public, max-age=#{1.year.to_i}" }
@@ -110,7 +135,7 @@ end
 
   # Trust proxy headers for accurate client IP detection behind load balancers/proxies
   # Configure based on your deployment platform (Render, AWS, etc.)
-  config.action_dispatch.trusted_proxies = ['10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16'] # RFC 1918 private networks
+  config.action_dispatch.trusted_proxies = [ "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16" ] # RFC 1918 private networks
   config.action_dispatch.ip_spoofing_check = true
 
   #   /.*\.example\.com/ # Allow requests from subdomains like `www.example.com`

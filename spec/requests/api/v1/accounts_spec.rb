@@ -67,7 +67,6 @@ RSpec.describe "Api::V1::Accounts", type: :request do
       expect(response).to have_http_status(:unprocessable_entity)
       expect(user.reload.first_name).to eq("roma")
     end
-
   end
 
   describe "PATCH /api/v1/account/password" do

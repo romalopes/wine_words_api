@@ -1,11 +1,11 @@
 class AddFiveLevelLabelsToTasteParameters < ActiveRecord::Migration[8.1]
   LABELS_BY_SLUG = {
-    "sweetness" => ["Dry", "Off-dry", "Medium-dry", "Medium-sweet", "Sweet"],
-    "acidity" => ["Low", "Medium (-)", "Medium", "Medium (+)", "High"],
-    "tannin" => ["Low", "Medium (-)", "Medium", "Medium (+)", "High"],
-    "alcohol" => ["Low", "Medium (-)", "Medium", "Medium (+)", "High"],
-    "body" => ["Light", "Medium (-)", "Medium", "Medium (+)", "Full"],
-    "fruit" => ["Light", "Medium (-)", "Medium", "Medium (+)", "Pronounced"]
+    "sweetness" => [ "Dry", "Off-dry", "Medium-dry", "Medium-sweet", "Sweet" ],
+    "acidity" => [ "Low", "Medium (-)", "Medium", "Medium (+)", "High" ],
+    "tannin" => [ "Low", "Medium (-)", "Medium", "Medium (+)", "High" ],
+    "alcohol" => [ "Low", "Medium (-)", "Medium", "Medium (+)", "High" ],
+    "body" => [ "Light", "Medium (-)", "Medium", "Medium (+)", "Full" ],
+    "fruit" => [ "Light", "Medium (-)", "Medium", "Medium (+)", "Pronounced" ]
   }.freeze
 
   def up

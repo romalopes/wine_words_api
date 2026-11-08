@@ -26,8 +26,8 @@ begin
   2.times { connection.transaction { migration.migrate(:up) } }
   raise "Existing data lost" unless connection.select_value("SELECT count(*) FROM wine_categories").to_i == 1
   { wine_categories: :wine, review_categories: :review, article_categories: :article }.each do |table, owner|
-    raise "Missing unique index" unless connection.index_exists?(table, ["#{owner}_id", "category_id"], unique: true)
-    [owner, :category].each do |reference|
+    raise "Missing unique index" unless connection.index_exists?(table, [ "#{owner}_id", "category_id" ], unique: true)
+    [ owner, :category ].each do |reference|
       raise "Missing reference index" unless connection.index_exists?(table, "#{reference}_id")
       raise "Missing foreign key" unless connection.foreign_key_exists?(table, reference.to_s.pluralize, column: "#{reference}_id")
     end

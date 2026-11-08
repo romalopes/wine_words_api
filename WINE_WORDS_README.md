@@ -39,10 +39,10 @@ Previously verified live:
 | What            | URL                                   | Verified status                                                                                                                                                      |
 | --------------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Web app         | `https://wine-words-mu.vercel.app`    | Live, title "Wine Words"; bundle embeds Render API URL                                                                                                               |
-| API             | `https://wine-words-api.onrender.com` | Live; `/api/v1/health` 200 `{"status":"ok","database":"ok","version":"0.0.21"}`; cold starts and boot windows return 502/503. Former `wine-words-api-mq4a` host: 503 |
+| API             | `https://wine-words-api.onrender.com` | Live; `/api/v1/health` 200 `{"status":"ok","database":"ok","version":"0.0.22"}`; cold starts and boot windows return 502/503. Former `wine-words-api-mq4a` host: 503 |
 | Legacy frontend | `wine-words-app.vercel.app`           | Retired (`DEPLOYMENT_NOT_FOUND`); still listed in CORS — cleanup pending                                                                                             |
 
-Version: API `0.0.21` (`config/initializers/app_version.rb`).
+Version: API `0.0.22` (`config/initializers/app_version.rb`).
 Status: active development, private-testing gate enabled in production.
 
 ## 3. Architecture
@@ -434,7 +434,7 @@ Executed: lockfile/config/route/schema/seed/job/service/serializer/controller
 reads; `bin/rails routes` (378 lines — corrected package/billing actions to
 `mark_in_transit/mark_arrived/mark_completed/reopen`, entry-status creation,
 `change_preview/change_confirm`); live probes (`/` title "Wine Words",
-`/api/v1/health` 200 `0.0.21`, `/api/v1/stats` 200 producers 154 / wines 302
+`/api/v1/health` 200 `0.0.22`, `/api/v1/stats` 200 producers 154 / wines 302
 / reviews 20 / articles 5, `/api/v1/health/detailed` 401, `/up` 404, legacy
 Vercel host retired, GitHub canonical renames confirmed); toolchain versions;
 frontend `npm run lint` (**21 errors, 5 warnings — failing**), `npm run

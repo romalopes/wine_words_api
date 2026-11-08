@@ -12,7 +12,7 @@ RSpec.describe MoveUserNamesToAccounts do
     partial = User.create!(email: "partial-profile@example.com", password: "password123", last_name: "Known")
     single = User.create!(email: "single-profile@example.com", password: "password123")
     unknown = User.create!(email: "unknown-profile@example.com", password: "password123")
-    Account.where(user_id: [missing.id, unknown.id]).delete_all
+    Account.where(user_id: [ missing.id, unknown.id ]).delete_all
 
     { missing => "  Legacy   Family Name  ", named => "oldhandle", partial => "otherhandle", single => "single" }.each do |user, name|
       connection.execute("UPDATE users SET user_name = #{connection.quote(name)} WHERE id = #{user.id}")
@@ -29,7 +29,7 @@ RSpec.describe MoveUserNamesToAccounts do
     expect(single.account.last_name).to be_nil
     expect(unknown.reload.account.first_name).to be_nil
     expect(connection.column_exists?(:users, :user_name)).to be(false)
-    expect(connection.indexes(:users).any? { |index| index.columns == ["email"] && index.unique }).to be(true)
+    expect(connection.indexes(:users).any? { |index| index.columns == [ "email" ] && index.unique }).to be(true)
   ensure
     User.reset_column_information
     Account.reset_column_information

@@ -96,8 +96,8 @@ RSpec.describe "Api::V1::TasteParameters", type: :request do
           label_3: "Medium",
           label_4: "Medium (+)",
           label_5: "High",
-          help: "The drying texture, common in red wines.",
-        },
+          help: "The drying texture, common in red wines."
+        }
       }
     end
 

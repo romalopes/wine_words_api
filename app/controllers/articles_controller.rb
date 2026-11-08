@@ -3,12 +3,12 @@ class ArticlesController < ActionController::Base
   include RequireLogin
   include Impersonable
 
-  before_action :set_article, only: [:show, :edit, :update, :destroy,
-                                     :purge_image, :add_review, :remove_review, :toggle_review_status]
-  before_action :ensure_author!, only: [:edit, :update, :destroy, :purge_image,
-                                        :add_review, :remove_review, :toggle_review_status]
+  before_action :set_article, only: [ :show, :edit, :update, :destroy,
+                                     :purge_image, :add_review, :remove_review, :toggle_review_status ]
+  before_action :ensure_author!, only: [ :edit, :update, :destroy, :purge_image,
+                                        :add_review, :remove_review, :toggle_review_status ]
   # Only Admins, Editors and Reviewers may create articles.
-  before_action :deny_unless_wine_manager!, only: [:new, :create]
+  before_action :deny_unless_wine_manager!, only: [ :new, :create ]
   helper_method :can_manage_wines?
 
   # Guests/Readers always see published only; ignore scope/status params.
@@ -30,9 +30,9 @@ class ArticlesController < ActionController::Base
     @articles = base.recent.includes({ user: :account }, :category)
         if params[:category] == "Uncategorised"
       @articles = @articles.left_outer_joins(:categories).where(categories: { id: nil })
-    elsif params[:category].present?
+        elsif params[:category].present?
       @articles = @articles.joins(:categories).where(categories: { name: params[:category] })
-    end
+        end
   end
 
   def show
@@ -41,7 +41,7 @@ class ArticlesController < ActionController::Base
       return redirect_to articles_path, alert: "Article not found."
     end
 
-    @linked_reviews = @article.article_reviews.includes(review: [{ user: :account }, :vintage])
+    @linked_reviews = @article.article_reviews.includes(review: [ { user: :account }, :vintage ])
     @visible_reviews = @article.published_reviews.includes({ user: :account }, :vintage)
   end
 
@@ -72,7 +72,7 @@ class ArticlesController < ActionController::Base
   end
 
   def edit
-    @linked_reviews = @article.article_reviews.includes(review: [{ user: :account }, :vintage])
+    @linked_reviews = @article.article_reviews.includes(review: [ { user: :account }, :vintage ])
     @visible_reviews = @article.published_reviews.includes({ user: :account }, :vintage)
   end
 

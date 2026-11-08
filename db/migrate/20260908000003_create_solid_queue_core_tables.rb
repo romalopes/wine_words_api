@@ -17,8 +17,8 @@ class CreateSolidQueueCoreTables < ActiveRecord::Migration[8.1]
       t.index :batch_id, name: "index_solid_queue_jobs_on_batch_id"
       t.index :class_name, name: "index_solid_queue_jobs_on_class_name"
       t.index :finished_at, name: "index_solid_queue_jobs_on_finished_at"
-      t.index [:queue_name, :finished_at], name: "index_solid_queue_jobs_for_filtering"
-      t.index [:scheduled_at, :finished_at], name: "index_solid_queue_jobs_for_alerting"
+      t.index [ :queue_name, :finished_at ], name: "index_solid_queue_jobs_for_filtering"
+      t.index [ :scheduled_at, :finished_at ], name: "index_solid_queue_jobs_for_alerting"
     end
 
     create_table :solid_queue_ready_executions do |t|
@@ -28,8 +28,8 @@ class CreateSolidQueueCoreTables < ActiveRecord::Migration[8.1]
       t.datetime :created_at, null: false
 
       t.index :job_id, name: "index_solid_queue_ready_executions_on_job_id", unique: true
-      t.index [:priority, :job_id], name: "index_solid_queue_poll_all"
-      t.index [:queue_name, :priority, :job_id], name: "index_solid_queue_poll_by_queue"
+      t.index [ :priority, :job_id ], name: "index_solid_queue_poll_all"
+      t.index [ :queue_name, :priority, :job_id ], name: "index_solid_queue_poll_by_queue"
     end
 
     create_table :solid_queue_claimed_executions do |t|
@@ -38,7 +38,7 @@ class CreateSolidQueueCoreTables < ActiveRecord::Migration[8.1]
       t.datetime :created_at, null: false
 
       t.index :job_id, name: "index_solid_queue_claimed_executions_on_job_id", unique: true
-      t.index [:process_id, :job_id], name: "index_solid_queue_claimed_executions_on_process_id_and_job_id"
+      t.index [ :process_id, :job_id ], name: "index_solid_queue_claimed_executions_on_process_id_and_job_id"
     end
 
     create_table :solid_queue_failed_executions do |t|
@@ -57,7 +57,7 @@ class CreateSolidQueueCoreTables < ActiveRecord::Migration[8.1]
       t.datetime :created_at, null: false
 
       t.index :job_id, name: "index_solid_queue_scheduled_executions_on_job_id", unique: true
-      t.index [:scheduled_at, :priority, :job_id], name: "index_solid_queue_dispatch_all"
+      t.index [ :scheduled_at, :priority, :job_id ], name: "index_solid_queue_dispatch_all"
     end
 
     create_table :solid_queue_blocked_executions do |t|
@@ -68,9 +68,9 @@ class CreateSolidQueueCoreTables < ActiveRecord::Migration[8.1]
       t.datetime :expires_at, null: false
       t.datetime :created_at, null: false
 
-      t.index [:concurrency_key, :priority, :job_id],
+      t.index [ :concurrency_key, :priority, :job_id ],
               name: "index_solid_queue_blocked_executions_for_release"
-      t.index [:expires_at, :concurrency_key],
+      t.index [ :expires_at, :concurrency_key ],
               name: "index_solid_queue_blocked_executions_for_maintenance"
       t.index :job_id,
               name: "index_solid_queue_blocked_executions_on_job_id",
@@ -80,7 +80,7 @@ class CreateSolidQueueCoreTables < ActiveRecord::Migration[8.1]
     add_foreign_key :solid_queue_ready_executions,    :solid_queue_jobs, column: :job_id, on_delete: :cascade
     add_foreign_key :solid_queue_claimed_executions,  :solid_queue_jobs, column: :job_id, on_delete: :cascade
     add_foreign_key :solid_queue_failed_executions,   :solid_queue_jobs, column: :job_id, on_delete: :cascade
-    add_foreign_key :solid_queue_scheduled_executions,:solid_queue_jobs, column: :job_id, on_delete: :cascade
+    add_foreign_key :solid_queue_scheduled_executions, :solid_queue_jobs, column: :job_id, on_delete: :cascade
     add_foreign_key :solid_queue_blocked_executions,  :solid_queue_jobs, column: :job_id, on_delete: :cascade
   end
 end

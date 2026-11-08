@@ -24,7 +24,7 @@ class Subscription < ApplicationRecord
 
   scope :visible,  -> { where(visible: true) }
   scope :active,   -> { where(active: true) }
-  scope :paid,     -> { where.not(yearly_price_cents: [nil, 0]).or(where.not(monthly_price_cents: [nil, 0])) }
+  scope :paid,     -> { where.not(yearly_price_cents: [ nil, 0 ]).or(where.not(monthly_price_cents: [ nil, 0 ])) }
   scope :by_position, -> { order(:rank, :name) }
 
   before_destroy :prevent_destroy_if_in_use, prepend: true

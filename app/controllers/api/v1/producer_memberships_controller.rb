@@ -28,13 +28,13 @@ class Api::V1::ProducerMembershipsController < ApplicationController
     authorize_real_user(ProducerMembership, :create?)
 
     if membership_params[:producer_id].blank?
-      return render json: { errors: ["Producer can't be blank"] }, status: :unprocessable_entity
+      return render json: { errors: [ "Producer can't be blank" ] }, status: :unprocessable_entity
     end
 
     producer = Producer.find(membership_params[:producer_id])
 
     if user.producer_memberships.exists?(producer_id: producer.id)
-      return render json: { errors: ["This user is already linked to this producer"] },
+      return render json: { errors: [ "This user is already linked to this producer" ] },
                     status: :conflict
     end
 
@@ -51,7 +51,7 @@ class Api::V1::ProducerMembershipsController < ApplicationController
       render json: { errors: membership.errors.full_messages }, status: :unprocessable_entity
     end
   rescue ActiveRecord::RecordNotUnique
-    render json: { errors: ["This user is already linked to this producer"] }, status: :conflict
+    render json: { errors: [ "This user is already linked to this producer" ] }, status: :conflict
   end
 
   # PATCH /api/v1/users/:user_id/producer_memberships/:id

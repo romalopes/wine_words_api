@@ -10,7 +10,7 @@ class Api::V1::AccountsController < ApplicationController
   end
 
   def log_objects
-    [current_user, current_user.account].compact
+    [ current_user, current_user.account ].compact
   end
 
   before_action :authenticate_user!
@@ -38,7 +38,7 @@ class Api::V1::AccountsController < ApplicationController
   # PATCH /api/v1/account/password — change password, verifying the current one.
   def update_password
     unless current_user.valid_password?(params[:current_password])
-      return render json: { errors: { current_password: ["is incorrect"] } }, status: :unprocessable_entity
+      return render json: { errors: { current_password: [ "is incorrect" ] } }, status: :unprocessable_entity
     end
 
     if current_user.update(password: params[:password], password_confirmation: params[:password_confirmation])
@@ -53,7 +53,7 @@ class Api::V1::AccountsController < ApplicationController
   def update_analytics_opt_out
     value = params[:analytics_opt_out]
     unless [ true, false ].include?(value)
-      return render json: { errors: { analytics_opt_out: ["must be true or false"] } },
+      return render json: { errors: { analytics_opt_out: [ "must be true or false" ] } },
                     status: :unprocessable_entity
     end
 
@@ -93,16 +93,17 @@ class Api::V1::AccountsController < ApplicationController
   private
 
   def preference_params
-    permitted = params.permit(:follow_in_app, :follow_email, :digest_cadence).to_h
+    permitted = params.permit(:follow_in_app, :follow_email, :push_enabled, :digest_cadence).to_h
     permitted[:follow_in_app] = ActiveModel::Type::Boolean.new.cast(permitted[:follow_in_app]) if permitted.key?(:follow_in_app)
     permitted[:follow_email] = ActiveModel::Type::Boolean.new.cast(permitted[:follow_email]) if permitted.key?(:follow_email)
+    permitted[:push_enabled] = ActiveModel::Type::Boolean.new.cast(permitted[:push_enabled]) if permitted.key?(:push_enabled)
     permitted
   end
 
   def account_params
     permitted = params.permit(
       :first_name, :last_name, :phone, :date_of_birth,
-      address: [:street_address, :city, :state, :postal_code, :country_id]
+      address: [ :street_address, :city, :state, :postal_code, :country_id ]
     ).to_h
     permitted[:account_address_attributes] = permitted.delete(:address) if permitted[:address]
     permitted

@@ -19,13 +19,13 @@ Publication deadlines are now first-class on **Articles** and **Reviews**:
 
 ## 2. Confirmed product decisions
 
-| # | Question | Decision applied |
-|---|---|---|
-| 1 | Should Articles default to 14 days? | **Yes** — same fallback as standalone Reviews |
-| 2 | WinePackage vs Article priority | **WinePackage wins** |
-| 3 | Backfill legacy drafts? | **No** — legacy rows keep a null deadline ("No deadline") |
-| 4 | Overdue filtering/sorting | **Deferred** to the separate Settings list-management issue |
-| 5 | Editable after publication? | **Yes** — the date is retained and editable, but no longer operational |
+| #   | Question                            | Decision applied                                                       |
+| --- | ----------------------------------- | ---------------------------------------------------------------------- |
+| 1   | Should Articles default to 14 days? | **Yes** — same fallback as standalone Reviews                          |
+| 2   | WinePackage vs Article priority     | **WinePackage wins**                                                   |
+| 3   | Backfill legacy drafts?             | **No** — legacy rows keep a null deadline ("No deadline")              |
+| 4   | Overdue filtering/sorting           | **Deferred** to the separate Settings list-management issue            |
+| 5   | Editable after publication?         | **Yes** — the date is retained and editable, but no longer operational |
 
 ## 3. Phase 0 — Audit findings
 
@@ -50,6 +50,7 @@ Publication deadlines are now first-class on **Articles** and **Reviews**:
 ## 4. Phase 1 — Database and model
 
 ### Migrations (reversible)
+
 - `db/migrate/20261021071641_add_deadline_to_articles.rb` — `add_column :articles, :deadline, :date`
 - `db/migrate/20261021071642_add_deadline_to_reviews.rb` — `add_column :reviews, :deadline, :date`
 
@@ -57,6 +58,7 @@ No index: filtering/sorting by deadline is deferred (decision #4), so there is n
 query to support yet. No backfill (decision #3).
 
 ### `app/models/concerns/deadlineable.rb` (new)
+
 - `DEFAULT_DEADLINE_DAYS = 14`.
 - `before_validation :apply_default_deadline, if: :new_record?` → `deadline ||= Date.current + 14`.
   Runs only on create, so updates and bulk changes never reset a deadline.
@@ -66,6 +68,7 @@ query to support yet. No backfill (decision #3).
 - `days_until_deadline` → signed integer, `nil` when there is no deadline.
 
 ### `Article` / `Review`
+
 - Both `include Deadlineable`.
 - `Review` gained `has_many :article_reviews` / `has_many :articles, through:`
   (the reverse of the existing join) plus:
@@ -74,6 +77,7 @@ query to support yet. No backfill (decision #3).
   - `article_deadline` → first linked article deadline.
 
 ### `WinePackages::CreateReviewFromPackage`
+
 Before saving, `review.deadline` is set from `item.wine_package.review_deadline`
 when the caller supplied none. This gives the confirmed precedence
 **explicit > WinePackage > 14-day fallback** and copies the date once, at creation.
@@ -110,6 +114,7 @@ when the caller supplied none. This gives the confirmed precedence
 ## 7. Phase 4 — List and detail UX
 
 ### React (`wine_words`)
+
 - `src/components/DeadlineBadge.tsx` (new): the single deadline badge used by
   tables and detail pages. It renders nothing for published/archived records and
   prefers the API's `overdue` / `days_until_deadline` over a client date
@@ -124,6 +129,7 @@ when the caller supplied none. This gives the confirmed precedence
 - `src/index.css`: badge styles.
 
 ### Rails lists
+
 - `articles/index.html.erb`, `reviews/index.html.erb`,
   `articles/show.html.erb`, `reviews/show.html.erb` render `deadline_badge`.
   Drafts only; published/archived stay uncluttered.
@@ -133,11 +139,14 @@ No overdue filter or deadline sorting was added (decision #4).
 ## 8. Phase 5 — Tests and results
 
 ### Backend (RSpec) — executed
+
 ```
 bundle exec rspec spec/models/deadlineable_spec.rb spec/requests/api/v1/deadlines_spec.rb spec/requests/web_deadlines_spec.rb
 32 examples, 0 failures
 ```
+
 Coverage:
+
 - Article: default, explicit override, legacy null, overdue boundaries
   (yesterday/today/tomorrow), published/archived never overdue,
   draft→published clears the flag but keeps the date, signed day counts,
@@ -157,10 +166,12 @@ Coverage:
 timezone-sensitive boundaries are deterministic.
 
 ### Full backend suite — executed
+
 ```
 bundle exec rspec
 1345 examples, 57 failures, 2 pending
 ```
+
 The 57 failures are **pre-existing/environmental** and live entirely outside
 this change (mail sender defaults, `401` responses in taste-parameter /
 wine-profile request specs, missing seeded records, Sentry context, and
@@ -168,16 +179,19 @@ version/config drift). No failure mentions `deadline`, Article or Review; the
 new specs pass. `grep -i deadline` over the run log returns nothing.
 
 ### Frontend — executed
+
 ```
 npx tsc -b --noEmit        # clean (see note below)
 npx eslint <changed files>  # clean
 npx vitest run              # 344 passed, 3 failed (58 files)
 ```
+
 The three failures are pre-existing:
+
 - `Reviews.test.tsx` expects a "Drink …" window on a list card that does not
   render one (the text exists only in `WineDetail` / `ReviewDetail`).
-- two `ApiHealth.test.tsx` cases expect backend version `0.0.20` while the
-  workspace reports `0.0.21` — version/config drift.
+- two `ApiHealth.test.tsx` cases expect backend version `0.0.21` while the
+  workspace reports `0.0.22` — version/config drift.
 
 `src/components/DeadlineBadge.test.tsx` adds 6 passing cases: no deadline,
 published, archived, upcoming, due today, overdue count, and "API wins over the
@@ -192,6 +206,7 @@ client clock".
 > fields straight through, so an explicitly-`undefined` value must be allowed.
 
 ### Ruby style — executed
+
 `bundle exec rubocop` on the new/modified files: the new concern, helper and
 specs are clean. Remaining offenses in touched files are pre-existing style
 rules (e.g. array-bracket spacing) that the repository already violates.

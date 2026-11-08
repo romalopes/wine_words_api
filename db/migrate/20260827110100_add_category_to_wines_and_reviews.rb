@@ -21,6 +21,5 @@ class AddCategoryToWinesAndReviews < ActiveRecord::Migration[7.1]
     #     sort_order_article: index + 1
     #   )
     # end
-
   end
 end

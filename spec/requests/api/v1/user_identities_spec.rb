@@ -188,6 +188,5 @@ RSpec.describe "Api::V1::UserIdentities", type: :request do
       expect(identity.reload).to be_persisted
     end
   end
-
   end
 end

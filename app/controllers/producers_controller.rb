@@ -4,9 +4,9 @@ class ProducersController < ActionController::Base
   include RequireLogin
 
   # Only Admins and Reviewers may add, edit, delete or link wines.
-  before_action :set_producer, only: [:show, :edit, :update, :destroy, :link_wine]
-  before_action :deny_unless_wine_manager!, only: [:new, :create, :edit, :update, :destroy, :link_wine]
-  before_action :load_countries, only: [:new, :edit, :create, :update]
+  before_action :set_producer, only: [ :show, :edit, :update, :destroy, :link_wine ]
+  before_action :deny_unless_wine_manager!, only: [ :new, :create, :edit, :update, :destroy, :link_wine ]
+  before_action :load_countries, only: [ :new, :edit, :create, :update ]
   helper_method :can_manage_producers?
 
   def index
@@ -108,7 +108,7 @@ class ProducersController < ActionController::Base
       :instagram, :facebook, :legal_name, :phone,
       :founded_year, :active, :country_id,
       region_ids: [], grape_ids: [],
-      address_attributes: [:id, :street_address, :city, :state, :postal_code, :country_id, :_destroy]
+      address_attributes: [ :id, :street_address, :city, :state, :postal_code, :country_id, :_destroy ]
     )
   end
 end

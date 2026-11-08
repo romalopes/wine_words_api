@@ -70,7 +70,7 @@ class WineSerializer
     return vintages.order(year: :desc) unless vintages.loaded?
 
     # PostgreSQL DESC puts NULL years first (the no-vintage entry).
-    vintages.sort_by { |vintage| [vintage.year.nil? ? 0 : 1, -vintage.year.to_i] }
+    vintages.sort_by { |vintage| [ vintage.year.nil? ? 0 : 1, -vintage.year.to_i ] }
   end
 
   def producer

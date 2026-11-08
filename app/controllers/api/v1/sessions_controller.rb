@@ -20,7 +20,7 @@ class Api::V1::SessionsController < Devise::SessionsController
   end
 
   def log_objects
-    [@audit_user].compact
+    [ @audit_user ].compact
   end
 
   def remember_user_for_audit

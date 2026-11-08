@@ -5,7 +5,7 @@
 require "rails_helper"
 
 RSpec.describe "Api::V1::Users search", type: :request do
-  let(:admin) { User.create!(first_name: "Search Admin", email: "search-admin@example.com", password: "password123", roles: [Role.find_or_create_by!(name: "Admin")]) }
+  let(:admin) { User.create!(first_name: "Search Admin", email: "search-admin@example.com", password: "password123", roles: [ Role.find_or_create_by!(name: "Admin") ]) }
 
   def create_user(name, email)
     User.create!(first_name: name, email: email, password: "password123")
@@ -44,16 +44,16 @@ RSpec.describe "Api::V1::Users search", type: :request do
 
     it "matches a last name and a full name across both account fields" do
       User.create!(first_name: "Élodie", last_name: "O’Connor", email: "elodie@example.com", password: "password123")
-      ["O’Connor", "Élodie O’Connor"].each do |query|
+      [ "O’Connor", "Élodie O’Connor" ].each do |query|
         get "/api/v1/users/search", params: { q: query }, as: :json
-        expect(JSON.parse(response.body).map { |u| u["email"] }).to eq(["elodie@example.com"])
+        expect(JSON.parse(response.body).map { |u| u["email"] }).to eq([ "elodie@example.com" ])
       end
     end
 
     it "matches by email substring" do
       get "/api/v1/users/search?q=unique-address&page=1", as: :json
       emails = JSON.parse(response.body)["items"].map { |u| u["email"] }
-      expect(emails).to eq(["unique-address@yahoo.com.br"])
+      expect(emails).to eq([ "unique-address@yahoo.com.br" ])
     end
   end
 

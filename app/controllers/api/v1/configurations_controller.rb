@@ -33,7 +33,7 @@ class Api::V1::ConfigurationsController < ApplicationController
   def configuration_params
     permitted = params.permit(
       :logs_saved_to_database, :use_test_email, :test_email, :mail_transport,
-      configuration: [:logs_saved_to_database, :use_test_email, :test_email, :mail_transport]
+      configuration: [ :logs_saved_to_database, :use_test_email, :test_email, :mail_transport ]
     )
     permitted[:configuration].presence || permitted
   end

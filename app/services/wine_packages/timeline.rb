@@ -23,7 +23,7 @@ module WinePackages
     # application milestones differently from carrier updates.
     def events
       (package_entries + carrier_entries)
-        .sort_by { |entry| [entry[:occurred_at] || Time.zone.at(0), entry[:id] || 0] }
+        .sort_by { |entry| [ entry[:occurred_at] || Time.zone.at(0), entry[:id] || 0 ] }
     end
 
     private

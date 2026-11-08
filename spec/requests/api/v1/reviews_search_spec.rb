@@ -81,12 +81,12 @@ RSpec.describe "Api::V1::Reviews search and sort", type: :request do
       create_review("Deep and dark", vintage: shiraz, comment: "Eucalypt and black fruit")
       create_review("Bright and tight", vintage: chardo)
 
-      expect(index_titles(query: "eucalypt")).to eq(["Deep and dark"])
-      expect(index_titles(query: "shiraz")).to eq(["Deep and dark"])
-      expect(index_titles(query: "blefing")).to eq(["Deep and dark"])
+      expect(index_titles(query: "eucalypt")).to eq([ "Deep and dark" ])
+      expect(index_titles(query: "shiraz")).to eq([ "Deep and dark" ])
+      expect(index_titles(query: "blefing")).to eq([ "Deep and dark" ])
       # Both wines share the region, so both reviews match at the same weight.
-      expect(index_titles(query: "barossa")).to match_array(["Deep and dark", "Bright and tight"])
-      expect(index_titles(query: "2021")).to eq(["Bright and tight"])
+      expect(index_titles(query: "barossa")).to match_array([ "Deep and dark", "Bright and tight" ])
+      expect(index_titles(query: "2021")).to eq([ "Bright and tight" ])
     end
 
     it "requires every word of a multi-word term, in any field" do
@@ -95,14 +95,14 @@ RSpec.describe "Api::V1::Reviews search and sort", type: :request do
       create_review("Deep and dark", vintage: shiraz, comment: "Rich and peppery")
       create_review("Light and lemony", vintage: riesling)
 
-      expect(index_titles(query: "blefing peppery")).to eq(["Deep and dark"])
+      expect(index_titles(query: "blefing peppery")).to eq([ "Deep and dark" ])
     end
 
     it "matches prefixes so a partial word still finds the whole one" do
       create_review("Buttery", vintage: create_wine("Cold Harvest Chardonnay", 2021))
       create_review("Lean", vintage: create_wine("Cold Harvest Riesling", 2021))
 
-      expect(index_titles(query: "chardon")).to eq(["Buttery"])
+      expect(index_titles(query: "chardon")).to eq([ "Buttery" ])
     end
 
     it "orders by relevance, putting the title hit above the tasting-note hit" do
@@ -111,21 +111,21 @@ RSpec.describe "Api::V1::Reviews search and sort", type: :request do
       create_review("Peppery notes", vintage: wine, comment: "Violets and spice")
       create_review("Notes on violets", vintage: wine, comment: "Pepper and black fruit")
 
-      expect(index_titles(query: "pepper")).to eq(["Peppery notes", "Notes on violets"])
+      expect(index_titles(query: "pepper")).to eq([ "Peppery notes", "Notes on violets" ])
     end
 
     it "accepts the deprecated `search` spelling of the term" do
       create_review("Deep and dark", vintage: create_wine("Blefing Peak Shiraz", 2019))
 
-      expect(index_titles(search: "shiraz")).to eq(["Deep and dark"])
+      expect(index_titles(search: "shiraz")).to eq([ "Deep and dark" ])
     end
 
     it "answers 200 with an unfiltered list for input that cannot be searched" do
       create_review("Deep and dark", vintage: create_wine("Blefing Peak Shiraz", 2019))
 
       # Operators used to reach to_tsquery untouched, which raised and 500ed.
-      expect(index_titles(query: " & : ' !")).to eq(["Deep and dark"])
-      expect(index_titles(query: "a")).to eq(["Deep and dark"])
+      expect(index_titles(query: " & : ' !")).to eq([ "Deep and dark" ])
+      expect(index_titles(query: "a")).to eq([ "Deep and dark" ])
     end
   end
 
@@ -139,26 +139,26 @@ RSpec.describe "Api::V1::Reviews search and sort", type: :request do
     end
 
     it "sorts newest first by default" do
-      expect(index_titles).to eq(["Latest, mid score", "Middle, worst score", "Older, best score"])
+      expect(index_titles).to eq([ "Latest, mid score", "Middle, worst score", "Older, best score" ])
     end
 
     it "honours recent and oldest" do
       expect(index_titles(sort: "recent"))
-        .to eq(["Latest, mid score", "Middle, worst score", "Older, best score"])
+        .to eq([ "Latest, mid score", "Middle, worst score", "Older, best score" ])
       expect(index_titles(sort: "oldest"))
-        .to eq(["Older, best score", "Middle, worst score", "Latest, mid score"])
+        .to eq([ "Older, best score", "Middle, worst score", "Latest, mid score" ])
     end
 
     it "honours score_high and score_low" do
       expect(index_titles(sort: "score_high"))
-        .to eq(["Older, best score", "Latest, mid score", "Middle, worst score"])
+        .to eq([ "Older, best score", "Latest, mid score", "Middle, worst score" ])
       expect(index_titles(sort: "score_low"))
-        .to eq(["Middle, worst score", "Latest, mid score", "Older, best score"])
+        .to eq([ "Middle, worst score", "Latest, mid score", "Older, best score" ])
     end
 
     it "treats an unknown sort as the default rather than trusting it" do
       expect(index_titles(sort: "created_at DESC; DROP TABLE reviews"))
-        .to eq(["Latest, mid score", "Middle, worst score", "Older, best score"])
+        .to eq([ "Latest, mid score", "Middle, worst score", "Older, best score" ])
     end
 
     it "ranks matches above recency for relevance, which is what the dropdown implies" do
@@ -183,21 +183,21 @@ RSpec.describe "Api::V1::Reviews search and sort", type: :request do
 
     it "agrees with the feed about what matches, and in what order" do
       expect(grouped_titles(query: "pepper")).to eq(index_titles(query: "pepper"))
-      expect(grouped_titles(query: "pepper")).to eq(["Peppery notes", "Notes on violets"])
+      expect(grouped_titles(query: "pepper")).to eq([ "Peppery notes", "Notes on violets" ])
     end
 
     it "honours the sort param inside each category" do
       expect(grouped_titles(query: "pepper", sort: "score_low"))
-        .to eq(["Notes on violets", "Peppery notes"])
+        .to eq([ "Notes on violets", "Peppery notes" ])
       expect(grouped_titles(sort: "score_high"))
-        .to eq(["Peppery notes", "Unrelated", "Notes on violets"])
+        .to eq([ "Peppery notes", "Unrelated", "Notes on violets" ])
     end
 
     it "keeps drafts invisible while searching, for guests and for their own author" do
       create_review("Pepper draft", vintage: wine, score: 99, status: "draft")
 
-      expect(grouped_titles(query: "pepper")).to eq(["Peppery notes", "Notes on violets"])
-      expect(index_titles(query: "pepper")).to eq(["Peppery notes", "Notes on violets"])
+      expect(grouped_titles(query: "pepper")).to eq([ "Peppery notes", "Notes on violets" ])
+      expect(index_titles(query: "pepper")).to eq([ "Peppery notes", "Notes on violets" ])
     end
 
     it "answers 200 and skips filtering for input that cannot be searched" do
@@ -226,17 +226,17 @@ RSpec.describe "Api::V1::Reviews search and sort", type: :request do
 
     it "returns only drafts for the feed when a manager asks for status=draft" do
       sign_in manager
-      expect(index_titles(status: "draft")).to eq(["Draft one"])
+      expect(index_titles(status: "draft")).to eq([ "Draft one" ])
     end
 
     it "returns only drafts for the grouped view when a manager asks for status=draft" do
       sign_in manager
-      expect(grouped_titles(status: "draft")).to eq(["Draft one"])
+      expect(grouped_titles(status: "draft")).to eq([ "Draft one" ])
     end
 
     it "returns only published for status=published" do
       sign_in manager
-      expect(index_titles(status: "published")).to eq(["Published one"])
+      expect(index_titles(status: "published")).to eq([ "Published one" ])
     end
 
     it "ignores an unwhitelisted status value instead of trusting it" do
@@ -244,7 +244,7 @@ RSpec.describe "Api::V1::Reviews search and sort", type: :request do
       # A garbage value must not filter (nor execute as SQL) — it behaves as if
       # no status was sent, so the manager sees every review.
       expect(index_titles(status: "draft OR 1=1"))
-        .to match_array(["Published one", "Draft one", "Archived one"])
+        .to match_array([ "Published one", "Draft one", "Archived one" ])
     end
 
     it "still hides another user's drafts from a reader even when status=draft is requested" do
@@ -278,24 +278,24 @@ RSpec.describe "Api::V1::Reviews search and sort", type: :request do
     it "returns only the signed-in user's reviews for the feed" do
       sign_in me
       expect(index_titles(scope: "mine"))
-        .to match_array(["Mine, published", "Mine, draft"])
+        .to match_array([ "Mine, published", "Mine, draft" ])
     end
 
     it "returns only the signed-in user's reviews for the grouped view, drafts included" do
       sign_in me
       expect(grouped_titles(scope: "mine"))
-        .to match_array(["Mine, published", "Mine, draft"])
+        .to match_array([ "Mine, published", "Mine, draft" ])
     end
 
     it "combines scope=mine with the status filter" do
       sign_in me
-      expect(index_titles(scope: "mine", status: "draft")).to eq(["Mine, draft"])
+      expect(index_titles(scope: "mine", status: "draft")).to eq([ "Mine, draft" ])
     end
 
     it "ignores scope=mine when nobody is signed in" do
       # No current_user, so the guard skips the filter and the guest only sees
       # published reviews (via visible_to) — never a 500 or a leaked draft.
-      expect(index_titles(scope: "mine")).to match_array(["Mine, published", "Theirs, published"])
+      expect(index_titles(scope: "mine")).to match_array([ "Mine, published", "Theirs, published" ])
     end
   end
 end

@@ -7,9 +7,9 @@ class CreateFollows < ActiveRecord::Migration[8.1]
       t.timestamps
     end
 
-    add_index :follows, [:user_id, :followable_type, :followable_id],
+    add_index :follows, [ :user_id, :followable_type, :followable_id ],
               unique: true, name: :index_follows_on_user_and_followable
-    add_index :follows, [:followable_type, :followable_id, :user_id],
+    add_index :follows, [ :followable_type, :followable_id, :user_id ],
               name: :index_follows_on_followable_and_user
 
     # Check constraint for allowed followable types (reversible — raw execute

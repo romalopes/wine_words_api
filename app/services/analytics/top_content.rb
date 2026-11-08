@@ -25,8 +25,8 @@ module Analytics
 
       sort    = SORTS.include?(@params[:sort].to_s) ? @params[:sort].to_s : "views"
       dir     = DIRECTIONS.include?(@params[:direction].to_s) ? @params[:direction].to_s : "desc"
-      page    = [@params[:page].to_i, 1].max
-      per_page = [@params[:per_page].to_i, 1].max.clamp(1, 100)
+      page    = [ @params[:page].to_i, 1 ].max
+      per_page = [ @params[:per_page].to_i, 1 ].max.clamp(1, 100)
       include_zero = @params[:include_zero_views].present?
 
       # Load all authorized content with pre-aggregated metrics
@@ -47,7 +47,7 @@ module Analytics
         per_page: per_page,
         sort: sort,
         direction: dir,
-        period: @period.metadata.merge(scope: @scope.scope_label),
+        period: @period.metadata.merge(scope: @scope.scope_label)
       }
     end
 
@@ -61,7 +61,7 @@ module Analytics
         per_page: 20,
         sort: "views",
         direction: "desc",
-        period: @period.metadata.merge(scope: @scope.scope_label),
+        period: @period.metadata.merge(scope: @scope.scope_label)
       }
     end
 

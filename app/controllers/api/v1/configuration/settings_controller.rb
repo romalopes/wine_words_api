@@ -5,7 +5,7 @@
 module Api::V1::Configuration
   class SettingsController < ApplicationController
     before_action :authenticate_admin!
-    before_action :find_setting, only: [:update, :destroy]
+    before_action :find_setting, only: [ :update, :destroy ]
 
     RESERVED_KEYS = %w[logs_enabled use_test_email test_email mail_transport].freeze
 

@@ -28,7 +28,7 @@ RAY_JORDAN_USER_AGENT = "Mozilla/5.0 (compatible; WineWordsRayJordanSeed/1.0)"
 RAY_JORDAN_REQUEST_RETRIES = 3
 RAY_JORDAN_REQUEST_DELAY = 0.35
 RAY_JORDAN_MULTI_REGION_SEPARATOR = ","
-RAY_JORDAN_NON_REGION_VALUES = ["Australia, France, China, USA"].freeze
+RAY_JORDAN_NON_REGION_VALUES = [ "Australia, France, China, USA" ].freeze
 RAY_JORDAN_REGION_ALIASES = {
   "Great Soutern" => "Great Southern"
 }.freeze
@@ -96,7 +96,7 @@ def ray_jordan_largest_srcset_url(image)
     url, width = entry.strip.split(/\s+/, 2)
     next if url.blank?
 
-    [url, width.to_s[/\d+/].to_i]
+    [ url, width.to_s[/\d+/].to_i ]
   end.max_by { |(_, width)| width }
 
   ray_jordan_absolute_url(largest&.first || image["src"])

@@ -41,11 +41,20 @@ module Analytics
       # Advisory lock deduplication with pre-check logic
       ActiveRecord::Base.transaction do
         # Set lock timeout
-        ActiveRecord::Base.connection.execute("SET LOCAL lock_timeout = #{Rails.application.config.analytics[:lock_timeout_ms]}")
-        ActiveRecord::Base.connection.execute("SET LOCAL statement_timeout = #{Rails.application.config.analytics[:statement_timeout_ms]}")
+        ActiveRecord::Base.connection.execute(
+          "SET LOCAL lock_timeout = ?",
+          Rails.application.config.analytics[:lock_timeout_ms]
+        )
+        ActiveRecord::Base.connection.execute(
+          "SET LOCAL statement_timeout = ?",
+          Rails.application.config.analytics[:statement_timeout_ms]
+        )
 
         # Acquire advisory lock
-        acquired = ActiveRecord::Base.connection.select_value("SELECT pg_try_advisory_xact_lock(#{lock_key})")
+        acquired = ActiveRecord::Base.connection.select_value(
+          "SELECT pg_try_advisory_xact_lock(?)",
+          lock_key
+        )
         unless acquired
           Rails.logger.warn "[Analytics] Advisory lock contention for key #{lock_key}"
           rejection_reason = "dedup_window"

@@ -154,7 +154,7 @@ RSpec.describe "Api::V1::Health", type: :request do
         expect(server["pid"]).to be_a(Integer)
         expect(server.keys).to include("rails_version", "ruby", "puma_workers",
                                        "hostname", "pid", "render")
-        expect(server["render"]).to be_in([true, false])
+        expect(server["render"]).to be_in([ true, false ])
 
         # endpoint section reflects the actual request.
         endpoint = body["endpoint"]
@@ -196,7 +196,7 @@ RSpec.describe "Api::V1::Health", type: :request do
 
         # The bucket name / root path identifies *where* files live — that is
         # the whole point of this section — so at least one must be present.
-        expect([storage["bucket"], storage["root"]].compact).not_to be_empty
+        expect([ storage["bucket"], storage["root"] ].compact).not_to be_empty
       end
 
       it "reports an error status when the database is down" do

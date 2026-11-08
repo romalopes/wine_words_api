@@ -49,7 +49,7 @@ module ImageAttributes
     images = record.images
     return images.ordered unless images.loaded?
 
-    images.sort_by { |image| [image.position.to_i, image.id.to_i] }
+    images.sort_by { |image| [ image.position.to_i, image.id.to_i ] }
   end
 
   def primary_image(record)
@@ -91,10 +91,10 @@ module ImageAttributes
 
     expiry = ActiveStorage.service_urls_expire_in.to_f
     # Leave at least 20% (normally one minute) for clients to fetch the image.
-    ttl = expiry - [60, expiry * 0.2].max
+    ttl = expiry - [ 60, expiry * 0.2 ].max
     url = if blob.service_name == "cloudflare_r2" && ttl.positive?
-      key = ["image-signed-url-v1", blob.service_name, blob.key,
-             blob.filename.to_s, blob.content_type, expiry]
+      key = [ "image-signed-url-v1", blob.service_name, blob.key,
+             blob.filename.to_s, blob.content_type, expiry ]
       SIGNED_URL_CACHE.fetch(key, expires_in: ttl) do
         blob.url(disposition: :inline, expires_in: expiry)
       end

@@ -76,7 +76,7 @@
   <% producer_categories = @producer.wines.flat_map { |w| w.categories.to_a }.uniq { |c| c.id } %>
   <% if producer_categories.any? %>
     <h2>Categories</h2>
-    <p><%= producer_categories.map { |c| link_to c.name, category_path(c) }.join(", ").html_safe %></p>
+    <p><%= safe_join(producer_categories.map { |c| link_to c.name, category_path(c) }, ", ") %></p>
   <% end %>
 
   <% if can_manage_producers? %>

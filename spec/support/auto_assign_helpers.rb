@@ -15,7 +15,7 @@ module AutoAssignHelpers
     )
   end
 
-  def self.make_profile(name, grapes = [name], color = "Red")
+  def self.make_profile(name, grapes = [ name ], color = "Red")
     profile = WineProfile.create!(name: name, color: color, notes: "[]", serving: "x")
     grapes.each do |grape_name|
       grape = Grape.find_by_name_or_synonym(grape_name)

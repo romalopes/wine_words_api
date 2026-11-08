@@ -62,7 +62,7 @@ RSpec.describe "Impersonation", type: :request do
 
       expect(response).to have_http_status(:ok)
       body = JSON.parse(response.body)
-      [body["effective_user"], body["real_user"]].each do |payload|
+      [ body["effective_user"], body["real_user"] ].each do |payload|
         expect(payload).to have_key("subscription")
         expect(payload).to have_key("billing_provider")
         expect(payload).to have_key("subscription_status")
@@ -267,7 +267,7 @@ RSpec.describe "Impersonation", type: :request do
       # A logged (audited) action performed while impersonating: assign roles
       # to another user — Admin-only, and covered by audit_actions.
       patch "/api/v1/users/#{other_normal_user.id}/assign_roles",
-            params: { role_ids: [Role.find_or_create_by!(name: "Reader").id] },
+            params: { role_ids: [ Role.find_or_create_by!(name: "Reader").id ] },
             headers: headers
       expect(response).to have_http_status(:ok)
 

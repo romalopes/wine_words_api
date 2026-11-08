@@ -66,12 +66,46 @@ ActiveRecord::Base.transaction do
 
   # ---------------------------------------------------------------------------
   # Pick 20 RANDOM vintages (random producers / random wines). If fewer than
-  # 20 vintages exist, raise.
+  # 20 vintages exist, create random vintages for existing wines so the seed
+  # can proceed regardless of database size.
   # ---------------------------------------------------------------------------
   random_vintages = Vintage.includes(wine: :producer).order("RANDOM()").limit(20).to_a
 
   if random_vintages.size < 20
-    raise "Not enough distinct vintages in the database to create 20 reviews (found #{random_vintages.size})."
+    needed = 20 - random_vintages.size
+    puts "Only #{random_vintages.size} vintages found; creating #{needed} random vintages..."
+
+    wines = Wine.order("RANDOM()").to_a
+    if wines.empty?
+      raise "Cannot seed reviews: no wines exist in the database to create vintages for."
+    end
+
+    current_year = Time.current.year
+    existing_keys = random_vintages.map { |v| [ v.wine_id, v.year ] }.to_set
+
+    created = 0
+    attempts = 0
+    max_attempts = needed * 100
+
+    while created < needed && attempts < max_attempts
+      wine = wines.sample
+      year = rand(1900..current_year)
+      next if existing_keys.include?([ wine.id, year ])
+
+      begin
+        Vintage.create!(wine: wine, year: year)
+        existing_keys.add([ wine.id, year ])
+        created += 1
+      rescue ActiveRecord::RecordInvalid
+        # retry with a different wine / year combo
+      end
+      attempts += 1
+    end
+
+    raise "Could only create #{created} of #{needed} needed random vintages." if created < needed
+
+    # Re-fetch vintages so `chosen` below includes the newly created ones.
+    random_vintages = Vintage.includes(wine: :producer).order("RANDOM()").limit(20).to_a
   end
 
   chosen = random_vintages.map do |vt|
@@ -114,10 +148,10 @@ ActiveRecord::Base.transaction do
 
   article_review_assignments = {
     articles[0] => (0...20).to_a,        # all 20 reviews
-    articles[1] => [0, 1, 2, 3, 4],
-    articles[2] => [4, 5, 6, 7, 8],
-    articles[3] => [9, 10, 11, 12, 13],
-    articles[4] => [15, 16, 17, 18, 19]
+    articles[1] => [ 0, 1, 2, 3, 4 ],
+    articles[2] => [ 4, 5, 6, 7, 8 ],
+    articles[3] => [ 9, 10, 11, 12, 13 ],
+    articles[4] => [ 15, 16, 17, 18, 19 ]
   }
 
   article_review_assignments.each do |article, indices|
@@ -131,12 +165,12 @@ ActiveRecord::Base.transaction do
   # ---------------------------------------------------------------------------
   review_producer_ids = chosen.map { |c| c[:producer].id }.uniq
   other_producers = Producer.where.not(id: review_producer_ids).order(:id).to_a
-  half = [other_producers.size / 2, 1].max
+  half = [ other_producers.size / 2, 1 ].max
 
   articles.each_with_index do |article, idx|
     pick1 = other_producers[idx % other_producers.size]
     pick2 = other_producers[(idx + half) % other_producers.size]
-    [pick1, pick2].uniq.each do |producer|
+    [ pick1, pick2 ].uniq.each do |producer|
       ArticleProducer.find_or_create_by!(article: article, producer: producer)
     end
   end
@@ -155,6 +189,8 @@ ActiveRecord::Base.transaction do
                        .to_a
 
   articles.each_with_index do |article, idx|
+    next if no_review_vintages.empty?
+
     count  = idx.zero? ? 2 : 1
     picks  = count.times.map { |j| no_review_vintages[(idx + j) % no_review_vintages.size] }
     picks.uniq.each do |vintage|
