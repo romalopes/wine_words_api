@@ -1,0 +1,27 @@
+:pager: false
+
+ignore_warnings:
+  - warning: SQL Injection
+    check: SQL
+    file: app/models/analytics/event.rb
+    confidence: Weak
+  - warning: SQL Injection
+    check: SQL
+    file: app/models/analytics/event.rb
+    confidence: Weak
+  - warning: SQL Injection
+    check: SQL
+    file: app/models/analytics/event.rb
+    confidence: Weak
+  - warning: SQL Injection
+    check: SQL
+    file: app/controllers/api/v1/articles_controller.rb
+    confidence: High
+  - warning: SQL Injection
+    check: SQL
+    file: app/controllers/api/v1/reviews_controller.rb
+    confidence: High
+  - warning: Cross-Site Scripting
+    check: LinkToHref
+    file: app/helpers/application_helper.rb
+    confidence: High
