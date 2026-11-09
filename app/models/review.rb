@@ -159,6 +159,171 @@ before_save :update_search_vector, unless: :status_only_update?
     ArticleReview.where(review: self, status: "published").update_all(status: "draft")
   end
 
+  # Advanced, optimised search used by GET /api/v1/reviews (when advanced filters
+  # are present) and GET /api/v1/reviews/grouped.
+  #
+  # Every filter is optional; blank/missing keys are simply ignored. The
+  # relation is composed with EXISTS subqueries (rather than joins) so that:
+  #   - no review row is ever duplicated (no DISTINCT needed),
+  #   - each filter is an independent, skippable predicate,
+  #   - the database can use the per-table indexes.
+  def self.advanced_search(filters)
+    scope = all
+    f = filters || {}
+
+    if f[:q].present?
+      pattern = "%#{sanitize_sql_like(f[:q].to_s.strip)}%"
+      scope = scope.where(
+        "reviews.title ILIKE :pattern OR " \
+        "EXISTS (SELECT 1 FROM vintages v JOIN wines w ON w.id = v.wine_id WHERE v.id = reviews.vintage_id AND w.name ILIKE :pattern) OR " \
+        "EXISTS (SELECT 1 FROM vintages v JOIN wines w ON w.id = v.wine_id JOIN producers p ON p.id = w.producer_id WHERE v.id = reviews.vintage_id AND p.name ILIKE :pattern) OR " \
+        "EXISTS (SELECT 1 FROM vintages v JOIN wines w ON w.id = v.wine_id JOIN wine_regions wr ON wr.wine_id = w.id JOIN regions r ON r.id = wr.region_id WHERE v.id = reviews.vintage_id AND r.name ILIKE :pattern) OR " \
+        "EXISTS (SELECT 1 FROM vintages v JOIN wines w ON w.id = v.wine_id JOIN wine_grapes wg ON wg.wine_id = w.id JOIN grapes g ON g.id = wg.grape_id WHERE v.id = reviews.vintage_id AND g.name ILIKE :pattern)",
+        pattern: pattern
+      )
+    end
+
+    if f[:name].present?
+      scope = scope.where("reviews.title ILIKE ?", "%#{sanitize_sql_like(f[:name])}%")
+    end
+
+    if f[:producer_name].present?
+      scope = scope.joins(vintage: { wine: :producer })
+                   .where("producers.name ILIKE ?", "%#{sanitize_sql_like(f[:producer_name])}%")
+    end
+
+    scope = scope.where(color: f[:color]) if f[:color].present?
+    scope = scope.where(closure: f[:closure]) if f[:closure].present?
+    scope = scope.where(sparkling: f[:sparkling]) unless f[:sparkling].nil?
+    scope = scope.where(fortified: f[:fortified]) unless f[:fortified].nil?
+
+    if f[:country_id].present?
+      scope = scope.joins(vintage: { wine: :producer })
+                   .where(producers: { country_id: f[:country_id] })
+    end
+
+    if f[:region_ids].present?
+      scope = scope.where(
+        "EXISTS (SELECT 1 FROM vintages v JOIN wines w ON w.id = v.wine_id JOIN wine_regions wr ON wr.wine_id = w.id WHERE v.id = reviews.vintage_id AND wr.region_id IN (?))",
+        f[:region_ids]
+      )
+    end
+
+    if f[:grape_ids].present?
+      scope = scope.where(
+        "EXISTS (SELECT 1 FROM vintages v JOIN wines w ON w.id = v.wine_id JOIN wine_grapes wg ON wg.wine_id = w.id WHERE v.id = reviews.vintage_id AND wg.grape_id IN (?))",
+        f[:grape_ids]
+      )
+    end
+
+    # Alcohol percentage range on the wine.
+    if f[:alcohol_min].present? || f[:alcohol_max].present?
+      conds = []
+      args  = []
+      if f[:alcohol_min].present?
+        conds << "wines.alcohol_percentage >= ?"
+        args << f[:alcohol_min]
+      end
+      if f[:alcohol_max].present?
+        conds << "wines.alcohol_percentage <= ?"
+        args << f[:alcohol_max]
+      end
+      scope = scope.where(
+        "EXISTS (SELECT 1 FROM vintages v JOIN wines w ON w.id = v.wine_id WHERE v.id = reviews.vintage_id AND #{conds.join(' AND ')})",
+        *args
+      )
+    end
+
+    # Vintage year and/or price range across the wine's vintages.
+    vintage_filters = %i[vintage_year_min vintage_year_max price_min price_max]
+    if vintage_filters.any? { |k| f[k].present? }
+      conds = ["vintages.wine_id = reviews.vintage_id"]
+      args  = []
+      conds << "vintages.year >= ?"         if f[:vintage_year_min].present?
+      args  << f[:vintage_year_min]         if f[:vintage_year_min].present?
+      conds << "vintages.year <= ?"         if f[:vintage_year_max].present?
+      args  << f[:vintage_year_max]         if f[:vintage_year_max].present?
+      if f[:price_min].present?
+        conds << "vintages.price_cents >= ?"
+        args << (f[:price_min].to_f * 100).round
+      end
+      if f[:price_max].present?
+        conds << "vintages.price_cents <= ?"
+        args << (f[:price_max].to_f * 100).round
+      end
+      scope = scope.where(
+        "EXISTS (SELECT 1 FROM vintages v WHERE v.id = reviews.vintage_id AND #{conds.join(' AND ')})",
+        *args
+      )
+    end
+
+    # Score range on the review itself.
+    if f[:score_min].present? || f[:score_max].present?
+      conds = []
+      args  = []
+      conds << "reviews.score >= ?" if f[:score_min].present?
+      args  << f[:score_min]        if f[:score_min].present?
+      conds << "reviews.score <= ?" if f[:score_max].present?
+      args  << f[:score_max]        if f[:score_max].present?
+      scope = scope.where(conds.join(" AND "), *args)
+    end
+
+    # Published date range on the review.
+    if f[:published_from].present? || f[:published_to].present?
+      conds = []
+      args  = []
+      conds << "reviews.published_at >= ?" if f[:published_from].present?
+      args  << f[:published_from]          if f[:published_from].present?
+      conds << "reviews.published_at <= ?" if f[:published_to].present?
+      args  << f[:published_to]            if f[:published_to].present?
+      scope = scope.where(conds.join(" AND "), *args)
+    end
+
+    # Drink window range on the review.
+    if f[:drink_from_min].present? || f[:drink_from_max].present?
+      conds = []
+      args  = []
+      conds << "reviews.drink_from >= ?" if f[:drink_from_min].present?
+      args  << f[:drink_from_min]        if f[:drink_from_min].present?
+      conds << "reviews.drink_from <= ?" if f[:drink_from_max].present?
+      args  << f[:drink_from_max]        if f[:drink_from_max].present?
+      scope = scope.where(conds.join(" AND "), *args)
+    end
+
+    if f[:drink_to_min].present? || f[:drink_to_max].present?
+      conds = []
+      args  = []
+      conds << "reviews.drink_to >= ?" if f[:drink_to_min].present?
+      args  << f[:drink_to_min]        if f[:drink_to_min].present?
+      conds << "reviews.drink_to <= ?" if f[:drink_to_max].present?
+      args  << f[:drink_to_max]        if f[:drink_to_max].present?
+      scope = scope.where(conds.join(" AND "), *args)
+    end
+
+    # Taste parameter ranges (review-level filters on vintage's taste parameters)
+    if f[:taste_parameters].present?
+      f[:taste_parameters].each do |slug, range|
+        next unless range.is_a?(Hash) && (range[:min].present? || range[:max].present?)
+        next if range[:min].to_i <= 0 && range[:max].to_i >= 10
+
+        conds = ["vintages.wine_id = reviews.vintage_id AND wine_taste_parameters.slug = ?"]
+        args  = [slug]
+        conds << "wine_taste_parameters.score >= ?" if range[:min].present? && range[:min].to_i > 0
+        args  << range[:min].to_i                    if range[:min].present? && range[:min].to_i > 0
+        conds << "wine_taste_parameters.score <= ?" if range[:max].present? && range[:max].to_i < 10
+        args  << range[:max].to_i                    if range[:max].present? && range[:max].to_i < 10
+
+        scope = scope.where(
+          "EXISTS (SELECT 1 FROM vintages v JOIN wines w ON w.id = v.wine_id JOIN wine_taste_parameters wtp ON wtp.wine_id = w.id WHERE v.id = reviews.vintage_id AND #{conds.join(' AND ')})",
+          *args
+        )
+      end
+    end
+
+    scope
+  end
+
+
   private
 
   def status_only_update?

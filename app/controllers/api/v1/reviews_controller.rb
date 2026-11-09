@@ -36,6 +36,14 @@ class Api::V1::ReviewsController < ApplicationController
       else
         Review.all
       end
+
+    # If advanced search filters are present, use the optimised EXISTS-based
+    # search scope instead of chaining joins (which would duplicate rows when
+    # combined with category/uncategorised filters).
+    if advanced_search_filters.any?
+      reviews = Review.advanced_search(advanced_search_filters)
+    end
+
     reviews = policy_scope(reviews)
     # "My reviews" scope: narrow to the signed-in user's own reviews (any status,
     # including their drafts). `visible_to` already includes the user's own rows,
@@ -84,7 +92,7 @@ class Api::V1::ReviewsController < ApplicationController
     # payload already makes there, over 60 minutes).
     cache_key = [ "api/v1/reviews/grouped/v1", current_user&.id, per_group,
                   params[:scope], params[:status], search_term, params[:sort],
-                  request.base_url ]
+                  advanced_search_filters, request.base_url ]
     result = Rails.cache.fetch(cache_key, expires_in: GROUPED_CACHE_TTL) do
       grouped_payload(per_group)
     end
@@ -96,7 +104,10 @@ class Api::V1::ReviewsController < ApplicationController
   # (with the window counts), eager-loaded once for the list serializer, and
   # ordered by each category's sort. Extracted so Rails.cache.fetch can wrap it.
   def grouped_payload(per_group)
-    scope = Review.all
+    # If advanced search filters are present, use the optimised EXISTS-based
+    # search scope (which doesn't duplicate rows) so category/uncategorised
+    # filters can be applied on top without row explosion.
+    scope = advanced_search_filters.any? ? Review.advanced_search(advanced_search_filters) : Review.all
     scope = scope.visible_to(current_user) unless current_user&.wine_manager?
     # "My reviews" scope: the signed-in user's own reviews (including their
     # drafts), so the "My Reviews" tab renders through this same capped, grouped
@@ -279,6 +290,108 @@ class Api::V1::ReviewsController < ApplicationController
   # Management-list filters run after the existing visibility scope. They can
   # only narrow the set of records a caller can already see, never reveal
   # another author's drafts to an ordinary account.
+  # Extract and cast advanced search filter parameters. Returns a hash suitable
+  # for Review.advanced_search. Keys with blank values are omitted so the
+  # model scope can skip them.
+  def advanced_search_filters
+    p = params
+    filters = {
+      q: p[:q].presence,
+      name: p[:name].presence,
+      producer_name: p[:producer_name].presence,
+      color: p[:color].presence,
+      closure: p[:closure].presence,
+      sparkling: boolean_param(:sparkling),
+      fortified: boolean_param(:fortified),
+      country_id: integer_param(:country_id),
+      region_ids: integer_array_param(:region_ids),
+      grape_ids: integer_array_param(:grape_ids),
+      alcohol_min: float_param(:alcohol_min),
+      alcohol_max: float_param(:alcohol_max),
+      vintage_year_min: integer_param(:vintage_year_min),
+      vintage_year_max: integer_param(:vintage_year_max),
+      price_min: float_param(:price_min),
+      price_max: float_param(:price_max),
+      score_min: float_param(:score_min),
+      score_max: float_param(:score_max),
+      published_from: date_param(:published_from),
+      published_to: date_param(:published_to),
+      drink_from_min: integer_param(:drink_from_min),
+      drink_from_max: integer_param(:drink_from_max),
+      drink_to_min: integer_param(:drink_to_min),
+      drink_to_max: integer_param(:drink_to_max),
+      taste_parameters: taste_parameter_filters
+    }.compact
+
+    filters.empty? ? {} : filters
+  end
+
+  # Boolean array param helper for grape_ids, region_ids, etc.
+  def integer_array_param(key)
+    return nil if params[key].blank?
+    Array(params[key]).map { |v| Integer(v, exception: false) }.compact.presence
+  end
+
+  # Taste parameter filters: { acidity: { min: 3, max: 7 }, ... }
+  def taste_parameter_filters
+    return nil if params[:taste_parameters].blank?
+    tp = params[:taste_parameters]
+    return nil unless tp.is_a?(ActionController::Parameters) || tp.is_a?(Hash)
+
+    permitted = tp.permit(TASTE_SLUGS.map { |s| { s => [:min, :max] } })
+    result = {}
+    TASTE_SLUGS.each do |slug|
+      next unless permitted[slug].present?
+      range = permitted[slug]
+      min = integer_param_from_hash(range, :min)
+      max = integer_param_from_hash(range, :max)
+      next if min.nil? && max.nil?
+      result[slug] = { min: min, max: max }.compact
+    end
+    result.empty? ? nil : result
+  end
+
+  def integer_param_from_hash(hash, key)
+    return nil unless hash[key].present?
+    Integer(hash[key], exception: false)
+  end
+
+  TASTE_SLUGS = %w[
+    acidity
+    alcohol-warmth
+    body
+    fruit-intensity
+    sweetness
+    tannin
+  ].freeze
+
+  # Parameter casting helpers (mirrored from WinesController).
+  def boolean_param(key)
+    return nil if params[key].blank?
+
+    ActiveModel::Type::Boolean.new.cast(params[key])
+  end
+
+  def integer_param(key)
+    return nil if params[key].blank?
+
+    Integer(params[key], exception: false)
+  end
+
+  def float_param(key)
+    return nil if params[key].blank?
+
+    Float(params[key], exception: false)
+  end
+
+  def date_param(key)
+    return nil if params[key].blank?
+
+    Date.parse(params[key].to_s)
+  rescue ArgumentError
+    nil
+  end
+
   def apply_management_filters(scope)
     scope = scope.where(user: current_user) if params[:scope] == "mine" && current_user
     scope = scope.where(status: params[:status]) if Review::STATUSES.include?(params[:status])
