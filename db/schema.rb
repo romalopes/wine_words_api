@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_03_100000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_09_042248) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -51,7 +51,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_100000) do
     t.index ["token_digest"], name: "index_account_invitations_on_token_digest", unique: true
     t.index ["user_id", "created_at"], name: "index_account_invitations_on_user_id_and_created_at"
     t.index ["user_id"], name: "index_account_invitations_on_user_id"
-    t.check_constraint "status::text = ANY (ARRAY['pending'::character varying::text, 'sent'::character varying::text, 'accepted'::character varying::text, 'revoked'::character varying::text])", name: "account_invitations_status_check"
+    t.check_constraint "status::text = ANY (ARRAY['pending'::character varying, 'sent'::character varying, 'accepted'::character varying, 'revoked'::character varying]::text[])", name: "account_invitations_status_check"
   end
 
   create_table "accounts", force: :cascade do |t|
@@ -276,11 +276,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_100000) do
     t.string "title", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.index ["body"], name: "index_articles_on_body_trgm", opclass: :gin_trgm_ops, using: :gin
     t.index ["category_id"], name: "index_articles_on_category_id"
     t.index ["searchable"], name: "index_articles_on_searchable", using: :gin
     t.index ["slug"], name: "index_articles_on_slug", unique: true
     t.index ["source"], name: "index_articles_on_source"
     t.index ["status"], name: "index_articles_on_status"
+    t.index ["title"], name: "index_articles_on_title_trgm", opclass: :gin_trgm_ops, using: :gin
     t.index ["user_id"], name: "index_articles_on_user_id"
   end
 
@@ -361,7 +363,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_100000) do
     t.index ["followable_type", "followable_id", "user_id"], name: "index_follows_on_followable_and_user"
     t.index ["user_id", "followable_type", "followable_id"], name: "index_follows_on_user_and_followable", unique: true
     t.index ["user_id"], name: "index_follows_on_user_id"
-    t.check_constraint "followable_type::text = ANY (ARRAY['Producer'::character varying::text, 'Wine'::character varying::text, 'Review'::character varying::text, 'Article'::character varying::text])", name: "follows_followable_type_check"
+    t.check_constraint "followable_type::text = ANY (ARRAY['Producer'::character varying, 'Wine'::character varying, 'Review'::character varying, 'Article'::character varying]::text[])", name: "follows_followable_type_check"
   end
 
   create_table "grape_regions", force: :cascade do |t|
@@ -486,7 +488,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_100000) do
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["user_id"], name: "index_notification_preferences_on_user_id", unique: true
-    t.check_constraint "digest_cadence::text = ANY (ARRAY['none'::character varying::text, 'daily'::character varying::text, 'weekly'::character varying::text])", name: "notification_preferences_digest_cadence_check"
+    t.check_constraint "digest_cadence::text = ANY (ARRAY['none'::character varying, 'daily'::character varying, 'weekly'::character varying]::text[])", name: "notification_preferences_digest_cadence_check"
   end
 
   create_table "notifications", force: :cascade do |t|
@@ -539,7 +541,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_100000) do
     t.index ["producer_id"], name: "index_producer_memberships_on_producer_id"
     t.index ["user_id", "producer_id"], name: "index_producer_memberships_on_user_id_and_producer_id", unique: true
     t.index ["user_id"], name: "index_producer_memberships_on_user_id"
-    t.check_constraint "membership_type::text = ANY (ARRAY['owner'::character varying::text, 'manager'::character varying::text, 'contributor'::character varying::text])", name: "chk_membership_type"
+    t.check_constraint "membership_type::text = ANY (ARRAY['owner'::character varying, 'manager'::character varying, 'contributor'::character varying]::text[])", name: "chk_membership_type"
   end
 
   create_table "producer_regions", force: :cascade do |t|
@@ -630,10 +632,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_100000) do
     t.bigint "user_id"
     t.bigint "vintage_id", null: false
     t.index ["category_id"], name: "index_reviews_on_category_id"
+    t.index ["comment"], name: "index_reviews_on_comment_trgm", opclass: :gin_trgm_ops, using: :gin
     t.index ["searchable"], name: "index_reviews_on_searchable", using: :gin
     t.index ["slug"], name: "index_reviews_on_slug", unique: true
     t.index ["source"], name: "index_reviews_on_source"
     t.index ["status"], name: "index_reviews_on_status"
+    t.index ["title"], name: "index_reviews_on_title_trgm", opclass: :gin_trgm_ops, using: :gin
     t.index ["user_id"], name: "index_reviews_on_user_id"
     t.index ["vintage_id"], name: "index_reviews_on_vintage_id"
   end
@@ -1013,7 +1017,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_100000) do
     t.index ["email_verification_token_digest"], name: "index_users_on_email_verification_token_digest"
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
     t.index ["subscription_id"], name: "index_users_on_subscription_id"
-    t.check_constraint "account_status::text = ANY (ARRAY['unclaimed'::character varying::text, 'active'::character varying::text, 'suspended'::character varying::text])", name: "users_account_status_check"
+    t.check_constraint "account_status::text = ANY (ARRAY['unclaimed'::character varying, 'active'::character varying, 'suspended'::character varying]::text[])", name: "users_account_status_check"
   end
 
   create_table "vintages", force: :cascade do |t|

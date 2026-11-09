@@ -30,8 +30,15 @@ class Api::V1::ArticlesController < ApplicationController
     # requested ordering. `ordered_for_search` replaces `recent` instead of
     # appending to it, otherwise recency wins and relevance is silently ignored.
     term = search_term
-    articles = articles.text_search(term)
+    # Trigger similarity search for `q` (advanced search) parameter
+    if params[:q].present?
+      # Use similarity search for advanced search (fuzzy matching)
+      # similarity search already orders by GREATEST similarity score
+      articles = search_with_similarities
+    else
+      articles = articles.text_search(term)
                        .ordered_for_search(params[:sort], ranked: ranked_search?(term))
+    end
     return if render_paginated(articles) { |items| serialize_articles(items) }
 
     render json: serialize_articles(articles)
@@ -62,10 +69,38 @@ class Api::V1::ArticlesController < ApplicationController
     # is searchable — the window function below orders each category's rows by
     # it, so "N most relevant per category" agrees with the paginated feed.
     term = search_term
-    ranked = ranked_search?(term)
-    scope = scope.text_search(term)
-    # Whitelisted fragment qualified with the subquery alias (Article::SORT_ORDERS).
-    order_sql = Article.search_order_sql(params[:sort], ranked: ranked, columns: "a.")
+    # Trigger similarity search for `q` (advanced search) parameter
+    if params[:q].present?
+      # Use similarity search for advanced search (fuzzy matching)
+      scope = search_with_similarities(skip_eager_load: true)
+      # For similarity search, use the GREATEST similarity ordering directly
+      # instead of the rank-based ordering from search_order_sql
+      order_sql = <<~SQL.squish
+        GREATEST(
+          similarity(a.title, #{ActiveRecord::Base.connection.quote(term)}),
+          similarity(a.body, #{ActiveRecord::Base.connection.quote(term)}),
+          COALESCE((SELECT MAX(similarity(r.title, #{ActiveRecord::Base.connection.quote(term)}))
+                    FROM article_reviews ar JOIN reviews r ON r.id = ar.review_id
+                    WHERE ar.article_id = a.id AND r.status = 'published'), 0),
+          COALESCE((SELECT MAX(similarity(r.comment, #{ActiveRecord::Base.connection.quote(term)}))
+                    FROM article_reviews ar JOIN reviews r ON r.id = ar.review_id
+                    WHERE ar.article_id = a.id AND r.status = 'published'), 0),
+          COALESCE((SELECT MAX(similarity(w.name, #{ActiveRecord::Base.connection.quote(term)}))
+                    FROM article_vintages av JOIN vintages v ON v.id = av.vintage_id
+                    JOIN wines w ON w.id = v.wine_id
+                    WHERE av.article_id = a.id), 0),
+          COALESCE((SELECT MAX(similarity(p.name, #{ActiveRecord::Base.connection.quote(term)}))
+                    FROM article_producers ap JOIN producers p ON p.id = ap.producer_id
+                    WHERE ap.article_id = a.id), 0),
+          word_similarity(a.title, #{ActiveRecord::Base.connection.quote(term)}) * 0.8
+        ) DESC
+      SQL
+    else
+      ranked = ranked_search?(term)
+      scope = scope.text_search(term)
+      # Whitelisted fragment qualified with the subquery alias (Article::SORT_ORDERS).
+      order_sql = Article.search_order_sql(params[:sort], ranked: ranked, columns: "a.")
+    end
 
     # Cap each category at `per_group` rows with a window function. The outer
     # ORDER BY matters: the window's own ORDER BY only decides *which* rows are
@@ -230,6 +265,83 @@ class Api::V1::ArticlesController < ApplicationController
   end
 
   private
+
+  # Similarity-based search using PostgreSQL pg_trgm functions.
+  # sim_threshold = 0.2 ensures fuzzy matching
+  # word_sim_threshold = 0.3 ensures word-level matching
+  # @param skip_eager_load [Boolean] if true, skip eager_load/preload for subquery compatibility
+  def search_with_similarities(skip_eager_load: false)
+    # Accept either `q` (advanced search) or `query` (simple search) parameter
+    query = (params[:q].presence || params[:query].presence || "").to_s.strip
+    return if query.blank?
+
+    sim_threshold = 0.2
+    word_sim_threshold = 0.3
+    quoted_query = ActiveRecord::Base.connection.quote(query)
+
+    scope = Article.visible_to(current_user) || Article.all
+    scope = scope.where(user: current_user) if params[:scope] == "mine" && current_user
+    scope = scope.where(status: params[:status]) if Article::STATUSES.include?(params[:status])
+    unless skip_eager_load
+      scope = scope.eager_load(user: :account)
+                       .preload(:tags, images: { file_attachment: :blob },
+                                reviews: { vintage: { wine: { images: { file_attachment: :blob } } } },
+                                vintages: { wine: { images: { file_attachment: :blob } } },
+                                producers: { images: { file_attachment: :blob } })
+    end
+
+    # Build WHERE conditions using trigram similarity
+    # Match against title, body, linked review titles/contents, wine names, producer names
+    conditions = [
+      "similarity(title, ?) > ?",
+      "similarity(body, ?) > ?",
+      "EXISTS (SELECT 1 FROM article_reviews ar JOIN reviews r ON r.id = ar.review_id " +
+        "WHERE ar.article_id = articles.id AND r.status = 'published' " +
+        "AND (similarity(r.title, ?) > ? OR similarity(r.comment, ?) > ?))",
+      "EXISTS (SELECT 1 FROM article_vintages av JOIN vintages v ON v.id = av.vintage_id " +
+        "JOIN wines w ON w.id = v.wine_id " +
+        "WHERE av.article_id = articles.id " +
+        "AND similarity(w.name, ?) > ?)",
+      "EXISTS (SELECT 1 FROM article_producers ap JOIN producers p ON p.id = ap.producer_id " +
+        "WHERE ap.article_id = articles.id " +
+        "AND similarity(p.name, ?) > ?)",
+      "word_similarity(title, ?) > ?"
+    ].join(" OR ")
+
+    scope = scope.where(conditions,
+      query, sim_threshold,
+      query, sim_threshold,
+      query, sim_threshold,
+      query, sim_threshold,
+      query, sim_threshold,
+      query, sim_threshold,
+      query, word_sim_threshold
+    )
+
+    # Order by the best similarity match across all fields
+    order_sql = "GREATEST(" +
+      "similarity(title, " + quoted_query + ")," +
+      "similarity(body, " + quoted_query + ")," +
+      "COALESCE((SELECT MAX(similarity(r.title, " + quoted_query + ")) " +
+        "FROM article_reviews ar JOIN reviews r ON r.id = ar.review_id " +
+        "WHERE ar.article_id = articles.id AND r.status = 'published'), 0)," +
+      "COALESCE((SELECT MAX(similarity(r.comment, " + quoted_query + ")) " +
+        "FROM article_reviews ar JOIN reviews r ON r.id = ar.review_id " +
+        "WHERE ar.article_id = articles.id AND r.status = 'published'), 0)," +
+      "COALESCE((SELECT MAX(similarity(w.name, " + quoted_query + ")) " +
+        "FROM article_vintages av JOIN vintages v ON v.id = av.vintage_id " +
+        "JOIN wines w ON w.id = v.wine_id " +
+        "WHERE av.article_id = articles.id), 0)," +
+      "COALESCE((SELECT MAX(similarity(p.name, " + quoted_query + ")) " +
+        "FROM article_producers ap JOIN producers p ON p.id = ap.producer_id " +
+        "WHERE ap.article_id = articles.id), 0)," +
+      "word_similarity(title, " + quoted_query + ") * 0.8" +
+      ") DESC"
+
+    scope = scope.order(Arel.sql(order_sql))
+
+    scope
+  end
 
   # Management-list filters run after the existing visibility scope. They can
   # only narrow the set of records a caller can already see, never reveal

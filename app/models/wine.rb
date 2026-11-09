@@ -133,18 +133,85 @@ class Wine < ApplicationRecord
     f = filters || {}
 
     if f[:q].present?
-      # One user-supplied phrase, matched against four indexed names. OR — not
-      # AND — so "barolo" can match a wine, producer, region, or grape. EXISTS
-      # predicates keep one row per wine (no DISTINCT needed) and reuse the
-      # same wine_regions / wine_grapes indexes as the id filters below.
-      pattern = "%#{sanitize_sql_like(f[:q].to_s.strip)}%"
+      # One user-supplied phrase, matched against four indexed names using
+      # PostgreSQL pg_trgm similarity functions. OR -- not AND -- so "barolo"
+      # can match a wine, producer, region, or grape. EXISTS predicates keep
+      # one row per wine (no DISTINCT needed) and reuse the same indexes.
+      # Similarity thresholds match wine_profiles_controller search.
+      query = f[:q].to_s.strip
+      sim_threshold = 0.2
+      word_sim_threshold = 0.3
+      quoted_query = connection.quote(query)
+
       scope = scope.where(
-        "wines.name ILIKE :pattern OR " \
-        "EXISTS (SELECT 1 FROM producers WHERE producers.id = wines.producer_id AND producers.name ILIKE :pattern) OR " \
-        "EXISTS (SELECT 1 FROM wine_regions wr JOIN regions ON regions.id = wr.region_id WHERE wr.wine_id = wines.id AND regions.name ILIKE :pattern) OR " \
-        "EXISTS (SELECT 1 FROM wine_grapes wg JOIN grapes ON grapes.id = wg.grape_id WHERE wg.wine_id = wines.id AND grapes.name ILIKE :pattern)",
-        pattern: pattern
+        "(" +
+        "  similarity(wines.name, ?) > ? OR " +
+        "  strict_word_similarity(?, wines.name) > ? OR " +
+        "  word_similarity(?, wines.name) > ? OR " +
+        "  EXISTS (SELECT 1 FROM producers WHERE producers.id = wines.producer_id " +
+        "    AND (similarity(producers.name, ?) > ? OR " +
+        "         strict_word_similarity(?, producers.name) > ? OR " +
+        "         word_similarity(?, producers.name) > ?)" +
+        "  ) OR " +
+        "  EXISTS (SELECT 1 FROM wine_regions wr JOIN regions ON regions.id = wr.region_id " +
+        "    WHERE wr.wine_id = wines.id " +
+        "    AND (similarity(regions.name, ?) > ? OR " +
+        "         strict_word_similarity(?, regions.name) > ? OR " +
+        "         word_similarity(?, regions.name) > ?)" +
+        "  ) OR " +
+        "  EXISTS (SELECT 1 FROM wine_grapes wg JOIN grapes ON grapes.id = wg.grape_id " +
+        "    WHERE wg.wine_id = wines.id " +
+        "    AND (similarity(grapes.name, ?) > ? OR " +
+        "         strict_word_similarity(?, grapes.name) > ? OR " +
+        "         word_similarity(?, grapes.name) > ?)" +
+        "  )" +
+        ")",
+        query, sim_threshold,
+        query, sim_threshold,
+        query, word_sim_threshold,
+        query, sim_threshold,
+        query, sim_threshold,
+        query, word_sim_threshold,
+        query, sim_threshold,
+        query, sim_threshold,
+        query, word_sim_threshold,
+        query, sim_threshold,
+        query, sim_threshold,
+        query, word_sim_threshold
       )
+
+      # Order by best similarity match across all fields
+      order_sql = "GREATEST(" +
+        "similarity(wines.name, " + quoted_query + ")," +
+        "strict_word_similarity(" + quoted_query + ", wines.name)," +
+        "word_similarity(" + quoted_query + ", wines.name) * 0.8," +
+        "COALESCE((SELECT MAX(similarity(producers.name, " + quoted_query + "))" +
+        " FROM producers WHERE producers.id = wines.producer_id), 0)," +
+        "COALESCE((SELECT MAX(strict_word_similarity(" + quoted_query + ", producers.name))" +
+        " FROM producers WHERE producers.id = wines.producer_id), 0)," +
+        "COALESCE((SELECT MAX(word_similarity(" + quoted_query + ", producers.name))" +
+        " FROM producers WHERE producers.id = wines.producer_id), 0) * 0.7," +
+        "COALESCE((SELECT MAX(similarity(regions.name, " + quoted_query + "))" +
+        " FROM wine_regions wr JOIN regions ON regions.id = wr.region_id" +
+        " WHERE wr.wine_id = wines.id), 0)," +
+        "COALESCE((SELECT MAX(strict_word_similarity(" + quoted_query + ", regions.name))" +
+        " FROM wine_regions wr JOIN regions ON regions.id = wr.region_id" +
+        " WHERE wr.wine_id = wines.id), 0)," +
+        "COALESCE((SELECT MAX(word_similarity(" + quoted_query + ", regions.name))" +
+        " FROM wine_regions wr JOIN regions ON regions.id = wr.region_id" +
+        " WHERE wr.wine_id = wines.id), 0) * 0.6," +
+        "COALESCE((SELECT MAX(similarity(grapes.name, " + quoted_query + "))" +
+        " FROM wine_grapes wg JOIN grapes ON grapes.id = wg.grape_id" +
+        " WHERE wg.wine_id = wines.id), 0)," +
+        "COALESCE((SELECT MAX(strict_word_similarity(" + quoted_query + ", grapes.name))" +
+        " FROM wine_grapes wg JOIN grapes ON grapes.id = wg.grape_id" +
+        " WHERE wg.wine_id = wines.id), 0)," +
+        "COALESCE((SELECT MAX(word_similarity(" + quoted_query + ", grapes.name))" +
+        " FROM wine_grapes wg JOIN grapes ON grapes.id = wg.grape_id" +
+        " WHERE wg.wine_id = wines.id), 0) * 0.6" +
+        ") DESC"
+
+      scope = scope.order(Arel.sql(order_sql))
     end
 
     if f[:name].present?
