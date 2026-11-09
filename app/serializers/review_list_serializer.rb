@@ -12,6 +12,7 @@ class ReviewListSerializer
   end
 
   def as_json
+    wine = @review.vintage&.wine
     {
       id: @review.id,
       slug: @review.slug,
@@ -27,6 +28,8 @@ class ReviewListSerializer
       vintage_no_vintage: @review.vintage&.no_vintage,
       category: @review.categories.map(&:name).join(", ").presence,
       categories: @review.categories.map { |c| { id: c.id, name: c.name, slug: c.slug } },
+      grapes: wine&.grapes&.map { |g| { id: g.id, name: g.name, slug: g.slug } } || [],
+      regions: wine&.regions&.map { |r| { id: r.id, name: r.name, slug: r.slug } } || [],
       published_at: @review.published_at&.iso8601,
       deadline: @review.deadline&.iso8601,
       overdue: @review.overdue?,
