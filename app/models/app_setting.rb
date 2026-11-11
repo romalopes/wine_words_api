@@ -11,6 +11,7 @@ class AppSetting < ApplicationRecord
     "use_test_email" => false,
     "test_email" => ENV["MAIL_REPLY_TO"],
     "mail_transport" => "auto",
+    "show_taste_parameters" => "true",
     "analytics_diagnostics_enabled" => false,
     # Follow notifications (issue #192): master switch. Event publishing stops
     # when off — Follow rows and already-delivered notifications are preserved,
@@ -108,6 +109,13 @@ class AppSetting < ApplicationRecord
   def self.test_email
     string("test_email")
   end
+
+  def self.show_taste_parameters?
+    boolean("show_taste_parameters")
+  end
+
+  # Sets a key/value pair, creating the row if it doesn't exist yet. Returns the
+  # value (cast to string) for convenience.
 
   def self.set!(key, value)
     setting = find_or_initialize_by(key: key.to_s)

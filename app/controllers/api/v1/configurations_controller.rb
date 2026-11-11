@@ -19,6 +19,7 @@ class Api::V1::ConfigurationsController < ApplicationController
     AppSetting.set!(:use_test_email, settings[:use_test_email]) if settings.key?(:use_test_email)
     AppSetting.set!(:test_email, settings[:test_email]) if settings.key?(:test_email)
     AppSetting.set!(:mail_transport, settings[:mail_transport]) if settings.key?(:mail_transport)
+    AppSetting.set!(:show_taste_parameters, settings[:show_taste_parameters]) if settings.key?(:show_taste_parameters)
     render json: configuration_json
   rescue ActiveRecord::RecordInvalid => e
     render json: { error: e.record.errors.full_messages.join(", ") },
@@ -32,7 +33,7 @@ class Api::V1::ConfigurationsController < ApplicationController
   # or wrapped in a "configuration" key, whichever the client sends.
   def configuration_params
     permitted = params.permit(
-      :logs_saved_to_database, :use_test_email, :test_email, :mail_transport,
+      :logs_saved_to_database, :use_test_email, :test_email, :mail_transport, :show_taste_parameters,
       configuration: [ :logs_saved_to_database, :use_test_email, :test_email, :mail_transport ]
     )
     permitted[:configuration].presence || permitted
@@ -44,6 +45,7 @@ class Api::V1::ConfigurationsController < ApplicationController
       use_test_email: AppSetting.use_test_email?,
       test_email: AppSetting.test_email,
       mail_transport: AppSetting.mail_transport,
+      show_taste_parameters: AppSetting.show_taste_parameters?,
       settings: AppSetting.where.not(key: AppSetting::RESERVED_KEYS).order(:key).map do |s|
         { id: s.id, key: s.key, value: s.value, updated_at: s.updated_at.iso8601(3) }
       end
