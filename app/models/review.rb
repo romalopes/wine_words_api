@@ -97,7 +97,34 @@ before_save :update_search_vector, unless: :status_only_update?
   scope :published, -> { where(status: "published") }
   scope :drafts, -> { where(status: "draft") }
   scope :archived, -> { where(status: "archived") }
-  scope :visible_to, ->(user) { where(status: "published").or(where(user: user)) }
+  scope :visible_to, ->(user) do
+    # Score >= 85: always visible to everyone
+    # Score < 85: only visible to wine managers (admin/editor/reviewer),
+    #             review author, or producer members (owner/manager/contributor)
+    base = where(status: "published")
+    
+    if user&.wine_manager?
+      # Wine managers see all published reviews (and their own drafts via the .or below)
+      base.or(where(user: user))
+    elsif user
+      # Non-wine managers: published reviews with score >= 85, OR score < 85 where user is author or producer member
+      # Also include user's own reviews (any status) for the "mine" scope
+      visible_published = base.where(
+        "reviews.score >= 85 OR reviews.user_id = ? OR EXISTS (
+          SELECT 1 FROM vintages v
+          JOIN wines w ON w.id = v.wine_id
+          JOIN producer_memberships pm ON pm.producer_id = w.producer_id
+          WHERE v.id = reviews.vintage_id
+            AND pm.user_id = ?
+            AND pm.membership_type IN (?)
+        )", user.id, user.id, ProducerMembership::MEMBERSHIP_TYPES
+      )
+      visible_published.or(where(user: user))
+    else
+      # Not logged in: only score >= 85
+      base.where("reviews.score >= 85")
+    end
+  end
   scope :by_recency, -> { order(created_at: :desc) }
 
   # Whitelisted `sort` values for the reviews listing (see TextSearchable).

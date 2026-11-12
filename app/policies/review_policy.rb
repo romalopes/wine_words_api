@@ -13,9 +13,22 @@ class ReviewPolicy < ApplicationPolicy
       if user&.wine_manager?
         scope.all
       elsif user
-        scope.where(user: user).or(scope.where(status: "published"))
+        # Non-wine managers: published reviews with score >= 85, OR score < 85 where user is author or producer member
+        # Also include user's own reviews (any status)
+        visible_published = scope.where(status: "published").where(
+          "reviews.score >= 85 OR reviews.user_id = ? OR EXISTS (
+            SELECT 1 FROM vintages v
+            JOIN wines w ON w.id = v.wine_id
+            JOIN producer_memberships pm ON pm.producer_id = w.producer_id
+            WHERE v.id = reviews.vintage_id
+              AND pm.user_id = ?
+              AND pm.membership_type IN (?)
+          )", user.id, user.id, ProducerMembership::MEMBERSHIP_TYPES
+        )
+        visible_published.or(scope.where(user: user))
       else
-        scope.where(status: "published")
+        # Not logged in: only score >= 85
+        scope.where(status: "published").where("reviews.score >= 85")
       end
     end
   end

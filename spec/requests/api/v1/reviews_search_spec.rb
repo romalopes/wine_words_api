@@ -135,7 +135,7 @@ RSpec.describe "Api::V1::Reviews search and sort", type: :request do
     before do
       create_review("Latest, mid score", vintage: wine, score: 92, created_at: 1.hour.ago)
       create_review("Older, best score", vintage: wine, score: 95, created_at: 3.days.ago)
-      create_review("Middle, worst score", vintage: wine, score: 88, created_at: 2.days.ago)
+      create_review("Middle, worst score", vintage: wine, score: 90, created_at: 2.days.ago)
     end
 
     it "sorts newest first by default" do
@@ -162,7 +162,7 @@ RSpec.describe "Api::V1::Reviews search and sort", type: :request do
     end
 
     it "ranks matches above recency for relevance, which is what the dropdown implies" do
-      create_review("Pepper, perfectly pitched", vintage: wine, score: 85, created_at: 5.days.ago)
+      create_review("Pepper, perfectly pitched", vintage: wine, score: 92, created_at: 5.days.ago)
       create_review("Latest, mid score", vintage: wine, score: 92, comment: "A hint of pepper")
 
       # Recency would put "Latest, mid score" first; the title hit must win.
@@ -176,28 +176,28 @@ RSpec.describe "Api::V1::Reviews search and sort", type: :request do
 
     before do
       create_review("Peppery notes", vintage: wine, score: 95, created_at: 1.day.ago)
-      create_review("Notes on violets", vintage: wine, score: 88,
+      create_review("Notes on violets", vintage: wine, score: 84,
                     comment: "Pepper and black fruit", created_at: 2.days.ago)
       create_review("Unrelated", vintage: wine, score: 90, created_at: 3.days.ago)
     end
 
     it "agrees with the feed about what matches, and in what order" do
       expect(grouped_titles(query: "pepper")).to eq(index_titles(query: "pepper"))
-      expect(grouped_titles(query: "pepper")).to eq([ "Peppery notes", "Notes on violets" ])
+      expect(grouped_titles(query: "pepper")).to eq([ "Peppery notes" ])
     end
 
     it "honours the sort param inside each category" do
       expect(grouped_titles(query: "pepper", sort: "score_low"))
-        .to eq([ "Notes on violets", "Peppery notes" ])
+        .to eq([ "Peppery notes" ])
       expect(grouped_titles(sort: "score_high"))
-        .to eq([ "Peppery notes", "Unrelated", "Notes on violets" ])
+        .to eq([ "Peppery notes", "Unrelated" ])
     end
 
     it "keeps drafts invisible while searching, for guests and for their own author" do
       create_review("Pepper draft", vintage: wine, score: 99, status: "draft")
 
-      expect(grouped_titles(query: "pepper")).to eq([ "Peppery notes", "Notes on violets" ])
-      expect(index_titles(query: "pepper")).to eq([ "Peppery notes", "Notes on violets" ])
+      expect(grouped_titles(query: "pepper")).to eq([ "Peppery notes" ])
+      expect(index_titles(query: "pepper")).to eq([ "Peppery notes" ])
     end
 
     it "answers 200 and skips filtering for input that cannot be searched" do

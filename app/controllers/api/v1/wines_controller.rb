@@ -36,7 +36,7 @@ class Api::V1::WinesController < ApplicationController
     wines = wines.to_a
     vintage_counts ||= Vintage.where(wine_id: wines.map(&:id)).group(:wine_id).count
     liked_ids = Likes.liked_ids_for(wines, current_user)
-    wines.map { |wine| WineListSerializer.new(wine, request.base_url, vintage_counts, liked_ids: liked_ids).as_json }
+    wines.map { |wine| WineListSerializer.new(wine, request.base_url, vintage_counts, liked_ids: liked_ids, user: current_user).as_json }
   end
 
   # GET /api/v1/wines/grouped?per_group=12
@@ -87,7 +87,7 @@ class Api::V1::WinesController < ApplicationController
     liked_ids = Likes.liked_ids_for(wines_by_id.values, current_user)
     rows.each do |row|
       cat_id = row.grouped_cat_id == 0 ? nil : row.grouped_cat_id
-      groups[cat_id] << WineListSerializer.new(wines_by_id[row.id], request.base_url, vintage_counts, liked_ids: liked_ids).as_json
+      groups[cat_id] << WineListSerializer.new(wines_by_id[row.id], request.base_url, vintage_counts, liked_ids: liked_ids, user: current_user).as_json
     end
 
     category_counts = rows.to_h { |row| [ row.grouped_cat_id, row.grouped_count.to_i ] }

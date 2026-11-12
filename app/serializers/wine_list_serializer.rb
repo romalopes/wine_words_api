@@ -7,11 +7,12 @@ class WineListSerializer
   include ImageAttributes
   include LikeAttributes
 
-  def initialize(wine, base_url = nil, vintage_counts = {}, liked_ids: nil)
+  def initialize(wine, base_url = nil, vintage_counts = {}, liked_ids: nil, user: nil)
     @wine = wine
     @base_url = base_url
     @vintage_counts = vintage_counts
     @liked_ids = liked_ids
+    @user = user
   end
 
   def as_json
@@ -25,6 +26,7 @@ class WineListSerializer
       producer: producer,
       grapes: grapes,
       regions: regions,
+      parameters: parameters,
       vintages_count: @vintage_counts[@wine.id] || 0,
       **like_fields(@wine, @liked_ids),
       images: image_urls(@wine)
@@ -49,5 +51,18 @@ class WineListSerializer
 
   def regions
     @wine.regions.map { |region| { id: region.id, slug: region.slug, name: region.name } }
+  end
+
+  def parameters
+    @wine.wine_taste_parameters.map do |wtp|
+      param = {
+        id: wtp.id,
+        taste_parameter_id: wtp.taste_parameter_id,
+        taste_parameter_slug: wtp.taste_parameter.slug
+      }
+      # Only include score if user is linked to the wine (admin/editor/reviewer, reviewer, producer member)
+      param[:score] = @wine.user_linked?(@user) ? wtp.score : nil
+      param
+    end
   end
 end

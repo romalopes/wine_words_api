@@ -24,6 +24,7 @@ class ReviewListSerializer
       reviewer_name: @review.user&.display_name || @review.user&.email || "Unknown",
       wine_name: @review.vintage&.wine&.name,
       wine_slug: @review.vintage&.wine&.slug,
+      producer_id: @review.vintage&.wine&.producer_id,
       vintage_year: @review.vintage&.year,
       vintage_no_vintage: @review.vintage&.no_vintage,
       category: @review.categories.map(&:name).join(", ").presence,

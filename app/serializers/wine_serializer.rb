@@ -86,17 +86,16 @@ class WineSerializer
   end
 
   def parameters
-    # @wine.wine_taste_parameters.to_h do |wtp|
-    #   [wtp.taste_parameter.slug, wtp.score]
-    # end
     @wine.wine_taste_parameters.map do |wtp|
-    {
-      id: wtp.id,
-      taste_parameter_id: wtp.taste_parameter_id,
-      taste_parameter_slug: wtp.taste_parameter.slug,
-      score: wtp.score
-    }
-end
+      param = {
+        id: wtp.id,
+        taste_parameter_id: wtp.taste_parameter_id,
+        taste_parameter_slug: wtp.taste_parameter.slug
+      }
+      # Only include score if user is linked to the wine (admin/editor/reviewer, reviewer, producer member)
+      param[:score] = @wine.user_linked?(@user) ? wtp.score : nil
+      param
+    end
   end
 
     def grapes

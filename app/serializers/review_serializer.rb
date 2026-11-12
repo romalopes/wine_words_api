@@ -29,6 +29,7 @@ class ReviewSerializer
       vintage_no_vintage: @review.vintage&.no_vintage,
       wine_name: @review.vintage&.wine&.name,
       wine_slug: @review.vintage&.wine&.slug,
+      producer_id: @review.vintage&.wine&.producer_id,
       category: @review.categories.map(&:name).join(", ").presence,
       categories: categories,
       category_ids: @review.categories.map(&:id),

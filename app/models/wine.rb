@@ -407,6 +407,31 @@ class Wine < ApplicationRecord
 
   public
 
+  # Check if a user is linked to this wine and can view taste parameter scores.
+  # Linked users include:
+  #   - wine managers (admin/editor/reviewer)
+  #   - users who have written a review for a vintage of this wine
+  #   - users assigned as reviewers in a wine package for this wine
+  #   - producer members (owner/manager/contributor) of this wine's producer
+  def user_linked?(user)
+    return false unless user
+    return true if user.wine_manager?
+    
+    # Check if user has reviewed a vintage of this wine
+    return true if Review.joins(:vintage).where(vintages: { wine_id: id }, user: user).exists?
+    
+    # Check if user is assigned as reviewer in a wine package for this wine
+    return true if WinePackage.joins(wine_package_items: :vintage)
+                               .where(vintages: { wine_id: id })
+                               .where(reviewer: user)
+                               .exists?
+    
+    # Check if user is a producer member (owner/manager/contributor) of this wine's producer
+    return true if ProducerMembership.where(user: user, producer: producer, membership_type: ProducerMembership::MEMBERSHIP_TYPES).exists?
+    
+    false
+  end
+
   # Auto-assign the closest profile and copy taste parameters when the wine has
   # no taste parameters (see the callback registered above).
   def assign_closest_wine_profile

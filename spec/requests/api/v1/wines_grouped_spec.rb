@@ -31,7 +31,7 @@ RSpec.describe "Wine list query efficiency", type: :request do
     expect(card["images"].size).to eq(1)
     expect(queries.grep(/FROM "active_storage_(?:attachments|blobs)"/)).to be_empty
     expect(queries.grep(/SELECT COUNT\(\*\).*FROM "vintages"/)).to be_empty
-    expect(queries.grep(/\ASELECT/i).size).to eq(7)
+    expect(queries.grep(/\ASELECT/i).size).to eq(8)
   end
 
   it "caps category cards while preserving totals and multi-category membership" do
