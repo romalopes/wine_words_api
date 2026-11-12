@@ -64,6 +64,22 @@ class Api::V1::UsersController < ApplicationController
         can_manage_billing: Billing.configured?,
         subscription_status: current_sub&.status,
         can_access_wine_packages: current_user.can_access_wine_packages?,
+        producer_memberships: current_user.producer_memberships.map do |pm|
+          {
+            id: pm.id,
+            membership_type: pm.membership_type,
+            can_edit: pm.can_edit_producer?,
+            producer: {
+              id: pm.producer.id,
+              name: pm.producer.name,
+              slug: pm.producer.slug,
+              country: pm.producer.country&.name
+            },
+            created_by: pm.created_by ? { id: pm.created_by.id, display_name: pm.created_by.display_name } : nil,
+            created_at: pm.created_at,
+            updated_at: pm.updated_at
+          }
+        end,
         # Scheduled/pending plan change so the UI can show the downgrade banner.
         subscription_change: pending_change && {
           id: pending_change.id,
