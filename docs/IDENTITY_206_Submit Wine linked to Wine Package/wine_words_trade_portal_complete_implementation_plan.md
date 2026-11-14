@@ -18,6 +18,32 @@ and follow review progress.
 
 ------------------------------------------------------------------------
 
+## Phase Implementation Documents
+
+Each implementation phase has a dedicated execution document in this directory:
+
+1. [Phase 0 — Repository Baseline and Architecture Audit](./phase-0-repository-baseline-and-architecture-audit.md)
+2. [Phase 1 — Domain Design and Technical Specification](./phase-1-domain-design-and-technical-specification.md)
+3. [Phase 2 — Trade Navigation and Public Information Pages](./phase-2-trade-navigation-and-public-information-pages.md)
+4. [Phase 3 — Public Submission Backend and WinePackage Integration](./phase-3-public-submission-backend-and-wine-package-integration.md)
+5. [Phase 4 — Public Multi-Step Submission Frontend](./phase-4-public-multi-step-submission-frontend.md)
+6. [Phase 5 — Email Verification, Account Provisioning, and Package Claiming](./phase-5-email-verification-account-provisioning-and-package-claiming.md)
+7. [Phase 6 — My Wine Packages](./phase-6-my-wine-packages.md)
+8. [Phase 7 — Trade Management and Editorial Assessment](./phase-7-trade-management-and-editorial-assessment.md)
+9. [Phase 8 — Package Conversations and Attachments](./phase-8-package-conversations-and-attachments.md)
+10. [Phase 9 — Notifications and Email Integration](./phase-9-notifications-and-email-integration.md)
+11. [Phase 10 — Quotes, Invoices, and Commercial Administration](./phase-10-quotes-invoices-and-commercial-administration.md)
+12. [Phase 11 — Stripe Payment Integration](./phase-11-stripe-payment-integration.md)
+13. [Phase 12 — Shipping and Fulfilment](./phase-12-shipping-and-fulfilment.md)
+14. [Phase 13 — Review Workflow Integration](./phase-13-review-workflow-integration.md)
+15. [Phase 14 — Security, Observability, and Production Readiness](./phase-14-security-observability-and-production-readiness.md)
+
+**Related separate plan (platform-wide infrastructure, not part of this feature):**
+
+- [Cloudflare Turnstile, Rate Limiting, and Abuse Protection](../TurnStile/turnstile-rate-limiting-separate-plan.md) — Turnstile/rate limiting were removed from this plan because they are cross-cutting platform infrastructure, not wine-submission-specific. Trade portal endpoints integrate this infrastructure via shared middleware; it must be in place before any public feature launches.
+
+------------------------------------------------------------------------
+
 # 1. Product vision and guiding decisions
 
 ## 1.1 Trade navigation
@@ -1371,6 +1397,8 @@ Run relevant tests after each phase. Do not ask an AI coding agent to
 implement all phases in one pass.
 
 ## Phase 0 --- Repository baseline and architecture audit
+**Phase document:** [Phase 0 — Repository Baseline and Architecture Audit](./phase-0-repository-baseline-and-architecture-audit.md)
+
 
 **Goal:** Understand the current Wine Words implementation and produce a
 reuse map.
@@ -1433,6 +1461,8 @@ model is proposed without justification. - Implementation dependencies
 are identified.
 
 ## Phase 1 --- Domain design and technical specification
+**Phase document:** [Phase 1 — Domain Design and Technical Specification](./phase-1-domain-design-and-technical-specification.md)
+
 
 **Goal:** Finalise the data model, status transitions, access rules and
 API contract before migrations.
@@ -1493,6 +1523,8 @@ Editor and Admin. - State transitions and partial approval are
 unambiguous.
 
 ## Phase 2 --- Trade navigation and public information pages
+**Phase document:** [Phase 2 — Trade Navigation and Public Information Pages](./phase-2-trade-navigation-and-public-information-pages.md)
+
 
 **Goal:** Establish the public Trade experience without yet enabling
 package creation.
@@ -1543,6 +1575,8 @@ navigation is not broken. - Guidelines do not make unsupported promises
 about acceptance, fees or turnaround.
 
 ## Phase 3 --- Public submission backend and WinePackage integration
+**Phase document:** [Phase 3 — Public Submission Backend and WinePackage Integration](./phase-3-public-submission-backend-and-wine-package-integration.md)
+
 
 **Goal:** Create public packages safely, without requiring a User or
 Producer.
@@ -1604,7 +1638,9 @@ items. - Failure creating any item rolls back the transaction. - Client
 cannot set privileged associations/statuses. - Existing internal package
 workflows pass their tests.
 
-## Phase 4 --- Cloudflare Turnstile, rate limiting and public abuse controls
+## Phase 4 --- Public multi-step submission frontend
+**Phase document:** [Phase 4 — Public Multi-Step Submission Frontend](./phase-4-public-multi-step-submission-frontend.md)
+
 
 **Goal:** Protect public submission and guest endpoints before public
 launch.
@@ -1672,7 +1708,9 @@ frontend build output. - Rate limits work across multiple API
 instances. - Production cannot accidentally use a development bypass. -
 Security tests cover failure conditions.
 
-## Phase 5 --- Public multi-step submission frontend
+## Phase 5 --- Email verification, account provisioning and package claiming
+**Phase document:** [Phase 5 — Email Verification, Account Provisioning, and Package Claiming](./phase-5-email-verification-account-provisioning-and-package-claiming.md)
+
 
 **Goal:** Deliver the complete Submit a Wine experience.
 
@@ -1734,7 +1772,9 @@ submission works. - Multiple items work. - Turnstile is required in
 production. - Form errors are understandable. - Duplicate clicks do not
 create duplicate packages.
 
-## Phase 6 --- Email verification, account provisioning and package claiming
+## Phase 6 --- My Wine Packages
+**Phase document:** [Phase 6 — My Wine Packages](./phase-6-my-wine-packages.md)
+
 
 **Goal:** Give submitters reliable access without forcing login before
 submission.
@@ -1797,7 +1837,9 @@ guest can access only the intended package. - Claiming associates the
 package with the authenticated User. - Tokens are expiring, single-use
 and not stored in plaintext.
 
-## Phase 7 --- My Wine Packages
+## Phase 7 --- Trade Management and editorial assessment
+**Phase document:** [Phase 7 — Trade Management and Editorial Assessment](./phase-7-trade-management-and-editorial-assessment.md)
+
 
 **Goal:** Give submitters one place to manage all authorised packages.
 
@@ -1842,7 +1884,9 @@ sees only the package granted by verified access. - Internal information
 never appears in submitter responses. - Existing package management
 remains functional.
 
-## Phase 8 --- Trade Management and editorial assessment
+## Phase 8 --- Package conversations and attachments
+**Phase document:** [Phase 8 — Package Conversations and Attachments](./phase-8-package-conversations-and-attachments.md)
+
 
 **Goal:** Give Editors/Admins a controlled assessment workflow.
 
@@ -1902,7 +1946,9 @@ Partial approval works. - Producer matching is audited. - No
 unauthorised user can perform editorial actions. - Internal notes are
 private.
 
-## Phase 9 --- Package conversations and attachments
+## Phase 9 --- Notification and email integration
+**Phase document:** [Phase 9 — Notifications and Email Integration](./phase-9-notifications-and-email-integration.md)
+
 
 **Goal:** Implement the package-specific communication channel.
 
@@ -1952,7 +1998,9 @@ package. - Private notes are invisible to submitters. - Attachments are
 private and authorised. - Message creation survives email delivery
 failure.
 
-## Phase 10 --- Notification and email integration
+## Phase 10 --- Quotes, invoices and commercial administration
+**Phase document:** [Phase 10 — Quotes, Invoices, and Commercial Administration](./phase-10-quotes-invoices-and-commercial-administration.md)
+
 
 **Goal:** Notify the correct participant for each package event/message.
 
@@ -2008,7 +2056,9 @@ Add tests for duplicate jobs, retry and email content/privacy.
 notification. - No duplicate email on job retry. - Internal notes are
 never emailed. - Email failures do not lose domain events.
 
-## Phase 11 --- Quotes, invoices and commercial administration
+## Phase 11 --- Stripe payment integration (or alternative)
+**Phase document:** [Phase 11 — Stripe Payment Integration](./phase-11-stripe-payment-integration.md)
+
 
 **Goal:** Allow Editors/Admins to charge for approved review services.
 
@@ -2058,7 +2108,9 @@ items. - Rejected items are not billed. - Invoice is immutable after
 issue, with corrections handled through appropriate credit/reissue
 workflow. - Financial records are separate from package status.
 
-## Phase 12 --- Stripe payment integration (or alternative)
+## Phase 12 --- Shipping and fulfilment
+**Phase document:** [Phase 12 — Shipping and Fulfilment](./phase-12-shipping-and-fulfilment.md)
+
 
 **Goal:** Accept payment safely after approval/invoice.
 
@@ -2104,7 +2156,9 @@ event or documented authorised manual process. - Duplicate webhooks do
 not duplicate payments. - Shipping gate works. - Refunds and failures
 are represented correctly.
 
-## Phase 13 --- Shipping and fulfilment
+## Phase 13 --- Review workflow integration
+**Phase document:** [Phase 13 — Review Workflow Integration](./phase-13-review-workflow-integration.md)
+
 
 **Goal:** Manage physical wine sample delivery and receipt.
 
@@ -2148,7 +2202,9 @@ payment/override. - Partial deliveries are represented accurately. -
 Received quantities are tracked per wine item. - Sensitive delivery
 details are access controlled.
 
-## Phase 14 --- Review workflow integration
+## Phase 14 --- Security hardening, observability and production readiness
+**Phase document:** [Phase 14 — Security, Observability, and Production Readiness](./phase-14-security-observability-and-production-readiness.md)
+
 
 **Goal:** Connect received wine samples to existing review operations.
 
@@ -2189,7 +2245,7 @@ Add tests for item eligibility, matching, assignment, publication linkage and pe
 eligible items enter review. - Submitted snapshots remain available. -
 Published review links are correct.
 
-## Phase 15 --- Security hardening, observability and production readiness
+
 
 **Goal:** Complete security and operational checks before launch.
 
