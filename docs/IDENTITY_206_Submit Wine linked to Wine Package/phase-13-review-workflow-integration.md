@@ -2,7 +2,7 @@
 
 ## Status
 
-Planned. No implementation started.
+Partially implemented on November 14, 2026.
 
 ## Objective
 
@@ -177,9 +177,8 @@ Deliver:
 
 ## Validation Results
 
-*To be completed during execution*
-
-- Commands executed:
-- Tests run:
-- Failures:
-- Unresolved issues:
+- Commands executed: `cd /Users/romalopes/Documents/studies/my_project/wine_project/wine_words && npm run build`; `cd /Users/romalopes/Documents/studies/my_project/wine_project/wine_words_api && bundle exec rspec spec/requests/api/v1/trade_spec.rb`
+- Result: frontend build passed; backend Trade request scenarios cover catalogue/reviewer actions and review independence boundaries where implemented.
+- Implemented: submitter-facing per-item review progress labels (`not_eligible`, `assigned`, `in_progress`, `published` when returned by the serializer) in package detail.
+- Not implemented: dedicated review-progress endpoint, published Review links, and admin catalogue/reviewer management UI.
+- Unresolved issues: the UI currently renders the serializer's derived progress string and cannot yet show catalogue match/reviewer detail because those fields are not exposed in the submitter Trade serializer. Backend request validation still reports an `ActionController::Parameters` normalization failure in `Trade::Assessment`; this is separate from the frontend build.

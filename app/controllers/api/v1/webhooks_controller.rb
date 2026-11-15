@@ -45,6 +45,7 @@ class Api::V1::WebhooksController < ActionController::Base
     case event.type
     when "checkout.session.completed"
       handle_checkout_completed(event.data.object.to_hash.deep_stringify_keys)
+      handle_trade_checkout_completed(event.data.object.to_hash.deep_stringify_keys)
     when "customer.subscription.created", "customer.subscription.updated"
       handle_subscription_change(event.data.object.to_hash.deep_stringify_keys)
     when "customer.subscription.deleted"
@@ -53,6 +54,10 @@ class Api::V1::WebhooksController < ActionController::Base
       handle_invoice_paid(event.data.object.to_hash.deep_stringify_keys)
     when "invoice.payment_failed"
       handle_payment_failed(event.data.object.to_hash.deep_stringify_keys)
+    when "payment_intent.succeeded"
+      handle_trade_payment_succeeded(event.data.object.to_hash.deep_stringify_keys)
+    when "payment_intent.payment_failed"
+      handle_trade_payment_failed(event.data.object.to_hash.deep_stringify_keys)
     else
       # Unrecognised events are still acknowledged (return 200).
       Rails.logger.info "[Stripe Webhook] Unhandled event type: #{event.type} (#{event.id})"
@@ -339,5 +344,51 @@ class Api::V1::WebhooksController < ActionController::Base
       request_id: @stripe_event&.id,
       objects: [ user, from_plan, to_plan, provider_sub_id ].compact
     )
+  end
+
+  # ---- Trade invoices (IDENTITY_206 Phase 11) ------------------------------
+  # Trade checkout sessions carry metadata.trade_invoice_id; the billing
+  # handlers above ignore such sessions, and these handlers ignore sessions
+  # without the metadata — the two domains share one webhook endpoint and one
+  # idempotency store (BillingEvent.claim) without touching each other.
+
+  def handle_trade_checkout_completed(checkout_session)
+    invoice_id = checkout_session.dig("metadata", "trade_invoice_id")
+    return if invoice_id.blank?
+
+    invoice = WinePackageInvoice.find_by(id: invoice_id)
+    return if invoice.nil?
+
+    Trade::Payments::HandleSettled.call(
+      invoice: invoice,
+      payment_intent_id: checkout_session["payment_intent"],
+      session_id: checkout_session["id"],
+      metadata: checkout_session["metadata"] || {}
+    )
+  end
+
+  def handle_trade_payment_succeeded(payment_intent)
+    invoice_id = payment_intent.dig("metadata", "trade_invoice_id")
+    return if invoice_id.blank?
+
+    invoice = WinePackageInvoice.find_by(id: invoice_id)
+    return if invoice.nil?
+
+    Trade::Payments::HandleSettled.call(
+      invoice: invoice,
+      payment_intent_id: payment_intent["id"],
+      metadata: payment_intent["metadata"] || {}
+    )
+  end
+
+  def handle_trade_payment_failed(payment_intent)
+    invoice_id = payment_intent.dig("metadata", "trade_invoice_id")
+    return if invoice_id.blank?
+
+    invoice = WinePackageInvoice.find_by(id: invoice_id)
+    return if invoice.nil?
+
+    invoice.update!(status: "sent") # stays payable; the submitter can retry
+    Rails.logger.warn "[Trade Payments] invoice #{invoice.invoice_number} payment failed"
   end
 end

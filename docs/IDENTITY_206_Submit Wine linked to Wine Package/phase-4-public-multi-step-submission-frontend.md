@@ -2,7 +2,7 @@
 
 ## Status
 
-Planned. No implementation started.
+Partially implemented on November 14, 2026.
 
 ## Objective
 
@@ -176,9 +176,8 @@ Deliver:
 
 ## Validation Results
 
-*To be completed during execution*
-
-- Commands executed:
-- Tests run:
-- Failures:
-- Unresolved issues:
+- Commands executed: `cd /Users/romalopes/Documents/studies/my_project/wine_project/wine_words && npm run build`
+- Result: passed.
+- Implemented: four-step responsive form at `/trade/submit`, contact and wine validation, dynamic wines, duplicate detection, local draft persistence, idempotency-key submission, confirmation with guest link, copy action, loading/error states.
+- Not implemented: Cloudflare Turnstile widget/token submission, honeypot field, dedicated confirmation URL `/trade/submit/confirmation/:reference`, schema-library validation, and automated component/integration/accessibility tests.
+- Unresolved issues: The API currently accepts the implemented payload without Turnstile because Turnstile is a separate platform plan; production launch must not treat this frontend state as complete until server verification is active. Repository-wide `npm run typecheck` remains red on unrelated pre-existing files; no Trade-specific TypeScript errors remain after the follow-up check.

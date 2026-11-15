@@ -61,11 +61,43 @@ RSpec.describe Analytics::Event, type: :model do
   end
 
   describe ".anonymize_account!" do
-    it "rewrites account identity to erased form" do
+    it "rewrites account identity to erased form and clears visitor_key" do
       described_class.create!(viewable_type: "Article", viewable_id: 1,
-                              identity: "account:42", viewed_at: Time.current, accepted: true)
+                              identity: "account:42", viewed_at: Time.current, accepted: true,
+                              visitor_key: "some-key")
       described_class.anonymize_account!(42)
+      record = described_class.where(identity: "visitor:erased-42")
+      expect(record).to exist
+      expect(record.pluck(:visitor_key).all?(&:nil?)).to be(true)
+    end
+  end
+
+  describe ".anonymize_visitor!" do
+    it "rewrites visitor identity to erased form and clears visitor_key" do
+      described_class.create!(viewable_type: "Article", viewable_id: 1,
+                              identity: visitor_identity, viewed_at: Time.current, accepted: true,
+                              visitor_key: "some-key")
+      described_class.anonymize_visitor!("550e8400-e29b-41d4-a716-446655440000")
+      record = described_class.where(identity: "visitor:erased-550e8400-e29b-41d4-a716-446655440000")
+      expect(record).to exist
+      expect(record.pluck(:visitor_key).all?(&:nil?)).to be(true)
+    end
+  end
+
+  describe ".erasure!" do
+    it "rewrites full account identity and clears visitor_key" do
+      described_class.create!(viewable_type: "Article", viewable_id: 1,
+                              identity: "account:42", viewed_at: Time.current, accepted: true,
+                              visitor_key: "some-key")
+      erased = described_class.erasure!("account:42")
+      expect(erased).to eq(1)
       expect(described_class.where(identity: "visitor:erased-42")).to exist
+      expect(described_class.pluck(:visitor_key).all?(&:nil?)).to be(true)
+    end
+
+    it "raises ArgumentError for invalid identity format" do
+      expect { described_class.erasure!("account:abc") }.to raise_error(ArgumentError)
+      expect { described_class.erasure!("no-prefix") }.to raise_error(ArgumentError)
     end
   end
 

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_09_042248) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_14_000004) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -1083,22 +1083,95 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_09_042248) do
     t.index ["wine_package_id"], name: "index_wine_package_events_on_wine_package_id"
   end
 
+  create_table "wine_package_invoices", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "currency", limit: 8, default: "EUR", null: false
+    t.datetime "due_at"
+    t.string "invoice_number", null: false
+    t.datetime "issued_at"
+    t.jsonb "items", default: [], null: false
+    t.datetime "paid_at"
+    t.string "status", limit: 32, default: "draft", null: false
+    t.string "stripe_checkout_session_id"
+    t.string "stripe_payment_intent_id"
+    t.jsonb "stripe_payment_metadata"
+    t.decimal "subtotal", precision: 10, scale: 2, default: "0.0", null: false
+    t.decimal "tax", precision: 10, scale: 2, default: "0.0", null: false
+    t.decimal "total", precision: 10, scale: 2, default: "0.0", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "wine_package_id", null: false
+    t.bigint "wine_package_quote_id"
+    t.index ["invoice_number"], name: "index_wine_package_invoices_on_invoice_number", unique: true
+    t.index ["status"], name: "index_wine_package_invoices_on_status"
+    t.index ["stripe_checkout_session_id"], name: "index_wine_package_invoices_on_stripe_checkout_session_id"
+    t.index ["wine_package_id"], name: "index_wine_package_invoices_on_wine_package_id"
+    t.index ["wine_package_quote_id"], name: "index_wine_package_invoices_on_wine_package_quote_id"
+  end
+
   create_table "wine_package_items", force: :cascade do |t|
+    t.bigint "catalogue_wine_id"
     t.string "condition", limit: 64
     t.datetime "created_at", null: false
+    t.string "item_status", limit: 32, default: "pending", null: false
     t.text "notes"
     t.integer "proposed_vintage_year"
     t.string "proposed_wine_name", limit: 255
     t.integer "quantity", default: 1, null: false
     t.datetime "received_at"
+    t.text "received_notes"
     t.bigint "review_id"
     t.boolean "review_requested", default: false, null: false
+    t.decimal "snapshot_abv", precision: 4, scale: 1
+    t.string "snapshot_appellation", limit: 128
+    t.string "snapshot_closure_type", limit: 64
+    t.string "snapshot_grape_varieties", limit: 255
+    t.string "snapshot_region", limit: 128
+    t.decimal "snapshot_retail_price", precision: 10, scale: 2
+    t.boolean "snapshot_sample_available", default: false, null: false
+    t.integer "snapshot_sample_quantity"
+    t.text "snapshot_tasting_notes"
+    t.string "snapshot_technical_sheet_url", limit: 500
+    t.decimal "snapshot_trade_price", precision: 10, scale: 2
+    t.integer "snapshot_volume_ml"
     t.datetime "updated_at", null: false
     t.bigint "vintage_id"
     t.bigint "wine_package_id", null: false
+    t.index ["catalogue_wine_id"], name: "index_wine_package_items_on_catalogue_wine_id"
+    t.index ["item_status"], name: "index_wine_package_items_on_item_status"
     t.index ["review_id"], name: "index_wine_package_items_on_review_id"
     t.index ["vintage_id"], name: "index_wine_package_items_on_vintage_id"
     t.index ["wine_package_id"], name: "index_wine_package_items_on_wine_package_id"
+  end
+
+  create_table "wine_package_messages", force: :cascade do |t|
+    t.text "body", null: false
+    t.datetime "created_at", null: false
+    t.boolean "internal_note", default: false, null: false
+    t.bigint "sender_id"
+    t.string "sender_type", limit: 32, default: "submitter", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "wine_package_id", null: false
+    t.index ["internal_note"], name: "index_wine_package_messages_on_internal_note"
+    t.index ["sender_id"], name: "index_wine_package_messages_on_sender_id"
+    t.index ["wine_package_id"], name: "index_wine_package_messages_on_wine_package_id"
+  end
+
+  create_table "wine_package_quotes", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "created_by_id", null: false
+    t.string "currency", limit: 8, default: "EUR", null: false
+    t.jsonb "items", default: [], null: false
+    t.string "service_type", limit: 32, default: "review", null: false
+    t.string "status", limit: 32, default: "draft", null: false
+    t.decimal "subtotal", precision: 10, scale: 2, default: "0.0", null: false
+    t.decimal "tax", precision: 10, scale: 2, default: "0.0", null: false
+    t.decimal "total", precision: 10, scale: 2, default: "0.0", null: false
+    t.datetime "updated_at", null: false
+    t.date "valid_until"
+    t.bigint "wine_package_id", null: false
+    t.index ["created_by_id"], name: "index_wine_package_quotes_on_created_by_id"
+    t.index ["status"], name: "index_wine_package_quotes_on_status"
+    t.index ["wine_package_id"], name: "index_wine_package_quotes_on_wine_package_id"
   end
 
   create_table "wine_packages", force: :cascade do |t|
@@ -1107,14 +1180,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_09_042248) do
     t.datetime "announced_at"
     t.datetime "arrived_at"
     t.boolean "auto_completed", default: false, null: false
+    t.jsonb "contact_snapshot"
     t.datetime "created_at", null: false
     t.bigint "created_by_id"
     t.datetime "delivered_at"
     t.datetime "estimated_delivery_at"
     t.date "expected_at"
+    t.string "guest_token_digest"
+    t.datetime "guest_token_expires_at"
+    t.datetime "guest_token_revoked_at"
     t.text "internal_notes"
     t.text "notes"
-    t.bigint "producer_id", null: false
+    t.bigint "producer_id"
     t.text "producer_notes"
     t.string "producer_reference", limit: 128
     t.datetime "rejected_at"
@@ -1125,10 +1202,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_09_042248) do
     t.date "review_deadline"
     t.datetime "reviewed_at"
     t.bigint "reviewer_id"
+    t.jsonb "shipping_address"
     t.text "shipping_notes"
+    t.datetime "shipping_override_at"
+    t.bigint "shipping_override_by_id"
+    t.string "shipping_override_reason", limit: 255
     t.string "source", limit: 32, default: "manual", null: false
     t.string "status", limit: 32, default: "draft", null: false
     t.datetime "submitted_at"
+    t.bigint "submitter_id"
     t.string "tracking_carrier", limit: 64
     t.string "tracking_number", limit: 128
     t.string "tracking_status", limit: 64
@@ -1137,12 +1219,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_09_042248) do
     t.datetime "updated_at", null: false
     t.index ["accepted_by_id"], name: "index_wine_packages_on_accepted_by_id"
     t.index ["created_by_id"], name: "index_wine_packages_on_created_by_id"
+    t.index ["guest_token_digest"], name: "index_wine_packages_on_guest_token_digest"
     t.index ["producer_id"], name: "index_wine_packages_on_producer_id"
     t.index ["rejected_by_id"], name: "index_wine_packages_on_rejected_by_id"
     t.index ["requested_by_id"], name: "index_wine_packages_on_requested_by_id"
     t.index ["review_deadline"], name: "index_wine_packages_on_review_deadline"
     t.index ["reviewer_id"], name: "index_wine_packages_on_reviewer_id"
     t.index ["status"], name: "index_wine_packages_on_status"
+    t.index ["submitter_id"], name: "index_wine_packages_on_submitter_id"
     t.index ["tracking_number"], name: "index_wine_packages_on_tracking_number"
   end
 
@@ -1324,15 +1408,24 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_09_042248) do
   add_foreign_key "wine_package_attachments", "wine_packages"
   add_foreign_key "wine_package_events", "users", column: "actor_id"
   add_foreign_key "wine_package_events", "wine_packages"
+  add_foreign_key "wine_package_invoices", "wine_package_quotes"
+  add_foreign_key "wine_package_invoices", "wine_packages"
   add_foreign_key "wine_package_items", "reviews"
   add_foreign_key "wine_package_items", "vintages"
   add_foreign_key "wine_package_items", "wine_packages"
+  add_foreign_key "wine_package_items", "wines", column: "catalogue_wine_id"
+  add_foreign_key "wine_package_messages", "users", column: "sender_id"
+  add_foreign_key "wine_package_messages", "wine_packages"
+  add_foreign_key "wine_package_quotes", "users", column: "created_by_id"
+  add_foreign_key "wine_package_quotes", "wine_packages"
   add_foreign_key "wine_packages", "producers"
   add_foreign_key "wine_packages", "users", column: "accepted_by_id"
   add_foreign_key "wine_packages", "users", column: "created_by_id"
   add_foreign_key "wine_packages", "users", column: "rejected_by_id"
   add_foreign_key "wine_packages", "users", column: "requested_by_id"
   add_foreign_key "wine_packages", "users", column: "reviewer_id"
+  add_foreign_key "wine_packages", "users", column: "shipping_override_by_id"
+  add_foreign_key "wine_packages", "users", column: "submitter_id"
   add_foreign_key "wine_profile_taste_parameters", "taste_parameters"
   add_foreign_key "wine_profile_taste_parameters", "wine_profiles"
   add_foreign_key "wine_regions", "regions"

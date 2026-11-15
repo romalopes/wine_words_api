@@ -16,15 +16,27 @@
 # "Reviewed" is never a stored flag: it is derived from the linked Review's
 # status, so unpublishing a review automatically reopens the work.
 class WinePackageItem < ApplicationRecord
+  ITEM_STATUSES = %w[
+    pending approved rejected information_requested matched shipped received
+  ].freeze
+
+  RECEIPT_CONDITIONS = %w[good damaged missing].freeze
+
   belongs_to :wine_package
   belongs_to :vintage, optional: true
   # Set once a Review has been produced from this item.
   belongs_to :review, optional: true
+  # Catalogue linkage for a trade submission (IDENTITY_206 Phase 13): the
+  # Editor matches the submitted wine to a catalogue Wine; the Vintage link
+  # stays the canonical review anchor.
+  belongs_to :catalogue_wine, class_name: "Wine", optional: true
   # Typed per-line attachments (bottle photos for this wine line).
   has_many :wine_package_attachments,
            class_name: "WinePackageAttachment",
            foreign_key: :wine_package_item_id,
            dependent: :destroy
+
+  enum :item_status, ITEM_STATUSES.index_by(&:itself), default: :pending, validate: true
 
   validates :quantity,
             presence: true,
@@ -40,11 +52,26 @@ class WinePackageItem < ApplicationRecord
               less_than_or_equal_to: Date.current.year + 2
             },
             allow_nil: true
+  # Trade submission snapshot extras (IDENTITY_206 Phase 3).
+  validates :snapshot_region, :snapshot_appellation, :snapshot_closure_type,
+            length: { maximum: 255 }, allow_blank: true
+  validates :snapshot_grape_varieties, length: { maximum: 500 }, allow_blank: true
+  validates :snapshot_technical_sheet_url, length: { maximum: 500 }, allow_blank: true
+  validates :snapshot_abv,
+            numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100 },
+            allow_nil: true
+  validates :snapshot_volume_ml, :snapshot_sample_quantity,
+            numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
+  validates :snapshot_trade_price, :snapshot_retail_price,
+            numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
+  validates :condition, inclusion: { in: RECEIPT_CONDITIONS }, allow_blank: true
+  validates :item_status, presence: true, inclusion: { in: ITEM_STATUSES }
 
   # A producer-submitted line must name its wine: either a catalogue vintage
   # or a proposed name. Manual/unexpected editorial packages keep the old
   # tolerance (an unmatchable bottle may still be recorded).
   validate :proposed_wine_named, if: :producer_submitted?
+  validate :wine_named, if: -> { wine_package&.trade_submission? }
 
   scope :with_review_requested, -> { where(review_requested: true) }
   scope :reviewed, -> { joins(:review).where(reviews: { status: "published" }) }
@@ -55,6 +82,28 @@ class WinePackageItem < ApplicationRecord
       .where("reviews.id IS NULL OR reviews.status <> ?", "published")
   }
   scope :with_proposed_wine, -> { where.not(proposed_wine_name: nil) }
+
+  # ---- Trade submission snapshot aliases (IDENTITY_206) --------------------
+  # The submission form speaks "snapshot" language; the producer-request flow
+  # (issue #199) already named these columns proposed_*. Ruby aliases keep
+  # both vocabularies without a destructive rename.
+  alias_attribute :snapshot_wine_name, :proposed_wine_name
+  alias_attribute :snapshot_vintage, :proposed_vintage_year
+
+  # ---- Trade submission receipt helpers (Phase 12/13) ----------------------
+  # The item is receipt-eligible when the sample physically arrived in good
+  # condition; `condition` and `received_at` are pre-existing columns.
+  def receipt_recorded?
+    received_at.present?
+  end
+
+  def receipt_condition_good?
+    condition.blank? || condition == "good"
+  end
+
+  def review_eligible?
+    item_status == "received" && receipt_condition_good?
+  end
 
   # Derived from the review — a draft (or absent) review is not a review.
   def reviewed?
@@ -103,6 +152,14 @@ class WinePackageItem < ApplicationRecord
     return if vintage_id.present? || proposed_wine_name.present?
 
     errors.add(:base, "a catalogue wine or a proposed wine name is required")
+  end
+
+  # Trade submissions (IDENTITY_206) must always name the wine in the snapshot;
+  # catalogue matching happens later (Phase 13), never at submission time.
+  def wine_named
+    return if proposed_wine_name.present?
+
+    errors.add(:proposed_wine_name, "is required for a trade submission")
   end
 
   def record_review_published_event

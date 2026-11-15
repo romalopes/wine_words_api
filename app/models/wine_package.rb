@@ -20,13 +20,31 @@ class WinePackage < ApplicationRecord
   STATUSES = %w[
     draft requested accepted rejected announced in_transit arrived reviewing
     completed cancelled
+    editorial_pending assessment_in_progress partially_approved approved
+    quoted invoiced paid shipping_pending shipping_released
   ].freeze
 
-  SOURCES = %w[manual unexpected producer_request producer_announcement].freeze
+  SOURCES = %w[manual unexpected producer_request producer_announcement
+               trade_submission].freeze
 
   # Statuses from which no further progress is expected. They are excluded
   # from "active" queries (deadline reminders must skip them).
   TERMINAL_STATUSES = %w[completed cancelled rejected].freeze
+
+  # Trade portal chain (IDENTITY_206). The sample RECEIPT leg deliberately
+  # reuses the existing in_transit -> arrived -> reviewing -> completed moves
+  # and the per-item receipt columns instead of adding duplicate statuses.
+  TRADE_TRANSITIONS = {
+    "editorial_pending" => %w[assessment_in_progress rejected cancelled],
+    "assessment_in_progress" => %w[partially_approved approved rejected cancelled],
+    "partially_approved" => %w[assessment_in_progress approved rejected cancelled],
+    "approved" => %w[quoted rejected cancelled],
+    "quoted" => %w[invoiced cancelled],
+    "invoiced" => %w[paid cancelled],
+    "paid" => %w[shipping_pending cancelled],
+    "shipping_pending" => %w[shipping_released cancelled],
+    "shipping_released" => %w[in_transit cancelled]
+  }.freeze
 
   # The only legal moves in the workflow. Keys are the *current* status and the
   # values are the reachable statuses. Terminal statuses are reopenable to
@@ -44,12 +62,12 @@ class WinePackage < ApplicationRecord
     "reviewing" => %w[completed arrived cancelled],
     "completed" => %w[reviewing],
     "cancelled" => %w[draft]
-  }.freeze
+  }.merge(TRADE_TRANSITIONS).freeze
 
   # One calendar month — Date#>> handles year rollover (2026-12-15 => 2027-01-15).
   REVIEW_WINDOW_MONTHS = 1
 
-  belongs_to :producer
+  belongs_to :producer, optional: true
   # The reviewer responsible for the package. Any signed-in User may review;
   # the "Reviewer" role is not required for domain ownership.
   belongs_to :reviewer, class_name: "User", optional: true
@@ -58,8 +76,13 @@ class WinePackage < ApplicationRecord
   # The producer-side requester (issue #199): the owner/manager member who
   # submitted the package on the producer's behalf.
   belongs_to :requested_by, class_name: "User", optional: true
+  # The TRADE contact (IDENTITY_206): the winery/importer/agent who submitted
+  # through the public portal. Distinct from requested_by — a trade submitter
+  # may not even have a User account until they claim the package.
+  belongs_to :submitter, class_name: "User", optional: true
   belongs_to :accepted_by, class_name: "User", optional: true
   belongs_to :rejected_by, class_name: "User", optional: true
+  belongs_to :shipping_override_by, class_name: "User", optional: true
 
   has_many :wine_package_items, dependent: :destroy
   # Only items explicitly marked as needing a review block completion.
@@ -74,6 +97,10 @@ class WinePackage < ApplicationRecord
   # application activity timeline (issue #199).
   has_many :wine_package_attachments, dependent: :destroy
   has_many :wine_package_events, dependent: :destroy
+  # Trade portal conversations (IDENTITY_206 Phase 8).
+  has_many :wine_package_messages, dependent: :destroy
+  has_many :wine_package_quotes, dependent: :destroy
+  has_many :wine_package_invoices, dependent: :destroy
 
   accepts_nested_attributes_for :wine_package_items,
                                 allow_destroy: true,
@@ -89,19 +116,34 @@ class WinePackage < ApplicationRecord
     arrived: "arrived",
     reviewing: "reviewing",
     completed: "completed",
-    cancelled: "cancelled"
+    cancelled: "cancelled",
+    # Trade portal chain (IDENTITY_206) — see TRADE_TRANSITIONS below.
+    editorial_pending: "editorial_pending",
+    assessment_in_progress: "assessment_in_progress",
+    partially_approved: "partially_approved",
+    approved: "approved",
+    quoted: "quoted",
+    invoiced: "invoiced",
+    paid: "paid",
+    shipping_pending: "shipping_pending",
+    shipping_released: "shipping_released"
   }, default: :draft, validate: true
 
   enum :source, {
     manual: "manual",
     unexpected: "unexpected",
     producer_request: "producer_request",
-    producer_announcement: "producer_announcement"
+    producer_announcement: "producer_announcement",
+    trade_submission: "trade_submission"
   }, default: :manual, validate: true
 
   validates :status, presence: true, inclusion: { in: STATUSES }
   validates :source, presence: true, inclusion: { in: SOURCES }
   validates :rejection_reason, presence: true, if: :rejected?
+  # A trade submission may exist without a Producer; every other source still
+  # requires one (IDENTITY_206 §1.2 — no automatic Producer creation).
+  validates :producer, presence: true, unless: :trade_submission?
+  validate :contact_snapshot_shape, if: :trade_submission?
   validate :review_deadline_cannot_precede_arrival
 
   scope :active, -> { where.not(status: TERMINAL_STATUSES) }
@@ -118,6 +160,13 @@ class WinePackage < ApplicationRecord
       .distinct
   }
   scope :by_recency, -> { order(created_at: :desc) }
+  scope :trade_submissions, -> { where(source: "trade_submission") }
+  # Packages claimed by (or accessible to) the given trade submitter.
+  scope :submitted_by, lambda { |user|
+    return none unless user
+
+    where(submitter_id: user.id)
+  }
   # Packages the user manages as an active owner/manager member of their
   # producer (issue #199). A mere follower or contributor never matches.
   scope :managed_by_producer_member, lambda { |user|
@@ -296,6 +345,97 @@ class WinePackage < ApplicationRecord
     ProducerMembership.managing_producer_ids_for(user).include?(producer_id)
   end
 
+  # ---- Trade portal (IDENTITY_206) ----------------------------------------
+
+  def trade_submission?
+    source == "trade_submission"
+  end
+
+  # Has an authenticated user claimed this package (Phase 5)?
+  def claimed?
+    submitter_id.present?
+  end
+
+  # Contact step of the public form, stored immutably as JSONB.
+  def contact_email
+    contact_snapshot.is_a?(Hash) ? contact_snapshot["email"] : nil
+  end
+
+  def contact_name
+    contact_snapshot.is_a?(Hash) ? contact_snapshot["contact_name"] : nil
+  end
+
+  def contact_company
+    contact_snapshot.is_a?(Hash) ? contact_snapshot["company_name"] : nil
+  end
+
+  # Issues a fresh guest token (Phase 3/5): the raw value is shown exactly once
+  # (returned by the submission endpoint / resent on request); only the digest
+  # is stored. Digestion reuses EmailVerificationService so the hashing scheme
+  # stays consistent with the existing verification tokens.
+  def generate_guest_token!(expires_at: 30.days.from_now)
+    raw_token = SecureRandom.urlsafe_base64(32)
+    update!(
+      guest_token_digest: EmailVerificationService.digest_token(raw_token),
+      guest_token_expires_at: expires_at,
+      guest_token_revoked_at: nil
+    )
+    raw_token
+  end
+
+  # Is this raw guest token currently usable for THIS package?
+  def guest_token_valid?(raw_token)
+    return false if raw_token.blank?
+    return false if guest_token_revoked_at.present?
+    return false if guest_token_expires_at.present? && guest_token_expires_at < Time.current
+
+    ActiveSupport::SecurityUtils.secure_compare(
+      guest_token_digest.to_s,
+      EmailVerificationService.digest_token(raw_token)
+    )
+  end
+
+  def revoke_guest_token!
+    update!(guest_token_revoked_at: Time.current) if guest_token_revoked_at.nil?
+  end
+
+  # Begins the editorial assessment (Phase 7).
+  def begin_assessment!(actor: nil)
+    transition_to!("assessment_in_progress", actor: actor)
+  end
+
+  # Stores the assessment outcome and moves the workflow. Decisions per item
+  # are applied by the caller (Trade::Assessment service) inside one transaction.
+  def record_assessment!(actor: nil)
+    if items.exists?(item_status: "information_requested")
+      transition_to!("partially_approved", actor: actor)
+    elsif items.exists?(item_status: "rejected")
+      transition_to!("rejected", actor: actor)
+    else
+      transition_to!("approved", actor: actor)
+    end
+  end
+
+  # Records a rejected trade submission with an editorial reason.
+  def reject_submission!(by:, reason: nil)
+    self.rejected_by = by
+    self.rejected_at ||= Time.current
+    self.rejection_reason = reason if reason.present?
+    transition_to!("rejected", actor: by)
+  end
+
+  # Phase 12: shipping cannot be released before payment unless an Admin
+  # records an explicit, audited override.
+  def release_shipping!(by:, override: false, reason: nil)
+    if override
+      self.shipping_override_by = by
+      self.shipping_override_reason = reason
+      self.shipping_override_at = Time.current
+      save!
+    end
+    transition_to!("shipping_released", actor: by)
+  end
+
   # ---- Review progress --------------------------------------------------
 
   # One calendar month after arrival (nil until the package has arrived).
@@ -359,6 +499,25 @@ class WinePackage < ApplicationRecord
   end
 
   private
+
+  # Trade submissions (IDENTITY_206) must carry a usable contact snapshot:
+  # company, contact person and a valid-looking email are the minimum the
+  # editorial team and the claim flow rely on.
+  def contact_snapshot_shape
+    snap = contact_snapshot
+    if snap.blank?
+      errors.add(:contact_snapshot, "is required for trade submissions")
+      return
+    end
+    return errors.add(:contact_snapshot, "must be an object") unless snap.is_a?(Hash)
+
+    %w[company_name contact_name email].each do |key|
+      errors.add(:contact_snapshot, "#{key.tr('_', ' ')} is required") if snap[key].blank?
+    end
+    if snap["email"].present? && !snap["email"].match?(URI::MailTo::EMAIL_REGEXP)
+      errors.add(:contact_snapshot, "email is invalid")
+    end
+  end
 
   def review_deadline_cannot_precede_arrival
     return if review_deadline.blank? || arrived_at.blank?

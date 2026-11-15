@@ -2,7 +2,7 @@
 
 ## Status
 
-Planned. No implementation started.
+Partially implemented on November 14, 2026.
 
 ## Objective
 
@@ -181,9 +181,8 @@ Deliver:
 
 ## Validation Results
 
-*To be completed during execution*
-
-- Commands executed:
-- Tests run:
-- Failures:
-- Unresolved issues:
+- Commands executed: `cd /Users/romalopes/Documents/studies/my_project/wine_project/wine_words && npm run build`; `cd /Users/romalopes/Documents/studies/my_project/wine_project/wine_words_api && bundle exec rspec spec/requests/api/v1/trade_spec.rb`
+- Result: frontend build passed; Trade request suite has been exercised during backend stabilization.
+- Implemented: submitter/guest conversation read and send UI, internal-note exclusion inherited from the API serializer/query boundary, and message event display.
+- Not implemented: attachment upload, private storage/signed download links, malware scanning, admin conversation UI, and frontend conversation tests.
+- Unresolved issues: do not advertise attachments as available until the backend attachment endpoints and private storage configuration are implemented. The current backend request suite also reports guest-message authorization failures that must be fixed before this phase can exit.

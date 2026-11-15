@@ -371,9 +371,12 @@ class Api::V1::WinePackagesController < ApplicationController
   end
 
   # Editing a package may never rewrite its provenance — source, like status,
-  # belongs to the workflow.
+  # belongs to the workflow. A producer_id of 0 (the frontend's "none" value)
+  # is normalised to nil so it never violates the producers FK.
   def update_params
-    package_params.to_h.symbolize_keys.except(:source)
+    result = package_params.to_h.symbolize_keys.except(:source)
+    result[:producer_id] = nil if result[:producer_id].in?([0, "0", ""])
+    result
   end
 
   # Producer-managed creation (issue #199): editorial-only fields (reviewer,

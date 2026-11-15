@@ -288,6 +288,58 @@ Rails.application.routes.draw do
         end
       end
 
+      # --- Trade portal (IDENTITY_206) --------------------------------------
+      # Public submission + guest access are UNAUTHENTICATED by design (§1.2);
+      # abuse protection is the platform concern (Turnstile / Rack::Attack).
+      # Everything under /trade requires a JWT, EXCEPT the guest_* paths which
+      # authenticate with the single-package guest token.
+      namespace :trade do
+        post "submissions", to: "submissions#create"
+
+        get "my-packages", to: "packages#index"
+        get "packages/:id", to: "packages#show", as: :package
+        patch "packages/:id/shipping_address", to: "packages#update_shipping_address",
+              as: :package_shipping_address
+
+        get "guest_packages/:token", to: "packages#guest_show", as: :guest_package
+        post "guest_packages/:token/claim", to: "packages#claim", as: :guest_package_claim
+
+        get "packages/:package_id/messages", to: "messages#index", as: :package_messages
+        post "packages/:package_id/messages", to: "messages#create", as: :package_message_create
+
+        post "invoices/:invoice_id/checkout", to: "payments#create", as: :invoice_checkout
+      end
+
+      # Trade Management (Editor/Admin only, enforced in the controller).
+      namespace :admin do
+        namespace :trade do
+          resources :packages, only: [ :index, :show ], controller: "packages" do
+            member do
+              patch :assess
+              post :match_producer
+              post :internal_note
+              post :release_shipping
+            end
+            # Item-level editorial/receipt actions live in the same packages
+            # controller (controller: "packages") so the shared set_package
+            # authorisation applies.
+            resources :items, only: [], param: :item_id, controller: "packages" do
+              member do
+                patch :receipt
+                post :match_catalogue
+                post :assign_reviewer
+              end
+            end
+            resources :quotes, only: [ :create ], controller: "quotes" do
+              member do
+                post :send
+                post :accept
+              end
+            end
+          end
+        end
+      end
+
 
       # The signed-in user's own notifications (deadline reminders).
       resources :notifications, only: [ :index ] do

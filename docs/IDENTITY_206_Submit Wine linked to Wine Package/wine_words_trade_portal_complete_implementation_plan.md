@@ -2,7 +2,7 @@
 
 ## Complete implementation, configuration, security, testing and documentation plan
 
-**Status:** Proposed implementation plan\
+**Status:** Backend Trade workflow implemented; frontend Trade interface partially implemented and validated on November 14, 2026.\
 **Product:** Wine Words\
 **Repositories:** - Frontend:
 https://github.com/romalopes/wine_words_frontend - API:
@@ -41,6 +41,37 @@ Each implementation phase has a dedicated execution document in this directory:
 **Related separate plan (platform-wide infrastructure, not part of this feature):**
 
 - [Cloudflare Turnstile, Rate Limiting, and Abuse Protection](../TurnStile/turnstile-rate-limiting-separate-plan.md) — Turnstile/rate limiting were removed from this plan because they are cross-cutting platform infrastructure, not wine-submission-specific. Trade portal endpoints integrate this infrastructure via shared middleware; it must be in place before any public feature launches.
+
+## Current implementation status — November 14, 2026
+
+### Frontend interface now implemented
+
+The React frontend in `/Users/romalopes/Documents/studies/my_project/wine_project/wine_words` now contains:
+
+- `/trade/submit` — four-step public submission wizard with contact/company fields, dynamic wine rows, client validation, duplicate detection, local draft persistence, idempotency-key submission, and confirmation guest link.
+- `/trade/my-packages` — authenticated submitter list with login redirect for unauthenticated users.
+- `/trade/my-packages/:id` — authenticated package detail with submitted wines, statuses, review-progress labels, activity, commercial summary, invoice payment CTA, and conversation.
+- `/trade/packages/:token` — guest-token package detail with claim action when signed in, shared activity, commercial summary, and conversation.
+- Header entry links for public submission and signed-in package access.
+- Shared Trade API client/types and responsive Trade-specific styling.
+
+### Frontend interface not yet complete
+
+The following documented interface work remains incomplete and is intentionally not represented as complete:
+
+- dedicated Guidelines, Trade Membership, and Promotional Opportunities pages;
+- Turnstile widget integration and token submission;
+- hidden honeypot and field-level server-error mapping;
+- attachment upload/private signed-download UI;
+- admin Trade assessment, quote/invoice, shipping, catalogue-match, and reviewer-assignment screens;
+- submitter shipping-address form and detailed published-review links;
+- frontend unit, accessibility, integration, and E2E coverage for the new Trade screens.
+
+### Validation
+
+- Frontend command: `cd /Users/romalopes/Documents/studies/my_project/wine_project/wine_words && npm run build` — passed on November 14, 2026.
+- Backend Trade request validation remains tracked in `spec/requests/api/v1/trade_spec.rb` and the phase validation sections.
+- No commits or pushes were performed.
 
 ------------------------------------------------------------------------
 

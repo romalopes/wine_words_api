@@ -96,17 +96,20 @@ class Api::V1::UsersController < ApplicationController
     }
   end
 
-  # GET /api/v1/users/search?q=name-or-email&page=N
+  # GET /api/v1/users/search?q=name-or-email&role=Reviewer&page=N
   #
   # Search by account name OR email. With ?page=N the response is the standard
   # pagination envelope (20 per page by default, see Api::Paginatable); without
   # a page param the legacy plain-array response (limit 20) is kept for
   # compatibility.
+  #
+  # ?role=Reviewer (or any role name) restricts results to users holding that role.
   def search
     authorize_real_user(User, :search?)
 
     query = params[:q].to_s.strip
     users = User.search_by_name_or_email(query)
+    users = users.joins(:roles).where(roles: { name: params[:role] }) if params[:role].present?
 
     rendered = render_paginated(users) { |page_items| page_items.map { |u| user_json(u) } }
     render json: users.limit(20).map { |u| user_json(u) } unless rendered

@@ -19,6 +19,26 @@ class Rack::Attack
     req.ip if req.path.start_with?("/api/v1/invitations/") && req.post?
   end
 
+  # ---- Trade portal (IDENTITY_206) ------------------------------------------
+  # Public intake is the most-abused surface: tight per-IP limits on
+  # submission creation, and looser read limits on guest access (a legitimate
+  # winery office may share one NAT IP — §10.5 of the trade plan).
+  throttle("trade/submissions/ip", limit: 10, period: 1.hour) do |req|
+    req.ip if req.path == "/api/v1/trade/submissions" && req.post?
+  end
+
+  throttle("trade/guest_read/ip", limit: 60, period: 1.minute) do |req|
+    req.ip if req.path.start_with?("/api/v1/trade/guest_packages/")
+  end
+
+  throttle("trade/messages/ip", limit: 30, period: 1.minute) do |req|
+    req.ip if req.path.match?(%r{/api/v1/trade/packages/\d+/messages\z}) && req.post?
+  end
+
+  throttle("trade/checkout/ip", limit: 10, period: 1.minute) do |req|
+    req.ip if req.path.match?(%r{/api/v1/trade/invoices/\d+/checkout\z}) && req.post?
+  end
+
   # Cache store defaults to memory; Solid Cache (SQL-backed) works too.
   # Configure explicitly so throttles share state across processes.
   Rack::Attack.cache.store = ActiveSupport::Cache::MemoryStore.new

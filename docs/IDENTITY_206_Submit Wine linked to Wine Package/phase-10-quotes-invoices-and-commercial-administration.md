@@ -2,7 +2,7 @@
 
 ## Status
 
-Planned. No implementation started.
+Partially implemented on November 14, 2026.
 
 ## Objective
 
@@ -190,9 +190,8 @@ Deliver:
 
 ## Validation Results
 
-*To be completed during execution*
-
-- Commands executed:
-- Tests run:
-- Failures:
-- Unresolved issues:
+- Commands executed: `cd /Users/romalopes/Documents/studies/my_project/wine_project/wine_words && npm run build`; `cd /Users/romalopes/Documents/studies/my_project/wine_project/wine_words_api && bundle exec rspec spec/requests/api/v1/trade_spec.rb`
+- Result: frontend build passed; backend Trade request scenarios have been exercised.
+- Implemented: submitter/guest commercial summary, invoice status display, and Stripe Checkout CTA from the package detail page.
+- Not implemented: admin quote/invoice pages, submitter quote acceptance UI, invoice PDF download UI, pricing configuration UI, and invoice document attachments.
+- Unresolved issues: payment status remains webhook-authoritative; the frontend must not display an invoice as paid solely because the user returned from Stripe. Backend request fixtures currently fail quote item validation because their item data lacks `unit_price`; this must be resolved before treating the commercial workflow as verified.
