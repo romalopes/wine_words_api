@@ -39,6 +39,7 @@ class TradePackageSerializer
       {
         id: item.id,
         wine_name: item.snapshot_wine_name,
+        quantity: item.quantity,
         vintage: item.snapshot_vintage_display,
         region: item.snapshot_region,
         appellation: item.snapshot_appellation,

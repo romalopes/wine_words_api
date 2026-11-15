@@ -55,7 +55,7 @@ class Api::V1::Trade::SubmissionsController < ApplicationController
         company_name contact_name email phone address country website role notes
       ],
       wines: %i[
-        wine_name vintage region appellation grape_varieties abv volume_ml
+        wine_name vintage quantity region appellation grape_varieties abv volume_ml
         closure_type tasting_notes technical_sheet_url trade_price retail_price
         sample_available sample_quantity
       ]

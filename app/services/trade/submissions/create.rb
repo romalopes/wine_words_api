@@ -99,6 +99,7 @@ module Trade
 
         {
           proposed_wine_name: wine[:wine_name],
+          quantity: wine[:quantity].presence || 1,
           proposed_vintage_year: vintage_year,
           snapshot_vintage_label: vintage_label,
           snapshot_region: wine[:region],

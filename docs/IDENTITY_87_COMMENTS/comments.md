@@ -42,16 +42,13 @@ separate on purpose:
 
 | | Comment / reply | Edit or delete **someone else's** comment |
 |---|---|---|
-| `Guest` | ❌ | ❌ |
+| `Guest` | ✅ | ❌ |
 | `Reader` | ✅ | ❌ |
 | `Reviewer` | ✅ | ❌ |
 | `Editor` | ✅ | ✅ |
 | `Admin` | ✅ | ✅ |
 
-* "May comment" is `User#commenter?` — **any role other than `Guest`**, not an
-  allow-list, so a role added to the enum later cannot silently lose the ability.
-* Privileged roles (`Reviewer`/`Editor`/`Admin`) are independent of the
-  subscription, so a `Reviewer` on the FREE plan can still comment.
+* "May comment" is `User#commenter?` — **any authenticated user** (including `Guest`).
 * Moderation (`User#comment_moderator?`) is `catalogue_manager?` = Editor/Admin.
 
 ## 3. The hierarchy rules

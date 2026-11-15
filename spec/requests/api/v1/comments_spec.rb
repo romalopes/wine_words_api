@@ -45,11 +45,14 @@ RSpec.describe "Api::V1::Comments", type: :request do
       expect(response).to have_http_status(:unauthorized)
     end
 
-    it "rejects a Guest account" do
+    it "lets a Guest account comment" do
       sign_in guest
       post path, params: { comment: { body: "Guest comment" } }
-      expect(response).to have_http_status(:forbidden)
-      expect(record.comments.count).to eq(0)
+      expect(response).to have_http_status(:created)
+      body = JSON.parse(response.body)
+      expect(body["body"]).to eq("Guest comment")
+      expect(body["author"]["id"]).to eq(guest.id)
+      expect(record.comments.count).to eq(1)
     end
 
     it "lets a Reader comment" do
@@ -157,10 +160,14 @@ RSpec.describe "Api::V1::Comments", type: :request do
       expect(response).to have_http_status(:unauthorized)
     end
 
-    it "rejects a Guest" do
+    it "lets a Guest reply" do
       sign_in guest
       post "/api/v1/comments/#{parent.id}/replies", params: { comment: { body: "Hi" } }
-      expect(response).to have_http_status(:forbidden)
+      expect(response).to have_http_status(:created)
+      body = JSON.parse(response.body)
+      expect(body["body"]).to eq("Hi")
+      expect(body["author"]["id"]).to eq(guest.id)
+      expect(body["parent_id"]).to eq(parent.id)
     end
 
     it "derives the commentable from the parent" do

@@ -242,18 +242,12 @@ class User < ApplicationRecord
   end
 
   # ---------------------------------------------------------------------------
-  # Comments (see Comments::Permission). Every signed-in account may join the
-  # discussion EXCEPT the base free "Guest" role: Reader, Reviewer, Editor and
-  # Admin can all comment.
-  #
-  # Deliberately expressed as "any role other than Guest" rather than an
-  # allow-list, so a role added to the enum later can never silently lose the
-  # ability to comment. The privileged roles (Reviewer/Editor/Admin) are
-  # independent of the subscription, so a Reviewer on the FREE plan still
-  # passes this check — only a user whose ONLY role is Guest is excluded.
+  # Comments (see Comments::Permission). Any authenticated user may comment.
+  # The Guest role is no longer excluded — anyone signed in can participate.
+  # If further gating is needed (e.g. email verification), add it here.
   # ---------------------------------------------------------------------------
   def commenter?
-    roles.where.not(name: "Guest").exists?
+    true
   end
 
   # Moderation is a separate capability from participation: Editors and Admins
