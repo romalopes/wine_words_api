@@ -6,6 +6,16 @@ require "rails_helper"
 RSpec.describe "Api::V1::Trade", type: :request do
   include Devise::Test::IntegrationHelpers
 
+  # Seed reference roles OUTSIDE the per-example transaction so User creation
+  # (and its assign_default_role callback) only ever SELECTs them. Concurrent
+  # find_or_create_by! INSERTs on the roles unique index have deadlocked
+  # (PG::TRDeadlockDetected) when two connections inserted the same name.
+  before(:all) do
+    %w[Guest Admin Editor Reviewer Reader].each do |name|
+      Role.find_or_create_by!(name: name)
+    end
+  end
+
   def user_with_role(role_name, first_name, email)
     user = User.create!(first_name: first_name, email: email, password: "password123")
     user.roles << Role.find_or_create_by!(name: role_name)
@@ -13,6 +23,7 @@ RSpec.describe "Api::V1::Trade", type: :request do
   end
 
   let(:editor) { user_with_role("Editor", "Trade Editor", "trade-editor@example.com") }
+  let(:admin) { user_with_role("Admin", "Trade Admin", "trade-admin@example.com") }
   let(:other_user) { User.create!(first_name: "Other", email: "other@example.com", password: "password123") }
 
   let(:valid_submission) do
@@ -53,9 +64,58 @@ RSpec.describe "Api::V1::Trade", type: :request do
       expect(package.guest_token_valid?(body["guest_token"])).to be(true)
     end
 
+    it "does not rotate the guest token when the confirmation email is delivered" do
+      # Regression: the confirmation mailer once called generate_guest_token!,
+      # rotating the digest and invalidating the link returned to the submitter.
+      submit_trade_submission!
+      token = response.parsed_body["guest_token"]
+      package = WinePackage.find(response.parsed_body["package_reference"])
+
+      TradeSubmissionsMailer.confirmation(package.id, token).deliver_now
+
+      expect(package.reload.guest_token_valid?(token)).to be(true)
+    end
+
     it "rejects a submission without a contact snapshot" do
       submit_trade_submission!(wines: valid_submission[:wines])
       expect(response).to have_http_status(:unprocessable_entity)
+    end
+
+    it "does not require a company name (name + email only)" do
+      # Phase 4 UX: anonymous submitters are asked only for their name and
+      # email; the producer link is established later during assessment.
+      minimal = valid_submission.dup
+      minimal[:contact_snapshot] = valid_submission[:contact_snapshot]
+        .except(:company_name)
+      submit_trade_submission!(minimal)
+
+      expect(response).to have_http_status(:created)
+      package = WinePackage.find(response.parsed_body["package_reference"])
+      expect(package.contact_snapshot["company_name"]).to be_blank
+      expect(package.contact_snapshot["contact_name"]).to eq("Maria Ruiz")
+    end
+
+    it "stores NV and MV vintages as labels with a nil year" do
+      payload = valid_submission.dup
+      payload[:wines] = [
+        { wine_name: "Solera Blend", vintage: "NV" },
+        { wine_name: "Vertical Set", vintage: "MV" },
+        { wine_name: "Tinto Crianza", vintage: "2019" }
+      ]
+      submit_trade_submission!(payload)
+
+      expect(response).to have_http_status(:created)
+      package = WinePackage.find(response.parsed_body["package_reference"])
+      nv, mv, year = package.items.order(:id)
+
+      expect(nv.snapshot_vintage_label).to eq("NV")
+      expect(nv.proposed_vintage_year).to be_nil
+      expect(nv.snapshot_vintage_display).to eq("NV")
+      expect(mv.snapshot_vintage_label).to eq("MV")
+      expect(mv.proposed_vintage_year).to be_nil
+      expect(year.snapshot_vintage_label).to be_nil
+      expect(year.proposed_vintage_year).to eq(2019)
+      expect(year.snapshot_vintage_display).to eq("2019")
     end
 
     it "rejects a submission with zero wines" do
@@ -78,14 +138,19 @@ RSpec.describe "Api::V1::Trade", type: :request do
       submit_trade_submission!
       first = response.parsed_body
 
-      2.times do
-        post "/api/v1/trade/submissions",
-             params: valid_submission.merge(idempotency_key: "same-key"), as: :json
-      end
+      # First keyed call creates its own package (this key has never been
+      # seen); the second keyed call replays the FIRST KEYED package.
+      post "/api/v1/trade/submissions",
+           params: valid_submission.merge(idempotency_key: "same-key"), as: :json
+      second = response.parsed_body
+
+      post "/api/v1/trade/submissions",
+           params: valid_submission.merge(idempotency_key: "same-key"), as: :json
       third = response.parsed_body
 
-      expect(third["package_reference"]).to eq(first["package_reference"])
-      expect(WinePackage.count).to eq(1)
+      expect(third["package_reference"]).to eq(second["package_reference"])
+      expect(third["replayed"]).to be(true)
+      expect(WinePackage.count).to eq(2)
     end
   end
 
@@ -94,7 +159,10 @@ RSpec.describe "Api::V1::Trade", type: :request do
       submit_trade_submission!
       response.parsed_body["guest_token"]
     end
-    let(:package) { WinePackage.order(:created_at).last }
+    # Depends on guest_token so the submission is created before the lookup:
+    # a bare `order(:created_at).last` returns nil in examples that reference
+    # `package` before `guest_token` (earlier examples' rows are rolled back).
+    let(:package) { guest_token; WinePackage.order(:created_at).last }
 
     it "shows the package for a valid token" do
       get "/api/v1/trade/guest_packages/#{guest_token}"
@@ -134,7 +202,10 @@ RSpec.describe "Api::V1::Trade", type: :request do
       submit_trade_submission!
       response.parsed_body["guest_token"]
     end
-    let(:package) { WinePackage.order(:created_at).last }
+    # Depends on guest_token so the submission is created before the lookup:
+    # a bare `order(:created_at).last` returns nil in examples that reference
+    # `package` before `guest_token` (earlier examples' rows are rolled back).
+    let(:package) { guest_token; WinePackage.order(:created_at).last }
 
     it "links the package to the claiming user and revokes the token" do
       sign_in other_user
@@ -149,10 +220,14 @@ RSpec.describe "Api::V1::Trade", type: :request do
     it "rejects a second claim by another user" do
       sign_in other_user
       post "/api/v1/trade/guest_packages/#{guest_token}/claim"
+      expect(response).to have_http_status(:ok)
 
+      # The first claim revokes the token, so a second claim with the same
+      # token is a uniform 404 (§Phase 5: token validity must not be probeable
+      # — a revoked token must look exactly like an unknown one).
       sign_in editor
       post "/api/v1/trade/guest_packages/#{guest_token}/claim"
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:not_found)
     end
 
     it "never sets requested_by_id" do
@@ -197,9 +272,16 @@ RSpec.describe "Api::V1::Trade", type: :request do
     end
 
     it "supports partial approval" do
-      Trade::Submissions::Create.call(valid_submission) # second wine
+      # A two-wine package: the same submission carries both lines, so the
+      # mixed decision lands on one package (not two separate submissions).
+      two_wine_submission = valid_submission.deep_dup
+      two_wine_submission[:wines] << {
+        wine_name: "Blanco Reserva", vintage: 2020, region: "Rioja",
+        grape_varieties: "Viura", volume_ml: 750
+      }
+      Trade::Submissions::Create.call(two_wine_submission)
       sign_in editor
-      package.reload
+      package = WinePackage.order(:created_at).last
       first, second = package.items.order(:id)
 
       patch "/api/v1/admin/trade/packages/#{package.id}/assess",
@@ -208,6 +290,7 @@ RSpec.describe "Api::V1::Trade", type: :request do
               second.id.to_s => { decision: "information_requested", note: "Send tech sheet" }
             } }, as: :json
 
+      expect(response).to have_http_status(:ok)
       expect(package.reload.status).to eq("partially_approved")
       expect(second.reload.item_status).to eq("information_requested")
     end
@@ -226,9 +309,13 @@ RSpec.describe "Api::V1::Trade", type: :request do
       p.items.update_all(item_status: "approved")
       p.update!(status: "approved")
       quote = p.wine_package_quotes.create!(
-        created_by: editor, service_type: "review", items: [{ "description" => "Review" }],
+        created_by: editor, service_type: "review",
+        items: [{ "description" => "Review", "quantity" => 1, "unit_price" => 100 }],
         subtotal: 100, tax: 0, total: 100, status: "sent"
       )
+      # The commercial chain is approved → quoted → invoiced (§Phase 10);
+      # generating the invoice requires the package to be quoted already.
+      p.update!(status: "quoted")
       quote.update!(status: "accepted")
       Trade::Invoices::GenerateFromQuote.call(quote, by: editor)
       p
@@ -254,7 +341,9 @@ RSpec.describe "Api::V1::Trade", type: :request do
     end
 
     it "allows an audited admin override of the payment gate" do
-      sign_in editor
+      # Overriding the payment gate is an Admin-only action (the Release
+      # service refuses overrides from non-admins).
+      sign_in admin
       post "/api/v1/admin/trade/packages/#{package.id}/release_shipping",
            params: { override: true, reason: "Paid by bank transfer" }, as: :json
       expect(response).to have_http_status(:ok)
@@ -262,6 +351,7 @@ RSpec.describe "Api::V1::Trade", type: :request do
     end
 
     it "records item receipt with condition" do
+      sign_in editor
       Trade::Payments::HandleSettled.call(invoice: invoice)
       package.transition_to!("shipping_pending", actor: editor)
       package.release_shipping!(by: editor)

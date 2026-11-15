@@ -52,6 +52,9 @@ class WinePackageItem < ApplicationRecord
               less_than_or_equal_to: Date.current.year + 2
             },
             allow_nil: true
+  # Trade submissions may declare a non-numeric vintage: NV (non vintage) or
+  # MV (multi vintage). Exactly one of {year, label} is meaningful at a time.
+  validates :snapshot_vintage_label, inclusion: { in: %w[NV MV] }, allow_nil: true
   # Trade submission snapshot extras (IDENTITY_206 Phase 3).
   validates :snapshot_region, :snapshot_appellation, :snapshot_closure_type,
             length: { maximum: 255 }, allow_blank: true
@@ -89,6 +92,13 @@ class WinePackageItem < ApplicationRecord
   # both vocabularies without a destructive rename.
   alias_attribute :snapshot_wine_name, :proposed_wine_name
   alias_attribute :snapshot_vintage, :proposed_vintage_year
+
+  # What the submitter declared as the vintage: "NV"/"MV" when they picked a
+  # non-numeric option, otherwise the calendar year. Plain string — no link to
+  # the catalogue vintages table.
+  def snapshot_vintage_display
+    snapshot_vintage_label.presence || snapshot_vintage&.to_s
+  end
 
   # ---- Trade submission receipt helpers (Phase 12/13) ----------------------
   # The item is receipt-eligible when the sample physically arrived in good

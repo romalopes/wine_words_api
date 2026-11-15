@@ -18,10 +18,24 @@ class Api::V1::Trade::SubmissionsController < ApplicationController
   rescue_from Trade::Error, with: :render_trade_error
 
   def create
+    # Idempotency key: prefer the X-Idempotency-Key header, falling back to the
+    # body param (the merge must not clobber the param with a nil header).
+    idempotency_key =
+      request.headers["X-Idempotency-Key"].presence || params[:idempotency_key]
+
     result = Trade::Submissions::Create.call(
-      submission_params.merge(idempotency_key: request.headers["X-Idempotency-Key"]),
+      submission_params.merge(idempotency_key: idempotency_key),
       submitted_ip: request.remote_ip
     )
+    # Send confirmation email to the submitter (async via deliver_later).
+    # The raw guest token is passed through — the mailer must NOT regenerate
+    # it, or the digest on the package would be rotated and the link shown to
+    # the submitter (and in the response below) would stop working.
+    # Replays return the original package with no fresh token — no new email.
+    unless result.replayed
+      TradeSubmissionsMailer.confirmation(result.package.id, result.guest_token).deliver_later
+    end
+    
     render json: {
       package_reference: result.package.id,
       status: result.package.status,
@@ -49,7 +63,7 @@ class Api::V1::Trade::SubmissionsController < ApplicationController
   end
 
   def guest_url(token)
-    "#{request.base_url}/trade/packages/#{token}"
+    "#{EmailVerification.frontend_url}/trade/packages/#{token}"
   end
 
   def render_trade_error(error)

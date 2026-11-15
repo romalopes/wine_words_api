@@ -332,7 +332,10 @@ Rails.application.routes.draw do
             end
             resources :quotes, only: [ :create ], controller: "quotes" do
               member do
-                post :send
+                # `send` is a Ruby Kernel method — routing `post :send` would
+                # dispatch Controller#send and blow up. Point the member route
+                # at the real action name.
+                post :send, action: :send_quote
                 post :accept
               end
             end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_14_000004) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_15_000002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -955,6 +955,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_14_000004) do
     t.index ["slug"], name: "index_taste_parameters_on_slug", unique: true
   end
 
+  create_table "trade_idempotency_keys", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "key_digest", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "wine_package_id", null: false
+    t.index ["key_digest"], name: "index_trade_idempotency_keys_on_key_digest", unique: true
+    t.index ["wine_package_id"], name: "index_trade_idempotency_keys_on_wine_package_id"
+  end
+
   create_table "user_identities", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "email", limit: 255
@@ -1132,6 +1141,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_14_000004) do
     t.text "snapshot_tasting_notes"
     t.string "snapshot_technical_sheet_url", limit: 500
     t.decimal "snapshot_trade_price", precision: 10, scale: 2
+    t.string "snapshot_vintage_label", limit: 8
     t.integer "snapshot_volume_ml"
     t.datetime "updated_at", null: false
     t.bigint "vintage_id"
@@ -1392,6 +1402,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_14_000004) do
   add_foreign_key "subscription_changes", "users"
   add_foreign_key "subscription_subscription_features", "subscription_features"
   add_foreign_key "subscription_subscription_features", "subscriptions"
+  add_foreign_key "trade_idempotency_keys", "wine_packages"
   add_foreign_key "user_identities", "users"
   add_foreign_key "user_roles", "roles"
   add_foreign_key "user_roles", "users"

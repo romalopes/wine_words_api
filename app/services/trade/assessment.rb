@@ -71,8 +71,17 @@ module Trade
     # decisions may be given as { "12" => "approved" } or
     # { "12" => { "decision" => "information_requested", "note" => "..." } } —
     # normalised to { item_id => decision } with notes kept separately.
+    # Controller params arrive as ActionController::Parameters; convert to a
+    # plain hash first or #each_with_object raises NoMethodError.
     def normalize_decisions(raw)
-      (raw || {}).each_with_object({}) do |(id, value), memo|
+      raw_hash =
+        if raw.is_a?(ActionController::Parameters)
+          raw.to_unsafe_h
+        else
+          raw || {}
+        end
+
+      raw_hash.each_with_object({}) do |(id, value), memo|
         if value.is_a?(Hash)
           memo[id.to_i] = value["decision"] || value[:decision]
           @notes ||= {}

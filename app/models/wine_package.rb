@@ -426,13 +426,24 @@ class WinePackage < ApplicationRecord
 
   # Phase 12: shipping cannot be released before payment unless an Admin
   # records an explicit, audited override.
+  #
+  # The state machine runs paid → shipping_pending → shipping_released; the
+  # intermediate stop (submitter supplied a shipping address) is advanced
+  # automatically here when the caller releases straight from `paid`, so the
+  # two legs are both recorded on the timeline without every caller having to
+  # know about the intermediate status.
   def release_shipping!(by:, override: false, reason: nil)
     if override
       self.shipping_override_by = by
       self.shipping_override_reason = reason
       self.shipping_override_at = Time.current
+      # An override asserts the invoice was settled outside Stripe (e.g. bank
+      # transfer): record the commercial leg as paid (audited on the row via
+      # shipping_override_*) so the state machine path stays legal.
+      transition_to!("paid", actor: by) if status == "invoiced"
       save!
     end
+    transition_to!("shipping_pending", actor: by) if status == "paid"
     transition_to!("shipping_released", actor: by)
   end
 
@@ -501,8 +512,10 @@ class WinePackage < ApplicationRecord
   private
 
   # Trade submissions (IDENTITY_206) must carry a usable contact snapshot:
-  # company, contact person and a valid-looking email are the minimum the
-  # editorial team and the claim flow rely on.
+  # contact person and a valid-looking email are the minimum the editorial
+  # team and the claim flow rely on. company_name is OPTIONAL: the public
+  # form asks anonymous submitters only for their name and email (IDENTITY_206
+  # Phase 4 UX decision) — the producer link is established at assessment time.
   def contact_snapshot_shape
     snap = contact_snapshot
     if snap.blank?
@@ -511,7 +524,7 @@ class WinePackage < ApplicationRecord
     end
     return errors.add(:contact_snapshot, "must be an object") unless snap.is_a?(Hash)
 
-    %w[company_name contact_name email].each do |key|
+    %w[contact_name email].each do |key|
       errors.add(:contact_snapshot, "#{key.tr('_', ' ')} is required") if snap[key].blank?
     end
     if snap["email"].present? && !snap["email"].match?(URI::MailTo::EMAIL_REGEXP)

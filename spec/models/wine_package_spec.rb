@@ -79,7 +79,17 @@ RSpec.describe WinePackage, type: :model do
 
     it "accepts every documented source" do
       described_class::SOURCES.each do |source|
-        expect(create_package(source: source).reload.source).to eq(source)
+        # Trade submissions carry no producer and require a contact snapshot
+        # (IDENTITY_206) — supply the minimum viable snapshot for that source.
+        attrs = { source: source }
+        if source == "trade_submission"
+          attrs[:producer] = nil
+          attrs[:contact_snapshot] = {
+            "company_name" => "Spec Winery", "contact_name" => "Spec Contact",
+            "email" => "spec@example.com"
+          }
+        end
+        expect(create_package(attrs).reload.source).to eq(source)
       end
     end
 

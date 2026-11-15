@@ -44,6 +44,10 @@ class Api::V1::Admin::Trade::QuotesController < ApplicationController
     raise Trade::Error, "only a draft quote can be sent" unless @quote.draft?
 
     @quote.update!(status: "sent", valid_until: @quote.valid_until || 30.days.from_now.to_date)
+    # Sending the quote is the business event that moves the package along the
+    # commercial chain (approved → quoted, §Phase 10). Idempotent: once quoted
+    # (or beyond) the transition is skipped.
+    @quote.wine_package.transition_to!("quoted", actor: current_user) if @quote.wine_package.status == "approved"
     render json: TradeQuoteSerializer.new(@quote.reload).as_json
   end
 

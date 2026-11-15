@@ -19,11 +19,14 @@ module Trade
       end
 
       def call
-        raise Error, "only a paid trade package can be released for shipping" unless gate_open?
-
+        # Validate the override FIRST: an Admin override waives the payment
+        # gate by definition, so the gate must not be consulted (or refused)
+        # before the override is authorised.
         if override
           raise Error, "an override reason is required" if reason.blank?
-          raise Error, "only an Admin may override the payment gate" unless by&.respond_to?(:has_role?) && by.admin?
+          raise Error, "only an Admin may override the payment gate" unless by&.admin?
+        else
+          raise Error, "only a paid trade package can be released for shipping" unless gate_open?
         end
 
         ActiveRecord::Base.transaction do

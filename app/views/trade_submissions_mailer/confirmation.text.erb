@@ -1,0 +1,21 @@
+Your Wine Words submission confirmation
+=====================================
+
+Hello <%= @contact_name.presence || "there" %>,
+
+Thank you for submitting <%= @wine_count %> wine<%= @wine_count > 1 ? "s" : "" %> to Wine Words. We've received your submission and our editorial team will review it shortly.
+
+Submission details:
+- Package reference: #<%= @package.id %>
+- Company: <%= @company_name.presence || "—" %>
+- Contact: <%= @contact_name.presence || "—" %>
+- Wines: <%= @wine_names %>
+
+Track your submission:
+<%= @guest_url %>
+
+This link is private and scoped to your submission only. Keep it safe — anyone with this link can view the package status, editorial progress, and commercial documents.
+
+If you have any questions, reply to this email or contact us at kasia@mywineadviser.com.au.
+
+— The Wine Words Team

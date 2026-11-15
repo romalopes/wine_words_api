@@ -13,13 +13,13 @@ module Trade
     #     in the same transaction.
     #   * A single-use guest token (hashed) is generated so the anonymous
     #     submitter can follow the package (Phases 5/6).
-    #   * `idempotency_key` (client-generated, 24h TTL) makes double-clicks and
-    #     retries return the original package instead of creating a duplicate.
+    #   * `idempotency_key` (client-generated, DB-backed, no TTL) makes
+    #     double-clicks and retries return the original package instead of
+    #     creating a duplicate.
     #
     # Turnstile verification and rate limiting are applied in the controller
     # (see the separate infrastructure plan) BEFORE this service runs.
     class Create
-      IDEMPOTENCY_TTL = 24.hours
 
       # Params shape (already strong-param-filtered by the controller):
       #   contact_snapshot: { company_name, contact_name, email, phone,
@@ -41,7 +41,7 @@ module Trade
       end
 
       def call
-        return existing if idempotent_replay?
+        return replay_result if idempotent_replay?
         raise Error, "at least one wine is required" if wines.empty?
 
         package = nil
@@ -77,10 +77,30 @@ module Trade
 
       attr_reader :params, :submitted_ip
 
+      # A replay returns the ORIGINAL package without a fresh guest token: the
+      # client already holds the token from the first response, and re-issuing
+      # one would rotate the digest and invalidate the link they have.
+      def replay_result
+        Result.new(package: existing, guest_token: nil, replayed: true)
+      end
+
       def item_attributes(wine)
+        vintage = wine[:vintage].to_s.strip
+        # The picker offers "NV" (non vintage), "MV" (multi vintage) and
+        # calendar years. NV/MV are stored as a label with a nil year; a
+        # 4-digit year is stored as the integer year with no label.
+        if %w[NV MV].include?(vintage.upcase)
+          vintage_year = nil
+          vintage_label = vintage.upcase
+        else
+          vintage_year = vintage.presence&.to_i
+          vintage_label = nil
+        end
+
         {
           proposed_wine_name: wine[:wine_name],
-          proposed_vintage_year: wine[:vintage],
+          proposed_vintage_year: vintage_year,
+          snapshot_vintage_label: vintage_label,
           snapshot_region: wine[:region],
           snapshot_appellation: wine[:appellation],
           snapshot_grape_varieties: wine[:grape_varieties],
@@ -110,7 +130,7 @@ module Trade
         }
       end
 
-      # ---- Idempotency (24h TTL, Rails cache) --------------------------------
+      # ---- Idempotency (DB-backed; survives restarts, works with any cache) ---
 
       def idempotent_replay?
         idempotency_key.present? && existing.present?
@@ -118,19 +138,24 @@ module Trade
 
       def existing
         @existing ||= begin
-          package_id = Rails.cache.read(cache_key)
-          package_id && WinePackage.find_by(id: package_id)
+          return nil if idempotency_key.blank?
+
+          TradeIdempotencyKey.find_by(key_digest: key_digest)&.wine_package
         end
       end
 
       def store_idempotency!(package)
         return if idempotency_key.blank?
 
-        Rails.cache.write(cache_key, package.id, expires_in: IDEMPOTENCY_TTL)
+        TradeIdempotencyKey.create!(wine_package: package, key_digest: key_digest)
+      rescue ActiveRecord::RecordNotUnique
+        # A concurrent request stored the same key first; the replay path
+        # resolves it on the next attempt. The current package stands.
+        nil
       end
 
-      def cache_key
-        "trade/submission/idempotency/#{Digest::SHA256.hexdigest(idempotency_key)}"
+      def key_digest
+        Digest::SHA256.hexdigest(idempotency_key)
       end
 
       def idempotency_key
