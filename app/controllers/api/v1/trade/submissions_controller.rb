@@ -53,8 +53,11 @@ class Api::V1::Trade::SubmissionsController < ApplicationController
     # Replays return the original package with no fresh token — no new email.
     unless result.replayed
       TradeSubmissionsMailer.confirmation(result.package.id, result.guest_token).deliver_later
+      # Editorial team: one in-app notification plus one email per Editor/Admin
+      # account (best-effort — it never fails the submission).
+      Trade::Submissions::NotifyStaff.call(package: result.package, submitter: submitter)
     end
-    
+
     render json: {
       package_reference: result.package.id,
       status: result.package.status,

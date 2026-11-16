@@ -24,4 +24,31 @@ class TradeSubmissionsMailer < ApplicationMailer
       subject: "Your Wine Words submission ##{@package.id} — confirmation"
     )
   end
+
+  # Alerts ONE Editor/Admin that a public submission arrived and needs triage.
+  #
+  # One message per recipient (never a shared To/CC list): staff email addresses
+  # are not disclosed to each other, and the deep link is personal.
+  #
+  # @param package_id [Integer] the WinePackage ID
+  # @param recipient_id [Integer] the staff User receiving this copy
+  def new_submission(package_id, recipient_id)
+    @package         = WinePackage.find(package_id)
+    @recipient       = User.find(recipient_id)
+    contact          = @package.contact_snapshot || {}
+    @company_name    = contact["company_name"]
+    @contact_name    = contact["contact_name"]
+    @contact_email   = contact["email"]
+    @contact_country = contact["country"]
+    @contact_role    = contact["role"]
+    @wine_count      = @package.items.size
+    @wine_names      = @package.items.map { |i| i.snapshot_wine_name }.join(", ")
+    @package_url     = "#{EmailVerification.frontend_url}/admin/trade/packages/#{@package.id}"
+
+    mail(
+      to: @recipient.email,
+      subject: "New trade submission ##{@package.id} — " \
+               "#{@company_name.presence || @contact_name.presence || 'Trade submitter'}"
+    )
+  end
 end

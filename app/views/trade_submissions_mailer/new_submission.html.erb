@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New trade submission #<%= @package.id %></title>
+  </head>
+  <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #241b19; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background: linear-gradient(135deg, #4a1020, #27615e); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
+      <h1 style="color: white; margin: 0; font-size: 28px;">Wine Words</h1>
+      <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0;">New trade submission</p>
+    </div>
+
+    <div style="background: #fffaf4; border: 1px solid #e4d9cd; border-top: none; border-radius: 0 0 12px 12px; padding: 30px;">
+      <p>Hello <%= @recipient.display_name.presence || "there" %>,</p>
+
+      <p><strong><%= @company_name.presence || @contact_name.presence || "A trade submitter" %></strong>
+        submitted <strong><%= @wine_count %> wine<%= @wine_count > 1 ? "s" : "" %></strong>
+        through the public form. The package is waiting for editorial triage.</p>
+
+      <div style="background: white; border: 1px solid #e4d9cd; border-radius: 8px; padding: 20px; margin: 20px 0;">
+        <h3 style="margin: 0 0 15px; color: #4a1020;">Submission details</h3>
+        <p style="margin: 8px 0;"><strong>Package reference:</strong> #<%= @package.id %></p>
+        <p style="margin: 8px 0;"><strong>Company:</strong> <%= @company_name.presence || "—" %></p>
+        <p style="margin: 8px 0;"><strong>Contact:</strong> <%= @contact_name.presence || "—" %></p>
+        <p style="margin: 8px 0;"><strong>Email:</strong> <%= @contact_email.presence || "—" %></p>
+        <p style="margin: 8px 0;"><strong>Country:</strong> <%= @contact_country.presence || "—" %></p>
+        <p style="margin: 8px 0;"><strong>Role:</strong> <%= @contact_role.presence || "—" %></p>
+        <p style="margin: 8px 0;"><strong>Wines:</strong> <%= @wine_names.presence || "—" %></p>
+      </div>
+
+      <p style="text-align: center; margin: 30px 0;">
+        <a href="<%= @package_url %>" style="display: inline-block; background: #4a1020; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600;">Review submission</a>
+      </p>
+
+      <p style="font-size: 14px; color: #766963; word-break: break-all;">
+        Or copy this link: <br>
+        <span style="font-family: monospace; background: #efe5dc; padding: 4px 8px; border-radius: 4px;"><%= @package_url %></span>
+      </p>
+
+      <hr style="border: none; border-top: 1px solid #e4d9cd; margin: 30px 0;">
+
+      <p style="font-size: 14px; color: #766963;">
+        You are receiving this because your account has the Editor or Admin role.
+        The same submission is also in your in-app notifications.
+      </p>
+    </div>
+  </body>
+</html>

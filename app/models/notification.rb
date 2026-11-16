@@ -27,6 +27,10 @@ class Notification < ApplicationRecord
     wine_package_arrived
     wine_package_completed
     wine_package_rejected
+    # Trade portal: a public submission arrived and needs editorial triage.
+    # Delivered to every Editor/Admin account (in-app + email) by
+    # Trade::Submissions::NotifyStaff.
+    trade_submission_received
     review_published
     review_updated
     review_comment

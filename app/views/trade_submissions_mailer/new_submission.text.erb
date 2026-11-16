@@ -1,0 +1,22 @@
+New trade submission #<%= @package.id %>
+=====================================
+
+Hello <%= @recipient.display_name.presence || "there" %>,
+
+<%= @company_name.presence || @contact_name.presence || "A trade submitter" %> submitted <%= @wine_count %> wine<%= @wine_count > 1 ? "s" : "" %> through the public form. The package is waiting for editorial triage.
+
+Submission details:
+- Package reference: #<%= @package.id %>
+- Company: <%= @company_name.presence || "—" %>
+- Contact: <%= @contact_name.presence || "—" %>
+- Email: <%= @contact_email.presence || "—" %>
+- Country: <%= @contact_country.presence || "—" %>
+- Role: <%= @contact_role.presence || "—" %>
+- Wines: <%= @wine_names.presence || "—" %>
+
+Review the submission:
+<%= @package_url %>
+
+You are receiving this because your account has the Editor or Admin role. The same submission is also in your in-app notifications.
+
+— The Wine Words Team

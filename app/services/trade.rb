@@ -2,6 +2,7 @@
 # existing WinePackage domain.
 #
 #   Trade::Submissions::Create       public multi-wine submission (Phase 3)
+#   Trade::Submissions::NotifyStaff  notify + email Editor/Admin of a new one
 #   Trade::Packages::Claim           link a package to a User (Phase 5)
 #   Trade::Assessment                editor approve/reject/info (Phase 7)
 #   Trade::Invoices::GenerateFromQuote  quote acceptance -> invoice (Phase 10)

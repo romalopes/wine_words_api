@@ -5,6 +5,7 @@ require "rails_helper"
 # Each example runs in a rolled-back transaction.
 RSpec.describe "Api::V1::Trade", type: :request do
   include Devise::Test::IntegrationHelpers
+  include ActiveJob::TestHelper
 
   # Seed reference roles OUTSIDE the per-example transaction so User creation
   # (and its assign_default_role callback) only ever SELECTs them. Concurrent
@@ -180,6 +181,73 @@ RSpec.describe "Api::V1::Trade", type: :request do
 
       expect(response).to have_http_status(:bad_request)
       expect(response.parsed_body["exists"]).to be(false)
+    end
+  end
+
+  # The public form must reach the editorial team, not only the submitter.
+  describe "editorial team notification" do
+    let(:reader) { user_with_role("Reader", "Trade Reader", "trade-reader@example.com") }
+
+    it "creates one in-app notification and one email per Editor/Admin" do
+      editor
+      admin
+      reader
+
+      # Jobs are performed so the queued MailDeliveryJobs land in
+      # ActionMailer::Base.deliveries, the convention used across the suite.
+      perform_enqueued_jobs { submit_trade_submission! }
+      package = WinePackage.find(response.parsed_body["package_reference"])
+
+      staff_mails = ActionMailer::Base.deliveries.select do |mail|
+        mail.subject.start_with?("New trade submission ##{package.id}")
+      end
+      expect(staff_mails.map { |mail| mail.to.first })
+        .to contain_exactly(editor.email, admin.email)
+
+      [ editor, admin ].each do |staff|
+        notification = staff.notifications.find_by(
+          notification_type: "trade_submission_received", wine_package: package
+        )
+
+        expect(notification).to be_present
+        expect(notification.delivered_at).to be_present
+        expect(notification.notifiable).to eq(package)
+        expect(notification.target_path).to eq("/admin/trade/packages/#{package.id}")
+        expect(notification.message).to include("submitted")
+      end
+
+      expect(reader.notifications.where(notification_type: "trade_submission_received")).to be_empty
+    end
+
+    it "does not notify the submitter about their own submission" do
+      editor
+      admin
+      sign_in editor
+
+      submit_trade_submission!
+      package = WinePackage.find(response.parsed_body["package_reference"])
+
+      expect(editor.notifications.where(notification_type: "trade_submission_received")).to be_empty
+      expect(admin.notifications.find_by(
+        notification_type: "trade_submission_received", wine_package: package
+      )).to be_present
+    end
+
+    it "does not duplicate the notification or email on an idempotent replay" do
+      editor
+      payload = valid_submission.merge(idempotency_key: "notify-key")
+
+      post "/api/v1/trade/submissions", params: payload, as: :json
+      # The first call's own jobs (confirmation, staff alert, web push) are not
+      # what this example is about — start from an empty queue.
+      ActiveJob::Base.queue_adapter.enqueued_jobs.clear
+
+      expect {
+        post "/api/v1/trade/submissions", params: payload, as: :json
+      }.not_to change {
+        editor.notifications.where(notification_type: "trade_submission_received").count
+      }
+      expect(ActiveJob::Base.queue_adapter.enqueued_jobs).to be_empty
     end
   end
 
