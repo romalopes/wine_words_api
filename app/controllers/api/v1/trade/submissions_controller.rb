@@ -11,11 +11,26 @@
 # Idempotency: an optional client-generated X-Idempotency-Key header makes
 # retries return the original submission instead of duplicating it.
 class Api::V1::Trade::SubmissionsController < ApplicationController
-  skip_before_action :authenticate_user!, only: :create
-  skip_before_action :enforce_email_verification!, only: :create
-  skip_before_action :reject_deleted_user!, only: :create
+  skip_before_action :authenticate_user!, only: %i[create check_email]
+  skip_before_action :enforce_email_verification!, only: %i[create check_email]
+  skip_before_action :reject_deleted_user!, only: %i[create check_email]
 
   rescue_from Trade::Error, with: :render_trade_error
+
+  # GET /api/v1/trade/submissions/check_email?email=...
+  # Checks if an email is associated with an existing user account.
+  # Returns { exists: true } or { exists: false, message: "..." }
+  def check_email
+    email = params[:email]&.strip&.downcase
+    return render json: { exists: false }, status: :bad_request if email.blank?
+
+    user = User.find_by("LOWER(email) = ?", email)
+    if user
+      render json: { exists: true }
+    else
+      render json: { exists: false }
+    end
+  end
 
   def create
     # Idempotency key: prefer the X-Idempotency-Key header, falling back to the
@@ -23,10 +38,13 @@ class Api::V1::Trade::SubmissionsController < ApplicationController
     idempotency_key =
       request.headers["X-Idempotency-Key"].presence || params[:idempotency_key]
 
+    # If user is authenticated, link submission to them
+    submitter = current_user
+
     result = Trade::Submissions::Create.call(
       submission_params.merge(idempotency_key: idempotency_key),
       submitted_ip: request.remote_ip,
-      submitter: current_user # Pass authenticated user if available
+      submitter: submitter
     )
     # Send confirmation email to the submitter (async via deliver_later).
     # The raw guest token is passed through — the mailer must NOT regenerate

@@ -295,6 +295,7 @@ Rails.application.routes.draw do
       # authenticate with the single-package guest token.
       namespace :trade do
         post "submissions", to: "submissions#create"
+        get "submissions/check_email", to: "submissions#check_email"
 
         get "my-packages", to: "packages#index"
         get "packages/:id", to: "packages#show", as: :package

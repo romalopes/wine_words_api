@@ -154,6 +154,35 @@ RSpec.describe "Api::V1::Trade", type: :request do
     end
   end
 
+  # The submission wizard calls this before showing the login / sign-up choice
+  # to an anonymous submitter, so it must answer without a session.
+  describe "GET /api/v1/trade/submissions/check_email (public)" do
+    it "reports an existing account by email, case-insensitively" do
+      other_user
+
+      get "/api/v1/trade/submissions/check_email",
+          params: { email: "  Other@Example.com " }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body["exists"]).to be(true)
+    end
+
+    it "reports an unknown email as not existing" do
+      get "/api/v1/trade/submissions/check_email",
+          params: { email: "new-submitter@example.com" }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body["exists"]).to be(false)
+    end
+
+    it "rejects a blank email" do
+      get "/api/v1/trade/submissions/check_email", params: { email: " " }
+
+      expect(response).to have_http_status(:bad_request)
+      expect(response.parsed_body["exists"]).to be(false)
+    end
+  end
+
   describe "guest access" do
     let(:guest_token) do
       submit_trade_submission!
