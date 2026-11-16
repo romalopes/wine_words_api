@@ -20,20 +20,16 @@ class Api::V1::Trade::MessagesController < ApplicationController
   end
 
   def create
-    message = @package.wine_package_messages.create!(
+    message = Trade::Messages::Send.call(
+      package: @package,
       sender: current_user,
-      sender_type: "submitter",
-      body: params[:body],
-      internal_note: false # submitters (and guests) can never write internal notes
+      body: params[:body]
     )
-    @package.wine_package_events.create!(
-      event_type: "message_sent",
-      actor: current_user,
-      visibility: "shared",
-      occurred_at: Time.current,
-      metadata: { wine_package_message_id: message.id }
-    )
+
     render json: TradeMessageSerializer.new(message, staff: @staff).as_json, status: :created
+  rescue ActiveRecord::RecordInvalid => e
+    render json: { error: e.record.errors.full_messages.to_sentence },
+           status: :unprocessable_entity
   end
 
   private

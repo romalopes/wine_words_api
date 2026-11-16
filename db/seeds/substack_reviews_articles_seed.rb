@@ -244,6 +244,8 @@ end
 puts '🚀  Substack import (fixed URL list) starting…'
 
 URLS = [
+  'https://kasiasobiesiak.substack.com/p/review-pachamama-pinot-gris-2026',
+  'https://kasiasobiesiak.substack.com/p/review-pachamama-gamay-2026',
   'https://kasiasobiesiak.substack.com/p/review-raga-sangiovese-2025',
   'https://kasiasobiesiak.substack.com/p/kumeu-river-wines-at-rays-road-vineyard',
   'https://kasiasobiesiak.substack.com/p/drinks-trade-champagne-and-sparkling',

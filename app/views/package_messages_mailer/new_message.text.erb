@@ -1,0 +1,16 @@
+New message on trade submission #<%= @package.id %>
+=====================================
+
+Hello <%= @recipient&.display_name.presence || @contact_name.presence || "there" %>,
+
+<%= @sender_name %> wrote about <%= @company_name.presence || "your submission" %>:
+
+<%= @body %>
+
+Open the submission:
+<%= @url %>
+
+<%= @staff_recipient ? "You receive this because your account has the Editor or Admin role. The same message is in your in-app notifications." : "You receive this because you submitted wines to Wine Words. The same message is in your account notifications." %>
+
+— The Wine Words Team
+

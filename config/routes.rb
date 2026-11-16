@@ -340,6 +340,9 @@ Rails.application.routes.draw do
                 post :accept
               end
             end
+            # Conversation with the submitter: staff read the shared thread and
+            # reply; each reply notifies the submitter.
+            resources :messages, only: [ :index, :create ], controller: "messages"
           end
         end
       end

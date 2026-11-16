@@ -31,6 +31,7 @@ class Notification < ApplicationRecord
     # Delivered to every Editor/Admin account (in-app + email) by
     # Trade::Submissions::NotifyStaff.
     trade_submission_received
+    trade_message_received
     review_published
     review_updated
     review_comment

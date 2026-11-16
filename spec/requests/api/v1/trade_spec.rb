@@ -463,4 +463,141 @@ RSpec.describe "Api::V1::Trade", type: :request do
       expect(item.received_at).to be_present
     end
   end
+
+  describe "messages on a trade submission" do
+    let(:reader) do
+      user_with_role("Reader", "Trade Reader", "trade-message-reader@example.com")
+    end
+
+    it "notifies the editorial team (in-app + email) for each message" do
+      editor
+      admin
+      reader
+      package = WinePackage.create!(
+        source: "trade_submission",
+        status: "editorial_pending",
+        contact_snapshot: {
+          "company_name" => "Bodega Ejemplo",
+          "contact_name" => "Maria Ruiz",
+          "email" => "maria@bodega-ejemplo.es",
+          "country" => "Spain",
+          "role" => "winery"
+        },
+        created_by: reader,
+        submitter: reader
+      )
+      sign_in reader
+
+      perform_enqueued_jobs do
+        post "/api/v1/trade/packages/#{package.id}/messages",
+             params: { body: "Hi, any update on my review request?" },
+             as: :json
+      end
+
+      expect(response).to have_http_status(:created)
+
+      message = WinePackageMessage.last
+      expect(message.body).to eq("Hi, any update on my review request?")
+      expect(message.sender).to eq(reader)
+      expect(message.sender_type).to eq("submitter")
+      expect(message.internal_note).to be(false)
+
+      expect(package.wine_package_events.map(&:event_type))
+        .to include("message_sent")
+
+      notifications = editor.notifications
+                               .where(notification_type: "trade_message_received",
+                                      wine_package: package)
+      expect(notifications.count).to eq(1)
+      expect(notifications.first.delivered_at).to be_present
+      expect(notifications.first.target_path).to eq("/admin/trade/packages/#{package.id}")
+      expect(notifications.first.message)
+        .to include("Hi, any update on my review request?")
+
+      emails = ActionMailer::Base.deliveries.select do |mail|
+        mail.subject.start_with?("New message on trade submission")
+      end
+      expect(emails.flat_map(&:to)).to contain_exactly(editor.email, admin.email)
+    end
+  end
+
+  describe "admin messages on a trade submission" do
+    let(:submitter_user) do
+      user_with_role("Reader", "Maria Ruiz", "admin-msg-submitter@example.com")
+    end
+
+    def create_package
+      WinePackage.create!(
+        source: "trade_submission",
+        status: "editorial_pending",
+        contact_snapshot: {
+          "company_name" => "Bodega Ejemplo",
+          "contact_name" => "Maria Ruiz",
+          "email" => "maria@bodega-ejemplo.es",
+          "country" => "Spain",
+          "role" => "winery"
+        },
+        created_by: submitter_user,
+        submitter: submitter_user
+      )
+    end
+
+    it "lets an editor reply and notifies the submitter (in-app + email)" do
+      submitter_user
+      package = create_package
+      sign_in editor
+
+      perform_enqueued_jobs do
+        post "/api/v1/admin/trade/packages/#{package.id}/messages",
+             params: { body: "Thanks — we are reviewing your Rioja this week." },
+             as: :json
+      end
+
+      expect(response).to have_http_status(:created)
+
+      message = WinePackageMessage.last
+      expect(message.sender).to eq(editor)
+      expect(message.sender_type).to eq("editor")
+      expect(message.internal_note).to be(false)
+
+      notification = submitter_user.notifications.find_by(
+        notification_type: "trade_message_received", wine_package: package
+      )
+      expect(notification).to be_present
+      expect(notification.delivered_at).to be_present
+      expect(notification.target_path).to eq("/trade/my-packages/#{package.id}")
+      expect(notification.message).to include("we are reviewing your Rioja")
+
+      emails = ActionMailer::Base.deliveries.select do |mail|
+        mail.subject.start_with?("New message on trade submission")
+      end
+      expect(emails.flat_map(&:to)).to include(submitter_user.email)
+      # The editor who replied is not emailed about their own message.
+      expect(emails.flat_map(&:to)).not_to include(editor.email)
+    end
+
+    it "lists the shared thread for staff" do
+      submitter_user
+      package = create_package
+      package.wine_package_messages.create!(
+        sender: submitter_user, sender_type: "submitter", body: "Any news?"
+      )
+      sign_in editor
+
+      get "/api/v1/admin/trade/packages/#{package.id}/messages"
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body.map { |m| m["body"] }).to include("Any news?")
+    end
+
+    it "forbids non-staff accounts" do
+      submitter_user
+      package = create_package
+      sign_in submitter_user
+
+      get "/api/v1/admin/trade/packages/#{package.id}/messages"
+
+      expect(response).to have_http_status(:forbidden)
+    end
+  end
 end
