@@ -10,10 +10,11 @@
 # The confidentiality boundary is enforced here and in the queries feeding it:
 # internal WinePackageEvents are only ever serialised for staff.
 class TradePackageSerializer
-  def initialize(wine_package, base_url = nil, viewer: :submitter)
+  def initialize(wine_package, base_url = nil, viewer: :submitter, current_user_id: nil)
     @package = wine_package
     @base_url = base_url
     @viewer = viewer.to_s
+    @current_user_id = current_user_id
   end
 
   def as_json(*)
@@ -148,7 +149,14 @@ class TradePackageSerializer
   def guest_only_extras
     return {} unless @viewer == "guest"
 
-    { claimable: !@package.claimed? }
+    { # claimable is true if the package can be claimed by the current viewer.
+    # For authenticated users, it's claimable if not already claimed by them.
+    # For guests, it's claimable if not claimed at all.
+    claimable: if @viewer != "guest" && @current_user_id
+                 !@package.claimed? || @package.submitter_id != @current_user_id
+               else
+                 !@package.claimed?
+               end }
   end
 
   def staff? = @viewer == "staff"

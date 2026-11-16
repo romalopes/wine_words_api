@@ -26,8 +26,23 @@ module Trade
       def call
         raise Error, "claim token is invalid or has expired" unless package.guest_token_valid?(guest_token)
 
+        # If already claimed by this user, just revoke the token (idempotent).
+        # If claimed by another user, reject.
         if package.claimed?
           if package.submitter_id == user.id
+            # Revoke token if not already revoked, and record claim event if not already recorded
+            ActiveRecord::Base.transaction do
+              package.revoke_guest_token! unless package.guest_token_revoked_at.present?
+              unless package.wine_package_events.exists?(event_type: "package_claimed")
+                package.wine_package_events.create!(
+                  event_type: "package_claimed",
+                  actor: user,
+                  visibility: "shared",
+                  occurred_at: Time.current,
+                  metadata: {}
+                )
+              end
+            end
             return package
           else
             raise Error, "this package has already been claimed"

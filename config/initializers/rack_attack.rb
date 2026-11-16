@@ -53,4 +53,4 @@ class Rack::Attack
 end
 
 # Wire Rack::Attack into the middleware stack (production-style envs only).
-Rails.application.config.middleware.use Rack::Attack unless Rails.env.test?
+Rails.application.config.middleware.use Rack::Attack unless Rails.env.test? || Rails.env.development?

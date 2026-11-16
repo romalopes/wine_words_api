@@ -26,12 +26,12 @@ class Api::V1::Trade::PackagesController < ApplicationController
     packages = WinePackage.submitted_by(current_user).trade_submissions
                           .includes(:wine_package_items, :wine_package_events)
                           .order(created_at: :desc)
-    render json: packages.map { |p| TradePackageSerializer.new(p, viewer: :submitter).as_json }
+    render json: packages.map { |p| TradePackageSerializer.new(p, viewer: :submitter, current_user_id: current_user.id).as_json }
   end
 
   # GET /api/v1/trade/packages/:id
   def show
-    render json: TradePackageSerializer.new(@package, viewer: :submitter).as_json
+    render json: TradePackageSerializer.new(@package, viewer: :submitter, current_user_id: current_user.id).as_json
   end
 
   # PATCH /api/v1/trade/packages/:id/shipping_address (Phase 12)
@@ -47,7 +47,7 @@ class Api::V1::Trade::PackagesController < ApplicationController
 
   # GET /api/v1/trade/guest_packages/:token
   def guest_show
-    render json: TradePackageSerializer.new(@package, viewer: :guest).as_json
+    render json: TradePackageSerializer.new(@package, viewer: :guest, current_user_id: current_user&.id).as_json
   end
 
   # POST /api/v1/trade/guest_packages/:token/claim

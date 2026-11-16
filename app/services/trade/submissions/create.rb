@@ -29,15 +29,16 @@ module Trade
       #             technical_sheet_url, trade_price, retail_price,
       #             sample_available, sample_quantity }]
       #   idempotency_key: String (optional but strongly recommended)
-      def self.call(params, submitted_ip: nil)
-        new(params, submitted_ip: submitted_ip).call
+      def self.call(params, submitted_ip: nil, submitter: nil)
+        new(params, submitted_ip: submitted_ip, submitter: submitter).call
       end
 
-      def initialize(params, submitted_ip: nil)
+      def initialize(params, submitted_ip: nil, submitter: nil)
         # Request params arrive as string-keyed hashes (JSON/permit); the
         # service speaks symbols, so normalise once at the boundary.
         @params = params.deep_symbolize_keys
         @submitted_ip = submitted_ip
+        @submitter = submitter
       end
 
       def call
@@ -52,7 +53,9 @@ module Trade
             # editorial_pending is an ENTRY status for the trade chain (like
             # "arrived"/"requested" for the editorial/producer chains).
             status: "editorial_pending",
-            contact_snapshot: params[:contact_snapshot]
+            contact_snapshot: params[:contact_snapshot],
+            created_by: @submitter,
+            submitter: @submitter
           )
           package.save!
           package.items.create!(wines.map { |wine| item_attributes(wine) })

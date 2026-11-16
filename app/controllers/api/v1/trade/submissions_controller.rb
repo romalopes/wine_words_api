@@ -25,7 +25,8 @@ class Api::V1::Trade::SubmissionsController < ApplicationController
 
     result = Trade::Submissions::Create.call(
       submission_params.merge(idempotency_key: idempotency_key),
-      submitted_ip: request.remote_ip
+      submitted_ip: request.remote_ip,
+      submitter: current_user # Pass authenticated user if available
     )
     # Send confirmation email to the submitter (async via deliver_later).
     # The raw guest token is passed through — the mailer must NOT regenerate
