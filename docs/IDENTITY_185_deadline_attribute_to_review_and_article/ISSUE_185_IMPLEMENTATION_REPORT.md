@@ -190,8 +190,8 @@ The three failures are pre-existing:
 
 - `Reviews.test.tsx` expects a "Drink …" window on a list card that does not
   render one (the text exists only in `WineDetail` / `ReviewDetail`).
-- two `ApiHealth.test.tsx` cases expect backend version `0.0.21` while the
-  workspace reports `0.0.22` — version/config drift.
+- two `ApiHealth.test.tsx` cases expect backend version `0.0.22` while the
+  workspace reports `0.0.23` — version/config drift.
 
 `src/components/DeadlineBadge.test.tsx` adds 6 passing cases: no deadline,
 published, archived, upcoming, due today, overdue count, and "API wins over the
