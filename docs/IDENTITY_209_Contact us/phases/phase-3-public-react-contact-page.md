@@ -44,11 +44,13 @@ wrapped by any staff check.
 * Client validation (including a safe email regex) improves usability; the API
   remains authoritative. Server `details` are mapped back onto the offending
   inputs; the generic `error` is shown in a `role="alert"` banner.
-* **Signed-in visitors do not retype their address.** When `useAuth().user.email`
-  is present, the email field becomes a read-only display of the account address
-  with the hint "We will reply to your account email.", client validation skips
-  the email requirement, and the payload always uses the account email. Anonymous
-  visitors keep the normal editable, required email input.
+* **Signed-in visitors do not retype their identity.** When `useAuth().user` is
+  present, both the name and email fields become read-only displays of the
+  account identity — the name from `display_name`, `first_name`, or the email
+  local-part, and the email with the hint "We will reply to your account email."
+  Client validation skips both requirements and the payload always uses the
+  account identity. Anonymous visitors keep the normal editable, required
+  name and email inputs.
 * One pending request at a time (`busy` guard + disabled button) — duplicate
   clicks are impossible.
 * Success appears only after `POST /api/v1/contact_messages` resolves; it is a

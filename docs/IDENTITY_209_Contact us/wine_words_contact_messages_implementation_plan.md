@@ -147,9 +147,11 @@ The page must work for anonymous visitors and authenticated users.
 | Honeypot | No visible input | Must remain empty |
 
 > **Implemented behaviour for signed-in visitors:** when the visitor has an
-> account, the email field is shown read-only with their account address and that
-> address is submitted automatically — it is still validated by the API. Anonymous
-> visitors enter (and confirm) their own address.
+> account, both the name and email fields are shown read-only with their account
+> identity — the name from `display_name` (falling back to `first_name` or the
+> email local-part) and the account email — and both are submitted
+> automatically. They are still validated by the API. Anonymous visitors enter
+> their own name and address.
 
 Suggested contact types (stable API values; labels may change):
 
