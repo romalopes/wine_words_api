@@ -6,7 +6,7 @@ Partially implemented on November 14, 2026.
 
 ## Objective
 
-Implement the responsive Trade navigation menu and public information pages (Submit a Wine, My Wine Packages, Submission Guidelines, Trade Membership, Promotional Opportunities).
+Implement the responsive Trade navigation menu and public information pages (Submit Wines, My Wine Packages, Submission Guidelines, Trade Membership, Promotional Opportunities).
 
 ## Dependencies
 
@@ -32,13 +32,13 @@ Phase 0, Phase 1
 
 1. **Trade Navigation Menu**
    - Add Trade menu to main header (desktop and mobile)
-   - Menu items: Submit a Wine → `/trade/submit`, My Wine Packages → `/trade/my-packages` (auth required), Submission Guidelines → `/trade/guidelines`, Trade Membership → `/trade/membership`, Promotional Opportunities → `/trade/promotional`
+   - Menu items: Submit Wines → `/trade/submit`, My Wine Packages → `/trade/my-packages` (auth required), Submission Guidelines → `/trade/guidelines`, Trade Membership → `/trade/membership`, Promotional Opportunities → `/trade/promotional`
    - Responsive: hamburger menu on mobile, horizontal on desktop
    - Active state highlighting
    - Accessible markup (ARIA labels, keyboard navigation)
 
 2. **Public Pages**
-   - **Submit a Wine** (`/trade/submit`): Landing page with CTA to start submission, brief overview, link to guidelines
+   - **Submit Wines** (`/trade/submit`): Landing page with CTA to start submission, brief overview, link to guidelines
    - **Submission Guidelines** (`/trade/guidelines`): Eligibility, required details, sample requirements, fees, shipping, review process, FAQ
    - **Trade Membership** (`/trade/membership`): Link to existing membership/pricing or future scope notice
    - **Promotional Opportunities** (`/trade/promotional`): Future scope notice
@@ -77,7 +77,7 @@ Phase 0, Phase 1
 ## Testing Requirements
 
 1. **Component Tests** - Trade menu renders correctly on desktop and mobile, menu items navigate to correct routes, active state works, responsive breakpoint behavior
-2. **Page Tests** - Guidelines page loads and displays content, Membership page loads, Promotional page loads, Submit a Wine landing page loads
+2. **Page Tests** - Guidelines page loads and displays content, Membership page loads, Promotional page loads, Submit Wines landing page loads
 3. **Accessibility Tests** - Keyboard navigation, screen reader labels, color contrast, focus management
 4. **E2E Tests** - Anonymous user can navigate Trade menu, authenticated user sees My Wine Packages, unauthenticated user redirected to login for My Wine Packages
 
@@ -94,7 +94,7 @@ Implement the Trade navigation and public information pages for the Wine Words f
 
 Requirements:
 - Add responsive Trade menu to main header with 5 items
-- Create public pages: Submit a Wine landing, Submission Guidelines, Trade Membership, Promotional Opportunities
+- Create public pages: Submit Wines landing, Submission Guidelines, Trade Membership, Promotional Opportunities
 - My Wine Packages entry point (redirects to login if needed)
 - Mobile-first responsive design
 - Accessible markup (ARIA, keyboard navigation)
@@ -114,7 +114,7 @@ Deliver:
 - [ ] Trade menu appears in header on all pages
 - [ ] Menu works on desktop (horizontal) and mobile (hamburger)
 - [ ] All 5 menu items navigate to correct routes
-- [ ] Submit a Wine landing page displays
+- [ ] Submit Wines landing page displays
 - [ ] Submission Guidelines page displays content
 - [ ] Trade Membership page displays (placeholder or real)
 - [ ] Promotional Opportunities page displays (placeholder)
