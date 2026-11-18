@@ -48,12 +48,13 @@ end
 puts "== Destroying all data in #{conn.current_database.inspect} (#{Rails.env}) =="
 
 # Tables that reference themselves (e.g. comments.parent_id -> comments,
-# regions.parent_id -> regions). A single DELETE can violate the immediate
-# self-FK depending on row scan order, so these are deleted in repeated
-# passes until empty.
+# regions.parent_id -> regions, follows.followable -> follows). A single DELETE can
+# violate the immediate self-FK depending on row scan order, so these are deleted
+# in repeated passes until empty.
 SELF_REFERENCING_TABLES = %w[
   comments
   regions
+  follows
 ].freeze
 
 # Deletion order: reverse topological order of `db/schema.rb` foreign keys.
@@ -72,7 +73,8 @@ TABLES_IN_DESTRUCTION_ORDER = [
   # -- 3. Logs & notifications ----------------------------------------------
   "log_objects",                 # -> logs
   "logs",                        # -> users
-  "notifications",               # -> users, wine_packages
+  "notifications",               # -> users, wine_packages, contact_messages
+  "contact_messages",            # -> (referenced by notifications)
 
   # -- 4. Articles / projects / content join tables --------------------------
   "article_project_notebooks",   # -> article_project_vintages
@@ -91,6 +93,12 @@ TABLES_IN_DESTRUCTION_ORDER = [
   "shipment_tracking_events",    # -> wine_packages
   "wine_package_items",          # -> reviews, vintages, wine_packages
   "shipment_trackings",          # -> wine_packages
+  "wine_package_quotes",         # -> wine_packages
+  "wine_package_invoices",       # -> wine_packages, wine_package_quotes
+  "wine_package_attachments",    # -> wine_packages, wine_package_items
+  "wine_package_events",         # -> wine_packages
+  "wine_package_messages",       # -> wine_packages, users
+  "trade_idempotency_keys",      # -> wine_packages
 
   # -- 6. Subscription bookkeeping (before users & subscriptions) ------------
   "subscription_changes",        # -> user_subscriptions, users
@@ -136,7 +144,13 @@ TABLES_IN_DESTRUCTION_ORDER = [
   "producer_regions",              # -> producers, regions
   "producers",                     # -> (referenced by addresses, wines, packages, joins)
 
-  # -- 13. Users, subscriptions & roles --------------------------------------
+  # -- 13. Engagement & notifications (before users) -------------------------
+  "follows",                       # -> users, follows (self-referencing)
+  "push_subscriptions",            # -> users
+  "notification_events",           # -> actor_id (users), notifiable (polymorphic)
+  "notification_preferences",      # -> users
+
+  # -- 14. Users, subscriptions & roles --------------------------------------
   "account_invitations",           # -> users
   "users",                         # -> subscriptions (and referenced by 13+ tables above)
   "subscriptions",                 # -> (referenced by users, user_subscriptions, prices, features)
