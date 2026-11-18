@@ -54,7 +54,9 @@ services:
       # No explicit PORT: Render injects it, and Thruster overrides PORT to
       # TARGET_PORT (3000) for the child Puma process it spawns.
       - key: WEB_CONCURRENCY
-        value: "2" # keep at 2 — 10 workers OOM a starter instance
+        value: "1" # keep at 2 — 10 workers OOM a starter instance
+      - key: SOLID_QUEUE_IN_PUMA
+        value: "true"
       - key: RAILS_MAX_THREADS
         value: "5"
       - key: APP_HOST
