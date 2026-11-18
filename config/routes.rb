@@ -288,6 +288,16 @@ Rails.application.routes.draw do
         end
       end
 
+      # --- Public contact form (IDENTITY_209) ------------------------------- #
+      # Anonymous by design: visitors write to the team without an account.
+      # Turnstile + Rack::Attack + a honeypot protect the intake; the inbox is
+      # a separate, role-guarded/Admin namespace (never mixed with this path).
+      namespace :admin do
+        resources :contact_messages, only: [ :index, :show, :update ],
+                  controller: "contact_messages"
+      end
+      resources :contact_messages, only: [ :create ]
+
       # --- Trade portal (IDENTITY_206) --------------------------------------
       # Public submission + guest access are UNAUTHENTICATED by design (§1.2);
       # abuse protection is the platform concern (Turnstile / Rack::Attack).

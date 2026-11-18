@@ -1,0 +1,23 @@
+New contact message #<%= @contact_message.id %>
+=====================================
+
+<%= @contact_message.name %> sent a <%= @contact_type_label %> message through the public Contact form.
+
+Message details:
+- From: <%= @contact_message.name %>
+- Email: <%= @contact_message.email %>
+- Category: <%= @contact_type_label %>
+- Subject: <%= @contact_message.subject %>
+- Received: <%= @submitted_at %>
+- Reference: #<%= @contact_message.id %>
+
+Message:
+<%= @contact_message.message %>
+
+Open it in Contact Messages:
+<%= @inbox_url %>
+
+Replying to this email answers <%= @contact_message.name %> directly.
+Contact Messages is available to Editor and Admin accounts only.
+
+— The Wine Words Team

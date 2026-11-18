@@ -32,6 +32,9 @@ class Notification < ApplicationRecord
     # Trade::Submissions::NotifyStaff.
     trade_submission_received
     trade_message_received
+    # Public contact form (IDENTITY_209): one in-app delivery per active
+    # Editor/Admin, linked to the Contact Messages inbox detail.
+    contact_message_received
     review_published
     review_updated
     review_comment
@@ -53,6 +56,7 @@ class Notification < ApplicationRecord
   belongs_to :recipient, class_name: "User"
   belongs_to :notifiable, polymorphic: true, optional: true
   belongs_to :wine_package, optional: true
+  belongs_to :contact_message, optional: true
   belongs_to :notification_event, optional: true
   belongs_to :actor, class_name: "User", optional: true
 

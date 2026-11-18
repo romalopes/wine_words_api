@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New contact message #<%= @contact_message.id %></title>
+  </head>
+  <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #241b19; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background: linear-gradient(135deg, #4a1020, #27615e); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
+      <h1 style="color: white; margin: 0; font-size: 28px;">Wine Words</h1>
+      <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0;">New contact message</p>
+    </div>
+
+    <div style="background: #fffaf4; border: 1px solid #e4d9cd; border-top: none; border-radius: 0 0 12px 12px; padding: 30px;">
+      <p>Hello,</p>
+
+      <p><strong><%= @contact_message.name %></strong> sent a
+        <strong><%= @contact_type_label %></strong> message through the public Contact form.</p>
+
+      <div style="background: white; border: 1px solid #e4d9cd; border-radius: 8px; padding: 20px; margin: 20px 0;">
+        <h3 style="margin: 0 0 15px; color: #4a1020;">Message details</h3>
+        <p style="margin: 8px 0;"><strong>From:</strong> <%= @contact_message.name %></p>
+        <p style="margin: 8px 0;"><strong>Email:</strong> <%= @contact_message.email %></p>
+        <p style="margin: 8px 0;"><strong>Category:</strong> <%= @contact_type_label %></p>
+        <p style="margin: 8px 0;"><strong>Subject:</strong> <%= @contact_message.subject %></p>
+        <p style="margin: 8px 0;"><strong>Received:</strong> <%= @submitted_at %></p>
+        <p style="margin: 8px 0;"><strong>Reference:</strong> #<%= @contact_message.id %></p>
+      </div>
+
+      <div style="background: white; border: 1px solid #e4d9cd; border-radius: 8px; padding: 20px; margin: 20px 0;">
+        <h3 style="margin: 0 0 15px; color: #4a1020;">Message</h3>
+        <p style="white-space: pre-wrap; margin: 0;"><%= @contact_message.message %></p>
+      </div>
+
+      <p style="text-align: center; margin: 30px 0;">
+        <a href="<%= @inbox_url %>" style="display: inline-block; background: #4a1020; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600;">Open in Contact Messages</a>
+      </p>
+
+      <p style="font-size: 14px; color: #766963; word-break: break-all;">
+        Or copy this link: <br>
+        <span style="font-family: monospace; background: #efe5dc; padding: 4px 8px; border-radius: 4px;"><%= @inbox_url %></span>
+      </p>
+
+      <hr style="border: none; border-top: 1px solid #e4d9cd; margin: 30px 0;">
+
+      <p style="font-size: 14px; color: #766963;">
+        Reply to this email to answer <%= @contact_message.name %> directly.
+        Contact Messages is available to Editor and Admin accounts only.
+      </p>
+    </div>
+  </body>
+</html>

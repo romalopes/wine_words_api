@@ -26,6 +26,17 @@ class Rack::Attack
       req.ip if req.path.start_with?("/api/v1/invitations/") && req.post?
     end
 
+    # ---- Public contact form (IDENTITY_209) ---------------------------------
+    # Two windows: a short burst guard plus a daily cap. Both are per IP; a
+    # shared office/NAT address is expected to stay well under these limits.
+    throttle("contact_messages/ip/burst", limit: 5, period: 10.minutes) do |req|
+      req.ip if req.path == "/api/v1/contact_messages" && req.post?
+    end
+
+    throttle("contact_messages/ip/daily", limit: 20, period: 1.day) do |req|
+      req.ip if req.path == "/api/v1/contact_messages" && req.post?
+    end
+
     # ---- Trade portal (IDENTITY_206) ----------------------------------------
     # Public intake is the most-abused surface: tight per-IP limits on
     # submission creation, and looser read limits on guest access (a legitimate

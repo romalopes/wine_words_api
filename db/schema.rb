@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_15_000002) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_17_000002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -340,6 +340,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_000002) do
     t.index ["user_id"], name: "index_comments_on_user_id"
   end
 
+  create_table "contact_messages", force: :cascade do |t|
+    t.datetime "archived_at"
+    t.string "contact_type", limit: 32, null: false
+    t.datetime "created_at", null: false
+    t.string "email", limit: 254, null: false
+    t.text "message", null: false
+    t.string "name", limit: 120, null: false
+    t.datetime "read_at"
+    t.string "status", limit: 16, default: "unread", null: false
+    t.string "subject", limit: 180, null: false
+    t.datetime "updated_at", null: false
+    t.index ["contact_type"], name: "index_contact_messages_on_contact_type"
+    t.index ["created_at"], name: "index_contact_messages_on_created_at"
+    t.index ["status", "created_at"], name: "index_contact_messages_on_status_and_created_at"
+    t.index ["status"], name: "index_contact_messages_on_status"
+  end
+
   create_table "countries", force: :cascade do |t|
     t.string "code"
     t.string "continent"
@@ -493,6 +510,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_000002) do
 
   create_table "notifications", force: :cascade do |t|
     t.bigint "actor_id"
+    t.bigint "contact_message_id"
     t.datetime "created_at", null: false
     t.datetime "delivered_at"
     t.datetime "failed_at"
@@ -510,9 +528,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_000002) do
     t.datetime "updated_at", null: false
     t.bigint "wine_package_id"
     t.index ["actor_id"], name: "index_notifications_on_actor_id"
+    t.index ["contact_message_id"], name: "index_notifications_on_contact_message_id"
     t.index ["failed_at"], name: "index_notifications_on_failed_at"
     t.index ["notifiable_type", "notifiable_id"], name: "index_notifications_on_notifiable_type_and_notifiable_id"
     t.index ["notification_event_id"], name: "index_notifications_on_notification_event_id"
+    t.index ["recipient_id", "contact_message_id", "notification_type"], name: "index_notifications_on_recipient_and_contact_message", unique: true, where: "(contact_message_id IS NOT NULL)"
     t.index ["recipient_id", "notification_event_id"], name: "index_notifications_on_recipient_and_event", unique: true, where: "(notification_event_id IS NOT NULL)"
     t.index ["recipient_id", "read_at"], name: "index_notifications_on_recipient_id_and_read_at"
     t.index ["recipient_id"], name: "index_notifications_on_recipient_id"
@@ -1368,6 +1388,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_000002) do
   add_foreign_key "logs", "users", column: "impersonated_user_id"
   add_foreign_key "notification_events", "users", column: "actor_id", on_delete: :nullify
   add_foreign_key "notification_preferences", "users", on_delete: :cascade
+  add_foreign_key "notifications", "contact_messages"
   add_foreign_key "notifications", "notification_events", on_delete: :nullify
   add_foreign_key "notifications", "users", column: "actor_id", on_delete: :nullify
   add_foreign_key "notifications", "users", column: "recipient_id"
