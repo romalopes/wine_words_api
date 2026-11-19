@@ -17,6 +17,7 @@ class Api::V1::Trade::PackagesController < ApplicationController
   skip_before_action :enforce_email_verification!, only: %i[guest_show claim]
 
   before_action :set_owned_package, only: %i[show update_shipping_address]
+  before_action :set_claimable_package, only: [:claim_by_email]
   before_action :set_guest_package, only: %i[guest_show claim]
 
   rescue_from Trade::Error, with: :render_trade_error
@@ -32,6 +33,19 @@ class Api::V1::Trade::PackagesController < ApplicationController
   # GET /api/v1/trade/packages/:id
   def show
     render json: TradePackageSerializer.new(@package, viewer: :submitter, current_user_id: current_user.id).as_json
+  end
+
+  # POST /api/v1/trade/packages/:id/claim
+  #
+  # "Submitted as a guest, then logged in": links an UNCLAIMED submission to
+  # the signed-in account when the contact email matches. Already-claimed
+  # packages stay with their owner — anyone else gets the same no-disclosure
+  # 404 as #show.
+  def claim_by_email
+    package = Trade::Packages::ClaimByEmail.call(package: @package, user: current_user)
+    render json: TradePackageSerializer.new(package, viewer: :submitter, current_user_id: current_user.id).as_json
+  rescue Trade::Error
+    render_not_found
   end
 
   # PATCH /api/v1/trade/packages/:id/shipping_address (Phase 12)
@@ -63,6 +77,14 @@ class Api::V1::Trade::PackagesController < ApplicationController
   def set_owned_package
     @package = WinePackage.trade_submissions.find_by(id: params[:id])
     return render_not_found if @package.nil? || @package.submitter_id != current_user.id
+  end
+
+  # Like set_owned_package, but tolerant of UNCLAIMED submissions: claiming is
+  # exactly what turns an anonymous submission into this user's package.
+  def set_claimable_package
+    @package = WinePackage.trade_submissions.find_by(id: params[:id])
+    return render_not_found if @package.nil?
+    return render_not_found if @package.claimed? && @package.submitter_id != current_user.id
   end
 
   def set_guest_package

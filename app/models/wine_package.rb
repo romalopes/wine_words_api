@@ -35,15 +35,15 @@ class WinePackage < ApplicationRecord
   # reuses the existing in_transit -> arrived -> reviewing -> completed moves
   # and the per-item receipt columns instead of adding duplicate statuses.
   TRADE_TRANSITIONS = {
-    "editorial_pending" => %w[assessment_in_progress rejected cancelled],
-    "assessment_in_progress" => %w[partially_approved approved rejected cancelled],
-    "partially_approved" => %w[assessment_in_progress approved rejected cancelled],
-    "approved" => %w[quoted rejected cancelled],
-    "quoted" => %w[invoiced cancelled],
-    "invoiced" => %w[paid cancelled],
-    "paid" => %w[shipping_pending cancelled],
-    "shipping_pending" => %w[shipping_released cancelled],
-    "shipping_released" => %w[in_transit cancelled]
+    "editorial_pending" => %w[assessment_in_progress arrived rejected cancelled],
+    "assessment_in_progress" => %w[partially_approved approved arrived rejected cancelled],
+    "partially_approved" => %w[assessment_in_progress approved arrived rejected cancelled],
+    "approved" => %w[quoted arrived rejected cancelled],
+    "quoted" => %w[invoiced arrived cancelled],
+    "invoiced" => %w[paid arrived cancelled],
+    "paid" => %w[shipping_pending arrived cancelled],
+    "shipping_pending" => %w[shipping_released arrived cancelled],
+    "shipping_released" => %w[in_transit arrived cancelled]
   }.freeze
 
   # The only legal moves in the workflow. Keys are the *current* status and the

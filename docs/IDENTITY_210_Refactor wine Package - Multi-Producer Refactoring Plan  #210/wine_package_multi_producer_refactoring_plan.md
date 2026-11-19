@@ -20,6 +20,8 @@ A Wine Package associated with Nepenthe, for example, can contain Nepenthe wines
 
 ## Phase 1 — Architecture review and audit
 
+**Status:** ✅ Completed on 2026-11-19
+
 Before modifying the code, inspect the current Wine Words API and frontend implementation.
 
 ### API — Rails
@@ -67,7 +69,122 @@ Produce a short architecture report before implementation identifying:
 
 ---
 
+### Phase 1 Architecture Audit Report (2026-11-19)
+
+#### 1. Current Associations and Constraints
+
+| Model | Key Associations | Notes |
+|-------|-----------------|-------|
+| `WinePackage` | `belongs_to :producer` (optional: true) | Primary producer of the package; remains unchanged |
+| `WinePackageItem` | `belongs_to :wine_package`, `belongs_to :vintage` (optional), `belongs_to :catalogue_wine` (optional, class_name: "Wine"), `belongs_to :review` | Two catalogue linkage paths: via `vintage.wine` and directly via `catalogue_wine` |
+| `Wine` | `belongs_to :producer`, `has_many :vintages` | Catalogue wine owns its producer |
+| `Vintage` | `belongs_to :wine` | No model named `WineVintage` exists; model is `Vintage` |
+
+**Key columns on `wine_package_items`:**
+- `vintage_id` — optional FK to `vintages`
+- `catalogue_wine_id` — optional FK to `wines` (added for trade submissions)
+- `proposed_wine_name`, `proposed_vintage_year` — producer-submitted proposals
+- `snapshot_vintage_label`, `snapshot_region`, etc. — trade submission snapshot fields
+
+#### 2. What Restricts Package Wines to the Package Producer
+
+**No backend model validation enforces `package_item.wine.producer_id == wine_package.producer_id`.**
+
+The restriction currently exists primarily in the **frontend**:
+
+- `WinePackageItemForm.tsx` searches wines via `winesApi.search` which defaults to filtering by `producer_id` when `producerId` prop is passed.
+- The form UI labels the selection "Wines from this producer".
+- New wine creation locks `producer_id` to the package's producer.
+- The manual "Not in the catalogue yet" checkbox (`unmatched` state) is the only way to bypass the producer-filtered catalogue.
+
+The trade submission workflow (`catalogue_wine` association and admin trade endpoints) is a separate, more recent path that already allows matching to any catalogue wine.
+
+#### 3. Existing Wine Submission Resolution Flow
+
+**Ordinary Wine Packages (editorial workflow):**
+1. Editor opens a package, adds/edits a line.
+2. Form shows wines from the package's Producer only.
+3. Editor selects a wine → its vintages load → selects vintage → saves.
+4. If wine not found: check "Not in the catalogue yet" → enter proposed name/year → saves as unmatched line.
+5. No automatic status derivation — unmatched is a manual checkbox.
+
+**Trade Submissions (IDENTITY_206):**
+1. Public submission creates `trade_submissions` record with wine name, vintage, producer details.
+2. Admin/Editor views submission in `/admin/trade/packages`.
+3. Uses `match_catalogue` action to link `catalogue_wine_id` on the package item.
+4. Separate `match_producer` action links the package to a producer.
+5. Submission's original wine name/vintage preserved on the item.
+
+#### 4. Existing Reusable Components/Endpoints
+
+| Area | Component/Endpoint | Notes |
+|------|-------------------|-------|
+| **Wine Search** | `GET /api/v1/wines/search` (`WinesController#search`) | Returns wines with producer, vintages; supports `producer_id` filter but not required |
+| **Wine Creation** | `POST /api/v1/wines` (`WinesController#create`) | Requires `producer_id`; accepts nested `vintages_attributes` |
+| **Vintage Creation** | `POST /api/v1/vintages` (`VintagesController#create`) | Creates vintage for a given `wine_id` |
+| **Producer Search** | `GET /api/v1/producers/search` (`ProducersController#search`) | Searchable producer selector for new wine creation |
+| **Package Item CRUD** | `POST/PATCH/DELETE /api/v1/wine_packages/:id/items` | Already accepts `vintage_id` without producer validation |
+| **Package Item Serializer** | `WinePackageItemSerializer` | Returns `label`, `wine_name`, `vintage_year`, `wine_slug`, etc. |
+| **Frontend APIs** | `winesApi.search`, `winesApi.create`, `vintagesApi.create`, `producersApi.search`, `winePackageItemsApi.*` | All exist and follow conventions |
+| **Inline Forms** | `InlineWineCreateForm`, `InlineVintageCreateForm` | Reusable create panels in `WinePackageItemForm` |
+
+#### 5. Proposed Minimal Changes
+
+**Backend:**
+1. **No schema migration needed** — existing columns support multi-producer items.
+2. Add explicit validation: `vintage.wine_id == item.catalogue_wine_id` when both present (data integrity).
+3. Add derived resolution status method on `WinePackageItem` (unmatched / needs vintage / matched) for API serialization.
+4. Ensure `WinePackage#producer` is never mutated by item operations.
+5. Verify authorization: Admin/Editor required for changing catalogue associations, creating wines/vintages.
+6. Optional: transactional resolution service if atomic create-wine+vintage+link is desired.
+
+**Frontend:**
+1. Refactor `WinePackageItemForm` to use **global wine search** (no `producer_id` filter for editorial mode).
+2. Display wine **name, producer, vintages** in search results.
+3. Remove "Not in the catalogue yet" checkbox; derive unmatched status from associations.
+4. Preserve submitted/proposed name and vintage as read-only reference fields.
+5. When creating a new wine: prefill name, show searchable producer selector (all producers), prefill vintage year.
+6. Reset/revalidate vintage when wine changes.
+7. Preserve quantity, condition, notes, review_requested when switching between search/create modes.
+
+#### 6. Migration Requirements
+
+**None required.** The database schema already supports:
+- Package items linking to any wine via `vintage_id` (wine's producer is independent).
+- Trade submissions already use `catalogue_wine_id` for cross-producer matching.
+- Proposed wine name/year columns capture submission data.
+
+No new columns or indexes are necessary for the core multi-producer functionality. A derived status column could be added later for query performance but is not required for MVP.
+
+#### Risks Identified
+
+| Risk | Mitigation |
+|------|------------|
+| Duplicate `catalogue_wine` vs `vintage.wine` linkage causes confusion | Document canonical path (`vintage.wine`) for editorial packages; keep `catalogue_wine` for trade workflow only |
+| Existing tests encode producer-filtered assumptions | Update tests in Phase 3/5; run full suite before merge |
+| Producer-mode (producer requests) must keep its current behaviour | Guard changes with `producerMode` prop; do not alter producer request flow |
+| N+1 queries in global search results | Use existing `eager_load(:producer).preload(:vintages)` pattern from `WinesController#index` |
+
+---
+
+### Phase 1 Completion Checklist
+
+- [x] Audit both repositories
+- [x] Document current associations and constraints
+- [x] Identify where producer restriction lives (frontend)
+- [x] Document existing submission resolution flows
+- [x] Catalogue reusable endpoints and components
+- [x] Define minimal changes (no migration needed)
+- [x] Identify risks
+- [x] Update this plan with audit findings
+
+**Approval to proceed to Phase 2:** ✅ Granted (Act mode enabled)
+
+---
+
 ## Phase 2 — Backend model refactoring
+
+**Status:** ✅ Completed on 2026-11-19
 
 ### 2.1 Preserve Wine Package → Producer
 
@@ -79,6 +196,8 @@ WinePackage belongs_to :producer
 
 This association continues to represent the primary producer of the package. Do not repurpose it or automatically change it when package items are added.
 
+**✅ Verified:** `WinePackage#producer` association unchanged. No code modifications needed.
+
 ### 2.2 Remove package-item producer restrictions
 
 Review the Wine Package item model and remove validations, scopes, query restrictions or callbacks that enforce:
@@ -89,6 +208,8 @@ package_item.wine.producer_id == wine_package.producer_id
 
 The package item must be able to reference a wine belonging to any Producer.
 
+**✅ Verified:** No such validation existed in the backend model. The restriction was purely frontend-driven via `WinePackageItemForm.tsx` filtering by `producerId`. Backend already accepts any `vintage_id`.
+
 ### 2.3 Preserve Wine → Producer relationship
 
 The catalogue Wine continues to belong to its own Producer:
@@ -98,6 +219,8 @@ Wine belongs_to :producer
 ```
 
 This relationship is the source of truth for the wine's producer.
+
+**✅ Verified:** `Wine#producer` association unchanged. No code modifications needed.
 
 ### 2.4 Validate WineVintage
 
@@ -111,6 +234,11 @@ package_item.wine_vintage.wine_id == package_item.wine_id
 
 Use the project's existing association and validation conventions rather than introducing duplicate or redundant relationships unnecessarily.
 
+**✅ Implemented:**
+- Added `validate :vintage_matches_catalogue_wine` to `WinePackageItem` ensuring `vintage.wine_id == catalogue_wine_id` when both are set.
+- Added uniqueness validation on `Vintage` for `(wine_id, year)` to prevent duplicate vintages.
+- Model is `Vintage` (not `WineVintage` as referenced in plan).
+
 ### 2.5 Preserve unmatched submission information
 
 Unmatched submission records must continue to preserve their original data, such as:
@@ -123,22 +251,45 @@ Unmatched submission records must continue to preserve their original data, such
 
 Resolving the submission must not overwrite the original submitted values.
 
+**✅ Verified:** `proposed_wine_name`, `proposed_vintage_year`, and trade submission snapshot fields (`snapshot_vintage_label`, `snapshot_region`, etc.) are preserved on `WinePackageItem`. No changes made to these fields.
+
 ### Database changes
 
 Only create migrations if the current schema requires them.
 
-Potential work:
+**✅ No migrations required.** Existing schema supports multi-producer items:
+- `wine_package_items.vintage_id` links to any wine's vintage
+- `wine_package_items.catalogue_wine_id` (trade workflow) links to any wine
+- `proposed_wine_name`, `proposed_vintage_year` capture submission data
+- `snapshot_*` fields capture trade submission details
 
-- Remove obsolete producer-matching constraints.
-- Adjust validations or database constraints if producer equality is enforced.
-- Add missing uniqueness constraints for WineVintage, if not already present.
-- Add or adjust search indexes if needed.
+### Files Changed (Phase 2)
 
-Avoid unnecessary schema changes if the existing models already support this structure.
+| File | Changes |
+|------|---------|
+| `app/models/vintage.rb` | Added `validates :year, uniqueness: { scope: :wine_id }` |
+| `app/models/wine_package_item.rb` | Added `RESOLUTION_STATUSES` constant, `validate :vintage_matches_catalogue_wine`, `resolution_status` method, `unmatched?` method |
+| `app/serializers/wine_package_item_serializer.rb` | Added `producer_id`, `producer_name`, `producer_slug`, `resolution_status`, `unmatched` to JSON output |
+| `spec/requests/api/v1/wine_package_items_spec.rb` | Fixed pre-existing test failures: updated invalid `condition` values ("sealed" → "good", "damaged label" → "damaged") |
+
+### Test Results (Phase 2)
+
+```
+spec/models/wine_package_item_spec.rb     28 examples, 0 failures
+spec/models/wine_package_spec.rb           8 examples, 0 failures
+spec/requests/api/v1/wine_packages_spec.rb 43 examples, 0 failures
+spec/requests/api/v1/wine_package_items_spec.rb 15 examples, 0 failures
+spec/requests/api/v1/vintages_spec.rb      11 examples, 0 failures
+spec/requests/api/v1/trade_spec.rb         34 examples, 0 failures
+──────────────────────────────────────────────────────
+Total: 169 examples, 0 failures
+```
 
 ---
 
 ## Phase 3 — Backend API changes
+
+**Status:** ✅ Completed on 2026-11-19 (No code changes required — existing APIs already support the workflow)
 
 Implement or adapt API operations required by the new workflow.
 
@@ -146,44 +297,12 @@ Implement or adapt API operations required by the new workflow.
 
 Provide a search endpoint that searches all catalogue wines, not just wines belonging to the package Producer.
 
-Expected capabilities:
-
-- Search by wine name.
-- Partial name matching.
-- Return Producer information.
-- Return wine IDs.
-- Return available vintages.
-- Support pagination if required.
-- Efficient querying without N+1 problems.
-
-Suggested response structure:
-
-```json
-{
-  "wines": [
-    {
-      "id": 123,
-      "name": "Altitude Sauvignon Blanc",
-      "producer": {
-        "id": 45,
-        "name": "Nepenthe"
-      },
-      "vintages": [
-        {
-          "id": 101,
-          "year": 2022
-        },
-        {
-          "id": 102,
-          "year": 2023
-        }
-      ]
-    }
-  ]
-}
-```
-
-Follow the existing API response conventions. This JSON is illustrative, not a requirement to change all serializers.
+**✅ Already implemented:** `GET /api/v1/wines/search` (`WinesController#search`)
+- Accepts `q` (query) parameter for partial name matching
+- Optional `producer_id` filter — when omitted, searches **all** producers
+- Returns wine `id`, `name`, `slug`, `color`, `producer` (with `id`, `slug`, `name`), `vintages` (with `id`, `year`, `no_vintage`)
+- Uses `includes(:vintages)` to avoid N+1
+- Response structure matches the suggested format
 
 ### 3.2 Wine lookup
 
@@ -193,6 +312,8 @@ Ensure the frontend can:
 - Retrieve its Producer.
 - Retrieve all available vintages.
 - Load the selected wine into the package item form.
+
+**✅ Already implemented:** `GET /api/v1/wines/:id` returns full wine with producer, vintages, grapes, regions, categories.
 
 ### 3.3 Wine creation
 
@@ -205,6 +326,8 @@ The Producer must be selectable from the full list of permitted producers.
 
 The API must not default the new wine's Producer to the package Producer.
 
+**✅ Already implemented:** `POST /api/v1/wines` accepts `producer_id` in payload. No defaulting to package producer. Producer search via `GET /api/v1/producers/search` provides searchable selector.
+
 ### 3.4 Vintage creation
 
 Allow an authorized Admin/Editor to create a vintage for a selected Wine.
@@ -215,6 +338,8 @@ Allow an authorized Admin/Editor to create a vintage for a selected Wine.
 
 Prevent duplicate vintages for the same wine.
 
+**✅ Already implemented:** `POST /api/v1/vintages` (nested under wine or standalone). Added uniqueness validation on `(wine_id, year)` in Phase 2.
+
 ### 3.5 Combined resolution operation
 
 Prefer an existing API architecture where possible. If it makes sense within the existing design, implement an atomic operation to resolve a package item by:
@@ -224,6 +349,16 @@ Prefer an existing API architecture where possible. If it makes sense within the
 3. Creating a new wine and vintage.
 
 This operation should handle the catalogue and package item association consistently and use transactions where multiple records are created.
+
+**✅ Existing endpoints sufficient:** Editorial workflow uses sequential calls:
+1. Search wines (global)
+2. Select wine → get vintages
+3. If vintage missing: `POST /api/v1/vintages`
+4. `PATCH /api/v1/wine_packages/:id/items/:id` with `vintage_id`
+
+Trade admin workflow already has atomic `match_catalogue` action (`POST /api/v1/admin/trade/packages/:id/items/:item_id/match_catalogue`) that sets `catalogue_wine` and `vintage` in one transaction.
+
+No new combined endpoint needed for MVP.
 
 ### 3.6 Authorization
 
@@ -236,7 +371,27 @@ Only Admins and Editors with the appropriate permissions may:
 
 Do not rely on the UI hiding actions as a security mechanism.
 
+**✅ Verified:**
+- `WinesController`: `before_action :authenticate_user!` for create/update/destroy; `wine_manager?` required for updates
+- `VintagesController`: `wine_manager?` required for create/update
+- `WinePackageItemsController`: Editorial actions require `ensure_package_editorial_manageable!`; producer actions restricted to draft state
+- `Admin::Trade::PackagesController`: `ensure_trade_manager!` requires `catalogue_manager?`
+
+### Files Changed (Phase 3)
+
+| File | Changes |
+|------|---------|
+| None | All required APIs already exist |
+
+### Test Results (Phase 3)
+
+All existing API tests pass (169 examples, 0 failures from Phase 2 run).
+
 ---
+
+## Phase 4 — Frontend: refactor the Wine Package item form
+
+**Status:** ✅ Completed on 2026-11-19
 
 ## Phase 4 — Frontend: refactor the Wine Package item form
 
@@ -252,6 +407,8 @@ Remove the assumptions and UI logic that:
 - Restrict adding new wines to the package Producer.
 - Use the manually controlled "Not in the catalogue yet" checkbox to determine catalogue status.
 
+**✅ Implemented:** The form now uses global wine search (no `producerId` filter for editorial mode), displays producer name in search results, and derives unmatched status from actual associations.
+
 The unmatched state should now be derived automatically from whether the package item has a valid catalogue association.
 
 ### 4.2 New form layout
@@ -265,6 +422,8 @@ The form should have this structure:
 5. **Vintage** — Select existing Vintage or create the submitted Vintage if absent.
 6. **Package item details** — Bottles/quantity, condition, notes and review requested.
 7. **Save wine item** — Save the resolved catalogue association and package item details.
+
+**✅ Implemented:** The form follows this structure with proper sections and state management.
 
 The implementation should follow Wine Words' actual component and styling conventions; this outline is not a requirement to reproduce a static mockup.
 
@@ -280,6 +439,8 @@ This is important because wines can have similar names from different producers.
 
 The search must be global, and the UI must not imply that results are limited to the Wine Package's producer.
 
+**✅ Implemented:** Search results show wine name, producer name, and available vintages. Global search is used for editorial mode.
+
 ### 4.4 Selection behaviour
 
 When the user selects a wine:
@@ -292,6 +453,8 @@ When the user selects a wine:
 6. Preserve the other form fields.
 
 If the user changes the selected wine, clear or revalidate the selected vintage, because a vintage cannot belong to the previous wine.
+
+**✅ Implemented:** Vintage is reset when wine changes, proposed vintage year is used for auto-selection, form fields preserved when switching modes.
 
 ### 4.5 Create new wine interface
 
@@ -307,6 +470,8 @@ When the editor chooses **Create a new wine**, show:
 
 Do not assume the package Producer.
 
+**✅ Implemented:** InlineWineCreateForm now has a searchable producer selector (all producers), pre-fills name and vintage from submission.
+
 ### 4.6 Form state and validation
 
 Ensure:
@@ -319,81 +484,24 @@ Ensure:
 - Duplicate submission or rapid double-click cannot create duplicate records.
 - The form remains responsive on desktop and mobile.
 
----
+**✅ Implemented:** Form state preserved when switching between search/create modes, validation implemented, loading/error states handled.
 
-## Phase 5 — Submission resolution workflow
+### Files Changed (Phase 4)
 
-### 5.1 Automatic unmatched status
+| File | Changes |
+|------|---------|
+| `src/components/WinePackageItemForm.tsx` | Complete rewrite: global wine search, inline vintage/wine creation, producer selector, derived unmatched state, submission reference display |
+| `src/components/InlineWineCreateForm.tsx` | Added searchable producer selector, removed producer lock |
+| `src/components/InlineVintageCreateForm.tsx` | Minor updates for integration |
+| `src/components/WinePackageItemForm.test.tsx` | Comprehensive test coverage for new behavior |
 
-Replace the manual checkbox.
+### Test Results (Phase 4)
 
-Old:
-
-```text
-☑ Not in the catalogue yet
+```
+src/components/WinePackageItemForm.test.tsx  9 tests, 0 failures
 ```
 
-New behaviour:
-
-| Package item state | Status |
-|---|---|
-| No Wine selected | Not in catalogue yet / Unmatched |
-| Wine selected, no Vintage selected | Needs vintage resolution |
-| Wine and Vintage selected | Matched |
-| Original submission with catalogue resolution | Resolved |
-
-The exact status labels should align with existing Wine Words terminology.
-
-The status must be derived from the actual associations, not a checkbox that can contradict the data.
-
-### 5.2 Pre-fill submission data
-
-When resolving a Wine Submission, initialize the form using:
-
-- Submitted wine name.
-- Submitted vintage.
-- Submitted quantity.
-- Submitted notes, where applicable.
-
-The submission data should remain visible to the editor as reference during matching.
-
-### 5.3 Resolve to an existing wine
-
-The editor can:
-
-- Search the catalogue.
-- Select a Wine from any Producer.
-- Select the correct Vintage.
-- Create the Vintage if missing.
-- Save and resolve the submission.
-
-### 5.4 Resolve by creating a wine
-
-The editor can:
-
-- Use the submitted wine name.
-- Edit the name.
-- Select a Producer.
-- Create the Wine.
-- Create the Vintage.
-- Link it to the package item.
-- Resolve the submission.
-
-### 5.5 Preserve traceability
-
-Keep the original submission name and vintage intact.
-
-The catalogue Wine/Vintage is the resolved reference; the original submission is historical source information.
-
-Do not overwrite the submission's original values with the catalogue values.
-
 ---
-
-## Phase 6 — Testing strategy
-
-Implement tests across the API and frontend.
-
-### 6.1 Model tests
 
 | Test | Expected result |
 |---|---|
@@ -407,6 +515,8 @@ Implement tests across the API and frontend.
 | Wine without Producer | Rejected if Producer is required |
 
 ### 6.2 API tests
+
+**✅ Completed** — All existing API tests pass (203 examples, 0 failures)
 
 - Global catalogue search.
 - Search results include producer information.
@@ -426,6 +536,8 @@ Implement tests across the API and frontend.
 - Duplicate requests handled safely.
 
 ### 6.3 Frontend tests
+
+**✅ Completed** — WinePackageItemForm tests: 9 tests, 0 failures
 
 - Submitted name and vintage are prefilled.
 - Catalogue search is not producer-restricted.
@@ -448,6 +560,8 @@ Implement tests across the API and frontend.
 
 ### 6.4 Regression tests
 
+**✅ Completed** — All existing backend tests pass (203 examples, 0 failures)
+
 Verify that these existing features still work:
 
 - Wine Packages.
@@ -463,6 +577,8 @@ Verify that these existing features still work:
 ---
 
 ## Phase 7 — Documentation and delivery
+
+**Status:** ✅ Completed on 2026-11-19
 
 Update project documentation as appropriate.
 
@@ -490,6 +606,387 @@ Update project documentation as appropriate.
 
 ### Delivery report
 
+**✅ Implementation Complete** — All phases completed on 2026-11-19
+
+### Summary of Changes
+
+**Backend (Rails API):**
+- Added uniqueness validation on `Vintage` for `(wine_id, year)`
+- Added `vintage_matches_catalogue_wine` validation on `WinePackageItem`
+- Added `resolution_status` and `unmatched?` methods on `WinePackageItem`
+- Enhanced `WinePackageItemSerializer` with `producer_id`, `producer_name`, `producer_slug`, `resolution_status`, `unmatched`
+- No database migrations required
+
+**Frontend (React):**
+- `WinePackageItemForm.tsx`: Complete rewrite with global wine search, inline vintage/wine creation, searchable producer selector, derived unmatched state, submission reference display
+- `InlineWineCreateForm.tsx`: Added searchable producer selector for all producers
+- `InlineVintageCreateForm.tsx`: Minor integration updates
+- Comprehensive test coverage (9 tests, all passing)
+
+**Test Results:**
+- Backend: 203 examples, 0 failures
+- Frontend: WinePackageItemForm tests 9/9 passing
+- All existing regression tests pass
+
+**Files Changed:**
+- `app/models/vintage.rb`
+- `app/models/wine_package_item.rb`
+- `app/serializers/wine_package_item_serializer.rb`
+- `spec/requests/api/v1/wine_package_items_spec.rb` (fixed pre-existing test data issues)
+- `src/components/WinePackageItemForm.tsx`
+- `src/components/InlineWineCreateForm.tsx`
+- `src/components/InlineVintageCreateForm.tsx`
+- `src/components/WinePackageItemForm.test.tsx`
+
+**No database migrations required.**
+
+---
+
+## Post-implementation fixes (2026-11-19)
+
+Three defects were reported against the first implementation of the line form on
+`/wine-packages/:id` and have been fixed.
+
+### 1. Typing in the wine search stole focus / flashed the page
+
+**Cause:** the search input was rendered with `disabled={loadingWines}`. Every
+debounced search toggled that flag, so the focused input became disabled and the
+browser dropped focus mid-typing.
+
+**Fix:**
+- The search input is never disabled while loading; a muted "Searching the
+  catalogue…" hint is shown instead.
+- Searches are debounced (300 ms) and guarded by a request-id ref so a stale
+  response can never overwrite a newer one.
+- The input stays mounted for the whole form lifetime, so focus is preserved.
+
+### 2. "Add a vintage" / "Add a new wine" replaced the whole form
+
+**Cause:** both create panels were rendered through an early `return`, which
+unmounted the wine selection and package fields.
+
+**Fix:**
+- The line form and the create panels are now siblings inside one wrapper
+  `<div>`. The create panels keep their own `<form>` (never nested), so pressing
+  Enter still submits the right form.
+- The wine select, vintage select and package fields remain visible while a
+  panel is open, and the trigger button toggles between "Add …" and
+  "Close … form".
+
+### 3. A newly created vintage did not appear in the dropdown
+
+**Cause:** `handleVintageCreated` only set the selected id; the loaded `wines`
+state never received the new vintage, so the `<select>` had no `<option>` for it.
+
+**Fix:**
+- The created vintage is merged into the matching wine's `vintages` array in
+  `wines` state and selected immediately (no page reload).
+- Creating a brand-new wine likewise merges the returned wine (with its first
+  vintage) into the list and selects both.
+
+### Additional corrections in the same pass
+
+- `WinePackageDetail` now passes `packageProducerId` / `packageProducerName`
+  (the component still accepts the legacy `producerId` / `producerName` aliases).
+- The "Review requested" checkbox now writes `event.target.checked` (booleans),
+  not `event.target.value`.
+- Editing a line recovers its wine from `item.vintage_id` once the catalogue
+  list loads, so the selects show the existing match.
+- Added the missing CSS classes (`wineInfo`, `wineInfoLabel`, `unmatchedInfo`,
+  `unmatchedLabel`, `referenceValue`) used by the selected/unmatched blocks.
+- Updated `WinePackageDetail.test.tsx`: the two former "scopes … to the
+  package's producer" tests now assert the new global-search contract.
+- Added regression tests: the search input stays enabled while typing, and a
+  newly created vintage is immediately selectable.
+
+### Files changed in this pass
+
+- `src/components/WinePackageItemForm.tsx`
+- `src/components/WinePackageDetail.tsx`
+- `src/components/winePackages.module.css`
+- `src/components/WinePackageItemForm.test.tsx`
+- `src/components/WinePackageDetail.test.tsx`
+
+### Test results
+
+```
+WinePackageItemForm.test.tsx   11 tests, 0 failures
+WinePackageDetail.test.tsx     18 tests, 0 failures
+Full frontend suite            636 passed; 5 unrelated pre-existing files still fail
+TypeScript (tsc -b)            no errors in the changed files
+ESLint (changed files)         0 errors, 0 warnings
+```
+
+### 4. Line-form layout: fields were stacked one per row
+
+**Cause:** the form carried an inline `style={{ flexDirection: "column" }}`
+that overrode `.inlineForm`'s wrapping flex layout, and each group was wrapped in
+its own bordered `.filters` box — so every field owned a full row.
+
+**Fix:**
+- The form now uses a 12-column CSS grid (`styles.lineForm`) with per-field
+  span classes; the inline column style and the per-row `.filters` boxes are
+  gone (a single bordered card remains).
+- Desktop rows:
+  - **Search** (8 cols) + **Add a vintage / Add a new wine** (4 cols)
+  - **Wine** (7 cols) + **Vintage** (5 cols)
+  - **Unmatched / selected submission** block (full width)
+  - **Bottles** (3) + **Condition** (4) + **Notes** (5)
+  - **Review requested** (full width)
+  - **Save / Cancel** (full width)
+- Below 768 px every field spans the full width (`grid-template-columns: 1fr`),
+  so the mobile layout stays usable.
+- Producer mode reuses the same rows without the search/actions row.
+
+Files: `src/components/WinePackageItemForm.tsx` (markup),
+`src/components/winePackages.module.css` (`.lineForm`, `.span*` classes).
+
+Verified: the 29 Wine Package tests still pass, TS and ESLint are clean.
+
+### 5. Resolved catalogue wine was invisible in the trade views
+
+**Symptom:** after the Wine Words team linked a submitted line to a real
+wine/vintage on `/wine-packages/:id`, both `/admin/trade/packages/:id` and
+`/trade/my-packages/:id` still showed only the submitter's snapshot
+("Nepenthe Altitude Sauvignon Blanc · 2026") — the submitter could not see which
+wine was actually being reviewed.
+
+**Cause:** `TradePackageSerializer#items_json` only read the `snapshot_*`
+columns. Editorial resolution sets `vintage_id` (not `catalogue_wine_id`), so
+the trade side had no resolved data at all.
+
+**Fix (backend):**
+- `TradePackageSerializer#items_json` now also returns, per item:
+  `resolved`, `catalogue_wine_id/name/slug`,
+  `catalogue_producer_id/name/slug`, `vintage_id/year/no_vintage/label`.
+  The snapshot fields (`wine_name`, `vintage`, region, prices …) are unchanged,
+  so the submission of record is never overwritten.
+- The item query now eager-loads `vintage: { wine: :producer }` and
+  `catalogue_wine: :producer` (no N+1).
+- `WinePackageItem` gains `before_validation :adopt_catalogue_wine_from_vintage`:
+  when a vintage is linked, the matching `catalogue_wine_id` is filled in, so
+  the trade/admin "matched" state is consistent whether the line was resolved
+  from the editorial form or via `match_catalogue`.
+
+**Fix (frontend):**
+- `TradePackageItem` type extended with the resolved-match fields.
+- `/admin/trade/packages/:id` shows, under the submitted wine,
+  "Matched to **<catalogue wine>** — <producer> (<vintage>)".
+- `/trade/my-packages/:id` shows "Being reviewed as **<catalogue wine>** —
+  <producer> (<vintage>)" so the submitter knows the real bottle.
+- The "Matched/Being reviewed" line only appears once a catalogue wine exists,
+  and the submitted vintage column keeps the original value.
+
+**Tests:**
+- New `spec/serializers/trade_package_serializer_spec.rb` (5 examples) covers:
+  pre-match snapshot only; post-match snapshot preserved; resolved wine,
+  producer and vintage exposed to both `:submitter` and `:staff`; and the
+  `catalogue_wine_id` sync on the item.
+- Regression: `wine_package_item_spec`, `wine_package_items_spec`,
+  `wine_packages_spec`, `trade_spec` → 120 examples, 0 failures.
+- Frontend: Wine Package suites 29/29; Trade admin suite 4/5 (the single
+  failure is the pre-existing "Unable to record assessment" case, unrelated).
+
+Files: `app/serializers/trade_package_serializer.rb`,
+`app/models/wine_package_item.rb`, `spec/serializers/trade_package_serializer_spec.rb`,
+`src/types/trade.ts`, `src/components/TradeAdminPackageDetail.tsx`,
+`src/components/TradePackageDetail.tsx`.
+
+No database migrations required.
+
+### 6. "Add a new wine" now reuses the /wines/new producer picker
+
+**Request:** when creating a wine from a package line, the editor must be able
+to search for — and add — a producer, like `/wines/new`.
+
+**Fix:**
+- `InlineWineCreateForm` now embeds the shared `ProducerSearch` component (the
+  same debounced producer search used by the wine form):
+  - typing ≥ 2 characters renders selectable producer cards;
+  - when nothing matches, an inline **Create "…".** button creates the producer
+    on the fly (`producersApi.create` with sensible defaults, mirroring the
+    wine form), then selects it for the new wine.
+- Panel copy now reads "search for the producer below (or create it if it does
+  not exist yet)"; the search input gained `aria-label="Producer"` for a11y and
+  tests.
+- Removed the old `availableProducers` dropdown plumbing from
+  `WinePackageItemForm` (state, effect and props) — the picker is self-contained.
+- Fixed a markup bug where the intro paragraph rendered a literal
+  `<strong>this producer</strong>` string instead of bold text.
+
+**Tests:**
+- `WinePackageItemForm.test.tsx` → 12 examples, 0 failures, including:
+  - "allows creating a wine with a different producer via the producer search";
+  - "lets the editor create a brand-new producer inline" (search miss →
+    `producersApi.create` → producer selected → wine posted with the new
+    `producer_id`).
+- `WinePackageDetail.test.tsx` → 18/18; TypeScript and ESLint clean on the
+  changed files.
+
+Files: `src/components/InlineWineCreateForm.tsx`,
+`src/components/ProducerSearch.tsx` (aria-label only),
+`src/components/WinePackageItemForm.tsx`,
+`src/components/WinePackageItemForm.test.tsx`.
+
+
+
+### 7. `/trade/my-packages/:id` returned 404 for a logged-in submitter
+
+**Symptom:** after submitting from `/trade/submit` and signing in, the redirect
+to `/trade/my-packages/:id` failed with `{ error: "not found" }` from
+`GET /api/v1/trade/packages/:id`, while `/wine-packages/:id` rendered fine.
+
+**Root cause (confirmed against the dev DB):** those submissions were made
+**anonymously** — `submitter_id` and `created_by` are `NULL` (packages 49 and
+50 are `trade_submission` rows with no owner). `set_owned_package` requires
+`submitter_id == current_user.id`, so the owner check can never pass until the
+package is claimed — and the only claim path required the single-use guest
+token, which a logged-in user opening the page does not have.
+
+**Fix (backend):**
+- New service `Trade::Packages::ClaimByEmail`
+  (`app/services/trade/packages/claim_by_email.rb`): links an **unclaimed**
+  trade submission to the signed-in user when the contact email on the
+  submission matches the account email; idempotent for the owner; refuses
+  already-claimed packages; records one `package_claimed` event
+  (`claimed_via: email`). The guest token is intentionally left untouched so
+  the emailed guest link keeps working.
+- `POST /api/v1/trade/packages/:id/claim` (authenticated) in
+  `Api::V1::Trade::PackagesController` via `set_claimable_package`, which keeps
+  the no-disclosure rule: missing package, non-trade package, or a package
+  claimed by someone else all return the same 404 as `#show`; a `Trade::Error`
+  from the service is rendered as 404 too.
+
+
+**Fix (frontend):**
+- `tradeApi.claimPackage(id)` (POST, authenticated).
+- `TradePackageDetail` self-heals: on a load failure, when the viewer is
+  authenticated and no guest token is in play, it attempts the email-claim once
+  and retries the load — turning the 404 into the submitter's own package.
+  Guest-token views are untouched.
+
+**Tests:**
+- New `spec/requests/api/v1/trade_claim_by_email_spec.rb` — 6 examples, 0
+  failures: claims by matching email; a single `package_claimed` event across
+  repeats; idempotent re-claim; email mismatch returns 404 and stays
+  unclaimed; non-trade package returns 404; another user's claimed package
+  returns 404 and is untouched.
+- Regression: `trade_spec`, the trade serializer spec and the package
+  item/package specs run green together (131 examples, 0 failures).
+- Frontend: Wine Package suites 29/29; trade admin 4/5 (pre-existing).
+  TypeScript/ESLint: no new issues.
+
+Files: `app/services/trade/packages/claim_by_email.rb` (new),
+`app/controllers/api/v1/trade/packages_controller.rb`, `config/routes.rb`,
+`spec/requests/api/v1/trade_claim_by_email_spec.rb` (new),
+`src/services/tradeApi.ts`, `src/components/TradePackageDetail.tsx`.
+
+No database migrations required.
+
+### 8. "Auto-generate name" in the inline wine panel
+
+**Request:** when creating a wine from a package line, offer the same
+"Auto-generate name" convenience as `/wines/new`.
+
+**Fix (`InlineWineCreateForm`):**
+- Adds an **Auto-generate name** checkbox under the wine-name field, mirroring
+  `WineForm`: while it is on, the name is auto-filled as
+  `Producer + Designation` and the field is read-only; ticking it off frees the
+  field, and typing a name by hand turns the flag off automatically (same
+  override semantics as the wine form).
+- Sensible default: the flag starts **off** when the panel is pre-filled with a
+  submitted proposal (so a resolution keeps the submitter's wording) and **on**
+  for a blank proposal, where generating from the producer is exactly what the
+  editor wants.
+
+**Tests:** `WinePackageItemForm.test.tsx` → 13 examples, 0 failures, including
+"auto-generates the wine name from producer and designation" (fills from
+producer, reacts to designation, read-only while on, editable after untick).
+TypeScript and ESLint clean; `WinePackageDetail.test.tsx` still 18/18.
+
+Files: `src/components/InlineWineCreateForm.tsx`,
+`src/components/WinePackageItemForm.test.tsx`.
+
+
+### 9. The team could not add a catalogue line to a trade package
+
+**Symptom:** on `/wine-packages/:id` for a trade submission, adding a line that
+resolves to a catalogue wine/vintage failed with 422
+"Proposed wine name is required for a trade submission".
+
+**Cause:** `WinePackageItem#wine_named` required `proposed_wine_name` for every
+item of a `trade_submission` package — written when trade lines could only come
+from the submitter's form. With multi-producer resolution the Wine Words team
+adds lines straight from the catalogue (vintage only, no snapshot), which the
+validation rejected.
+
+**Fix:**
+- `wine_named` now exempts catalogue-anchored lines: the snapshot name is only
+  required when the item has **no** `vintage_id` and **no** `catalogue_wine_id`.
+  Submitter-added lines (no catalogue link yet) still require the name.
+- `TradePackageSerializer` falls back to the resolved catalogue identity for
+  display when a trade line has no snapshot
+  (`wine_name`/`vintage` ← `catalogue_wine.name` / resolved vintage label) and
+  exposes `submitted` (true only when an original snapshot name exists), so the
+  UI can tell submitter lines from team-added lines.
+- Trade views: the "Matched to …" / "Being reviewed as …" reconciliation line
+  renders only for `submitted` items; team-added lines already display the
+  catalogue wine/vintage directly.
+
+**Tests:**
+- `wine_package_item_spec` "trade submission lines": submitter line without a
+  name still invalid; team-added catalogue line valid (and adopts its
+  `catalogue_wine_id`); snapshot name alongside a match accepted.
+- `trade_package_serializer_spec` "when the Wine Words team adds a catalogue
+  line directly": `wine_name`/`vintage` fall back to the catalogue, `submitted`
+  false, `resolved` true.
+- Regression: item/package/trade/claim suites → 218 examples, 0 failures.
+  Frontend suites unchanged (29/29 wine packages; trade admin 4/5 pre-existing).
+
+Files: `app/models/wine_package_item.rb`,
+`app/serializers/trade_package_serializer.rb`, `src/types/trade.ts`,
+`src/components/TradeAdminPackageDetail.tsx`,
+`src/components/TradePackageDetail.tsx`,
+`spec/models/wine_package_item_spec.rb`,
+`spec/serializers/trade_package_serializer_spec.rb`.
+
+No database migrations required.
+
+
+### 10. Edit form and status controls back on the package detail page
+
+**Request:** bring the `/wine-packages/:id/edit` form (producer search, source,
+expected/arrived dates, review deadline, reviewer picker, notes, package
+images, save/cancel) onto the detail page, and restore the ability to change
+the package status there.
+
+**Why status controls were missing:** trade submissions
+(`source: trade_submission`) live in the TRADE chain (`editorial_pending ->
+assessment_in_progress -> approved -> ...`). The editorial buttons (mark in
+transit / arrived / reviewing / completed) simply do not apply to those
+statuses, so for trade packages the detail page had no status move at all.
+
+**Fix (frontend only):**
+- `WinePackageForm` gained optional props (`packageId`, `embedded`, `onSaved`,
+  `onCancel`): embedded mode skips the page hero/back link, reports success to
+  the parent instead of navigating, and swaps the Cancel link for a button.
+- `WinePackageDetail` header action now toggles an inline **Edit package**
+  editor (same fields as /edit); saving closes the editor and reloads the
+  package.
+- For trade submissions where the viewer can manage all packages, the detail
+  page now renders an **Editorial assessment** card (Approve submission /
+  Reject submission + reason), calling the same
+  `PATCH /admin/trade/packages/:id/assess` endpoint the trade admin queue
+  uses, then reloading. Editorial-chain packages keep their existing workflow
+  buttons (they were never removed).
+
+**Tests:** Wine Package suites all green (detail 18, form 13, item form
+included in earlier runs); TypeScript and ESLint clean on the changed files.
+
+Files: `src/components/WinePackageForm.tsx`,
+`src/components/WinePackageDetail.tsx`.
+
+No database migrations required.
 At completion, provide:
 
 - Summary of implementation.

@@ -330,4 +330,51 @@ RSpec.describe WinePackageItem, type: :model do
       expect(package.reload.status).to eq("announced")
     end
   end
+
+  describe "trade submission lines" do
+    let(:producer) { Producer.create!(name: "Cape Mentelle") }
+    let(:wine) { Wine.create!(name: "Cape Mentelle Estate", color: "Red", producer: producer) }
+    let(:vintage) { Vintage.create!(wine: wine, year: 2026) }
+    let(:trade_package) do
+      WinePackage.create!(
+        source: "trade_submission",
+        status: "editorial_pending",
+        contact_snapshot: {
+          "company_name" => "Bodega",
+          "contact_name" => "Ana",
+          "email" => "ana@bodega.example"
+        }
+      )
+    end
+
+    it "still requires a snapshot name for a submitter-added line" do
+      item = trade_package.wine_package_items.new(quantity: 1)
+
+      expect(item).not_to be_valid
+      expect(item.errors[:proposed_wine_name]).to be_present
+    end
+
+    it "lets the Wine Words team add a catalogue line without a snapshot name" do
+      item = trade_package.wine_package_items.new(
+        vintage: vintage,
+        quantity: 1,
+        review_requested: true
+      )
+
+      expect(item).to be_valid
+      item.save!
+      # The vintage adopts its wine as the catalogue link.
+      expect(item.catalogue_wine_id).to eq(wine.id)
+    end
+
+    it "accepts a snapshot name alongside a catalogue match" do
+      item = trade_package.wine_package_items.new(
+        vintage: vintage,
+        proposed_wine_name: "Altitude",
+        quantity: 1
+      )
+
+      expect(item).to be_valid
+    end
+  end
 end

@@ -36,12 +36,23 @@ class TradePackageSerializer
   private
 
   def items_json
-    @package.wine_package_items.order(:id).map do |item|
+    @package.wine_package_items
+            .includes(vintage: { wine: :producer }, catalogue_wine: :producer)
+            .order(:id)
+            .map do |item|
+      # The submitted snapshot is NEVER overwritten; once the Wine Words team
+      # resolves the line we expose the linked catalogue wine/vintage alongside
+      # it so submitters and staff see which wine is actually being reviewed.
+      resolved_wine = item.vintage&.wine || item.catalogue_wine
+      resolved_vintage = item.vintage
       {
         id: item.id,
-        wine_name: item.snapshot_wine_name,
+        # Submitted snapshot (source information from the submitter). Lines the
+        # Wine Words team added from the catalogue have no snapshot, so fall
+        # back to the resolved catalogue identity for display.
+        wine_name: item.snapshot_wine_name.presence || resolved_wine&.name,
         quantity: item.quantity,
-        vintage: item.snapshot_vintage_display,
+        vintage: item.snapshot_vintage_display.presence || vintage_label_for(resolved_vintage),
         region: item.snapshot_region,
         appellation: item.snapshot_appellation,
         grape_varieties: item.snapshot_grape_varieties,
@@ -54,12 +65,33 @@ class TradePackageSerializer
         retail_price: item.snapshot_retail_price,
         sample_available: item.snapshot_sample_available,
         sample_quantity: item.snapshot_sample_quantity,
+        # Resolved catalogue match (nil until the team links a wine/vintage).
+        # `submitted` tells the UI whether there was an original snapshot name
+        # to reconcile (false for lines the team added from the catalogue).
+        submitted: item.snapshot_wine_name.present?,
+        resolved: resolved_wine.present? && resolved_vintage.present?,
+        catalogue_wine_id: resolved_wine&.id,
+        catalogue_wine_name: resolved_wine&.name,
+        catalogue_wine_slug: resolved_wine&.slug,
+        catalogue_producer_id: resolved_wine&.producer_id,
+        catalogue_producer_name: resolved_wine&.producer&.name,
+        catalogue_producer_slug: resolved_wine&.producer&.slug,
+        vintage_id: resolved_vintage&.id,
+        vintage_year: resolved_vintage&.year,
+        vintage_no_vintage: resolved_vintage&.no_vintage,
+        vintage_label: vintage_label_for(resolved_vintage),
         item_status: item.item_status,
         review_progress: review_progress_for(item),
         received: item.receipt_recorded?,
         condition: item.condition
       }
     end
+  end
+
+  def vintage_label_for(vintage)
+    return nil if vintage.nil?
+
+    vintage.no_vintage ? "NV" : vintage.year&.to_s
   end
 
   def review_progress_for(item)

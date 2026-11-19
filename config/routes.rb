@@ -309,6 +309,9 @@ Rails.application.routes.draw do
 
         get "my-packages", to: "packages#index"
         get "packages/:id", to: "packages#show", as: :package
+        # "Submitted as a guest, then logged in": link the unclaimed submission
+        # to the signed-in account when the contact email matches.
+        post "packages/:id/claim", to: "packages#claim_by_email", as: :package_claim
         patch "packages/:id/shipping_address", to: "packages#update_shipping_address",
               as: :package_shipping_address
 

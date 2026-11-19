@@ -7,6 +7,7 @@ class Vintage < ApplicationRecord
   has_many :reviews, dependent: :destroy
 
   validates :year, presence: true, numericality: { greater_than_or_equal_to: 1900 }
+  validates :year, uniqueness: { scope: :wine_id, message: "already exists for this wine" }
   validates :price_cents, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
 
   # Money is stored as integer cents (price_cents), but the API, web forms and

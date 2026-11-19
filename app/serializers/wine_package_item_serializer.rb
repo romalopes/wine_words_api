@@ -13,15 +13,21 @@ class WinePackageItemSerializer
   end
 
   def as_json
+    wine = @item.vintage&.wine || @item.catalogue_wine
+    producer = wine&.producer
     {
       id: @item.id,
       wine_package_id: @item.wine_package_id,
       vintage_id: @item.vintage_id,
       wine_id: @item.vintage&.wine_id,
-      wine_name: @item.vintage&.wine&.name || @item.proposed_wine_name,
-      wine_slug: @item.vintage&.wine&.slug,
+      wine_name: wine&.name || @item.proposed_wine_name,
+      wine_slug: wine&.slug,
       vintage_year: @item.vintage&.year,
       vintage_no_vintage: @item.vintage&.no_vintage,
+      # Catalogue wine producer (for multi-producer display).
+      producer_id: producer&.id,
+      producer_name: producer&.name,
+      producer_slug: producer&.slug,
       # Producer proposal (when the wine is not in the catalogue yet).
       proposed_wine_name: @item.proposed_wine_name,
       proposed_vintage_year: @item.proposed_vintage_year,
@@ -37,6 +43,9 @@ class WinePackageItemSerializer
       reviewed: @item.reviewed?,
       reviewable: @item.reviewable?,
       pending_review: @item.pending_review?,
+      # Resolution status derived from catalogue associations.
+      resolution_status: @item.resolution_status,
+      unmatched: @item.unmatched?,
       created_at: iso(@item.created_at),
       updated_at: iso(@item.updated_at)
     }

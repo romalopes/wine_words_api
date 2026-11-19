@@ -27,7 +27,7 @@ RSpec.describe "Api::V1::WinePackageItems", type: :request do
     it "adds a review-requested line and keeps the package incomplete" do
       post "/api/v1/wine_packages/#{package.id}/items", as: :json, params: {
         item: { vintage_id: vintage.id, quantity: 2, review_requested: true,
-                condition: "sealed" }
+                condition: "good" }
       }
 
       expect(response).to have_http_status(:created)
@@ -84,12 +84,12 @@ RSpec.describe "Api::V1::WinePackageItems", type: :request do
 
     it "updates the line's condition and notes" do
       patch "/api/v1/wine_packages/#{package.id}/items/#{item.id}", as: :json, params: {
-        item: { condition: "damaged label", notes: "One bottle" }
+        item: { condition: "damaged", notes: "One bottle" }
       }
 
       expect(response).to have_http_status(:ok)
       item.reload
-      expect(item.condition).to eq("damaged label")
+      expect(item.condition).to eq("damaged")
       expect(item.notes).to eq("One bottle")
     end
 

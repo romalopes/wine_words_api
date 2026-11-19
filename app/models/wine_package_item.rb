@@ -22,6 +22,8 @@ class WinePackageItem < ApplicationRecord
 
   RECEIPT_CONDITIONS = %w[good damaged missing].freeze
 
+  RESOLUTION_STATUSES = %w[unmatched needs_vintage matched].freeze
+
   belongs_to :wine_package
   belongs_to :vintage, optional: true
   # Set once a Review has been produced from this item.
@@ -41,6 +43,13 @@ class WinePackageItem < ApplicationRecord
   validates :quantity,
             presence: true,
             numericality: { only_integer: true, greater_than: 0 }
+  # Ensure vintage and catalogue_wine are consistent when both are set.
+  validate :vintage_matches_catalogue_wine
+  # A catalogue vintage already identifies its wine, so link the wine too. This
+  # keeps the trade/admin "matched" state consistent whether the line was
+  # resolved through the editorial form (vintage only) or via match_catalogue.
+  before_validation :adopt_catalogue_wine_from_vintage,
+                    if: -> { vintage_id.present? && catalogue_wine_id.blank? }
   # Proposed wine metadata for a producer request (issue #199): when the
   # catalogue does not know the wine yet, the producer names it. A proposed
   # vintage year is a year, not free text.
@@ -143,6 +152,25 @@ class WinePackageItem < ApplicationRecord
     wine_package&.source.in?(%w[producer_request producer_announcement])
   end
 
+  # Derived resolution status based on catalogue associations.
+  # - unmatched: no catalogue wine selected
+  # - needs_vintage: catalogue wine selected but no vintage linked
+  # - matched: both catalogue wine and vintage linked
+  def resolution_status
+    if vintage_id.present? && catalogue_wine_id.present?
+      "matched"
+    elsif catalogue_wine_id.present?
+      "needs_vintage"
+    else
+      "unmatched"
+    end
+  end
+
+  # Backward-compatible alias: true when no catalogue association exists.
+  def unmatched?
+    resolution_status == "unmatched"
+  end
+
   # Automatic completion must be re-evaluated whenever the set of *blocking*
   # lines can change:
   #   * the review link is attached/detached (a review now fulfils this line);
@@ -166,8 +194,12 @@ class WinePackageItem < ApplicationRecord
 
   # Trade submissions (IDENTITY_206) must always name the wine in the snapshot;
   # catalogue matching happens later (Phase 13), never at submission time.
+  # Lines the Wine Words team adds FROM the catalogue are the exception: their
+  # identity comes from the linked vintage/catalogue wine, so requiring a
+  # snapshot name would make an editorially added bottle impossible to attach.
   def wine_named
     return if proposed_wine_name.present?
+    return if vintage_id.present? || catalogue_wine_id.present?
 
     errors.add(:proposed_wine_name, "is required for a trade submission")
   end
@@ -198,5 +230,22 @@ class WinePackageItem < ApplicationRecord
     return if package.nil? || !package.persisted?
 
     WinePackages::CheckCompletion.call(package)
+  end
+
+  private
+
+  # Ensure vintage belongs to the same wine as catalogue_wine when both are set.
+  def vintage_matches_catalogue_wine
+    return unless vintage_id.present? && catalogue_wine_id.present?
+
+    unless vintage.wine_id == catalogue_wine_id
+      errors.add(:vintage_id, "must belong to the selected catalogue wine")
+    end
+  end
+
+  # Linking a vintage implicitly links its wine, so consumers that read
+  # `catalogue_wine` (trade admin / submitter views) see the same match.
+  def adopt_catalogue_wine_from_vintage
+    self.catalogue_wine_id = vintage&.wine_id
   end
 end
