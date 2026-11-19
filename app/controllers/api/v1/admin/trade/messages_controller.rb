@@ -8,14 +8,15 @@
 # a SHARED reply from the editor/admin and notifies the submitter (in-app when
 # they have an account, otherwise by email to the submission's contact address).
 class Api::V1::Admin::Trade::MessagesController < ApplicationController
-  before_action :ensure_trade_manager!
   before_action :set_package
+  before_action :ensure_trade_manager!
 
   # GET /api/v1/admin/trade/packages/:package_id/messages
   def index
-    messages = @package.wine_package_messages.visible_to(true)
+    staff_view = current_user&.catalogue_manager?
+    messages = @package.wine_package_messages.visible_to(staff_view)
                        .includes(:sender).chronological
-    render json: messages.map { |m| TradeMessageSerializer.new(m, staff: true).as_json }
+    render json: messages.map { |m| TradeMessageSerializer.new(m, staff: staff_view).as_json }
   end
 
   # POST /api/v1/admin/trade/packages/:package_id/messages { body: "..." }
@@ -37,6 +38,7 @@ class Api::V1::Admin::Trade::MessagesController < ApplicationController
 
   def ensure_trade_manager!
     return if current_user&.catalogue_manager?
+    return if current_user && @package && @package.submitter_id == current_user.id
 
     render json: { error: "forbidden" }, status: :forbidden
   end

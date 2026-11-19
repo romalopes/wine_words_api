@@ -14,9 +14,9 @@
 # NEVER granted by any action here, and internal notes ride the existing
 # WinePackageEvent visibility boundary.
 class Api::V1::Admin::Trade::PackagesController < ApplicationController
-  before_action :ensure_trade_manager!
   before_action :set_package,
                 only: %i[show assess match_producer internal_note release_shipping receipt match_catalogue assign_reviewer]
+  before_action :ensure_trade_manager!
 
   rescue_from Trade::Error, with: :render_trade_error
   rescue_from WinePackage::InvalidTransition, with: :render_invalid_transition
@@ -136,7 +136,10 @@ class Api::V1::Admin::Trade::PackagesController < ApplicationController
   private
 
   def ensure_trade_manager!
-    return render json: { error: "forbidden" }, status: :forbidden unless current_user&.catalogue_manager?
+    return if current_user&.catalogue_manager?
+    return if current_user && @package && @package.submitter_id == current_user.id
+
+    render json: { error: "forbidden" }, status: :forbidden
   end
 
   def set_package

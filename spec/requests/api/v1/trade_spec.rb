@@ -590,10 +590,24 @@ RSpec.describe "Api::V1::Trade", type: :request do
       expect(response.parsed_body.map { |m| m["body"] }).to include("Any news?")
     end
 
-    it "forbids non-staff accounts" do
+    it "lets the submitter read their own message thread" do
       submitter_user
       package = create_package
+      package.wine_package_messages.create!(
+        sender: submitter_user, sender_type: "submitter", body: "Any news?"
+      )
       sign_in submitter_user
+
+      get "/api/v1/admin/trade/packages/#{package.id}/messages"
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body.map { |m| m["body"] }).to include("Any news?")
+    end
+
+    it "forbids non-staff accounts that are not the submitter" do
+      submitter_user
+      package = create_package
+      sign_in other_user
 
       get "/api/v1/admin/trade/packages/#{package.id}/messages"
 

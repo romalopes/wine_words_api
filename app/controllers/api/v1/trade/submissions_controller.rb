@@ -70,8 +70,13 @@ class Api::V1::Trade::SubmissionsController < ApplicationController
   private
 
   # Explicit allowlist — the ONLY fields an anonymous visitor may set.
+  # Accepts either a flat payload (`contact_snapshot`, `wines` at top level)
+  # or a nested `submission` wrapper containing the same fields. This lets
+  # frontends that wrap params under `submission:` avoid the "unpermitted
+  # parameter" warning while keeping the same strong-parameter contract.
   def submission_params
-    params.permit(
+    source = params[:submission].presence || params
+    source.permit(
       :idempotency_key,
       contact_snapshot: %i[
         company_name contact_name email phone address country website role notes
