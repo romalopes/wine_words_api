@@ -21,7 +21,11 @@ class TradeMessageSerializer
 
   private
 
+  # When a submitter views the thread, staff messages always show a neutral
+  # "Wine Words Team" identity — never expose individual editor/admin names
+  # to the submitter side of the conversation.
   def sender_name
+    return "Wine Words Team" if !@staff && @message.sender_type.in?(%w[editor admin])
     return "Wine Words" if @message.sender_type.in?(%w[editor admin]) && @message.sender.nil?
     return "Submitter" if @message.sender.nil?
 
