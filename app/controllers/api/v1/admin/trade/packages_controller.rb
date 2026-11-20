@@ -23,7 +23,7 @@ class Api::V1::Admin::Trade::PackagesController < ApplicationController
 
   # GET /api/v1/admin/trade/packages?status=&q=
   def index
-    scope = WinePackage.trade_submissions.includes(:wine_package_items)
+    scope = WinePackage.trade_submissions.includes(:wine_package_items).order(created_at: :desc)
     scope = scope.where(status: params[:status]) if params[:status].present?
     if params[:q].present?
       q = "%#{params[:q].downcase}%"
