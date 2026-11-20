@@ -1,5 +1,5 @@
 class SubscriptionBillingPrice < ApplicationRecord
-  # Maps a WinePrediction Subscription to how it is sold through a billing
+  # Maps a WineWords Subscription to how it is sold through a billing
   # provider (e.g. Stripe). The app's own amount/currency/interval are stored
   # here; provider_product_id / provider_price_id are external integration ids.
   INTERVALS = %w[year month].freeze

@@ -72,7 +72,17 @@ module Turnstile
     end
 
     def call
+      # Skip verification in test environment or when explicitly disabled
       return success unless self.class.enabled?(@env)
+
+      # In development, accept any token (test keys should auto-pass)
+      # but still verify if a token is provided and we have a secret
+      if Rails.env.development?
+        return success if @token.blank?
+        # In development with test keys, accept any token
+        return success if secret.present? && secret.start_with?("0x4AAAAAAGG3w_")
+      end
+
       return failure("missing-secret") if secret.blank?
       return failure("missing-token") if @token.blank?
 

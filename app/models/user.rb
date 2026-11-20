@@ -436,6 +436,10 @@ class User < ApplicationRecord
   end
 
   def password_required?
+    # Skip password requirement for:
+    # 1. Social sign-ups (transient flag, no password provided)
+    # 2. Unclaimed users with no password (email-only records)
+    return false if social_signup
     return false if unclaimed? && encrypted_password.blank?
 
     super

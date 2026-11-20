@@ -87,7 +87,7 @@ module Billing
       }
     end
 
-    # Resolve the purchased WinePrediction plan for a checkout session.
+    # Resolve the purchased WineWords plan for a checkout session.
     # Prefers the session metadata (written at checkout creation); falls back
     # to the Stripe Price on the underlying subscription (DB-id independent,
     # so it works across local/Neon databases).

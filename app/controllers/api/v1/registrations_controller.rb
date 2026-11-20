@@ -2,6 +2,7 @@ class Api::V1::RegistrationsController < Devise::RegistrationsController
   respond_to :json
 
   include Auditable
+  include TurnstileVerifiable
   # Private test-access gate (this controller inherits Devise, not
   # ApplicationController, so the concern is included directly).
   include TestAccess
@@ -13,6 +14,11 @@ class Api::V1::RegistrationsController < Devise::RegistrationsController
   # default) and the response carries the verification deadline so the frontend
   # can show "check your inbox" messaging.
   def create
+    # Verify Turnstile before processing the sign-up
+    # Token is nested under user.turnstile_token per Devise conventions
+    turnstile_token = params.dig(:user, :turnstile_token)
+    return unless verify_turnstile!(action: "signup", token: turnstile_token)
+
     build_resource(sign_up_params)
     resource.require_account_names = true
     resource.save
@@ -54,7 +60,7 @@ class Api::V1::RegistrationsController < Devise::RegistrationsController
   end
 
   def sign_up_params
-    params.require(:user).permit(:first_name, :last_name, :email, :password, :password_confirmation)
+    params.require(:user).permit(:first_name, :last_name, :email, :password, :password_confirmation, :turnstile_token)
   end
 
   def respond_with(current_user, _opts = {})

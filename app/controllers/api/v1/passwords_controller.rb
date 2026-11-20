@@ -1,6 +1,7 @@
 class Api::V1::PasswordsController < Devise::PasswordsController
   respond_to :json
 
+  include TurnstileVerifiable
   # Private test-access gate (this controller inherits Devise, not
   # ApplicationController, so the concern is included directly).
   include TestAccess
@@ -10,6 +11,11 @@ class Api::V1::PasswordsController < Devise::PasswordsController
   # development/test, expose the reset token/link so the flow can be
   # exercised without a real SMTP server.
   def create
+    # Verify Turnstile before processing the password reset request
+    # Token is nested under user.turnstile_token per Devise conventions
+    turnstile_token = params.dig(:user, :turnstile_token)
+    return unless verify_turnstile!(action: "password_reset", token: turnstile_token)
+
     self.resource = resource_class.find_or_initialize_with_errors(
       resource_class.reset_password_keys, resource_params, :not_found
     )
@@ -31,6 +37,11 @@ class Api::V1::PasswordsController < Devise::PasswordsController
 
   # PATCH /api/v1/auth/password
   def update
+    # Verify Turnstile before processing the password reset
+    # Token is nested under user.turnstile_token per Devise conventions
+    turnstile_token = params.dig(:user, :turnstile_token)
+    return unless verify_turnstile!(action: "password_reset", token: turnstile_token)
+
     self.resource = resource_class.reset_password_by_token(resource_params)
 
     if resource.errors.empty?
@@ -91,5 +102,10 @@ class Api::V1::PasswordsController < Devise::PasswordsController
   def unlockable?(resource)
     resource.respond_to?(:unlock_access!) && resource.respond_to?(:unlock_strategy_enabled?) &&
       resource.unlock_strategy_enabled?(:email)
+  end
+
+  # Permit turnstile_token in the password reset parameters
+  def resource_params
+    params.require(:user).permit(:email, :password, :password_confirmation, :reset_password_token, :turnstile_token)
   end
 end

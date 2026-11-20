@@ -4,6 +4,7 @@ class Api::V1::SessionsController < Devise::SessionsController
   include Auditable
   include UserSessionPayload
   include LoginNotifier
+  include TurnstileVerifiable
   # Private test-access gate (this controller inherits Devise, not
   # ApplicationController, so the concern is included directly).
   include TestAccess
@@ -25,6 +26,16 @@ class Api::V1::SessionsController < Devise::SessionsController
 
   def remember_user_for_audit
     @audit_user = current_user
+  end
+
+  # Sign-in with Turnstile verification
+  def create
+    # Verify Turnstile before processing the sign-in
+    # Token is nested under user.turnstile_token per Devise conventions
+    turnstile_token = params.dig(:user, :turnstile_token)
+    return unless verify_turnstile!(action: "login", token: turnstile_token)
+
+    super
   end
 
   private
@@ -67,5 +78,10 @@ class Api::V1::SessionsController < Devise::SessionsController
       "Please verify your email address before signing in. " \
         "We sent a verification link to #{user.email}."
     end
+  end
+
+  # Permit turnstile_token in the sign-in parameters
+  def sign_in_params
+    params.require(:user).permit(:email, :password, :remember_me, :turnstile_token)
   end
 end

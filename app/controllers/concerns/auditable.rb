@@ -70,7 +70,18 @@ module Auditable
     # During impersonation, the actor recorded in the audit log is always the
     # real authenticated user (the admin), not the effective/impersonated user.
     # This keeps the audit trail honest about who actually performed the action.
-    actor = respond_to?(:real_current_user, true) ? real_current_user : current_user
+    #
+    # Some controllers (e.g. RegistrationsController) define `audit_user` to
+    # provide a custom actor for the audit log (e.g. the created user during
+    # sign-up when no session exists yet). Fall back to real_current_user or
+    # current_user for normal cases.
+    actor = if respond_to?(:audit_user, true)
+              audit_user
+            elsif respond_to?(:real_current_user, true)
+              real_current_user
+            else
+              current_user
+            end
     impersonated = respond_to?(:impersonating?, true) && impersonating? ? current_user : nil
 
     LogService.log(

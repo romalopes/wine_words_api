@@ -3,7 +3,7 @@ module Billing
     # Apply a provider subscription to a user via the existing business logic.
     #
     # @param user [User]
-    # @param subscription [Subscription] the WinePrediction plan
+    # @param subscription [Subscription] the WineWords plan
     # @param billing_provider [String]
     # @param provider_subscription_id [String]
     # @param allow_downgrade [Boolean] when true, bypass the downgrade check
