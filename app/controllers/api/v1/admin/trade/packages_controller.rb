@@ -57,14 +57,16 @@ class Api::V1::Admin::Trade::PackagesController < ApplicationController
     producer = Producer.find_by(id: params[:producer_id])
     return render json: { error: "unknown producer" }, status: :not_found if producer.nil?
 
-    @package.update!(producer: producer)
-    @package.wine_package_events.create!(
-      event_type: "producer_matched",
-      actor: current_user,
-      visibility: "internal",
-      occurred_at: Time.current,
-      metadata: { producer_id: producer.id, producer_name: producer.name }
-    )
+    ActiveRecord::Base.transaction do
+      @package.update!(producer: producer)
+      @package.wine_package_events.create!(
+        event_type: "producer_matched",
+        actor: current_user,
+        visibility: "internal",
+        occurred_at: Time.current,
+        metadata: { producer_id: producer.id, producer_name: producer.name }
+      )
+    end
     render json: TradePackageSerializer.new(@package.reload, viewer: :staff).as_json
   end
 
@@ -104,14 +106,16 @@ class Api::V1::Admin::Trade::PackagesController < ApplicationController
     return render json: { error: "unknown wine" }, status: :not_found if wine.nil?
 
     vintage = wine.vintages.find_by(id: params[:vintage_id]) if params[:vintage_id].present?
-    item.update!(catalogue_wine: wine, vintage: vintage, item_status: "matched")
-    @package.wine_package_events.create!(
-      event_type: "catalogue_matched",
-      actor: current_user,
-      visibility: "internal",
-      occurred_at: Time.current,
-      metadata: { wine_package_item_id: item.id, wine_id: wine.id, vintage_id: vintage&.id }
-    )
+    ActiveRecord::Base.transaction do
+      item.update!(catalogue_wine: wine, vintage: vintage, item_status: "matched")
+      @package.wine_package_events.create!(
+        event_type: "catalogue_matched",
+        actor: current_user,
+        visibility: "internal",
+        occurred_at: Time.current,
+        metadata: { wine_package_item_id: item.id, wine_id: wine.id, vintage_id: vintage&.id }
+      )
+    end
     render json: TradePackageSerializer.new(@package.reload, viewer: :staff).as_json
   end
 
@@ -121,15 +125,17 @@ class Api::V1::Admin::Trade::PackagesController < ApplicationController
     reviewer = User.find_by(id: params[:reviewer_id])
     return render json: { error: "unknown reviewer" }, status: :not_found if reviewer.nil?
 
-    item.update!(review_requested: true)
-    @package.update!(reviewer: reviewer) if @package.reviewer.blank?
-    @package.wine_package_events.create!(
-      event_type: "review_assigned",
-      actor: current_user,
-      visibility: "internal",
-      occurred_at: Time.current,
-      metadata: { wine_package_item_id: item.id, reviewer_id: reviewer.id }
-    )
+    ActiveRecord::Base.transaction do
+      item.update!(review_requested: true)
+      @package.update!(reviewer: reviewer) if @package.reviewer.blank?
+      @package.wine_package_events.create!(
+        event_type: "review_assigned",
+        actor: current_user,
+        visibility: "internal",
+        occurred_at: Time.current,
+        metadata: { wine_package_item_id: item.id, reviewer_id: reviewer.id }
+      )
+    end
     render json: TradePackageSerializer.new(@package.reload, viewer: :staff).as_json
   end
 

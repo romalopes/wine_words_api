@@ -30,20 +30,23 @@ module Trade
       end
 
       def call
-        message = package.wine_package_messages.create!(
-          sender: sender,
-          sender_type: sender_type,
-          body: body,
-          internal_note: false
-        )
+        message = nil
+        ActiveRecord::Base.transaction do
+          message = package.wine_package_messages.create!(
+            sender: sender,
+            sender_type: sender_type,
+            body: body,
+            internal_note: false
+          )
 
-        package.wine_package_events.create!(
-          event_type: "message_sent",
-          actor: sender,
-          visibility: "shared",
-          occurred_at: Time.current,
-          metadata: { wine_package_message_id: message.id }
-        )
+          package.wine_package_events.create!(
+            event_type: "message_sent",
+            actor: sender,
+            visibility: "shared",
+            occurred_at: Time.current,
+            metadata: { wine_package_message_id: message.id }
+          )
+        end
 
         notify_recipients(message)
         message

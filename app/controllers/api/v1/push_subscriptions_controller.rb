@@ -21,16 +21,22 @@ class Api::V1::PushSubscriptionsController < ApplicationController
       user_agent: request.user_agent,
       last_used_at: Time.current
     )
-    subscription.save!
-    NotificationPreference.for(current_user).update!(push_enabled: true)
+    ActiveRecord::Base.transaction do
+      subscription.save!
+      NotificationPreference.for(current_user).update!(push_enabled: true)
+    end
     render json: serialize(subscription), status: subscription.previously_new_record? ? :created : :ok
+  rescue ActiveRecord::RecordInvalid
+    render json: { errors: subscription.errors.full_messages }, status: :unprocessable_entity
   end
 
   def destroy
     subscription = current_user.push_subscriptions.find(params[:id])
-    subscription.destroy!
-    if current_user.push_subscriptions.reload.none?
-      NotificationPreference.for(current_user).update!(push_enabled: false)
+    ActiveRecord::Base.transaction do
+      subscription.destroy!
+      if current_user.push_subscriptions.reload.none?
+        NotificationPreference.for(current_user).update!(push_enabled: false)
+      end
     end
     head :no_content
   rescue ActiveRecord::RecordNotFound

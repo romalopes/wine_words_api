@@ -30,35 +30,44 @@ module Billing
         end
       end
 
-      change = create_change(user, target_subscription, idempotency_key)
+      # Step 1: Create the change record in a transaction
+      change = nil
+      ActiveRecord::Base.transaction do
+        change = create_change(user, target_subscription, idempotency_key)
+      end
+
+      # Step 2: Call Stripe API OUTSIDE the transaction
       result = Billing.adapter.change_subscription(
         user: user,
         target_subscription: target_subscription,
         mode: change.change_type.to_sym
       )
 
-      if change.upgrade?
-        change.update!(status: :pending)
+      # Step 3: Update the change record and user subscription in a new transaction
+      ActiveRecord::Base.transaction do
+        if change.upgrade?
+          change.update!(status: :pending)
 
-        # Proactively sync the local subscription when Stripe has already
-        # processed the charge (no hosted invoice URL means no 3DS/SCA pending).
-        # Otherwise we rely on the invoice.paid webhook. This avoids the brief
-        # window where Stripe has the upgrade but the local DB still shows the
-        # old plan — which caused the UI to show the old plan right after confirm.
-        if result[:hosted_invoice_url].blank?
-          user.apply_subscription!(
-            target_subscription,
-            billing_provider: "stripe",
-            provider_subscription_id: result[:provider_subscription_id],
-            allow_downgrade: true
-          )
-          change.update!(status: :succeeded)
+          # Proactively sync the local subscription when Stripe has already
+          # processed the charge (no hosted invoice URL means no 3DS/SCA pending).
+          # Otherwise we rely on the invoice.paid webhook. This avoids the brief
+          # window where Stripe has the upgrade but the local DB still shows the
+          # old plan — which caused the UI to show the old plan right after confirm.
+          if result[:hosted_invoice_url].blank?
+            user.apply_subscription!(
+              target_subscription,
+              billing_provider: "stripe",
+              provider_subscription_id: result[:provider_subscription_id],
+              allow_downgrade: true
+            )
+            change.update!(status: :succeeded)
+          end
+        else
+          change.update!(status: :scheduled, effective_at: result[:effective_at])
         end
-      else
-        change.update!(status: :scheduled, effective_at: result[:effective_at])
-      end
 
-      log_change(user, change)
+        log_change(user, change)
+      end
 
       {
         status: change.status,

@@ -52,23 +52,25 @@ class ArticlesController < ActionController::Base
   def create
     @article = Article.new(article_params)
     @article.user = current_user
-    if @article.save
+    ActiveRecord::Base.transaction do
+      @article.save!
       attach_images
       link_reviews(@pending_review_ids)
-      redirect_to @article, notice: "Article was successfully created."
-    else
-      render :new, status: :unprocessable_entity
     end
+    redirect_to @article, notice: "Article was successfully created."
+  rescue ActiveRecord::RecordInvalid
+    render :new, status: :unprocessable_entity
   end
 
   def update
-    if @article.update(article_params)
+    ActiveRecord::Base.transaction do
+      @article.update!(article_params)
       attach_images
       link_reviews(@pending_review_ids)
-      redirect_to @article, notice: "Article was successfully updated."
-    else
-      render :edit, status: :unprocessable_entity
     end
+    redirect_to @article, notice: "Article was successfully updated."
+  rescue ActiveRecord::RecordInvalid
+    render :edit, status: :unprocessable_entity
   end
 
   def edit
@@ -94,11 +96,13 @@ class ArticlesController < ActionController::Base
     ids = Array(params[:review_ids].presence || params[:review_id]).flatten.compact
     reviews = current_user.reviews.published.where(id: ids)
     added = 0
-    reviews.find_each do |review|
-      next if @article.reviews.exists?(review.id)
+    ActiveRecord::Base.transaction do
+      reviews.find_each do |review|
+        next if @article.reviews.exists?(review.id)
 
-      @article.article_reviews.create!(review: review, status: "published")
-      added += 1
+        @article.article_reviews.create!(review: review, status: "published")
+        added += 1
+      end
     end
 
     if added.positive?

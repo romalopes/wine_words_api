@@ -23,20 +23,23 @@ class LogService
     def log(description:, action:, user: nil, method: nil, path: nil,
             status: nil, request_id: nil, ip_address: nil, user_agent: nil,
             objects: [], impersonated_user: nil)
-      log_record = Log.create!(
-        description: sanitize(description),
-        user: user,
-        action: sanitize(action),
-        method: sanitize(method, limit: 16),
-        path: sanitize(path),
-        status: status.is_a?(Integer) ? status : nil,
-        request_id: sanitize(request_id, limit: 64),
-        ip_address: sanitize(ip_address, limit: 64),
-        user_agent: sanitize(user_agent),
-        impersonated_user: impersonated_user,
-      )
+      log_record = nil
+      ActiveRecord::Base.transaction do
+        log_record = Log.create!(
+          description: sanitize(description),
+          user: user,
+          action: sanitize(action),
+          method: sanitize(method, limit: 16),
+          path: sanitize(path),
+          status: status.is_a?(Integer) ? status : nil,
+          request_id: sanitize(request_id, limit: 64),
+          ip_address: sanitize(ip_address, limit: 64),
+          user_agent: sanitize(user_agent),
+          impersonated_user: impersonated_user,
+        )
 
-      attach_objects(log_record, objects)
+        attach_objects(log_record, objects)
+      end
       log_record
     rescue StandardError => e
       # Logging must never break the original operation. Report separately.
