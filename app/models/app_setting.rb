@@ -21,7 +21,7 @@ class AppSetting < ApplicationRecord
     "hard_delete_enabled" => false,
     # Wine Words review fee (IDENTITY_214): configurable per-bottle fee for
     # review packages. Default AUD 50.00.
-    "wine_review_fee_amount" => "50.00",
+    "wine_review_fee_amount" => ENV["WINE_REVIEW_FEE_AMOUNT"] || "50.00",
     "wine_review_fee_currency" => "AUD",
     # Invoice GST rate (IDENTITY_214 Phase 12): tax rate for PDF invoices.
     # Default 10% (Australia).

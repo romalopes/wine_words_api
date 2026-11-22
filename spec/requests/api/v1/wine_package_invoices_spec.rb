@@ -135,6 +135,40 @@ RSpec.describe "Api::V1::WinePackageInvoices", type: :request do
       expect(first_invoice.total).to eq(250.0)
     end
 
+    it "excludes cancelled invoices from the difference" do
+      sign_in admin
+      post "/api/v1/wine_packages/#{package.id}/invoices", as: :json
+      first_id = JSON.parse(response.body)["id"]
+
+      post "/api/v1/wine_packages/#{package.id}/invoices/#{first_id}/cancel",
+           params: { cancellation_reason: "Wrong amount" }, as: :json
+      expect(response).to have_http_status(:ok)
+
+      # The cancelled invoice releases its bottles, so a fresh invoice covers
+      # the full billable count again.
+      post "/api/v1/wine_packages/#{package.id}/invoices", as: :json
+      expect(response).to have_http_status(:created)
+      expect(JSON.parse(response.body)["billable_bottle_count"]).to eq(5)
+    end
+
+    it "supports coverage=full to consolidate the whole billable count" do
+      sign_in admin
+      package.confirm_billable_quantity!(8, by: admin)
+      post "/api/v1/wine_packages/#{package.id}/invoices", as: :json
+      expect(JSON.parse(response.body)["billable_bottle_count"]).to eq(8)
+
+      # Difference mode is now blocked — every bottle is covered by the sent invoice…
+      post "/api/v1/wine_packages/#{package.id}/invoices", as: :json
+      expect(response).to have_http_status(:unprocessable_entity)
+
+      # …but full mode re-issues one consolidated invoice for the whole count.
+      post "/api/v1/wine_packages/#{package.id}/invoices", params: { coverage: "full" }, as: :json
+      expect(response).to have_http_status(:created)
+      json = JSON.parse(response.body)
+      expect(json["billable_bottle_count"]).to eq(8)
+      expect(json["total"]).to eq("400.00")
+    end
+
     it "is forbidden for the producer member" do
       sign_in producer_user
       post "/api/v1/wine_packages/#{package.id}/invoices", as: :json
@@ -246,6 +280,31 @@ RSpec.describe "Api::V1::WinePackageInvoices", type: :request do
 
       expect(response).to have_http_status(:ok)
       expect(JSON.parse(response.body)["queued"]).to be(true)
+    end
+
+    it "queues the invoice email again on resend" do
+      sign_in admin
+
+      expect {
+        post "/api/v1/wine_packages/#{package.id}/invoices/#{invoice.id}/send_email", as: :json
+        post "/api/v1/wine_packages/#{package.id}/invoices/#{invoice.id}/send_email", as: :json
+      }.to have_enqueued_job(InvoiceMailerJob).twice
+    end
+
+    it "delivers every time the job runs and counts each send" do
+      ActionMailer::Base.deliveries.clear
+
+      expect {
+        InvoiceMailerJob.perform_now(invoice.id, triggered_by_id: admin.id)
+      }.to change { invoice.reload.email_send_count }.from(0).to(1)
+
+      # The second run must NOT be silently skipped — staff re-sends on purpose.
+      expect {
+        InvoiceMailerJob.perform_now(invoice.id, triggered_by_id: admin.id)
+      }.to change { invoice.reload.email_send_count }.from(1).to(2)
+
+      expect(ActionMailer::Base.deliveries.count).to eq(2)
+      expect(invoice.reload.email_sent_at).to be_present
     end
   end
 end

@@ -17,13 +17,32 @@ class Api::V1::WinePackageInvoicesController < ApplicationController
                     status: :unprocessable_entity
     end
 
-    # Calculate delta: new invoice covers billable_count - sum of prior manual invoices
-    prior_total = @package.wine_package_invoices.manual.where.not(status: :draft).sum(:billable_bottle_count)
-    delta = @package.billable_bottle_count - prior_total
+    # coverage=difference (default): invoice only the billable bottles not
+    # covered by an active invoice yet (e.g. after adding a new wine line).
+    # coverage=full: invoice the whole confirmed billable count again as one
+    # consolidated invoice (e.g. after cancelling prior invoices, or to
+    # replace piecemeal invoices with a single one).
+    coverage = invoice_params[:coverage] == "full" ? "full" : "difference"
+
+    # Bottles already covered by active (sent/paid) manual invoices. Cancelled
+    # invoices release their bottles and never count as invoiced.
+    prior_total = @package.wine_package_invoices.manual.where(status: %i[sent paid]).sum(:billable_bottle_count)
+
+    delta =
+      if coverage == "full"
+        @package.billable_bottle_count
+      else
+        @package.billable_bottle_count - prior_total
+      end
 
     if delta <= 0
-      return render json: { error: "No additional billable bottles to invoice" },
-                    status: :unprocessable_entity
+      message =
+        if coverage == "full"
+          "No billable bottles to invoice"
+        else
+          "No additional billable bottles to invoice — every billable bottle is already covered by an active invoice"
+        end
+      return render json: { error: message }, status: :unprocessable_entity
     end
 
     fee_amount = AppSetting.wine_review_fee_amount
@@ -180,7 +199,7 @@ class Api::V1::WinePackageInvoicesController < ApplicationController
   end
 
   def invoice_params
-    params.permit(:due_at, :cancellation_reason, :notes)
+    params.permit(:due_at, :cancellation_reason, :notes, :coverage)
   end
 
   def serialize_invoice(inv)

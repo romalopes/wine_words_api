@@ -280,6 +280,13 @@ class WinePackage < ApplicationRecord
     self.arrived_at ||= at
     self.review_deadline ||= default_review_deadline
     transition_to!("arrived", actor: actor)
+    # IDENTITY_214: once the samples have physically arrived, every line of a
+    # trade submission is in scope for review (billing is per bottle), so flag
+    # unflagged items as review-requested. Producer-request packages are left
+    # alone — there the reviewer explicitly chooses which lines to review.
+    return unless trade_submission?
+
+    wine_package_items.where(review_requested: false).update_all(review_requested: true)
   end
 
   def start_reviewing!(actor: nil)

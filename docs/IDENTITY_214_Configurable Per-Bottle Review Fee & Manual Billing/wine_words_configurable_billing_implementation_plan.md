@@ -53,7 +53,7 @@ During Phase 0 reconnaissance, the following inconsistencies between the origina
 | 4 | ✅ Completed | `PHASE_04_PERSISTENCE.md` | Migration, model changes, BillingSummary, migration/model specs |
 | 5 | ✅ Completed (Core) | `PHASE_05_STAFF_API.md` | Billing endpoints, policy, request specs, audit events |
 | 6 | ✅ Completed | `PHASE_06_ADMIN_UI.md` | TradeAdminPackageDetail billing panel (summary grid, confirm billable, invoices, PDF/email actions) |
-| 7 | ⏳ Pending | `PHASE_07_OWNER_BILLING_VIEW.md` | Owner/guest read-only billing sections |
+| 7 | ✅ Completed | `PHASE_07_OWNER_BILLING_VIEW.md` | Owner/guest read-only billing sections |
 | 8 | ⏳ Pending | `PHASE_08_MULTIPLE_INVOICES.md` | Additional-bottle flow, immutability, aggregate tests |
 | 9 | ⏳ Pending | `PHASE_09_COMMUNICATION.md` | Email template doc, UI wording audit |
 | 10 | ⏳ Pending | `PHASE_10_AUDIT_SAFEGUARDS.md` | Event/audit coverage, security checklist |

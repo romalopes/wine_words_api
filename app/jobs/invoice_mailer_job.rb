@@ -10,7 +10,11 @@ class InvoiceMailerJob < ApplicationJob
     package = invoice.wine_package
     triggered_by = triggered_by_id && User.find_by(id: triggered_by_id)
 
-    return if invoice.email_sent_at.present? && invoice.email_send_count > 0 && invoice.status != "draft"
+    # NOTE: no idempotency guard here — staff explicitly trigger sends from
+    # the billing panel, and re-sending an invoice (e.g. the owner lost the
+    # email) is a legitimate operation. Every send increments
+    # email_send_count and stamps email_sent_at so the panel shows the
+    # history.
 
     # Generate PDF
     pdf_service = WinePackages::InvoicePdfService.call(invoice)

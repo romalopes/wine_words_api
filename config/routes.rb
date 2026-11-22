@@ -300,6 +300,10 @@ Rails.application.routes.draw do
         end
       end
 
+      # Staff-wide invoice overview (IDENTITY_214): Admins/Editors only —
+      # read-only cross-package listing; mutations stay on the nested routes.
+      resources :invoices, only: [ :index ]
+
       # --- Public contact form (IDENTITY_209) ------------------------------- #
       # Anonymous by design: visitors write to the team without an account.
       # Turnstile + Rack::Attack + a honeypot protect the intake; the inbox is

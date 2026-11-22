@@ -129,9 +129,16 @@ class WinePackageItem < ApplicationRecord
     review&.status == "published"
   end
 
-  # Only items explicitly requested for review are reviewable.
+  # Only items explicitly requested for review are reviewable. Exception:
+  # trade submissions (IDENTITY_206/214) — every line of a trade package is in
+  # scope for review once the samples have arrived (billing is per bottle),
+  # including lines added after the arrival was recorded.
   def reviewable?
-    review_requested?
+    return true if review_requested?
+    return false unless wine_package
+
+    wine_package.trade_submission? &&
+      wine_package.status.in?(%w[arrived reviewing completed])
   end
 
   def pending_review?

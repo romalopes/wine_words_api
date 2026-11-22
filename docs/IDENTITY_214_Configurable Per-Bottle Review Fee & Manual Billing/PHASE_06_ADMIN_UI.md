@@ -258,3 +258,55 @@ Add to `trade.module.css`:
 4. **Test manually** with real data
 5. **Add request specs** for new billing endpoints
 6. **Proceed to Phase 7** (Owner/Guest Billing View)
+
+## Post-review Bug Fixes (second pass)
+
+1. **Reviews unlock on arrival**: `WinePackage#mark_arrived!` now flags every
+   line of a `trade_submission` package `review_requested: true` (producer
+   requests are untouched — the reviewer explicitly chooses there), and
+   `WinePackageItem#reviewable?` additionally treats arrived/reviewing/
+   completed trade-submission lines as reviewable, so lines added *after*
+   arrival also get the "Create review" button. Migration
+   `20261122103000_backfill_review_requested_for_arrived_trade_packages`
+   flags lines of packages that were already arrived when the fix landed.
+2. **Email feedback**: the billing panel shows a success notice
+   ("Invoice email sent…") after the send resolves; the invoice card already
+   displays "Emailed: <date> (Nx)".
+3. **Resending works**: removed the silent-skip guard in `InvoiceMailerJob`
+   (`return if email_sent_at…`) — staff-triggered sends always deliver and
+   increment `email_send_count`.
+4. **Cancel invoice fixed**: the outer "Cancel invoice" button toggled the
+   wrong state (`cancellationReason` instead of `cancellingInvoice`), so the
+   reason input never appeared. It now opens the inline form with autofocus;
+   the dismiss button closes it.
+5. **Follow-up invoices after new lines**: `BillingSummary` exposes
+   `billable_uninvoiced` (billable bottles not covered by an active
+   sent/paid invoice; cancelled invoices release their bottles). Invoice
+   creation accepts `coverage`: `difference` (default — just the uninvoiced
+   bottles) or `full` (one consolidated invoice for the whole billable
+   count). The panel offers both buttons when prior invoices exist, and
+   cancelled invoices no longer block the delta. The billable-count block now
+   also appears (titled "Update billable count", pre-filled with the
+   submitted total) whenever new bottles have arrived since the last
+   confirmation — previously it only showed while the count was unset, which
+   dead-ended the follow-up flow. PATCH billing refuses counts below the
+   bottles already covered by active invoices.
+
+## Settings → Invoices overview page
+
+New cross-package listing for Admins/Editors:
+
+- **API**: `GET /api/v1/invoices`
+  (`Api::V1::InvoicesController#index`, gated on `catalogue_manager?` — the
+  same audience as `manage_billing?` without the per-package reviewer clause).
+  Returns every non-draft invoice (newest first) with 2-dp money, email
+  delivery state, the client (contact_snapshot → producer → submitter
+  fallback) and the package relationship (id, status, source, producer, wine
+  line count). Read-only — mutations stay on the nested wine-package routes.
+- **UI**: `/settings/invoices` (`InvoicesList.tsx`), menu item "Invoices" in
+  the Settings dropdown (visible to Admins/Editors via `canManageAllPackages`).
+  Columns: invoice number (+ payment source), client, relationship (link to
+  the package), bottles, total, status (+ Overdue / paid date), issued/due,
+  email history (last sent + send count). Row actions **Download** and
+  **Email** reuse the per-package `pdf` / `send_email` endpoints (email asks
+  for confirmation because it re-sends).

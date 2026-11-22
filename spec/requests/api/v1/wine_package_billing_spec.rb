@@ -158,6 +158,47 @@ RSpec.describe "Api::V1::WinePackageBilling", type: :request do
         patch "/api/v1/wine_packages/#{package.id}/billing", params: {}, as: :json
         expect(response).to have_http_status(:unprocessable_entity)
       end
+
+      # IDENTITY_214 follow-up-invoice flow: raising the count after new wine
+      # lines arrive must work even when invoices already exist…
+      it "allows raising the count after invoices exist" do
+        package.confirm_billable_quantity!(2, by: admin)
+        package.wine_package_invoices.create!(
+          wine_package_quote: nil,
+          invoice_number: WinePackageInvoice.next_number,
+          currency: "AUD", items: [], subtotal: 100, tax: 0, total: 100,
+          status: :sent, issued_at: Time.current, due_at: 30.days.from_now,
+          payment_source: :manual, billable_bottle_count: 2, unit_fee: 50.0,
+          recorded_by: admin, recorded_at: Time.current
+        )
+
+        patch "/api/v1/wine_packages/#{package.id}/billing",
+              params: { billable_bottle_count: 5 }, as: :json
+
+        expect(response).to have_http_status(:ok)
+        expect(JSON.parse(response.body)["billable_uninvoiced"]).to eq(3)
+      end
+
+      # …but lowering it below what active invoices cover is refused.
+      it "rejects a count below the bottles already invoiced" do
+        package.confirm_billable_quantity!(5, by: admin)
+        package.wine_package_invoices.create!(
+          wine_package_quote: nil,
+          invoice_number: WinePackageInvoice.next_number,
+          currency: "AUD", items: [], subtotal: 100, tax: 0, total: 100,
+          status: :sent, issued_at: Time.current, due_at: 30.days.from_now,
+          payment_source: :manual, billable_bottle_count: 2, unit_fee: 50.0,
+          recorded_by: admin, recorded_at: Time.current
+        )
+
+        expect {
+          patch "/api/v1/wine_packages/#{package.id}/billing",
+                params: { billable_bottle_count: 1 }, as: :json
+        }.not_to change { package.reload.billable_bottle_count }
+
+        expect(response).to have_http_status(:unprocessable_entity)
+        expect(JSON.parse(response.body)["error"]).to include("already covered")
+      end
     end
 
     context "when authenticated as editor" do

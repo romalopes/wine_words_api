@@ -15,12 +15,22 @@ class Api::V1::WinePackageBillingController < ApplicationController
   end
 
   # PATCH /api/v1/wine_packages/:wine_package_id/billing
-  # Confirms/updates the billable bottle count.
+  # Confirms/updates the billable bottle count. Raising it (e.g. after new
+  # wine lines are submitted) is the normal follow-up-invoice flow; lowering
+  # it below what active invoices already cover is refused.
   def update
     count = billing_params[:billable_bottle_count]
     unless count.is_a?(Integer) && count.positive?
       return render json: { error: "billable_bottle_count must be a positive integer" },
                     status: :unprocessable_entity
+    end
+
+    already_invoiced = @package.wine_package_invoices.manual
+                               .where(status: %i[sent paid]).sum(:billable_bottle_count)
+    if count < already_invoiced
+      return render json: {
+        error: "Billable count cannot be lower than the #{already_invoiced} bottle(s) already covered by an active invoice"
+      }, status: :unprocessable_entity
     end
 
     @package.confirm_billable_quantity!(count, by: current_user)

@@ -705,4 +705,57 @@ RSpec.describe WinePackage, type: :model do
       expect(package.created_by_id).to be_nil
     end
   end
+
+  # IDENTITY_214 bug fix: marking a trade submission arrived must unlock review
+  # creation for every line, and lines added after arrival stay reviewable.
+  describe "trade submission review scoping" do
+    def create_trade_package(status:, arrived_at: nil, items: nil)
+      create_package(
+        source: "trade_submission",
+        status: status,
+        arrived_at: arrived_at,
+        contact_snapshot: {
+          "company_name" => "Phase F Co",
+          "contact_name" => "Phase F Owner",
+          "email" => "phase-f@example.com"
+        },
+        wine_package_items_attributes: items || [
+          { proposed_wine_name: "Phase F Trade Wine", proposed_vintage_year: 2022, quantity: 2 }
+        ]
+      )
+    end
+
+    it "flags every trade submission line as review requested on arrival" do
+      package = create_trade_package(status: "editorial_pending")
+      item = package.wine_package_items.first
+      expect(item.review_requested?).to be false
+
+      package.mark_arrived!(at: arrival_time)
+
+      expect(item.reload.review_requested?).to be true
+      expect(item.reviewable?).to be true
+    end
+
+    it "treats arrived trade submission lines as reviewable even without the flag" do
+      # Covers lines added AFTER the arrival was recorded (no flag, still reviewable).
+      package = create_trade_package(status: "arrived", arrived_at: arrival_time)
+      item = package.wine_package_items.first
+
+      expect(item.review_requested?).to be false
+      expect(item.reviewable?).to be true
+    end
+
+    it "does not treat non-trade arrived lines as reviewable without the flag" do
+      package = create_package(
+        source: "manual",
+        status: "arrived",
+        arrived_at: arrival_time,
+        wine_package_items_attributes: [{ vintage_id: vintage.id, quantity: 1 }]
+      )
+      item = package.wine_package_items.first
+
+      expect(item.review_requested?).to be false
+      expect(item.reviewable?).to be false
+    end
+  end
 end

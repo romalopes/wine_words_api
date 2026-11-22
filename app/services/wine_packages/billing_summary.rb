@@ -35,6 +35,14 @@ module WinePackages
       wine_package.billable_bottle_count || 0
     end
 
+    # Bottles confirmed billable that no active (sent or paid) manual invoice
+    # covers yet — the "difference" available for a follow-up invoice.
+    # Cancelled invoices release their bottles and don't count as invoiced.
+    def billable_uninvoiced
+      active = manual_invoices.where(status: %i[sent paid]).sum(:billable_bottle_count)
+      [billable_to_date - active, 0].max
+    end
+
     # Sum of totals for all non-draft manual invoices.
     def total_invoiced
       manual_invoices.sum(:total).to_d
@@ -76,6 +84,7 @@ module WinePackages
       {
         bottles_submitted: bottles_submitted,
         billable_to_date: billable_to_date,
+        billable_uninvoiced: billable_uninvoiced,
         total_invoiced: money.call(total_invoiced),
         total_paid: money.call(total_paid),
         total_cancelled: money.call(total_cancelled),
