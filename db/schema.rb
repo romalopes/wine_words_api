@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_21_121424) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_22_043944) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -1123,13 +1123,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_21_121424) do
   end
 
   create_table "wine_package_invoices", force: :cascade do |t|
+    t.integer "billable_bottle_count"
+    t.string "cancellation_reason", limit: 255
     t.datetime "created_at", null: false
     t.string "currency", limit: 8, default: "EUR", null: false
     t.datetime "due_at"
+    t.integer "email_send_count", default: 0, null: false
+    t.datetime "email_sent_at"
     t.string "invoice_number", null: false
     t.datetime "issued_at"
     t.jsonb "items", default: [], null: false
+    t.text "notes"
     t.datetime "paid_at"
+    t.string "payment_source", limit: 16, default: "stripe", null: false
+    t.datetime "recorded_at"
+    t.bigint "recorded_by_id"
+    t.datetime "reminder_sent_at"
     t.string "status", limit: 32, default: "draft", null: false
     t.string "stripe_checkout_session_id"
     t.string "stripe_payment_intent_id"
@@ -1137,10 +1146,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_21_121424) do
     t.decimal "subtotal", precision: 10, scale: 2, default: "0.0", null: false
     t.decimal "tax", precision: 10, scale: 2, default: "0.0", null: false
     t.decimal "total", precision: 10, scale: 2, default: "0.0", null: false
+    t.decimal "unit_fee", precision: 10, scale: 2
     t.datetime "updated_at", null: false
     t.bigint "wine_package_id", null: false
     t.bigint "wine_package_quote_id"
+    t.index ["email_sent_at"], name: "index_wine_package_invoices_on_email_sent_at"
     t.index ["invoice_number"], name: "index_wine_package_invoices_on_invoice_number", unique: true
+    t.index ["payment_source"], name: "index_wine_package_invoices_on_payment_source"
+    t.index ["recorded_by_id"], name: "index_wine_package_invoices_on_recorded_by_id"
     t.index ["status"], name: "index_wine_package_invoices_on_status"
     t.index ["stripe_checkout_session_id"], name: "index_wine_package_invoices_on_stripe_checkout_session_id"
     t.index ["wine_package_id"], name: "index_wine_package_invoices_on_wine_package_id"
@@ -1222,11 +1235,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_21_121424) do
     t.datetime "announced_at"
     t.datetime "arrived_at"
     t.boolean "auto_completed", default: false, null: false
+    t.integer "billable_bottle_count"
+    t.datetime "billable_confirmed_at"
+    t.bigint "billable_confirmed_by_id"
     t.jsonb "contact_snapshot"
     t.datetime "created_at", null: false
     t.bigint "created_by_id"
     t.datetime "delivered_at"
+    t.datetime "estimate_snapshot_at"
+    t.integer "estimated_bottle_count"
+    t.string "estimated_currency", limit: 8
     t.datetime "estimated_delivery_at"
+    t.decimal "estimated_total", precision: 10, scale: 2
+    t.decimal "estimated_unit_fee", precision: 10, scale: 2
     t.date "expected_at"
     t.string "guest_token_digest"
     t.datetime "guest_token_expires_at"
@@ -1499,6 +1520,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_21_121424) do
   add_foreign_key "wine_package_attachments", "wine_packages"
   add_foreign_key "wine_package_events", "users", column: "actor_id"
   add_foreign_key "wine_package_events", "wine_packages"
+  add_foreign_key "wine_package_invoices", "users", column: "recorded_by_id"
   add_foreign_key "wine_package_invoices", "wine_package_quotes"
   add_foreign_key "wine_package_invoices", "wine_packages"
   add_foreign_key "wine_package_items", "reviews"
@@ -1511,6 +1533,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_21_121424) do
   add_foreign_key "wine_package_quotes", "wine_packages"
   add_foreign_key "wine_packages", "producers"
   add_foreign_key "wine_packages", "users", column: "accepted_by_id"
+  add_foreign_key "wine_packages", "users", column: "billable_confirmed_by_id"
   add_foreign_key "wine_packages", "users", column: "created_by_id"
   add_foreign_key "wine_packages", "users", column: "rejected_by_id"
   add_foreign_key "wine_packages", "users", column: "requested_by_id"

@@ -1,15 +1,69 @@
 # Wine Words --- Configurable Per-Bottle Review Fee & Manual Billing
 ## Detailed implementation plan and AI coding prompts
-**Status:** Proposed implementation plan\
+**Status:** Approved — as-built implementation (2026-11-22)\
 **Product:** Wine Words\
 **Pricing decision:** AUD \$50 per billable bottle as the initial
 configured price\
 **Payment approach:** Manual invoicing by email; no payment gateway\
-**Architecture:** Rails API + React/Vite frontend\
+**Architecture:** Rails API + React/Vite frontend (`wine_words/`)\
 **Primary goal:** Introduce transparent per-bottle review pricing and a
 lightweight, auditable billing workflow without building an accounting
 or payment-processing system.
 
+## 0. Amendments & Resolved Inconsistencies (As-Built)
+
+During Phase 0 reconnaissance, the following inconsistencies between the original plan and the actual codebase were identified and resolved:
+
+| # | Original Plan Assumption | Actual Codebase Reality | Resolution |
+|---|--------------------------|-------------------------|------------|
+| 1 | Design invoice model from scratch | `wine_package_invoices` exists (migration `20261114000004`), Stripe-owned, quote-driven | **Extend** existing table with `payment_source` (`stripe`\|`manual`) + review-fee snapshot fields |
+| 2 | Overdue must be derived, never stored | `overdue` is a stored enum value; `scope :payable` includes it | Never set `overdue` in manual flow; derive display from `due_at` + unpaid; keep enum for legacy Stripe |
+| 3 | Submission/review/payment statuses independent | `WinePackage.status` couples payment (`invoiced`, `paid`) | No new column; derive package payment state from invoices via `WinePackages::BillingSummary`; state machine untouched |
+| 4 | Currency AUD | Existing invoices/quotes default EUR | Fee setting defaults AUD; every record snapshots its own currency; legacy rows unchanged |
+| 5 | "Billable bottle count" undefined | Items carry `quantity`, `review_requested` | Estimate = Σ `items.quantity`; staff-confirmed `billable_bottle_count`; per-invoice delta snapshot |
+| 6 | Repo `wine_words_frontend`, docs at `docs/FUTURE/Billing/…` | Actual: `wine_words/`, `docs/IDENTITY_214_…/` | Paths corrected throughout |
+| 7 | "Add billing models/services" | `Billing::` namespace occupied by subscriptions | New services under `WinePackages::` |
+| 8 | Single submission flow | Two paths: anonymous guest + producer request | Snapshot at trade-submission create AND producer `submit`; shared `WinePackages::CaptureEstimate` |
+| 9 | "Add API endpoints for billing summary" as new | Trade invoice endpoints partially exist | New nested billing endpoints only for manual workflow |
+| 10 | Field names `invoice_sent_at`, `invoice_due_date`, `invoice_paid_at` | Existing: `issued_at`, `due_at`, `paid_at` | Reuse existing columns |
+| 11 | Generic migration names | Timestamped descriptive names | Follow `20261122xxxxxx_add_review_fee_billing.rb` convention |
+
+**Locked Design Decisions:**
+1. One table for Stripe + manual invoices (`payment_source` discriminator)
+2. Historical snapshots immutable (package estimate + per-invoice fee/currency/count/total)
+3. No gateway, no PDF, no auto-email — staff records externally-sent invoices
+4. Overdue derived for display; stored enum value left for legacy
+5. Server-authoritative money (`BigDecimal`); never trust client totals
+6. No backfill — legacy packages show "Not priced under current billing workflow"
+7. Waived = `cancelled` + `cancellation_reason: "waived"` (no new enum)
+8. Authorization: billing management = `catalogue_manager?` (Admin/Editor); owner/guest = read-only
+9. Namespace `WinePackages::` for new services; `Billing::` stays subscription-only
+10. Fee setting default AUD; every record snapshots its own currency
+
+---
+
+## Phase Status Register
+
+| Phase | Status | Document | Key Deliverables |
+|-------|--------|----------|------------------|
+| 0 | ✅ Completed | `PHASE_00_AUDIT.md` | Architecture audit, file inventory, conflict table, locked decisions |
+| 1 | ✅ Completed | `PHASE_01_DOMAIN_MODEL.md` | Domain rules: counts, statuses, snapshots, aggregates, rounding, auth, events, migration policy |
+| 2 | ✅ Completed | `PHASE_02_CONFIGURABLE_PRICING.md` | AppSetting keys, validation, public pricing endpoint, admin API, tests |
+| 3 | ✅ Completed | `PHASE_03_SUBMISSION_ESTIMATE.md` | TradeSubmit pricing UX, server snapshot, immutable once submitted |
+| 4 | ✅ Completed | `PHASE_04_PERSISTENCE.md` | Migration, model changes, BillingSummary, migration/model specs |
+| 5 | ✅ Completed (Core) | `PHASE_05_STAFF_API.md` | Billing endpoints, policy, request specs, audit events |
+| 6 | ✅ Completed | `PHASE_06_ADMIN_UI.md` | TradeAdminPackageDetail billing panel (summary grid, confirm billable, invoices, PDF/email actions) |
+| 7 | ⏳ Pending | `PHASE_07_OWNER_BILLING_VIEW.md` | Owner/guest read-only billing sections |
+| 8 | ⏳ Pending | `PHASE_08_MULTIPLE_INVOICES.md` | Additional-bottle flow, immutability, aggregate tests |
+| 9 | ⏳ Pending | `PHASE_09_COMMUNICATION.md` | Email template doc, UI wording audit |
+| 10 | ⏳ Pending | `PHASE_10_AUDIT_SAFEGUARDS.md` | Event/audit coverage, security checklist |
+| 11 | ⏳ Pending | `PHASE_11_RELEASE.md` | E2E verification, release checklist, final as-built update |
+| **12** | ✅ **Implemented (Core)** | `PHASE_12_AUTOMATED_INVOICE_PDF_EMAIL.md` | Prawn PDF, email attachment, Solid Queue job, overdue derivation, GST config |
+| **13** | ✅ Completed | `PHASE_13_SUBMITTER_SHIPPING_TRACKING.md` | Submitter sets carrier/consignment/ETA in My Packages; team sees/edits all; refresh + status stay editorial |
+
+---
+
+## 1. Executive summary
 ---
 ## 1. Executive summary
 Wine Words will charge a configurable fee for each bottle accepted by
@@ -138,28 +192,22 @@ validated.
 ## 3. Repository and architecture context
 Known Wine Words repositories:
 
-- Frontend: `https://github.com/romalopes/wine_words_frontend`
-- API: `https://github.com/romalopes/wine_words_api`
+- Frontend: `https://github.com/romalopes/wine_words` (local: `wine_words/`)
+- API: `https://github.com/romalopes/wine_words_api` (local: `wine_words_api/`)
 
 Known stack from the project context:
 
-- Rails API backend.
-- React/Vite frontend.
-- Existing Wine Package submission and administration workflows.
-- Existing user roles include Guest, Reader, Reviewer, Editor, and
-  Admin.
-- Existing email infrastructure and staff notification patterns should
-  be inspected and reused where appropriate.
+- Rails 8.1 API backend.
+- React 19 + Vite + TypeScript frontend.
+- Existing Wine Package submission and administration workflows (producer-request + anonymous trade).
+- Existing user roles include Guest, Reader, Reviewer, Editor, and Admin.
+- Existing email infrastructure and staff notification patterns should be inspected and reused where appropriate.
 
-The implementation agent must inspect the actual repositories and
-current branch before making changes. Do not assume model names, routes,
-serializers, component paths, role policies, settings architecture, or
-test framework details from this plan. Discover the real implementation
-first.
+The implementation agent must inspect the actual repositories and current branch before making changes. Do not assume model names, routes, serializers, component paths, role policies, settings architecture, or test framework details from this plan. Discover the real implementation first.
 
 Suggested documentation location in the API repository:
 
-`wine_words_api/docs/FUTURE/Billing/WINE_PACKAGE_BILLING_IMPLEMENTATION_PLAN.md`
+`wine_words_api/docs/IDENTITY_214_Configurable Per-Bottle Review Fee & Manual Billing/`
 
 This plan is standalone and should also be saved in the project
 documentation location if requested.
@@ -539,7 +587,7 @@ Tasks:
 - No implementation changes in this phase.
 ### AI Prompt 0 --- Audit before implementation
 > You are working on the Wine Words application. Audit the existing
-> `wine_words_api` and `wine_words_frontend` repositories before
+> `wine_words_api` and `wine_words` repositories before
 > implementing configurable per-bottle review billing.
 >
 > Business requirements: - Initial review fee is AUD \$50.00 per
@@ -1262,7 +1310,7 @@ skip the phase gates.
 
 > You are the senior engineer implementing configurable per-bottle
 > review billing for Wine Words across: - `romalopes/wine_words_api` -
-> `romalopes/wine_words_frontend`
+> `romalopes/wine_words`
 >
 > Follow the approved implementation plan and execute one phase at a
 > time. Start by reading the plan and the Phase 0 audit. Do not assume

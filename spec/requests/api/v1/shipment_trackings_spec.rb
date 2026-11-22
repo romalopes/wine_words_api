@@ -179,4 +179,90 @@ RSpec.describe "Api::V1::ShipmentTrackings", type: :request do
       expect(body["provider_configured"]).to be false
     end
   end
+
+  # IDENTITY_214 Phase 13: the trade submitter ships the wine, so they may set
+  # the carrier, consignment number, URL and ETA at any stage. Delivery status
+  # and provider refreshes stay editorial — the team sees and can edit
+  # everything from the package page.
+  describe "submitter tracking access (IDENTITY_214 Phase 13)" do
+    let(:submitter) do
+      User.create!(first_name: "Track Submitter", email: "track-submitter@example.com", password: "password123")
+    end
+    let(:trade_package) do
+      WinePackage.create!(
+        source: "trade_submission",
+        status: "shipping_pending",
+        submitter: submitter,
+        contact_snapshot: {
+          "company_name" => "Bodega Ejemplo",
+          "contact_name" => "Maria Ruiz",
+          "email" => "maria@bodega-ejemplo.es"
+        }
+      )
+    end
+
+    def submitter_tracking_url
+      "/api/v1/wine_packages/#{trade_package.id}/shipment_tracking"
+    end
+
+    it "lets the submitter view the tracking row" do
+      ShipmentTracking.create!(wine_package: trade_package, carrier: "Aramex", number: "AR1")
+      sign_in submitter
+
+      get submitter_tracking_url
+
+      expect(response).to have_http_status(:ok)
+      expect(JSON.parse(response.body)).to include("carrier" => "Aramex", "number" => "AR1")
+    end
+
+    it "lets the submitter record carrier, consignment number and ETA" do
+      sign_in submitter
+
+      patch submitter_tracking_url, as: :json, params: {
+        shipment_tracking: {
+          carrier: "Australia Post",
+          number: "AP777",
+          estimated_delivery_at: 3.days.from_now.strftime("%Y-%m-%d")
+        }
+      }
+
+      expect(response).to have_http_status(:created)
+      body = JSON.parse(response.body)
+      expect(body).to include("carrier" => "Australia Post", "number" => "AP777")
+
+      trade_package.reload
+      expect(trade_package.tracking_carrier).to eq("Australia Post")
+      expect(trade_package.tracking_number).to eq("AP777")
+      expect(trade_package.tracking_status).to be_nil
+    end
+
+    it "ignores the delivery status a submitter sends — that stays editorial" do
+      sign_in submitter
+
+      patch submitter_tracking_url, as: :json, params: {
+        shipment_tracking: { carrier: "Aramex", number: "AR2", status: "Delivered" }
+      }
+
+      expect(response).to have_http_status(:created)
+      trade_package.reload
+      expect(trade_package.tracking_status).to be_nil
+    end
+
+    it "still forbids the submitter from refreshing provider history" do
+      ShipmentTracking.create!(wine_package: trade_package, carrier: "Aramex", number: "AR3")
+      sign_in submitter
+
+      post "#{submitter_tracking_url}/refresh"
+
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "still hides the tracking from an unrelated user" do
+      sign_in outsider
+
+      get submitter_tracking_url
+
+      expect(response).to have_http_status(:not_found)
+    end
+  end
 end

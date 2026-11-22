@@ -1,6 +1,7 @@
 # Admin-only global configuration endpoint backing the Configuration page.
-# Exposes the runtime settings stored in app_settings — currently just the
-# "save logs to database" toggle consumed by the Auditable concern.
+# Exposes the runtime settings stored in app_settings — currently the
+# "save logs to database" toggle, email-test settings, Wine Words
+# review fee (IDENTITY_214), and invoice GST rate (IDENTITY_214 Phase 12).
 class Api::V1::ConfigurationsController < ApplicationController
   before_action :authenticate_admin!
 
@@ -11,8 +12,11 @@ class Api::V1::ConfigurationsController < ApplicationController
 
   # PATCH /api/v1/configuration
   # Accepts { logs_saved_to_database: true|false }, plus the email-test settings
-  # { use_test_email: true|false, test_email: "..." } — flat or nested under
-  # a "configuration" key — and persists whichever are present.
+  # { use_test_email: true|false, test_email: "..." }, Wine Words review fee
+  # { wine_review_fee_amount: "50.00", wine_review_fee_currency: "AUD" },
+  # invoice GST rate { invoice_gst_rate: "0.10" }, and the invoice sender
+  # address { invoice_from_email: "billing@winewords.com" } — flat or nested
+  # under a "configuration" key — and persists whichever are present.
   def update
     settings = configuration_params
     AppSetting.set!(:logs_enabled, settings[:logs_saved_to_database]) if settings.key?(:logs_saved_to_database)
@@ -20,10 +24,30 @@ class Api::V1::ConfigurationsController < ApplicationController
     AppSetting.set!(:test_email, settings[:test_email]) if settings.key?(:test_email)
     AppSetting.set!(:mail_transport, settings[:mail_transport]) if settings.key?(:mail_transport)
     AppSetting.set!(:show_taste_parameters, settings[:show_taste_parameters]) if settings.key?(:show_taste_parameters)
+    if settings.key?(:wine_review_fee_amount) || settings.key?(:wine_review_fee_currency)
+      amount = settings.fetch(:wine_review_fee_amount) { AppSetting.wine_review_fee_amount.to_s("F") }
+      currency = settings.fetch(:wine_review_fee_currency) { AppSetting.wine_review_fee_currency }
+      AppSetting.validate_wine_review_fee!(amount, currency)
+      AppSetting.set!(:wine_review_fee_amount, amount)
+      AppSetting.set!(:wine_review_fee_currency, currency)
+    end
+    if settings.key?(:invoice_gst_rate)
+      rate = settings[:invoice_gst_rate]
+      rate_bd = BigDecimal(rate.to_s)
+      raise ArgumentError, "GST rate must be non-negative" if rate_bd.negative?
+      raise ArgumentError, "GST rate must have at most 4 decimal places" if rate_bd.scale > 4
+      AppSetting.set!(:invoice_gst_rate, rate)
+    end
+    if settings.key?(:invoice_from_email)
+      email = AppSetting.validate_invoice_from_email!(settings[:invoice_from_email])
+      AppSetting.set!(:invoice_from_email, email)
+    end
     render json: configuration_json
   rescue ActiveRecord::RecordInvalid => e
     render json: { error: e.record.errors.full_messages.join(", ") },
            status: :unprocessable_entity
+  rescue ArgumentError => e
+    render json: { error: e.message }, status: :unprocessable_entity
   end
 
   private
@@ -34,7 +58,9 @@ class Api::V1::ConfigurationsController < ApplicationController
   def configuration_params
     permitted = params.permit(
       :logs_saved_to_database, :use_test_email, :test_email, :mail_transport, :show_taste_parameters,
-      configuration: [ :logs_saved_to_database, :use_test_email, :test_email, :mail_transport ]
+      :wine_review_fee_amount, :wine_review_fee_currency, :invoice_gst_rate, :invoice_from_email,
+      configuration: [ :logs_saved_to_database, :use_test_email, :test_email, :mail_transport, :show_taste_parameters,
+                       :wine_review_fee_amount, :wine_review_fee_currency, :invoice_gst_rate, :invoice_from_email ]
     )
     permitted[:configuration].presence || permitted
   end
@@ -46,6 +72,10 @@ class Api::V1::ConfigurationsController < ApplicationController
       test_email: AppSetting.test_email,
       mail_transport: AppSetting.mail_transport,
       show_taste_parameters: AppSetting.show_taste_parameters?,
+      wine_review_fee_amount: AppSetting.wine_review_fee_amount_formatted,
+      wine_review_fee_currency: AppSetting.wine_review_fee_currency,
+      invoice_gst_rate: AppSetting.invoice_gst_rate.to_s("F"),
+      invoice_from_email: AppSetting.invoice_from_email,
       settings: AppSetting.where.not(key: AppSetting::RESERVED_KEYS).order(:key).map do |s|
         { id: s.id, key: s.key, value: s.value, updated_at: s.updated_at.iso8601(3) }
       end

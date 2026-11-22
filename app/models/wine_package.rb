@@ -494,6 +494,55 @@ class WinePackage < ApplicationRecord
     }
   end
 
+  # --- Billing (IDENTITY_214) -----------------------------------------------
+
+  belongs_to :billable_confirmed_by, class_name: "User", optional: true
+
+  # Total submitted bottles (sum of quantities across all items).
+  def submitted_bottle_count
+    wine_package_items.sum(:quantity)
+  end
+
+  # Captures the current global fee and submitted bottle count as an
+  # immutable estimate snapshot. Called at submission time (both trade
+  # and producer-request paths). Does nothing if already captured.
+  def capture_estimate!(fee_amount, fee_currency)
+    return if estimate_snapshot_at.present?
+
+    count = submitted_bottle_count
+    total = (BigDecimal(fee_amount.to_s) * count).round(2)
+
+    update_columns(
+      estimated_bottle_count: count,
+      estimated_unit_fee: fee_amount,
+      estimated_currency: fee_currency,
+      estimated_total: total,
+      estimate_snapshot_at: Time.current
+    )
+  end
+
+  # Confirms the billable bottle count (staff action). Pre-filled from
+  # review-requested items but adjustable by staff.
+  def confirm_billable_quantity!(count, by:)
+    update_columns(
+      billable_bottle_count: count,
+      billable_confirmed_by_id: by&.id,
+      billable_confirmed_at: Time.current
+    )
+  end
+
+  # Checks if the package has any estimate snapshot.
+  def estimate_captured?
+    estimate_snapshot_at.present?
+  end
+
+  # Checks if billable quantity has been confirmed.
+  def billable_confirmed?
+    billable_bottle_count.present?
+  end
+
+  # --- Review progress ------------------------------------------------------
+
   # Finished business is never overdue — this mirrors the `overdue` scope, which
   # only considers active packages, so the predicate and the scope always agree.
   def overdue?

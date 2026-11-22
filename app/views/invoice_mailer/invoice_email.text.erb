@@ -1,0 +1,25 @@
+WINE WORDS
+Premium Wine Review & Publication
+
+Dear <%= @owner[:contact_name] || "Valued Client" %>,
+
+Please find attached your invoice for the wine review service provided by Wine Words.
+
+INVOICE DETAILS
+----------------
+Invoice:    <%= @invoice.invoice_number %>
+Date:       <%= @invoice.issued_at&.strftime("%d %b %Y") || "—" %>
+Due:        <%= @invoice.due_at&.strftime("%d %b %Y") || "—" %>
+Amount:     <%= number_to_currency(@invoice.total, unit: "#{@invoice.currency} ") %>
+
+This invoice covers the review of <%= @invoice.billable_bottle_count %> bottle(s) submitted under package #<%= @package.id %>.
+
+Payment can be made via bank transfer using the details on the attached invoice. Please include the invoice number as reference.
+
+If you have any questions, reply to this email or contact us at billing@winewords.com.
+
+Kind regards,
+The Wine Words Team
+
+---
+Wine Words Pty Ltd | billing@winewords.com | ABN: 12 345 678 901

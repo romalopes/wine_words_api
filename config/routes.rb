@@ -286,6 +286,18 @@ Rails.application.routes.draw do
                  only: [ :show, :update ] do
           post :refresh
         end
+
+        # Billing (IDENTITY_214): manual review-fee invoicing.
+        resource :billing, controller: "wine_package_billing", only: [ :show, :update ]
+        resources :invoices, controller: "wine_package_invoices", only: [ :create ] do
+          member do
+            post :mark_paid
+            post :cancel
+            post :send_email
+            post :generate_pdf
+            get  :pdf
+          end
+        end
       end
 
       # --- Public contact form (IDENTITY_209) ------------------------------- #
@@ -306,6 +318,7 @@ Rails.application.routes.draw do
       namespace :trade do
         post "submissions", to: "submissions#create"
         get "submissions/check_email", to: "submissions#check_email"
+        get "pricing", to: "pricing#show"
 
         get "my-packages", to: "packages#index"
         get "packages/:id", to: "packages#show", as: :package

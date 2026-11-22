@@ -111,6 +111,8 @@ class WinePackageSerializer
       refresh_tracking: policy.refresh_tracking?,
       create_review: policy.review?,
       destroy: policy.destroy?,
+      manage_billing: policy.manage_billing?,
+      view_billing: policy.view_billing?,
       mark_in_transit: policy.mark_in_transit?,
       mark_arrived: policy.mark_arrived?,
       start_reviewing: policy.start_reviewing?,

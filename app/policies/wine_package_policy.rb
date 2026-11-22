@@ -32,7 +32,7 @@ class WinePackagePolicy < ApplicationPolicy
   def index? = user.present?
 
   def show?
-    editorial_manage? || created_by? || producer_member?
+    editorial_manage? || created_by? || producer_member? || submitter?
   end
 
   # Recording a package: any wine manager (Admin/Editor/Reviewer) may record a
@@ -71,11 +71,13 @@ class WinePackagePolicy < ApplicationPolicy
     editorial_manage? || (producer_member? && PRODUCER_MANAGEABLE_STATUSES.include?(record.status))
   end
 
-  # Shipment details: producers may add/update tracking only after their
-  # request has been accepted (or while announcing an expected shipment), and
-  # never alter provider event history.
+  # Shipment details: the submitter who ships the wine may set the carrier,
+  # consignment number, URL and ETA at any stage (IDENTITY_214 Phase 13) —
+  # the Wine Words team sees and can edit everything; arrival confirmation
+  # and provider refreshes stay editorial.
   def manage_tracking?
-    editorial_manage? || (producer_member? && PRODUCER_MANAGEABLE_STATUSES.include?(record.status))
+    editorial_manage? || submitter? ||
+      (producer_member? && PRODUCER_MANAGEABLE_STATUSES.include?(record.status))
   end
 
   # Carrier/provider refreshes can append provider events and update the
@@ -137,8 +139,23 @@ class WinePackagePolicy < ApplicationPolicy
     editorial_manage?
   end
 
+  # Billing actions (IDENTITY_214): confirm billable count, record invoice,
+  # mark paid, cancel/waive — editorial-only (Admin/Editor).
+  def manage_billing?
+    editorial_manage?
+  end
+
+  # View billing summary and invoice history — same as show? (owner + editorial).
+  def view_billing?
+    show?
+  end
+
   # Exposed for controllers that need to branch parameter sets by viewer kind.
   def producer_member? = producer_membership_exists?
+
+  # Exposed for the tracking controller: the caller is the trade submitter who
+  # owns the package (IDENTITY_206 claim flow sets submitter_id).
+  def submitter? = user && record.submitter_id == user.id
 
   # Exposed for controllers/serializers: the caller is on the editorial side
   # (catalogue manager or the package's reviewer) and may see editorial-only

@@ -109,9 +109,13 @@ class Api::V1::ShipmentTrackingsController < ApplicationController
   def tracking_params
     # :provider is accepted for explicit overrides; otherwise it is inferred
     # from the carrier (see ShipmentTracking#infer_provider_from_carrier).
-    if WinePackagePolicy.new(current_user, @package).producer_member?
-      # Producer-safe subset (issue #199 §4): no provider override, no delivery
-      # status and no delivered_at — physical arrival is confirmed editorially.
+    policy = WinePackagePolicy.new(current_user, @package)
+    if policy.producer_member? || policy.submitter?
+      # Restricted subset (issue #199 §4 + IDENTITY_214 Phase 13): the
+      # submitter/producer sets carrier, consignment number, URL and ETA.
+      # No provider override, no delivery status and no delivered_at —
+      # physical arrival is confirmed editorially, and the team can correct
+      # everything from the package page.
       params.require(:shipment_tracking).permit(
         :carrier, :number, :url, :estimated_delivery_at
       )

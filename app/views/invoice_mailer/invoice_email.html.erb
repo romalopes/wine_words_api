@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wine Words Invoice</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #241b19; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: linear-gradient(135deg, #4a1020, #27615e); border-radius: 12px 12px 0 0; padding: 30px; text-align: center;">
+    <h1 style="margin: 0 0 8px; color: #fff; font-size: 28px; font-weight: 700;">WINE WORDS</h1>
+    <p style="margin: 0; color: #efe5dc; font-size: 14px;">Premium Wine Review & Publication</p>
+  </div>
+
+  <div style="background: #fffaf4; border: 1px solid #e4d9cd; border-top: none; border-radius: 0 0 12px 12px; padding: 30px;">
+    <p style="font-size: 16px; margin-bottom: 24px;">Dear <%= @owner[:contact_name] || "Valued Client" %>,</p>
+
+    <p style="font-size: 16px; margin-bottom: 24px;">
+      Please find attached your invoice for the wine review service provided by Wine Words.
+    </p>
+
+    <div style="background: #f5f0ea; border: 1px solid #e4d9cd; border-radius: 8px; padding: 20px; margin-bottom: 24px;">
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 8px 0; font-weight: 600; color: #766963; width: 120px;">Invoice:</td>
+          <td style="padding: 8px 0; color: #241b19;"><%= @invoice.invoice_number %></td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; font-weight: 600; color: #766963;">Date:</td>
+          <td style="padding: 8px 0; color: #241b19;"><%= @invoice.issued_at&.strftime("%d %b %Y") || "—" %></td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; font-weight: 600; color: #766963;">Due:</td>
+          <td style="padding: 8px 0; color: #241b19;"><%= @invoice.due_at&.strftime("%d %b %Y") || "—" %></td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; font-weight: 600; color: #766963;">Amount:</td>
+          <td style="padding: 8px 0; color: #4a1020; font-weight: 700; font-size: 18px;"><%= number_to_currency(@invoice.total, unit: "#{@invoice.currency} ") %></td>
+        </tr>
+      </table>
+    </div>
+
+    <p style="font-size: 16px; margin-bottom: 16px;">
+      This invoice covers the review of <strong><%= @invoice.billable_bottle_count %></strong> bottle(s) submitted under package <strong>#<%= @package.id %></strong>.
+    </p>
+
+    <p style="font-size: 16px; margin-bottom: 24px;">
+      Payment can be made via bank transfer using the details on the attached invoice. Please include the invoice number as reference.
+    </p>
+
+    <p style="font-size: 16px; margin-bottom: 24px;">
+      If you have any questions, reply to this email or contact us at <a href="mailto:billing@winewords.com" style="color: #4a1020;">billing@winewords.com</a>.
+    </p>
+
+    <hr style="border: none; border-top: 1px solid #e4d9cd; margin: 24px 0;">
+
+    <p style="font-size: 16px; margin: 0; color: #4a1020;">
+      Kind regards,<br>
+      <strong>The Wine Words Team</strong>
+    </p>
+  </div>
+
+  <p style="text-align: center; font-size: 12px; color: #766963; margin-top: 20px;">
+    Wine Words Pty Ltd &nbsp;|&nbsp; billing@winewords.com &nbsp;|&nbsp; ABN: 12 345 678 901
+  </p>
+</body>
+</html>
