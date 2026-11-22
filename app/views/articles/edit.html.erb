@@ -60,6 +60,11 @@
 
 <script>
 (function () {
+window.escapeHtml = window.escapeHtml || function (s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+  });
+};
   var search = document.getElementById("article-wine-search");
   var statusBox = document.getElementById("article-search-status");
   var resultsBox = document.getElementById("article-wine-results");
@@ -104,7 +109,7 @@
       .then(function (reviews) {
         clearResults();
         var heading = document.createElement("p");
-        heading.innerHTML = "<strong>" + wine.name + " — " + vintage.year + "</strong> (tick to link):";
+        heading.innerHTML = "<strong>" + escapeHtml(wine.name) + " — " + vintage.year + "</strong> (tick to link):";
         resultsBox.appendChild(heading);
 
         if (!Array.isArray(reviews) || reviews.length === 0) {
@@ -124,8 +129,8 @@
           box.value = review.id;
           row.appendChild(box);
           var span = document.createElement("span");
-          span.innerHTML = "<strong>" + review.title + "</strong>" +
-            " <span class='wine-pick-btn__meta'>(score " + review.score + ")</span>";
+          span.innerHTML = "<strong>" + escapeHtml(review.title) + "</strong>" +
+            " <span class='wine-pick-btn__meta'>(score " + escapeHtml(review.score) + ")</span>";
           row.appendChild(span);
           resultsBox.appendChild(row);
         });

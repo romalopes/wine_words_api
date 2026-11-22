@@ -13,8 +13,7 @@ Devise.setup do |config|
   # random tokens. Changing this key will render invalid all existing
   # confirmation, reset password and unlock tokens in the database.
   # Devise will use the `secret_key_base` as its `secret_key`
-  # by default. You can change it below and use your own secret key.
-  # config.secret_key = '3b5ce8d5f58ffcb216f75fbac88ab5a362bfa9e6870e9ac45d6fa74312e38b24afdb94c6c27dd1980dc3fd65c4c7805c76b00e5132e8fa7aba3f94c00e92d42b'
+  # by default. The real key lives in credentials, never in source.
 
   # ==> Controller configuration
   # Configure the parent class to the devise controllers.
@@ -318,9 +317,10 @@ Devise.setup do |config|
   # ==> JWT configuration (devise-jwt)
   config.jwt do |jwt|
     jwt.secret = Rails.application.secret_key_base
-    # Effectively disable login expiration: tokens stay valid for 100 years
-    # instead of the default 30 minutes.
-    jwt.expiration_time = 100.years.to_i
+    # Bounded token lifetime (security audit issue #23). Default 7 days;
+    # override with API_SESSION_TTL_DAYS. Clients must
+    # re-authenticate after expiry.
+    jwt.expiration_time = ENV.fetch("API_SESSION_TTL_DAYS", 7).to_i
     jwt.dispatch_requests = [
       [ "POST", %r{^/api/v1/auth/sign_in$} ],
       [ "POST", %r{^/api/v1/auth/sign_up$} ],

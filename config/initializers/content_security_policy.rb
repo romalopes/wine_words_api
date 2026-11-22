@@ -9,7 +9,11 @@ Rails.application.config.content_security_policy do |policy|
   policy.font_src    :self, :https, :data
   policy.img_src     :self, :https, :data
   policy.object_src  :none
-  policy.script_src  :self, :https, :unsafe_inline, :unsafe_eval
+  # NOTE (security audit #23): :unsafe_inline stays for now because the ERB
+  # views use non-nonced inline <script> blocks; :unsafe_eval was removed
+  # (no eval/new Function in the app). Follow-up: move inline scripts to
+  # javascript_tag/nonce and drop :unsafe_inline.
+  policy.script_src  :self, :https, :unsafe_inline
   policy.style_src   :self, :https, :unsafe_inline
   policy.connect_src :self, :https, :data,
     "https://hagen.challenges.cloudflare.com",
@@ -35,7 +39,7 @@ end
 
 # Generate session nonces for permitted importmap, inline scripts, and inline styles.
 Rails.application.config.content_security_policy_nonce_generator = ->(request) { request.session.id.to_s }
-Rails.application.config.content_security_policy_nonce_directives = %w(script-src style-src)
+Rails.application.config.content_security_policy_nonce_directives = %w[script-src style-src]
 
 # Report violations without enforcing the policy.
 # Rails.application.config.content_security_policy_report_only = true

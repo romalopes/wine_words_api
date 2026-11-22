@@ -11,6 +11,8 @@
 # Idempotency: an optional client-generated X-Idempotency-Key header makes
 # retries return the original submission instead of duplicating it.
 class Api::V1::Trade::SubmissionsController < ApplicationController
+  include TurnstileVerifiable
+
   skip_before_action :authenticate_user!, only: %i[create check_email]
   skip_before_action :enforce_email_verification!, only: %i[create check_email]
   skip_before_action :reject_deleted_user!, only: %i[create check_email]
@@ -33,6 +35,10 @@ class Api::V1::Trade::SubmissionsController < ApplicationController
   end
 
   def create
+    # Cloudflare Turnstile (server-side, fail-closed). Disabled outside
+    # production unless TURNSTILE_ENABLED is set, so dev/test are unaffected.
+    return unless verify_turnstile!(action: "trade_submission", token: params[:turnstile_token])
+
     # Idempotency key: prefer the X-Idempotency-Key header, falling back to the
     # body param (the merge must not clobber the param with a nil header).
     idempotency_key =
@@ -78,6 +84,7 @@ class Api::V1::Trade::SubmissionsController < ApplicationController
     source = params[:submission].presence || params
     source.permit(
       :idempotency_key,
+      :turnstile_token,
       contact_snapshot: %i[
         company_name contact_name email phone address country website role notes
       ],

@@ -1,6 +1,10 @@
 class TestParametersController < ActionController::Base
   layout "application"
   helper :test_parameters
+  include RequireLogin
+  include CatalogueManageable
+
+  before_action :deny_unless_catalogue_manager!, only: [ :new, :create, :edit, :update, :destroy ]
 
   def index
     @test_parameters = TestParameter.includes(:wine_taste_parameters).order(:label)

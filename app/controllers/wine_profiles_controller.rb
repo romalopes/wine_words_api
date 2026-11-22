@@ -1,6 +1,11 @@
 class WineProfilesController < ActionController::Base
   layout "application"
   helper :wine_profiles
+  include RequireLogin
+  include CatalogueManageable
+
+  # Reads are public; every mutation requires a wine manager (Admin/Editor/Reviewer).
+  before_action :deny_unless_catalogue_manager!, only: [ :new, :create, :edit, :update, :destroy ]
 
   def index
     @wine_profiles = WineProfile.includes(:profile_grapes, :profile_regions, wine_profile_taste_parameters: :taste_parameter).order(:name)

@@ -57,6 +57,18 @@ class Rack::Attack
       req.ip if req.path.match?(%r{/api/v1/trade/invoices/\d+/checkout\z}) && req.post?
     end
 
+    # ---- Authentication brute-force guard (security audit issue #23) --------
+    # Per-IP throttle on the credential endpoints. The JSON body is not parsed
+    # into req.params, so a reliable per-email key is not available here; the
+    # per-IP window plus Devise's own password verification is the control.
+    throttle("auth/sign_in/ip", limit: 10, period: 1.minute) do |req|
+      req.ip if req.path == "/api/v1/auth/sign_in" && req.post?
+    end
+
+    throttle("auth/sign_up/ip", limit: 10, period: 1.minute) do |req|
+      req.ip if req.path == "/api/v1/auth/sign_up" && req.post?
+    end
+
     # Cache store defaults to memory; Solid Cache (SQL-backed) works too.
     # Configure explicitly so throttles share state across processes.
     Rack::Attack.cache.store = ActiveSupport::Cache::MemoryStore.new

@@ -148,7 +148,7 @@
     <script>
       (function () {
         var selected = [];
-        try { selected = <%= raw (@wine.grapes.map { |g| { id: g.id, name: g.name } }).to_json %>; } catch (e) {}
+        try { selected = <%= j((@wine.grapes.map { |g| { id: g.id, name: g.name } }).to_json) %>; } catch (e) {}
         var selectedBox = document.getElementById("wine-grapes-selected");
         var input = document.getElementById("grape_search_input");
         var resultsBox = document.getElementById("grape_search_results");
@@ -162,16 +162,25 @@
         }
 
         function renderSelected() {
-          selectedBox.innerHTML = selected.map(function (g) {
-            return '<span class="grape-tag" data-id="' + g.id + '">' + g.name +
-              ' <button type="button" class="grape-tag__remove" aria-label="Remove ' + g.name + '">&times;</button></span>';
-          }).join("") + hiddenInputs();
-          selectedBox.querySelectorAll(".grape-tag__remove").forEach(function (btn, i) {
-            btn.addEventListener("click", function () {
+          selectedBox.innerHTML = "";
+          selected.forEach(function (g, i) {
+            var tag = document.createElement("span");
+            tag.className = "grape-tag";
+            tag.setAttribute("data-id", g.id);
+            tag.appendChild(document.createTextNode(g.name + " "));
+            var removeBtn = document.createElement("button");
+            removeBtn.type = "button";
+            removeBtn.className = "grape-tag__remove";
+            removeBtn.setAttribute("aria-label", "Remove " + g.name);
+            removeBtn.textContent = "\u00d7";
+            removeBtn.addEventListener("click", function () {
               selected.splice(i, 1);
               renderSelected();
             });
+            tag.appendChild(removeBtn);
+            selectedBox.appendChild(tag);
           });
+          selectedBox.insertAdjacentHTML("beforeend", hiddenInputs());
         }
 
         function clearResults() { resultsBox.innerHTML = ""; }

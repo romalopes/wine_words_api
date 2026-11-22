@@ -2,6 +2,9 @@
 
 abort "E2E seeds may only run in RAILS_ENV=e2e" unless Rails.env.e2e?
 
+# Known, e2e-only password shared with the Playwright suite. Overridable via
+# E2E_USER_PASSWORD. This seeds file is hard-guarded to RAILS_ENV=e2e above, so
+# the value can never be applied to development or production (security #23).
 password = ENV.fetch("E2E_USER_PASSWORD", "Playwright123!")
 
 %w[Guest Reader Reviewer Editor Admin].each { |name| Role.find_or_create_by!(name:) }

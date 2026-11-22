@@ -28,6 +28,7 @@ class Api::V1::WineProfilesController < ApplicationController
 
   def create
     @wine_profile = WineProfile.new(wine_profile_params.except(:grapes, :regions))
+    authorize @wine_profile
     if @wine_profile.save
       assign_grapes_and_regions
       render json: @wine_profile, status: :created
@@ -38,6 +39,7 @@ class Api::V1::WineProfilesController < ApplicationController
 
   def update
     @wine_profile = WineProfile.find_by!(slug: params[:id])
+    authorize @wine_profile
     if @wine_profile.update(wine_profile_params.except(:grapes, :regions))
       assign_grapes_and_regions
       render json: @wine_profile
@@ -48,6 +50,7 @@ class Api::V1::WineProfilesController < ApplicationController
 
   def destroy
     @wine_profile = WineProfile.find_by!(slug: params[:id])
+    authorize @wine_profile
     @wine_profile.destroy
     head :no_content
   end

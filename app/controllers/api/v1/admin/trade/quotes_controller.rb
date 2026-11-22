@@ -12,7 +12,6 @@ class Api::V1::Admin::Trade::QuotesController < ApplicationController
   before_action :ensure_trade_manager!
   before_action :set_package, only: %i[create]
   before_action :set_quote, only: %i[send_quote accept]
-  before_action :set_package_for_quote, only: %i[send_quote accept]
 
   rescue_from Trade::Error, with: :render_trade_error
 
@@ -68,20 +67,25 @@ class Api::V1::Admin::Trade::QuotesController < ApplicationController
   private
 
   def ensure_trade_manager!
-    return render json: { error: "forbidden" }, status: :forbidden unless current_user&.catalogue_manager?
+    render json: { error: "forbidden" }, status: :forbidden unless current_user&.catalogue_manager?
   end
 
   def set_package
     @package = WinePackage.trade_submissions.find_by(id: params[:package_id])
-    return render json: { error: "not found" }, status: :not_found if @package.nil?
+    render json: { error: "not found" }, status: :not_found if @package.nil?
   end
 
+  # Resolve the package from the URL and scope the quote to it, so a quote id
+  # cannot be driven through a different package's route (security audit #23).
   def set_quote
-    @quote = WinePackageQuote.find(params[:id])
-  end
+    @package = WinePackage.trade_submissions.find_by(id: params[:package_id])
+    if @package.nil?
+      render json: { error: "not found" }, status: :not_found
+      return
+    end
 
-  def set_package_for_quote
-    @package = @quote.wine_package
+    @quote = @package.wine_package_quotes.find_by(id: params[:id])
+    render json: { error: "not found" }, status: :not_found if @quote.nil?
   end
 
   # items: [{ wine_package_item_id, description, quantity, unit_price }]

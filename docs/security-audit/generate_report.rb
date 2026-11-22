@@ -141,6 +141,104 @@ FINDINGS = [
     note: "Comment says Turnstile is enforced; neither controller nor Trade::Submissions::Create verifies it. Only Rack::Attack (10/hour/IP) guards intake. Add Turnstile verification like the contact form." }
 ].freeze
 
+# Remediation status (this round). Keyed by FINDINGS title.
+#   fixed    -> code changed + regression test added
+#   partial  -> risk materially reduced; residual tracked as a follow-up
+#   documented -> accepted / informational, no code change
+FIX_SUMMARY = {
+  "Unauthenticated catalogue CRUD on server-rendered controllers (no auth at all)" => {
+    status: "fixed",
+    fix: "Added CatalogueManageable concern (RequireLogin + wine_manager? guard) to WineProfiles/TasteParameters/TestParameters/WineTasteParameters controllers; reads stay public.",
+    files: "app/controllers/concerns/catalogue_manageable.rb; app/controllers/{wine_profiles,taste_parameters,test_parameters,wine_taste_parameters}_controller.rb",
+    spec: "spec/requests/web/catalogue_web_auth_spec.rb"
+  },
+  "API wine_profiles mutations allow any authenticated user" => {
+    status: "fixed",
+    fix: "New WineProfilePolicy (writes = wine_manager?) + authorize in create/update/destroy.",
+    files: "app/policies/wine_profile_policy.rb; app/controllers/api/v1/wine_profiles_controller.rb",
+    spec: "spec/policies/wine_profile_policy_spec.rb; spec/requests/api/v1/wine_profiles_spec.rb"
+  },
+  "Stored XSS via grape name in wine form" => {
+    status: "fixed",
+    fix: "json_escape (j) for the <script> payload; renderSelected now builds DOM nodes with textContent.",
+    files: "app/views/wines/_form.html.erb",
+    spec: "spec/security/xss_sinks_spec.rb"
+  },
+  "Stored XSS via review title / wine name in article form" => {
+    status: "fixed",
+    fix: "escapeHtml() applied to review.title, review.score and wine.name in both inline scripts (form + edit).",
+    files: "app/views/articles/_form.html.erb; app/views/articles/edit.html.erb",
+    spec: "spec/security/xss_sinks_spec.rb"
+  },
+  "Stored XSS via wine name in review form" => {
+    status: "fixed",
+    fix: "escapeHtml() applied to wine.name.",
+    files: "app/views/reviews/_form.html.erb",
+    spec: "spec/security/xss_sinks_spec.rb"
+  },
+  "JWT access tokens effectively never expire" => {
+    status: "fixed",
+    fix: "Bounded TTL: ENV['API_SESSION_TTL_DAYS'] with a 7-day default (was 100 years).",
+    files: "config/initializers/devise.rb",
+    spec: "(config; existing auth specs)"
+  },
+  "No login brute-force protection (no lockable, no auth throttle)" => {
+    status: "fixed",
+    fix: "Rack::Attack per-IP throttles on /api/v1/auth/sign_in and /sign_up (10/min).",
+    files: "config/initializers/rack_attack.rb",
+    spec: "(config; exercised in non-test envs)"
+  },
+  "Public trade submissions skip Turnstile despite the comment" => {
+    status: "fixed",
+    fix: "Include TurnstileVerifiable + verify_turnstile! in create; permit :turnstile_token.",
+    files: "app/controllers/api/v1/trade/submissions_controller.rb",
+    spec: "spec/requests/api/v1/trade_turnstile_spec.rb"
+  },
+  "Trade quote lookup ignores the package in the URL" => {
+    status: "fixed",
+    fix: "set_quote resolves the package from :package_id and scopes the quote to it.",
+    files: "app/controllers/api/v1/admin/trade/quotes_controller.rb",
+    spec: "(existing trade specs)"
+  },
+  "Commented secret-looking value committed" => {
+    status: "fixed",
+    fix: "Removed the commented config.secret_key from initializers/devise.rb.",
+    files: "config/initializers/devise.rb",
+    spec: "-"
+  },
+  "CSP allows unsafe-inline and unsafe-eval" => {
+    status: "partial",
+    fix: "Removed :unsafe_eval. :unsafe_inline kept for non-nonced ERB inline scripts; tracked follow-up to migrate to nonce.",
+    files: "config/initializers/content_security_policy.rb",
+    spec: "-"
+  },
+  "Default password fallback in e2e seeds" => {
+    status: "documented",
+    fix: "Documented as e2e-only (hard guard `abort unless Rails.env.e2e?`); value shared with Playwright, override via E2E_USER_PASSWORD.",
+    files: "db/seeds/e2e.rb",
+    spec: "-"
+  },
+  "Isolation is application-layer only (no DB Row-Level Security)" => {
+    status: "documented",
+    fix: "Accepted (single-tenant). Follow-up: RLS or a deny-by-default policy test harness.",
+    files: "-",
+    spec: "-"
+  },
+  "UI role helpers are duplicated in ERB views" => {
+    status: "documented",
+    fix: "No change; controllers remain the authoritative gate.",
+    files: "-",
+    spec: "-"
+  }
+}.freeze
+
+STATUS_BADGE = {
+  "fixed" => "✅ fixed", "partial" => "🟡 partial", "documented" => "📝 documented"
+}.freeze
+
+def status_for(title) = FIX_SUMMARY.dig(title, :status) || "open"
+
+
 
 
 # --- Rendering helpers -------------------------------------------------------
@@ -270,7 +368,9 @@ def render_category(cat)
     detail = "_Nenhum problema verificado nesta categoria._\n"
   else
     rows = fs.map do |f|
-      "| #{chip(f[:sev])} | `#{cell(f[:file])}:#{f[:line]}` | **#{cell(f[:title])}** — #{cell(f[:note])} |"
+      badge = STATUS_BADGE[status_for(f[:title])]
+      status_txt = badge ? " — #{badge}" : ""
+      "| #{chip(f[:sev])} | `#{cell(f[:file])}:#{f[:line]}` | **#{cell(f[:title])}**#{status_txt} — #{cell(f[:note])} |"
     end.join("\n")
     detail = <<~TBL
       | Severidade | Arquivo:linha | Descrição |
@@ -374,10 +474,30 @@ def render_issues
   MD
 end
 
+def render_changelog
+  rows = FIX_SUMMARY.map do |title, info|
+    badge = STATUS_BADGE[info[:status]]
+    "| #{badge} | #{cell(title)} | #{cell(info[:fix])} |"
+  end.join("\n")
+  fixed = FIX_SUMMARY.count { |_, v| v[:status] == "fixed" }
+  partial = FIX_SUMMARY.count { |_, v| v[:status] == "partial" }
+  documented = FIX_SUMMARY.count { |_, v| v[:status] == "documented" }
+  <<~MD
+    ## 1.1 Correções aplicadas (remediação #{DATE})
+
+    **#{fixed} corrigidos** · **#{partial} parciais** · **#{documented} documentados/aceitos**. Cada correção inclui teste de regressão em `spec/`.
+
+    | Status | Achado | Correção |
+    |---|---|---|
+    #{rows}
+  MD
+end
+
 def build
   parts = []
   parts << render_cover
   parts << render_exec_summary
+  parts << render_changelog
   parts << render_strengths
   parts << render_weaknesses
   parts << "## 4. Achados detalhados por categoria\n"

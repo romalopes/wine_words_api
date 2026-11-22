@@ -1,6 +1,10 @@
 class WineTasteParametersController < ActionController::Base
   layout "application"
   helper :wine_taste_parameters
+  include RequireLogin
+  include CatalogueManageable
+
+  before_action :deny_unless_catalogue_manager!, only: [ :new, :create, :edit, :update, :destroy ]
 
   def index
     @wine_taste_parameters = WineTasteParameter.includes(:wine, :taste_parameter).order(:score)

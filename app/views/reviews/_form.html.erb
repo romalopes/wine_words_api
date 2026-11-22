@@ -121,6 +121,11 @@
 <% end %>
 <script>
   (function () {
+window.escapeHtml = window.escapeHtml || function (s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+  });
+};
     var hiddenVintage = document.getElementById("review_vintage_id");
     var search = document.getElementById("review-vintage-search");
     var resultsBox = document.getElementById("wine-search-results");
@@ -193,7 +198,7 @@
           var done = document.createElement("p");
           done.className = "wine-pick-btn wine-pick-btn--selected";
           done.style.cursor = "default";
-          done.innerHTML = "<strong>" + wine.name + "</strong>" +
+          done.innerHTML = "<strong>" + escapeHtml(wine.name) + "</strong>" +
             "<span class='wine-pick-btn__meta'>" + vintage.year + "</span>";
           resultsBox.appendChild(done);
         }));

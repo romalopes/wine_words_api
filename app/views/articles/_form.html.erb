@@ -139,6 +139,11 @@
 
 <script>
 (function () {
+window.escapeHtml = window.escapeHtml || function (s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+  });
+};
   var picker = document.getElementById("vintage-picker");
   var search = document.getElementById("article-wine-search");
   if (!picker || !search) return;
@@ -210,8 +215,8 @@
           row.appendChild(box);
           var span = document.createElement("span");
           var statusBadge = review.status === "draft" ? " <span class='review-status-badge'>Draft</span>" : "";
-          span.innerHTML = "<strong>" + review.title + "</strong>" +
-            " <span class='wine-pick-btn__meta'>(score " + review.score + ")" + statusBadge + "</span>";
+          span.innerHTML = "<strong>" + escapeHtml(review.title) + "</strong>" +
+            " <span class='wine-pick-btn__meta'>(score " + escapeHtml(review.score) + ")" + statusBadge + "</span>";
           row.appendChild(span);
           container.appendChild(row);
         });
@@ -349,6 +354,11 @@
 
 <script>
 (function () {
+window.escapeHtml = window.escapeHtml || function (s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+  });
+};
   var search = document.getElementById("article-wine-search");
   if (!search) return;
   var statusBox = document.getElementById("article-search-status");
@@ -415,7 +425,7 @@
         setStatus(reviews.length + " review" + (reviews.length === 1 ? "" : "s") +
           " — tick to link:");
         var heading = document.createElement("p");
-        heading.innerHTML = "<strong>" + wine.name + " — " + vintage.year + "</strong> (tick to link):";
+        heading.innerHTML = "<strong>" + escapeHtml(wine.name) + " — " + vintage.year + "</strong> (tick to link):";
         resultsBox.appendChild(heading);
 
         reviews.forEach(function (review) {
@@ -430,8 +440,8 @@
           row.appendChild(box);
           var span = document.createElement("span");
           var statusBadge = review.status === "draft" ? " <span class='review-status-badge'>Draft</span>" : "";
-          span.innerHTML = "<strong>" + review.title + "</strong>" +
-            " <span class='wine-pick-btn__meta'>(score " + review.score + ")" + statusBadge + "</span>";
+          span.innerHTML = "<strong>" + escapeHtml(review.title) + "</strong>" +
+            " <span class='wine-pick-btn__meta'>(score " + escapeHtml(review.score) + ")" + statusBadge + "</span>";
           row.appendChild(span);
           resultsBox.appendChild(row);
         });
@@ -460,8 +470,8 @@
           row.appendChild(box);
           var span = document.createElement("span");
           var statusBadge = review.status === "draft" ? " <span class='review-status-badge'>Draft</span>" : "";
-          span.innerHTML = "<strong>" + review.title + "</strong>" +
-            " <span class='wine-pick-btn__meta'>(score " + review.score + ")" + statusBadge + "</span>";
+          span.innerHTML = "<strong>" + escapeHtml(review.title) + "</strong>" +
+            " <span class='wine-pick-btn__meta'>(score " + escapeHtml(review.score) + ")" + statusBadge + "</span>";
           row.appendChild(span);
           container.appendChild(row);
         });

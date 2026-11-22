@@ -10,7 +10,9 @@ RSpec.describe "Api::V1::WineProfiles", type: :request do
   include Devise::Test::IntegrationHelpers
 
   let(:wine_manager) do
-    User.create!(first_name: "Manager", email: "profile-manager@example.com", password: "password123")
+    User.create!(first_name: "Manager", email: "profile-manager@example.com", password: "password123").tap do |user|
+      user.roles << Role.find_or_create_by!(name: "Reviewer")
+    end
   end
 
   before do
