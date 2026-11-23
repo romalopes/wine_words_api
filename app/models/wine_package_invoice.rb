@@ -38,6 +38,49 @@ class WinePackageInvoice < ApplicationRecord
   scope :manual, -> { where(payment_source: :manual) }
   scope :stripe, -> { where(payment_source: :stripe) }
 
+scope :filter_by, ->(filters) {
+  # Ensure we can access keys as both symbols and strings
+  # ActionController::Parameters doesn't have with_indifferent_access, convert to Hash first
+  f = filters.respond_to?(:to_unsafe_h) ? filters.to_unsafe_h.with_indifferent_access : filters.with_indifferent_access
+  relation = all
+  
+  # Status filter
+  if f[:status].present? && f[:status] != "all"
+    relation = relation.where(status: f[:status])
+  end
+  
+  # Email sent filter
+  if f[:email_sent].present? && f[:email_sent] != "all"
+    if f[:email_sent] == "sent"
+      relation = relation.where.not(email_sent_at: nil)
+    elsif f[:email_sent] == "not_sent"
+      relation = relation.where(email_sent_at: nil)
+    end
+  end
+  
+  # Payment source filter
+  if f[:payment_source].present? && f[:payment_source] != "all"
+    relation = relation.where(payment_source: f[:payment_source])
+  end
+  
+  # Overdue filter
+  if f[:overdue].present?
+    relation = relation.manual.sent.where("due_at < ?", Time.current)
+  end
+  
+  # Date range filter
+  if f[:start_date].present?
+    start_date = Date.parse(f[:start_date])
+    relation = relation.where("COALESCE(issued_at, created_at) >= ?", start_date)
+  end
+  if f[:end_date].present?
+    end_date = Date.parse(f[:end_date])
+    relation = relation.where("COALESCE(issued_at, created_at) <= ?", end_date)
+  end
+  
+  relation
+}
+
   def total_equals_components
     return if subtotal.nil? || tax.nil? || total.nil?
 

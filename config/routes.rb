@@ -432,6 +432,8 @@ Rails.application.routes.draw do
       delete "auth/identities/:id", to: "user_identities#destroy"
 
       get "me", to: "users#me"
+
+get "invoices/report", to: "api/v1/invoices#report", as: :invoices_report, defaults: { format: "pdf" }
       get "stats", to: "stats#index"
 
       # Content analytics beacon (public; anonymous allowed)

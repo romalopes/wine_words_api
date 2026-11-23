@@ -13,6 +13,7 @@ class Api::V1::InvoicesController < ApplicationController
     invoices = WinePackageInvoice
                  .includes(wine_package: [:producer, :submitter, :wine_package_items])
                  .where.not(status: :draft)
+                 .filter_by(filter_params)
                  .order(created_at: :desc)
 
     render json: invoices.map { |invoice| invoice_row(invoice) }
@@ -26,6 +27,31 @@ class Api::V1::InvoicesController < ApplicationController
     return if current_user&.catalogue_manager?
 
     render json: { error: "Forbidden" }, status: :forbidden
+  end
+
+  def report
+    unless current_user&.catalogue_manager?
+      render json: { error: "Forbidden" }, status: :forbidden
+      return
+    end
+
+    invoices = WinePackageInvoice
+                 .includes(wine_package: [:producer, :submitter, :wine_package_items])
+                 .where.not(status: :draft)
+                 .filter_by(filter_params)
+                 .order(created_at: :desc)
+
+    pdf = InvoiceReportPdf.call(invoices: invoices, filters: filter_params)
+    send_data pdf.render,
+              filename: "invoices-report-#{Date.current}.pdf",
+              type: "application/pdf",
+              disposition: "attachment"
+  end
+
+  def filter_params
+    params.slice(:status, :email_sent, :start_date, :end_date, :payment_source, :overdue).transform_values do |v|
+      v.is_a?(String) ? v.presence&.downcase : v
+    end
   end
 
   def invoice_row(invoice)
