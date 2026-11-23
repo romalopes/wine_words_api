@@ -48,6 +48,9 @@ class WinePackageSerializer
       producer_notes: @package.producer_notes,
       shipping_notes: @package.shipping_notes,
       # Editorial-only notes — never shipped to a producer viewer (§8).
+      # Trade submitter contact details (IDENTITY_206) - editorial only,
+      # mirroring the notes visibility rule.
+      contact_snapshot: editorial_viewer? ? @package.contact_snapshot : nil,
       notes: editorial_viewer? ? @package.notes : nil,
       internal_notes: editorial_viewer? ? @package.internal_notes : nil,
       items: items,

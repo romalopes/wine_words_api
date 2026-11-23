@@ -573,6 +573,35 @@ RSpec.describe "Api::V1::WinePackages", type: :request do
                              "accept" => false, "mark_arrived" => false, "destroy" => false)
     end
 
+    it "ships the submitter contact to editorial viewers only" do
+      package = WinePackage.create!(
+        producer: producer, created_by: admin, status: "draft", source: "manual",
+        contact_snapshot: { "company_name" => "Chardonnay Co", "contact_name" => "Alice Owner",
+                            "email" => "alice@example.com" }
+      )
+
+      sign_in admin
+      get "/api/v1/wine_packages/#{package.id}"
+
+      expect(JSON.parse(response.body)["contact_snapshot"]).to include(
+        "company_name" => "Chardonnay Co", "email" => "alice@example.com"
+      )
+    end
+
+    it "hides the submitter contact from producer viewers" do
+      package = WinePackage.create!(
+        producer: producer, created_by: manager, requested_by: manager,
+        source: "producer_request", status: "draft",
+        contact_snapshot: { "company_name" => "Chardonnay Co", "contact_name" => "Alice",
+                            "email" => "alice@example.com" }
+      )
+
+      sign_in manager
+      get "/api/v1/wine_packages/#{package.id}"
+
+      expect(JSON.parse(response.body)["contact_snapshot"]).to be_nil
+    end
+
     it "never schedules reviewer deadlines to the producer-side creator" do
       package = WinePackage.create!(producer: producer, created_by: manager, requested_by: manager,
                                     source: "producer_request", status: "accepted")
