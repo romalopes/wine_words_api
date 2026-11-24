@@ -42,6 +42,12 @@ class Api::V1::ConfigurationsController < ApplicationController
       email = AppSetting.validate_invoice_from_email!(settings[:invoice_from_email])
       AppSetting.set!(:invoice_from_email, email)
     end
+    # New settings (IDENTITY_206 Phase 12 / IDENTITY_214 Phase 12)
+    AppSetting.set!(:sample_shipping_address, settings[:sample_shipping_address]) if settings.key?(:sample_shipping_address)
+    AppSetting.set!(:invoice_bank_name, settings[:invoice_bank_name]) if settings.key?(:invoice_bank_name)
+    AppSetting.set!(:invoice_account_name, settings[:invoice_account_name]) if settings.key?(:invoice_account_name)
+    AppSetting.set!(:invoice_bsb, settings[:invoice_bsb]) if settings.key?(:invoice_bsb)
+    AppSetting.set!(:invoice_account_number, settings[:invoice_account_number]) if settings.key?(:invoice_account_number)
     render json: configuration_json
   rescue ActiveRecord::RecordInvalid => e
     render json: { error: e.record.errors.full_messages.join(", ") },
@@ -59,8 +65,12 @@ class Api::V1::ConfigurationsController < ApplicationController
     permitted = params.permit(
       :logs_saved_to_database, :use_test_email, :test_email, :mail_transport, :show_taste_parameters,
       :wine_review_fee_amount, :wine_review_fee_currency, :invoice_gst_rate, :invoice_from_email,
+      :sample_shipping_address,
+      :invoice_bank_name, :invoice_account_name, :invoice_bsb, :invoice_account_number,
       configuration: [ :logs_saved_to_database, :use_test_email, :test_email, :mail_transport, :show_taste_parameters,
-                       :wine_review_fee_amount, :wine_review_fee_currency, :invoice_gst_rate, :invoice_from_email ]
+                       :wine_review_fee_amount, :wine_review_fee_currency, :invoice_gst_rate, :invoice_from_email,
+                       :sample_shipping_address,
+                       :invoice_bank_name, :invoice_account_name, :invoice_bsb, :invoice_account_number ]
     )
     permitted[:configuration].presence || permitted
   end
@@ -76,6 +86,12 @@ class Api::V1::ConfigurationsController < ApplicationController
       wine_review_fee_currency: AppSetting.wine_review_fee_currency,
       invoice_gst_rate: AppSetting.invoice_gst_rate.to_s("F"),
       invoice_from_email: AppSetting.invoice_from_email,
+      # New settings (IDENTITY_206 Phase 12 / IDENTITY_214 Phase 12)
+      sample_shipping_address: AppSetting.sample_shipping_address,
+      invoice_bank_name: AppSetting.invoice_bank_name,
+      invoice_account_name: AppSetting.invoice_account_name,
+      invoice_bsb: AppSetting.invoice_bsb,
+      invoice_account_number: AppSetting.invoice_account_number,
       settings: AppSetting.where.not(key: AppSetting::RESERVED_KEYS).order(:key).map do |s|
         { id: s.id, key: s.key, value: s.value, updated_at: s.updated_at.iso8601(3) }
       end

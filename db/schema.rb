@@ -51,7 +51,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_22_103000) do
     t.index ["token_digest"], name: "index_account_invitations_on_token_digest", unique: true
     t.index ["user_id", "created_at"], name: "index_account_invitations_on_user_id_and_created_at"
     t.index ["user_id"], name: "index_account_invitations_on_user_id"
-    t.check_constraint "status::text = ANY (ARRAY['pending'::character varying, 'sent'::character varying, 'accepted'::character varying, 'revoked'::character varying]::text[])", name: "account_invitations_status_check"
+    t.check_constraint "status::text = ANY (ARRAY['pending'::character varying::text, 'sent'::character varying::text, 'accepted'::character varying::text, 'revoked'::character varying::text])", name: "account_invitations_status_check"
   end
 
   create_table "accounts", force: :cascade do |t|
@@ -382,7 +382,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_22_103000) do
     t.index ["followable_type", "followable_id", "user_id"], name: "index_follows_on_followable_and_user"
     t.index ["user_id", "followable_type", "followable_id"], name: "index_follows_on_user_and_followable", unique: true
     t.index ["user_id"], name: "index_follows_on_user_id"
-    t.check_constraint "followable_type::text = ANY (ARRAY['Producer'::character varying, 'Wine'::character varying, 'Review'::character varying, 'Article'::character varying]::text[])", name: "follows_followable_type_check"
+    t.check_constraint "followable_type::text = ANY (ARRAY['Producer'::character varying::text, 'Wine'::character varying::text, 'Review'::character varying::text, 'Article'::character varying::text])", name: "follows_followable_type_check"
   end
 
   create_table "grape_regions", force: :cascade do |t|
@@ -508,7 +508,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_22_103000) do
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["user_id"], name: "index_notification_preferences_on_user_id", unique: true
-    t.check_constraint "digest_cadence::text = ANY (ARRAY['none'::character varying, 'daily'::character varying, 'weekly'::character varying]::text[])", name: "notification_preferences_digest_cadence_check"
+    t.check_constraint "digest_cadence::text = ANY (ARRAY['none'::character varying::text, 'daily'::character varying::text, 'weekly'::character varying::text])", name: "notification_preferences_digest_cadence_check"
   end
 
   create_table "notifications", force: :cascade do |t|
@@ -564,7 +564,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_22_103000) do
     t.index ["producer_id"], name: "index_producer_memberships_on_producer_id"
     t.index ["user_id", "producer_id"], name: "index_producer_memberships_on_user_id_and_producer_id", unique: true
     t.index ["user_id"], name: "index_producer_memberships_on_user_id"
-    t.check_constraint "membership_type::text = ANY (ARRAY['owner'::character varying, 'manager'::character varying, 'contributor'::character varying]::text[])", name: "chk_membership_type"
+    t.check_constraint "membership_type::text = ANY (ARRAY['owner'::character varying::text, 'manager'::character varying::text, 'contributor'::character varying::text])", name: "chk_membership_type"
   end
 
   create_table "producer_regions", force: :cascade do |t|
@@ -1055,7 +1055,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_22_103000) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
     t.index ["subscription_id"], name: "index_users_on_subscription_id"
     t.check_constraint "account_status::text = 'unclaimed'::text OR email IS NOT NULL", name: "users_email_required_when_claimed"
-    t.check_constraint "account_status::text = ANY (ARRAY['unclaimed'::character varying, 'active'::character varying, 'suspended'::character varying]::text[])", name: "users_account_status_check"
+    t.check_constraint "account_status::text = ANY (ARRAY['unclaimed'::character varying::text, 'active'::character varying::text, 'suspended'::character varying::text])", name: "users_account_status_check"
   end
 
   create_table "vintages", force: :cascade do |t|
@@ -1295,17 +1295,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_22_103000) do
     t.check_constraint "status::text = ANY (ARRAY['draft'::character varying, 'requested'::character varying, 'accepted'::character varying, 'rejected'::character varying, 'announced'::character varying, 'in_transit'::character varying, 'arrived'::character varying, 'reviewing'::character varying, 'completed'::character varying, 'cancelled'::character varying, 'editorial_pending'::character varying, 'assessment_in_progress'::character varying, 'partially_approved'::character varying, 'approved'::character varying, 'quoted'::character varying, 'invoiced'::character varying, 'paid'::character varying, 'shipping_pending'::character varying, 'shipping_released'::character varying]::text[])", name: "wine_packages_status_check"
   end
 
-  create_table "wine_packages_histories", force: :cascade do |t|
+  create_table "wine_packages_histories", id: false, force: :cascade do |t|
     t.bigint "accepted_by_id"
-    t.datetime "announced_at"
-    t.datetime "arrived_at"
+    t.datetime "announced_at", precision: nil
+    t.datetime "arrived_at", precision: nil
     t.bigint "changed_by_id"
     t.jsonb "contact_snapshot"
-    t.datetime "created_at", null: false
+    t.datetime "created_at", precision: nil, null: false
     t.bigint "created_by_id"
-    t.datetime "delivered_at"
-    t.datetime "estimated_delivery_at"
-    t.datetime "expected_at"
+    t.datetime "delivered_at", precision: nil
+    t.datetime "estimated_delivery_at", precision: nil
+    t.datetime "expected_at", precision: nil
     t.text "notes"
     t.string "operation", limit: 1, null: false
     t.bigint "producer_id"
@@ -1313,29 +1313,29 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_22_103000) do
     t.string "producer_reference"
     t.bigint "rejected_by_id"
     t.string "rejection_reason"
-    t.datetime "requested_at"
+    t.datetime "requested_at", precision: nil
     t.date "review_deadline"
-    t.datetime "reviewed_at"
+    t.datetime "reviewed_at", precision: nil
     t.bigint "reviewer_id"
     t.text "shipping_notes"
-    t.datetime "shipping_override_at"
+    t.datetime "shipping_override_at", precision: nil
     t.bigint "shipping_override_by_id"
     t.string "source", limit: 32
     t.string "status", limit: 32, null: false
-    t.datetime "submitted_at"
+    t.datetime "submitted_at", precision: nil
     t.bigint "submitter_id"
     t.string "tracking_carrier"
     t.string "tracking_number"
     t.string "tracking_status"
-    t.datetime "tracking_status_updated_at"
+    t.datetime "tracking_status_updated_at", precision: nil
     t.string "tracking_url"
-    t.datetime "updated_at", null: false
+    t.datetime "updated_at", precision: nil, null: false
     t.timestamptz "valid_from", default: -> { "now()" }, null: false
     t.timestamptz "valid_to"
     t.bigint "wine_package_id", null: false
-    t.index ["changed_by_id"], name: "index_wine_packages_histories_on_changed_by_id"
-    t.index ["valid_from", "valid_to"], name: "index_wine_packages_histories_on_valid_from_and_valid_to"
-    t.index ["wine_package_id"], name: "index_wine_packages_histories_on_wine_package_id"
+    t.index ["changed_by_id"], name: "idx_wine_packages_histories_changed_by_id"
+    t.index ["valid_from", "valid_to"], name: "idx_wine_packages_histories_valid_range"
+    t.index ["wine_package_id"], name: "idx_wine_packages_histories_package_id"
   end
 
   create_table "wine_profile_grapes", id: false, force: :cascade do |t|
@@ -1479,7 +1479,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_22_103000) do
   add_foreign_key "producer_regions", "producers"
   add_foreign_key "producer_regions", "regions"
   add_foreign_key "producers", "countries", name: "fk_rails_producers_country", on_delete: :nullify
-  add_foreign_key "producers", "countries", on_delete: :nullify
   add_foreign_key "push_subscriptions", "users", on_delete: :cascade
   add_foreign_key "regions", "countries"
   add_foreign_key "regions", "regions", column: "parent_id"
@@ -1541,13 +1540,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_22_103000) do
   add_foreign_key "wine_packages", "users", column: "shipping_override_by_id"
   add_foreign_key "wine_packages", "users", column: "submitter_id"
   add_foreign_key "wine_profile_grapes", "grapes", name: "fk_rails_wpg_grape", on_delete: :cascade
-  add_foreign_key "wine_profile_grapes", "grapes", on_delete: :cascade
   add_foreign_key "wine_profile_grapes", "wine_profiles", name: "fk_rails_wpg_wine_profile", on_delete: :cascade
-  add_foreign_key "wine_profile_grapes", "wine_profiles", on_delete: :cascade
   add_foreign_key "wine_profile_regions", "regions", name: "fk_rails_wpr_region", on_delete: :cascade
-  add_foreign_key "wine_profile_regions", "regions", on_delete: :cascade
   add_foreign_key "wine_profile_regions", "wine_profiles", name: "fk_rails_wpr_wine_profile", on_delete: :cascade
-  add_foreign_key "wine_profile_regions", "wine_profiles", on_delete: :cascade
   add_foreign_key "wine_profile_taste_parameters", "taste_parameters"
   add_foreign_key "wine_profile_taste_parameters", "wine_profiles"
   add_foreign_key "wine_regions", "regions"

@@ -40,6 +40,8 @@ class AppSetting < ApplicationRecord
     wine_review_fee_amount wine_review_fee_currency
     invoice_gst_rate
     invoice_from_email
+    sample_shipping_address
+    invoice_bank_name invoice_account_name invoice_bsb invoice_account_number
   ].freeze
 
   # Audit-trail master switch: when false, the Auditable concern skips
@@ -164,6 +166,31 @@ class AppSetting < ApplicationRecord
   # billing@winewords.com. A blank stored value self-heals to the default.
   def self.invoice_from_email
     string("invoice_from_email").presence || DEFAULTS.fetch("invoice_from_email")
+  end
+
+  # Sample shipping address (IDENTITY_206 Phase 12): the address where submitters
+  # should send their wine samples. Shown in the shipping instructions email.
+  def self.sample_shipping_address
+    string("sample_shipping_address").presence || "Wine Words HQ\nLevel 1, 123 Example Street\nSydney NSW 2000\nAustralia"
+  end
+
+  # Invoice payment bank details (IDENTITY_214 Phase 12): shown in the invoice PDF
+  # payment instructions section. Each has a sensible default but should be
+  # configured per environment via the Configuration page.
+  def self.invoice_bank_name
+    string("invoice_bank_name").presence || "Commonwealth Bank of Australia"
+  end
+
+  def self.invoice_account_name
+    string("invoice_account_name").presence || "Wine Words Pty Ltd"
+  end
+
+  def self.invoice_bsb
+    string("invoice_bsb").presence || "062-000"
+  end
+
+  def self.invoice_account_number
+    string("invoice_account_number").presence || "1234 5678"
   end
 
   # Validates an invoice "from" address: a single, plausible email address.

@@ -235,10 +235,10 @@ def draw_totals
       instructions = [
         "Please pay via bank transfer using the details below:",
         "",
-        "Bank: Commonwealth Bank of Australia",
-        "Account Name: Wine Words Pty Ltd",
-        "BSB: 062-000",
-        "Account: 1234 5678",
+        "Bank: #{AppSetting.invoice_bank_name}",
+        "Account Name: #{AppSetting.invoice_account_name}",
+        "BSB: #{AppSetting.invoice_bsb}",
+        "Account: #{AppSetting.invoice_account_number}",
         "Reference: #{invoice.invoice_number} (required)",
         "",
         "Please include the invoice number as reference to ensure prompt processing."

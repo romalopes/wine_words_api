@@ -22,6 +22,10 @@ puts "  - #{Subscription.count} subscriptions"
 load Rails.root.join('db', 'seeds', 'create_three_basic_users.rb').to_s
 puts "  - #{User.count} users"
 
+# Seed AppSettings (idempotent)
+load Rails.root.join('db', 'seeds', 'app_settings.rb').to_s
+puts "  - #{AppSetting.count} app settings"
+
 # bundle exec rails runner db/seeds/countries.rb
 load Rails.root.join('db', 'seeds', 'countries.rb').to_s
 puts "  - #{Country.count} countries"
