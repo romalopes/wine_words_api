@@ -9,6 +9,10 @@
 
 <p>This link expires in <%= @expires_in.in_hours == 1 ? "1 hour" : "#{@expires_in.in_hours} hours" %>.</p>
 
+<p>If the button above doesn't work, copy and paste this link into your browser:</p>
+
+<p><small><%= @verify_url %></small></p>
+
 <%# The raw token is what makes the link work — the digest is what's stored on the user.
     Never include the raw token in plain text outside the link itself. %>
 
