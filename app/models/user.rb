@@ -114,6 +114,11 @@ class User < ApplicationRecord
   # persisted and defaults to false, leaving email/password sign-up untouched.
   attr_accessor :social_signup
 
+  # Virtual attribute for Cloudflare Turnstile token verification.
+  # The token is validated in the controller before the user is saved,
+  # but it is not persisted to the database.
+  attr_accessor :turnstile_token
+
   # Every new user starts with the "Guest" role and the FREE subscription
   # unless roles were explicitly assigned (e.g. seeded admins).
   after_create :assign_default_role
